@@ -10,63 +10,117 @@ import Foundation
 import MachO
 
 public enum LoadCommandType: Int32 {
-    case segment // LC_SEGMENT
-    case symtab // LC_SYMTAB
-    case symseg // LC_SYMSEG
-    case thread // LC_THREAD
-    case unixthread // LC_UNIXTHREAD
-    case loadfvmlib // LC_LOADFVMLIB
-    case idfvmlib // LC_IDFVMLIB
-    case ident // LC_IDENT
-    case fvmfile // LC_FVMFILE
-    case prepage // LC_PREPAGE
-    case dysymtab // LC_DYSYMTAB
-    case loadDylib // LC_LOAD_DYLIB
-    case idDylib // LC_ID_DYLIB
-    case loadDylinker // LC_LOAD_DYLINKER
-    case idDylinker // LC_ID_DYLINKER
-    case preboundDylib // LC_PREBOUND_DYLIB
-    case routines // LC_ROUTINES
-    case subFramework // LC_SUB_FRAMEWORK
-    case subUmbrella // LC_SUB_UMBRELLA
-    case subClient // LC_SUB_CLIENT
-    case subLibrary // LC_SUB_LIBRARY
-    case twolevelHints // LC_TWOLEVEL_HINTS
-    case prebindCksum // LC_PREBIND_CKSUM
-    case loadWeakDylib // LC_LOAD_WEAK_DYLIB
-    case segment64 // LC_SEGMENT_64
-    case routines64 // LC_ROUTINES_64
-    case uuid // LC_UUID
-    case rpath // LC_RPATH
-    case codeSignature // LC_CODE_SIGNATURE
-    case segmentSplitInfo // LC_SEGMENT_SPLIT_INFO
-    case reexportDylib // LC_REEXPORT_DYLIB
-    case lazyLoadDylib // LC_LAZY_LOAD_DYLIB
-    case encryptionInfo // LC_ENCRYPTION_INFO
-    case dyldInfo // LC_DYLD_INFO
-    case dyldInfoOnly // LC_DYLD_INFO_ONLY
-    case loadUpwardDylib // LC_LOAD_UPWARD_DYLIB
-    case versionMinMacosx // LC_VERSION_MIN_MACOSX
-    case versionMinIphoneos // LC_VERSION_MIN_IPHONEOS
-    case functionStarts // LC_FUNCTION_STARTS
-    case dyldEnvironment // LC_DYLD_ENVIRONMENT
-    case main // LC_MAIN
-    case dataInCode // LC_DATA_IN_CODE
-    case sourceVersion // LC_SOURCE_VERSION
-    case dylibCodeSignDrs // LC_DYLIB_CODE_SIGN_DRS
-    case encryptionInfo64 // LC_ENCRYPTION_INFO_64
-    case linkerOption // LC_LINKER_OPTION
-    case linkerOptimizationHint // LC_LINKER_OPTIMIZATION_HINT
-    case versionMinTvos // LC_VERSION_MIN_TVOS
-    case versionMinWatchos // LC_VERSION_MIN_WATCHOS
-    case note // LC_NOTE
-    case buildVersion // LC_BUILD_VERSION
-    case dyldExportsTrie // LC_DYLD_EXPORTS_TRIE
-    case dyldChainedFixups // LC_DYLD_CHAINED_FIXUPS
-    case filesetEntry // LC_FILESET_ENTRY
-    case atomInfo // LC_ATOM_INFO
+    /// LC_SEGMENT
+    case segment
+    /// LC_SYMTAB
+    case symtab
+    /// LC_SYMSEG
+    case symseg
+    /// LC_THREAD
+    case thread
+    /// LC_UNIXTHREAD
+    case unixthread
+    /// LC_LOADFVMLIB
+    case loadfvmlib
+    /// LC_IDFVMLIB
+    case idfvmlib
+    /// LC_IDENT
+    case ident
+    /// LC_FVMFILE
+    case fvmfile
+    /// LC_PREPAGE
+    case prepage
+    /// LC_DYSYMTAB
+    case dysymtab
+    /// LC_LOAD_DYLIB
+    case loadDylib
+    /// LC_ID_DYLIB
+    case idDylib
+    /// LC_LOAD_DYLINKER
+    case loadDylinker
+    /// LC_ID_DYLINKER
+    case idDylinker
+    /// LC_PREBOUND_DYLIB
+    case preboundDylib
+    /// LC_ROUTINES
+    case routines
+    /// LC_SUB_FRAMEWORK
+    case subFramework
+    /// LC_SUB_UMBRELLA
+    case subUmbrella
+    /// LC_SUB_CLIENT
+    case subClient
+    /// LC_SUB_LIBRARY
+    case subLibrary
+    /// LC_TWOLEVEL_HINTS
+    case twolevelHints
+    /// LC_PREBIND_CKSUM
+    case prebindCksum
+    /// LC_LOAD_WEAK_DYLIB
+    case loadWeakDylib
+    /// LC_SEGMENT_64
+    case segment64
+    /// LC_ROUTINES_64
+    case routines64
+    /// LC_UUID
+    case uuid
+    /// LC_RPATH
+    case rpath
+    /// LC_CODE_SIGNATURE
+    case codeSignature
+    /// LC_SEGMENT_SPLIT_INFO
+    case segmentSplitInfo
+    /// LC_REEXPORT_DYLIB
+    case reexportDylib
+    /// LC_LAZY_LOAD_DYLIB
+    case lazyLoadDylib
+    /// LC_ENCRYPTION_INFO
+    case encryptionInfo
+    /// LC_DYLD_INFO
+    case dyldInfo
+    /// LC_DYLD_INFO_ONLY
+    case dyldInfoOnly
+    /// LC_LOAD_UPWARD_DYLIB
+    case loadUpwardDylib
+    /// LC_VERSION_MIN_MACOSX
+    case versionMinMacosx
+    /// LC_VERSION_MIN_IPHONEOS
+    case versionMinIphoneos
+    /// LC_FUNCTION_STARTS
+    case functionStarts
+    /// LC_DYLD_ENVIRONMENT
+    case dyldEnvironment
+    /// LC_MAIN
+    case main
+    /// LC_DATA_IN_CODE
+    case dataInCode
+    /// LC_SOURCE_VERSION
+    case sourceVersion
+    /// LC_DYLIB_CODE_SIGN_DRS
+    case dylibCodeSignDrs
+    /// LC_ENCRYPTION_INFO_64
+    case encryptionInfo64
+    /// LC_LINKER_OPTION
+    case linkerOption
+    /// LC_LINKER_OPTIMIZATION_HINT
+    case linkerOptimizationHint
+    /// LC_VERSION_MIN_TVOS
+    case versionMinTvos
+    /// LC_VERSION_MIN_WATCHOS
+    case versionMinWatchos
+    /// LC_NOTE
+    case note
+    /// LC_BUILD_VERSION
+    case buildVersion
+    /// LC_DYLD_EXPORTS_TRIE
+    case dyldExportsTrie
+    /// LC_DYLD_CHAINED_FIXUPS
+    case dyldChainedFixups
+    /// LC_FILESET_ENTRY
+    case filesetEntry
+    /// LC_ATOM_INFO
+    case atomInfo
 }
-
 
 extension LoadCommandType {
     public init?(rawValue: Int32) {
