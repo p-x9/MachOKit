@@ -23,14 +23,14 @@ extension MachO {
         public let symtab: LoadCommandInfo<symtab_command>
 
         public func makeIterator() -> Iterator {
-            let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff
+            let fileSlide = linkedit.vmaddr - text.vmaddr - (linkedit.fileoff - text.fileoff) // ASLR
 
             return Iterator(
                 stringBase: ptr
                     .advanced(by: numericCast(symtab.stroff))
                     .advanced(by: numericCast(fileSlide)),
                 addressBase: ptr
-                    .advanced(by: -numericCast(text.vmaddr)),
+                    .advanced(by: numericCast(text.vmaddr)),
                 symbols: ptr
                     .advanced(by: numericCast(symtab.symoff))
                     .advanced(by: numericCast(fileSlide))
@@ -49,14 +49,14 @@ extension MachO {
         public let symtab: LoadCommandInfo<symtab_command>
 
         public func makeIterator() -> Iterator {
-            let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff
+            let fileSlide = linkedit.vmaddr - text.vmaddr - (linkedit.fileoff - text.fileoff)
 
             return Iterator(
                 stringBase: ptr
                     .advanced(by: numericCast(symtab.stroff))
                     .advanced(by: numericCast(fileSlide)),
                 addressBase: ptr
-                    .advanced(by: -numericCast(text.vmaddr)),
+                    .advanced(by: numericCast(text.vmaddr)),
                 symbols: ptr
                     .advanced(by: numericCast(symtab.symoff))
                     .advanced(by: numericCast(fileSlide))
@@ -94,7 +94,12 @@ extension MachO.Symbols64 {
             guard nextIndex < numberOfSymbols else {
                 return nil
             }
-            let symbol = symbols.advanced(by: nextIndex).pointee
+            var symbol = symbols.advanced(by: nextIndex).pointee
+            while nextIndex < numberOfSymbols,
+                    symbol.n_type & UInt8(N_EXT) != UInt8(N_EXT) || symbol.n_value == 0 {
+                nextIndex += 1
+                symbol = symbols.advanced(by: nextIndex).pointee
+            }
             let str = stringBase
                 .advanced(by: Int(symbol.n_un.n_strx))
                 .assumingMemoryBound(to: CChar.self)
@@ -138,7 +143,12 @@ extension MachO.Symbols {
             guard nextIndex < numberOfSymbols else {
                 return nil
             }
-            let symbol = symbols.advanced(by: nextIndex).pointee
+            var symbol = symbols.advanced(by: nextIndex).pointee
+            while nextIndex < numberOfSymbols,
+                  symbol.n_type & UInt8(N_EXT) != UInt8(N_EXT) || symbol.n_value == 0 {
+                nextIndex += 1
+                symbol = symbols.advanced(by: nextIndex).pointee
+            }
             let str = stringBase
                 .advanced(by: Int(symbol.n_un.n_strx))
                 .assumingMemoryBound(to: CChar.self)
