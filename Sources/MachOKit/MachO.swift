@@ -64,6 +64,16 @@ extension MachO {
 }
 
 extension MachO {
+    public var symbols: AnySequence<Symbol> {
+        if is64Bit, let symbols64 {
+            AnySequence(symbols64)
+        } else if let symbols32 {
+            AnySequence(symbols32)
+        } else {
+            AnySequence([])
+        }
+    }
+
     public var symbols64: Symbols64? {
         guard is64Bit else {
             return nil
