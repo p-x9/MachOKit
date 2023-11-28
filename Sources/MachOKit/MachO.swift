@@ -51,3 +51,30 @@ public struct MachO {
         loadCommands = .init(start: start, numberOfCommands: Int(header.ncmds))
     }
 }
+
+extension MachO {
+    public init?(name: String) {
+        let indices = 0..<_dyld_image_count()
+        let index = indices.first { index in
+            guard let pathC = _dyld_get_image_name(index) else {
+                return false
+            }
+            let path = String(cString: pathC)
+            let imageName = path
+                .components(separatedBy: "/")
+                .last?
+                .components(separatedBy: ".")
+                .first
+            if imageName == name {
+                print(path)
+            }
+            return imageName == name
+        }
+
+        if let index, let mh = _dyld_get_image_header(index) {
+            self.init(ptr: mh)
+        } else {
+            return nil
+        }
+    }
+}
