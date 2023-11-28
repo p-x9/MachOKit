@@ -38,6 +38,14 @@ public struct MachO {
         return nil
     }
 
+    public var headerSize: Int {
+        is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
+    }
+
+    public var cmdsStartPtr: UnsafeRawPointer {
+        ptr.advanced(by: headerSize)
+    }
+
     public init(ptr: UnsafePointer<mach_header>) {
         self.ptr = .init(ptr)
 
@@ -76,5 +84,15 @@ extension MachO {
         } else {
             return nil
         }
+    }
+}
+
+extension MachO {
+    public var rpaths: [String] {
+        loadCommands
+            .compactMap { cmd in
+                if case let .rpath(info) = cmd { info.path(cmdsStart: cmdsStartPtr) }
+                else { nil }
+            }
     }
 }

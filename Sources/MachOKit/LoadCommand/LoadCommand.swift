@@ -65,7 +65,7 @@ public enum LoadCommand {
     /// LC_UUID
     case uuid(LoadCommandInfo<uuid_command>)
     /// LC_RPATH
-    case rpath(LoadCommandInfo<rpath_command>)
+    case rpath(RpathCommand)
     /// LC_CODE_SIGNATURE
     case codeSignature(LoadCommandInfo<linkedit_data_command>)
     /// LC_SEGMENT_SPLIT_INFO
