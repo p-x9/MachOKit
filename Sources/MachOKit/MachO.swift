@@ -14,6 +14,30 @@ public struct MachO {
     public let is64Bit: Bool
     public let loadCommands: LoadCommands
 
+    public var symbols64: Symbols64? {
+        guard is64Bit else {
+            return nil
+        }
+        if let text = loadCommands.text64,
+           let linkedit = loadCommands.linkedit64,
+           let symtab = loadCommands.symtab {
+            return Symbols64(ptr: ptr, text: text, linkedit: linkedit, symtab: symtab)
+        }
+        return nil
+    }
+
+    public var symbols32: Symbols? {
+        guard !is64Bit else {
+            return nil
+        }
+        if let text = loadCommands.text,
+           let linkedit = loadCommands.linkedit,
+           let symtab = loadCommands.symtab {
+            return Symbols(ptr: ptr, text: text, linkedit: linkedit, symtab: symtab)
+        }
+        return nil
+    }
+
     public init(ptr: UnsafePointer<mach_header>) {
         self.ptr = .init(ptr)
 
@@ -25,54 +49,5 @@ public struct MachO {
                 by: is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
             )
         loadCommands = .init(start: start, numberOfCommands: Int(header.ncmds))
-    }
-}
-
-extension MachO {
-    public struct LoadCommands: Sequence {
-        public let start: UnsafeRawPointer
-        public let numberOfCommands: Int
-
-        public func makeIterator() -> Iterator {
-            Iterator(
-                start: start,
-                numberOfCommands: numberOfCommands
-            )
-        }
-    }
-}
-
-extension MachO.LoadCommands {
-    public struct Iterator: IteratorProtocol {
-        public typealias Element = LoadCommand
-
-        public let start: UnsafeRawPointer
-        public let numberOfCommands: Int
-
-        private var nextOffset: Int = 0
-        private var nextIndex: Int = 0
-
-        public init(
-            start: UnsafeRawPointer,
-            numberOfCommands: Int
-        ) {
-            self.start = start
-            self.numberOfCommands = numberOfCommands
-        }
-
-        mutating public func next() -> Element? {
-            guard nextIndex < numberOfCommands else {
-                return nil
-            }
-            let ptr = start.advanced(by: nextOffset)
-                .assumingMemoryBound(to: load_command.self)
-
-            let next = LoadCommand.convert(ptr, offset: nextOffset)
-
-            nextOffset += Int(ptr.pointee.cmdsize)
-            nextIndex += 1
-
-            return next
-        }
     }
 }
