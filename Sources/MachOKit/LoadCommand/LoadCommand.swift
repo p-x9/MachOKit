@@ -83,9 +83,9 @@ public enum LoadCommand {
     /// LC_LOAD_UPWARD_DYLIB
     case loadUpwardDylib(LoadCommandInfo<load_command>)
     /// LC_VERSION_MIN_MACOSX
-    case versionMinMacosx(LoadCommandInfo<version_min_command>)
+    case versionMinMacosx(VersionMinCommand)
     /// LC_VERSION_MIN_IPHONEOS
-    case versionMinIphoneos(LoadCommandInfo<version_min_command>)
+    case versionMinIphoneos(VersionMinCommand)
     /// LC_FUNCTION_STARTS
     case functionStarts(LoadCommandInfo<linkedit_data_command>)
     /// LC_DYLD_ENVIRONMENT
@@ -105,9 +105,9 @@ public enum LoadCommand {
     /// LC_LINKER_OPTIMIZATION_HINT
     case linkerOptimizationHint(LoadCommandInfo<linkedit_data_command>)
     /// LC_VERSION_MIN_TVOS
-    case versionMinTvos(LoadCommandInfo<version_min_command>)
+    case versionMinTvos(VersionMinCommand)
     /// LC_VERSION_MIN_WATCHOS
-    case versionMinWatchos(LoadCommandInfo<version_min_command>)
+    case versionMinWatchos(VersionMinCommand)
     /// LC_NOTE
     case note(LoadCommandInfo<note_command>)
     /// LC_BUILD_VERSION
