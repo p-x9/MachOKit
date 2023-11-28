@@ -14,30 +14,6 @@ public struct MachO {
     public let is64Bit: Bool
     public let loadCommands: LoadCommands
 
-    public var symbols64: Symbols64? {
-        guard is64Bit else {
-            return nil
-        }
-        if let text = loadCommands.text64,
-           let linkedit = loadCommands.linkedit64,
-           let symtab = loadCommands.symtab {
-            return Symbols64(ptr: ptr, text: text, linkedit: linkedit, symtab: symtab)
-        }
-        return nil
-    }
-
-    public var symbols32: Symbols? {
-        guard !is64Bit else {
-            return nil
-        }
-        if let text = loadCommands.text,
-           let linkedit = loadCommands.linkedit,
-           let symtab = loadCommands.symtab {
-            return Symbols(ptr: ptr, text: text, linkedit: linkedit, symtab: symtab)
-        }
-        return nil
-    }
-
     public var headerSize: Int {
         is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
     }
@@ -84,6 +60,32 @@ extension MachO {
         } else {
             return nil
         }
+    }
+}
+
+extension MachO {
+    public var symbols64: Symbols64? {
+        guard is64Bit else {
+            return nil
+        }
+        if let text = loadCommands.text64,
+           let linkedit = loadCommands.linkedit64,
+           let symtab = loadCommands.symtab {
+            return Symbols64(ptr: ptr, text: text, linkedit: linkedit, symtab: symtab)
+        }
+        return nil
+    }
+
+    public var symbols32: Symbols? {
+        guard !is64Bit else {
+            return nil
+        }
+        if let text = loadCommands.text,
+           let linkedit = loadCommands.linkedit,
+           let symtab = loadCommands.symtab {
+            return Symbols(ptr: ptr, text: text, linkedit: linkedit, symtab: symtab)
+        }
+        return nil
     }
 }
 
