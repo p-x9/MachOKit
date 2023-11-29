@@ -64,6 +64,16 @@ extension MachO {
 }
 
 extension MachO {
+    public var header: MachHeader {
+        .init(
+            layout: ptr
+                .assumingMemoryBound(to: mach_header.self)
+                .pointee
+        )
+    }
+}
+
+extension MachO {
     public var path: String? {
         var info = Dl_info()
         dladdr(ptr, &info)
