@@ -9,8 +9,8 @@
 import Foundation
 
 public struct Symbol {
-    let name: String
-    let address: UnsafeRawPointer
+    public let name: String
+    public let address: UnsafeRawPointer
 }
 
 // https://stackoverflow.com/questions/20481058/find-pathname-from-dlopen-handle-on-osx
