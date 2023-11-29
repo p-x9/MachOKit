@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import MachO
 
 public struct BuildVersionCommand: LoadCommandWrapper {
     public typealias Layout = build_version_command
@@ -47,10 +48,9 @@ extension BuildVersionCommand {
         let base = cmdsStart
             .advanced(by: offset)
             .advanced(by: MemoryLayout<Layout>.size)
-            .bindMemory(to: BuildToolVersion.self, capacity: 1)
+            .assumingMemoryBound(to: BuildToolVersion.self)
         return .init(
             basePointer: base,
-            stride: MemoryLayout<BuildToolVersion>.stride,
             numberOfElements: Int(layout.ntools)
         )
     }

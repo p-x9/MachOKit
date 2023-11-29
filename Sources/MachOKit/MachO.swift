@@ -64,6 +64,14 @@ extension MachO {
 }
 
 extension MachO {
+    public var path: String? {
+        var info = Dl_info()
+        dladdr(ptr, &info)
+        return String(cString: info.dli_fname)
+    }
+}
+
+extension MachO {
     public var symbols: AnySequence<Symbol> {
         if is64Bit, let symbols64 {
             AnySequence(symbols64)
