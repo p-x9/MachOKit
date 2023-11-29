@@ -27,19 +27,11 @@ extension BuildVersionCommand {
     }
     
     public var minos: Version {
-        .init(
-            major: Int((layout.minos & 0xFFFF0000) >> 16),
-            minor: Int((layout.minos & 0x0000FF00) >> 8),
-            patch: Int(layout.minos & 0x000000FF)
-        )
+        .init(layout.minos)
     }
 
     public var sdk: Version {
-        .init(
-            major: Int((layout.sdk & 0xFFFF0000) >> 16),
-            minor: Int((layout.sdk & 0x0000FF00) >> 8),
-            patch: Int(layout.sdk & 0x000000FF)
-        )
+        .init(layout.sdk)
     }
 
     public func tools(

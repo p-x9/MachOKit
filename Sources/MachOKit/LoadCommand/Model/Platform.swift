@@ -89,19 +89,3 @@ extension Platform: CustomDebugStringConvertible {
         }
     }
 }
-
-public struct BuildToolVersion {
-    public let layout: build_tool_version
-
-    public var tool: Tool? {
-        .init(rawValue: Int32(layout.tool))
-    }
-
-    public var version: Version {
-        .init(
-            major: Int((layout.version & 0xFFFF0000) >> 16),
-            minor: Int((layout.version & 0x0000FF00) >> 8),
-            patch: Int(layout.version & 0x000000FF)
-        )
-    }
-}

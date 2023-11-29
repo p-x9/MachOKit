@@ -9,17 +9,20 @@
 import Foundation
 
 @dynamicMemberLookup
-public protocol LoadCommandWrapper {
+public protocol LayoutWrapper {
     associatedtype Layout
 
     var layout: Layout { get }
-    var offset: Int { get }
 }
 
-extension LoadCommandWrapper {
+extension LayoutWrapper {
     public subscript<Value>(dynamicMember keyPath: KeyPath<Layout, Value>) -> Value {
         layout[keyPath: keyPath]
     }
+}
+
+public protocol LoadCommandWrapper: LayoutWrapper {
+    var offset: Int { get }
 }
 
 public struct SegmentCommand: LoadCommandWrapper {

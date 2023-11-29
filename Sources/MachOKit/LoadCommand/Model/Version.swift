@@ -14,6 +14,15 @@ public struct Version {
     public let patch: Int
 }
 
+extension Version {
+    init(_ version: UInt32) {
+        self.init(
+            major: Int((version & 0xFFFF0000) >> 16),
+            minor: Int((version & 0x0000FF00) >> 8),
+            patch: Int(version & 0x000000FF)
+        )
+    }
+}
 
 extension Version: CustomDebugStringConvertible {
     public var debugDescription: String {

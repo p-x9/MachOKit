@@ -33,9 +33,9 @@ public enum LoadCommand {
     /// LC_DYSYMTAB
     case dysymtab(LoadCommandInfo<dysymtab_command>)
     /// LC_LOAD_DYLIB
-    case loadDylib(LoadCommandInfo<dylib_command>)
+    case loadDylib(DylibCommand)
     /// LC_ID_DYLIB
-    case idDylib(LoadCommandInfo<dylib_command>)
+    case idDylib(DylibCommand)
     /// LC_LOAD_DYLINKER
     case loadDylinker(LoadCommandInfo<dylinker_command>)
     /// LC_ID_DYLINKER
@@ -57,7 +57,7 @@ public enum LoadCommand {
     /// LC_PREBIND_CKSUM
     case prebindCksum(LoadCommandInfo<prebind_cksum_command>)
     /// LC_LOAD_WEAK_DYLIB
-    case loadWeakDylib(LoadCommandInfo<dylib_command>)
+    case loadWeakDylib(DylibCommand)
     /// LC_SEGMENT_64
     case segment64(SegmentCommand64)
     /// LC_ROUTINES_64
@@ -71,9 +71,9 @@ public enum LoadCommand {
     /// LC_SEGMENT_SPLIT_INFO
     case segmentSplitInfo(LoadCommandInfo<linkedit_data_command>)
     /// LC_REEXPORT_DYLIB
-    case reexportDylib(LoadCommandInfo<dylib_command>)
+    case reexportDylib(DylibCommand)
     /// LC_LAZY_LOAD_DYLIB
-    case lazyLoadDylib(LoadCommandInfo<dylib_command>)
+    case lazyLoadDylib(DylibCommand)
     /// LC_ENCRYPTION_INFO
     case encryptionInfo(LoadCommandInfo<encryption_info_command>)
     /// LC_DYLD_INFO
