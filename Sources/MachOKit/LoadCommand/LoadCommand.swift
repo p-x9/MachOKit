@@ -63,7 +63,7 @@ public enum LoadCommand {
     /// LC_ROUTINES_64
     case routines64(LoadCommandInfo<routines_command_64>)
     /// LC_UUID
-    case uuid(LoadCommandInfo<uuid_command>)
+    case uuid(UUIDCommand)
     /// LC_RPATH
     case rpath(RpathCommand)
     /// LC_CODE_SIGNATURE
