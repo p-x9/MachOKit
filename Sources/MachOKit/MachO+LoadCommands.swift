@@ -58,6 +58,28 @@ extension MachO.LoadCommands {
 }
 
 extension MachO.LoadCommands {
+    public func of(_ type: LoadCommandType) -> AnySequence<LoadCommand> {
+        AnySequence(
+            lazy.filter {
+                $0.type == type
+            }
+        )
+    }
+
+    public func infos<T>(
+        of type: @escaping (T) -> LoadCommand
+    ) -> AnySequence<T> {
+        AnySequence(
+            lazy.compactMap { cmd in
+                guard let info = cmd.info as? T else { return nil }
+                guard type(info).type == cmd.type else { return nil }
+                return info
+            }
+        )
+    }
+}
+
+extension MachO.LoadCommands {
     var text: SegmentCommand? {
         compactMap {
             if case let .segment(info) = $0,

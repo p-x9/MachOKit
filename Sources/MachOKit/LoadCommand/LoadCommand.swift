@@ -418,3 +418,65 @@ extension LoadCommand {
         }
     }
 }
+
+extension LoadCommand {
+    public var info: Any {
+        switch self {
+        case let .segment(info): info
+        case let .symtab(info): info
+        case let .symseg(info): info
+        case let .thread(info): info
+        case let .unixthread(info): info
+        case let .loadfvmlib(info): info
+        case let .idfvmlib(info): info
+        case let .ident(info): info
+        case let .fvmfile(info): info
+        case let .prepage(info): info
+        case let .dysymtab(info): info
+        case let .loadDylib(info): info
+        case let .idDylib(info): info
+        case let .loadDylinker(info): info
+        case let .idDylinker(info): info
+        case let .preboundDylib(info): info
+        case let .routines(info): info
+        case let .subFramework(info): info
+        case let .subUmbrella(info): info
+        case let .subClient(info): info
+        case let .subLibrary(info): info
+        case let .twolevelHints(info): info
+        case let .prebindCksum(info): info
+        case let .loadWeakDylib(info): info
+        case let .segment64(info): info
+        case let .routines64(info): info
+        case let .uuid(info): info
+        case let .rpath(info): info
+        case let .codeSignature(info): info
+        case let .segmentSplitInfo(info): info
+        case let .reexportDylib(info): info
+        case let .lazyLoadDylib(info): info
+        case let .encryptionInfo(info): info
+        case let .dyldInfo(info): info
+        case let .dyldInfoOnly(info): info
+        case let .loadUpwardDylib(info): info
+        case let .versionMinMacosx(info): info
+        case let .versionMinIphoneos(info): info
+        case let .functionStarts(info): info
+        case let .dyldEnvironment(info): info
+        case let .main(info): info
+        case let .dataInCode(info): info
+        case let .sourceVersion(info): info
+        case let .dylibCodeSignDrs(info): info
+        case let .encryptionInfo64(info): info
+        case let .linkerOption(info): info
+        case let .linkerOptimizationHint(info): info
+        case let .versionMinTvos(info): info
+        case let .versionMinWatchos(info): info
+        case let .note(info): info
+        case let .buildVersion(info): info
+        case let .dyldExportsTrie(info): info
+        case let .dyldChainedFixups(info): info
+        case let .filesetEntry(info): info
+        case let .atomInfo(info): info
+        }
+    }
+}

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct BuildToolVersion {
+public struct BuildToolVersion: LayoutWrapper {
     public let layout: build_tool_version
 
     public var tool: Tool? {
