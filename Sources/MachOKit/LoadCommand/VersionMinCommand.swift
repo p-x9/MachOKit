@@ -9,12 +9,6 @@
 import Foundation
 
 public struct VersionMinCommand: LoadCommandWrapper {
-    public struct Version {
-        public let major: Int
-        public let minor: Int
-        public let patch: Int
-    }
-
     public typealias Layout = version_min_command
 
     public var layout: version_min_command
@@ -42,11 +36,5 @@ extension VersionMinCommand {
             minor: Int((layout.sdk & 0x0000FF00) >> 8),
             patch: Int(layout.sdk & 0x000000FF)
         )
-    }
-}
-
-extension VersionMinCommand.Version: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        "\(major).\(minor).\(patch)"
     }
 }

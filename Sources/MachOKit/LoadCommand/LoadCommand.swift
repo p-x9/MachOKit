@@ -111,7 +111,7 @@ public enum LoadCommand {
     /// LC_NOTE
     case note(LoadCommandInfo<note_command>)
     /// LC_BUILD_VERSION
-    case buildVersion(LoadCommandInfo<build_version_command>)
+    case buildVersion(BuildVersionCommand)
     /// LC_DYLD_EXPORTS_TRIE
     case dyldExportsTrie(LoadCommandInfo<linkedit_data_command>)
     /// LC_DYLD_CHAINED_FIXUPS
