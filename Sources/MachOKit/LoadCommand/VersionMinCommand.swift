@@ -23,18 +23,10 @@ public struct VersionMinCommand: LoadCommandWrapper {
 
 extension VersionMinCommand {
     public var version: Version {
-        .init(
-            major: Int((layout.version & 0xFFFF0000) >> 16),
-            minor: Int((layout.version & 0x0000FF00) >> 8),
-            patch: Int(layout.version & 0x000000FF)
-        )
+        .init(layout.version)
     }
 
     public var sdk: Version {
-        .init(
-            major: Int((layout.sdk & 0xFFFF0000) >> 16),
-            minor: Int((layout.sdk & 0x0000FF00) >> 8),
-            patch: Int(layout.sdk & 0x000000FF)
-        )
+        .init(layout.version)
     }
 }
