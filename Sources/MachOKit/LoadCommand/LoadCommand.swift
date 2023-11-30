@@ -17,9 +17,9 @@ public enum LoadCommand {
     /// LC_SYMSEG
     case symseg(LoadCommandInfo<symseg_command>)
     /// LC_THREAD
-    case thread(LoadCommandInfo<thread_command>)
+    case thread(ThreadCommand)
     /// LC_UNIXTHREAD
-    case unixthread(LoadCommandInfo<thread_command>)
+    case unixthread(ThreadCommand)
     /// LC_LOADFVMLIB
     case loadfvmlib(LoadCommandInfo<fvmlib_command>)
     /// LC_IDFVMLIB
