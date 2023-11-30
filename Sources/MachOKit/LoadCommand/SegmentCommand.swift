@@ -18,6 +18,10 @@ public struct SegmentCommand: LoadCommandWrapper {
         .init(tuple: layout.segname)
     }
 
+    public var flags: SegmentCommandFlags {
+        .init(rawValue: layout.flags)
+    }
+
     init(_ layout: Layout, offset: Int) {
         self.layout = layout
         self.offset = offset
@@ -32,6 +36,10 @@ public struct SegmentCommand64: LoadCommandWrapper {
 
     public var segmentName: String {
         .init(tuple: layout.segname)
+    }
+
+    public var flags: SegmentCommandFlags {
+        .init(rawValue: layout.flags)
     }
 
     init(_ layout: Layout, offset: Int) {
