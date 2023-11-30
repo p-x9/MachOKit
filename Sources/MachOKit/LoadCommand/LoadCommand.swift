@@ -91,7 +91,7 @@ public enum LoadCommand {
     /// LC_DYLD_ENVIRONMENT
     case dyldEnvironment(LoadCommandInfo<dylinker_command>)
     /// LC_MAIN
-    case main(LoadCommandInfo<entry_point_command>)
+    case main(EntryPointCommand)
     /// LC_DATA_IN_CODE
     case dataInCode(LoadCommandInfo<linkedit_data_command>)
     /// LC_SOURCE_VERSION
