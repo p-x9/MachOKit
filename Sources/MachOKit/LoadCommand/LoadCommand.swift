@@ -95,7 +95,7 @@ public enum LoadCommand {
     /// LC_DATA_IN_CODE
     case dataInCode(LoadCommandInfo<linkedit_data_command>)
     /// LC_SOURCE_VERSION
-    case sourceVersion(LoadCommandInfo<source_version_command>)
+    case sourceVersion(SourceVersionCommand)
     /// LC_DYLIB_CODE_SIGN_DRS
     case dylibCodeSignDrs(LoadCommandInfo<linkedit_data_command>)
     /// LC_ENCRYPTION_INFO_64

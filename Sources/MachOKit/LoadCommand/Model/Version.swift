@@ -24,9 +24,38 @@ extension Version {
     }
 }
 
-extension Version: CustomDebugStringConvertible {
-    public var debugDescription: String {
+extension Version: CustomStringConvertible {
+    public var description: String {
         "\(major).\(minor).\(patch)"
+    }
+}
+
+public struct SourceVersion {
+    public let a: Int
+    public let b: Int
+    public let c: Int
+    public let d: Int
+    public let e: Int
+}
+
+extension SourceVersion {
+    init(_ version: UInt64) {
+        self.init(
+            a: Int((version >> 40) & 0xFFFFFF),
+            b: Int((version >> 30) & 0x3FF),
+            c: Int((version >> 20) & 0x3FF),
+            d: Int((version >> 10) & 0x3FF),
+            e: Int((version >> 0) & 0x3FF)
+        )
+    }
+}
+
+extension SourceVersion: CustomStringConvertible {
+    public var description: String {
+        var components = [a, b, c, d, e]
+        if e == 0 { _ = components.popLast() }
+        if e == 0 && d == 0 { _ = components.popLast() }
+        return components.map(String.init).joined(separator: ".")
     }
 }
 
