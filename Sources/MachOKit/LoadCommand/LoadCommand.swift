@@ -37,9 +37,9 @@ public enum LoadCommand {
     /// LC_ID_DYLIB
     case idDylib(DylibCommand)
     /// LC_LOAD_DYLINKER
-    case loadDylinker(LoadCommandInfo<dylinker_command>)
+    case loadDylinker(DylinkerCommand)
     /// LC_ID_DYLINKER
-    case idDylinker(LoadCommandInfo<dylinker_command>)
+    case idDylinker(DylinkerCommand)
     /// LC_PREBOUND_DYLIB
     case preboundDylib(LoadCommandInfo<prebound_dylib_command>)
     /// LC_ROUTINES
@@ -89,7 +89,7 @@ public enum LoadCommand {
     /// LC_FUNCTION_STARTS
     case functionStarts(LoadCommandInfo<linkedit_data_command>)
     /// LC_DYLD_ENVIRONMENT
-    case dyldEnvironment(LoadCommandInfo<dylinker_command>)
+    case dyldEnvironment(DylinkerCommand)
     /// LC_MAIN
     case main(EntryPointCommand)
     /// LC_DATA_IN_CODE
