@@ -38,7 +38,7 @@ extension Platform: RawRepresentable {
         case UInt32(PLATFORM_IOS): self = .iOS
         case UInt32(PLATFORM_TVOS): self = .tvOS
         case UInt32(PLATFORM_WATCHOS): self = .watchOS
-        case UInt32(PLATFORM_BRIDGEOS):self = .bridgeOS
+        case UInt32(PLATFORM_BRIDGEOS): self = .bridgeOS
         case UInt32(PLATFORM_MACCATALYST): self = .macCatalyst
         case UInt32(PLATFORM_IOSSIMULATOR): self = .iOSSimulator
         case UInt32(PLATFORM_TVOSSIMULATOR): self = .tvOSSimulator

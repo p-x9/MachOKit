@@ -79,7 +79,6 @@ extension SegmentCommand {
     }
 }
 
-
 extension SegmentCommand64 {
     public func sections(
         cmdsStart: UnsafeRawPointer

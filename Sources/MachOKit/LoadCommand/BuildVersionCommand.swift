@@ -25,7 +25,7 @@ extension BuildVersionCommand {
     public var platform: Platform {
         .init(rawValue: layout.platform) ?? .unknown
     }
-    
+
     public var minos: Version {
         .init(layout.minos)
     }

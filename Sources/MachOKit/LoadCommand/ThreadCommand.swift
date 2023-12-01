@@ -59,7 +59,7 @@ extension ThreadCommand {
             .advanced(by: offset)
             .advanced(by: minCmdSize)
             .advanced(by: 2 * MemoryLayout<UInt32>.size)
-        
+
         return Data(
             bytes: ptr,
             count: Int(count) * 4 // (count * 32bit)

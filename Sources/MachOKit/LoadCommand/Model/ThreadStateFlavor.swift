@@ -38,7 +38,6 @@ public enum x86ThreadStateFlavor: UInt32, CaseIterable {
     case last_branch_state = 25
 }
 
-
 extension x86ThreadStateFlavor: CustomStringConvertible {
     public var description: String {
         switch self {
@@ -102,7 +101,6 @@ public enum ARMThreadStateFlavor: UInt32 {
     case thread_state32 = 9
 }
 
-
 extension ARMThreadStateFlavor: CustomStringConvertible {
     public var description: String {
         switch self {
@@ -118,4 +116,3 @@ extension ARMThreadStateFlavor: CustomStringConvertible {
         }
     }
 }
-

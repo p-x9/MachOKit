@@ -8,7 +8,7 @@ let package = Package(
         .library(
             name: "MachOKit",
             targets: ["MachOKit"]
-        ),
+        )
     ],
     targets: [
         .target(
@@ -17,6 +17,6 @@ let package = Package(
         .testTarget(
             name: "MachOKitTests",
             dependencies: ["MachOKit"]
-        ),
+        )
     ]
 )

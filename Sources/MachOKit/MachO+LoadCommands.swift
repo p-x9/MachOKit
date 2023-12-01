@@ -40,7 +40,7 @@ extension MachO.LoadCommands {
             self.numberOfCommands = numberOfCommands
         }
 
-        mutating public func next() -> Element? {
+        public mutating func next() -> Element? {
             guard nextIndex < numberOfCommands else {
                 return nil
             }
@@ -83,39 +83,34 @@ extension MachO.LoadCommands {
     var text: SegmentCommand? {
         compactMap {
             if case let .segment(info) = $0,
-               info.segmentName == SEG_TEXT { info }
-            else { nil }
+               info.segmentName == SEG_TEXT { info } else { nil }
         }.first
     }
 
     var text64: SegmentCommand64? {
         compactMap {
             if case let .segment64(info) = $0,
-               info.segmentName == SEG_TEXT { info }
-            else { nil }
+               info.segmentName == SEG_TEXT { info } else { nil }
         }.first
     }
 
     var linkedit: SegmentCommand? {
         compactMap {
             if case let .segment(info) = $0,
-               info.segmentName == SEG_LINKEDIT { info }
-            else { nil }
+               info.segmentName == SEG_LINKEDIT { info } else { nil }
         }.first
     }
 
     var linkedit64: SegmentCommand64? {
         compactMap {
             if case let .segment64(info) = $0,
-               info.segmentName == SEG_LINKEDIT { info }
-            else { nil }
+               info.segmentName == SEG_LINKEDIT { info } else { nil }
         }.first
     }
 
     var symtab: LoadCommandInfo<symtab_command>? {
         compactMap {
-            if case let .symtab(info) = $0 { info }
-            else { nil }
+            if case let .symtab(info) = $0 { info } else { nil }
         }.first
     }
 }

@@ -39,4 +39,3 @@ public struct MachHeader: LayoutWrapper {
         .init(rawValue: numericCast(layout.flags))
     }
 }
-

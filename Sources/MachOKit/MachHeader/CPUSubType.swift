@@ -215,7 +215,6 @@ extension CPUAnySubType: CustomStringConvertible {
 
 }
 
-
 // MARK: - VAX
 public enum CPUVAXSubType {
     case vax_all
@@ -294,7 +293,6 @@ extension CPUVAXSubType: CustomStringConvertible {
 
 }
 
-
 // MARK: - MC680x0
 public enum CPUMC680x0SubType {
     case mc680x0_all
@@ -336,7 +334,6 @@ extension CPUMC680x0SubType: CustomStringConvertible {
     }
 
 }
-
 
 // MARK: - I386
 public enum CPUI386SubType {
@@ -452,7 +449,6 @@ extension CPUI386SubType: CustomStringConvertible {
 
 }
 
-
 // MARK: - X86
 public enum CPUX86SubType {
     case x86_all
@@ -494,7 +490,6 @@ extension CPUX86SubType: CustomStringConvertible {
     }
 
 }
-
 
 // MARK: - Mips
 public enum CPUMipsSubType {
@@ -554,7 +549,6 @@ extension CPUMipsSubType: CustomStringConvertible {
 
 }
 
-
 // MARK: - MC98000
 public enum CPUMC98000SubType {
     case mc98000_all
@@ -588,7 +582,6 @@ extension CPUMC98000SubType: CustomStringConvertible {
     }
 
 }
-
 
 // MARK: - HPPA
 public enum CPUHPPASubType {
@@ -628,7 +621,6 @@ extension CPUHPPASubType: CustomStringConvertible {
 
 }
 
-
 // MARK: - MC88000
 public enum CPUMC88000SubType {
     case mc88000_all
@@ -667,7 +659,6 @@ extension CPUMC88000SubType: CustomStringConvertible {
 
 }
 
-
 // MARK: - SPARC
 public enum CPUSPARCSubType {
     case sparc_all
@@ -697,7 +688,6 @@ extension CPUSPARCSubType: CustomStringConvertible {
     }
 
 }
-
 
 // MARK: - I860
 public enum CPUI860SubType {
@@ -732,7 +722,6 @@ extension CPUI860SubType: CustomStringConvertible {
     }
 
 }
-
 
 // MARK: - PowerPC
 public enum CPUPowerPCSubType {
@@ -811,7 +800,6 @@ extension CPUPowerPCSubType: CustomStringConvertible {
     }
 
 }
-
 
 // MARK: - ARM
 public enum CPUARMSubType {
@@ -895,7 +883,6 @@ extension CPUARMSubType: CustomStringConvertible {
 
 }
 
-
 // MARK: - ARM64
 public enum CPUARM64SubType {
     case arm64_all
@@ -933,7 +920,6 @@ extension CPUARM64SubType: CustomStringConvertible {
     }
 
 }
-
 
 // MARK: - ARM64_32
 public enum CPUARM64_32SubType {
