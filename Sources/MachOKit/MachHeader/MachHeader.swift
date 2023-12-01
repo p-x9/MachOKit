@@ -21,8 +21,15 @@ public struct MachHeader: LayoutWrapper {
     }
 
     public var cpu: CPU? {
-        if let cpuType { CPU(type: cpuType, subtype: layout.cpusubtype) }
-        else { nil }
+        if let cpuType {
+            let subtypeRaw = (cpu_subtype_t(layout.cpusubtype) & cpu_subtype_t(~CPU_SUBTYPE_MASK))
+            return CPU(
+                type: cpuType,
+                subtype: subtypeRaw
+            )
+        } else {
+            return nil
+        }
     }
 
     public var fileType: FileType? {
