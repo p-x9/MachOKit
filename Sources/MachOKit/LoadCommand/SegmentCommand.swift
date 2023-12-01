@@ -47,3 +47,34 @@ public struct SegmentCommand64: LoadCommandWrapper {
         self.offset = offset
     }
 }
+
+extension SegmentCommand {
+    public func sections(
+        cmdsStart: UnsafeRawPointer
+    ) -> MemorySequence<Section> {
+        let ptr = cmdsStart
+            .advanced(by: offset)
+            .advanced(by: MemoryLayout<segment_command>.size)
+            .assumingMemoryBound(to: Section.self)
+        return .init(
+            basePointer: ptr,
+            numberOfElements: Int(layout.nsects)
+        )
+    }
+}
+
+
+extension SegmentCommand64 {
+    public func sections(
+        cmdsStart: UnsafeRawPointer
+    ) -> MemorySequence<Section64> {
+        let ptr = cmdsStart
+            .advanced(by: offset)
+            .advanced(by: MemoryLayout<segment_command_64>.size)
+            .assumingMemoryBound(to: Section64.self)
+        return .init(
+            basePointer: ptr,
+            numberOfElements: Int(layout.nsects)
+        )
+    }
+}
