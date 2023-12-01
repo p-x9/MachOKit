@@ -12,6 +12,10 @@ import Darwin
 public struct MachHeader: LayoutWrapper {
     public let layout: mach_header
 
+    public var magic: Magic! {
+        .init(rawValue: layout.magic)
+    }
+
     public var cpuType: CPUType? {
         .init(rawValue: layout.cputype)
     }
