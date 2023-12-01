@@ -18,6 +18,14 @@ public struct SegmentCommand: LoadCommandWrapper {
         .init(tuple: layout.segname)
     }
 
+    public var maxProtection: VMProtection {
+        .init(rawValue: layout.maxprot)
+    }
+
+    public var initialProtection: VMProtection {
+        .init(rawValue: layout.initprot)
+    }
+
     public var flags: SegmentCommandFlags {
         .init(rawValue: layout.flags)
     }
@@ -36,6 +44,14 @@ public struct SegmentCommand64: LoadCommandWrapper {
 
     public var segmentName: String {
         .init(tuple: layout.segname)
+    }
+
+    public var maxProtection: VMProtection {
+        .init(rawValue: layout.maxprot)
+    }
+
+    public var initialProtection: VMProtection {
+        .init(rawValue: layout.initprot)
     }
 
     public var flags: SegmentCommandFlags {
