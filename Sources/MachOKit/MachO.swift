@@ -144,6 +144,34 @@ extension MachO {
 }
 
 extension MachO {
+    public var rebaseOperations: RebaseOperations? {
+        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+
+        guard let info else { return nil }
+
+        if is64Bit,
+           let text = loadCommands.text64,
+           let linkedit = loadCommands.linkedit64 {
+            return RebaseOperations(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                info: info.layout
+            )
+        } else if let text = loadCommands.text,
+                  let linkedit = loadCommands.linkedit {
+            return RebaseOperations(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                info: info.layout
+            )
+        }
+        return nil
+    }
+}
+
+extension MachO {
     public var rpaths: [String] {
         loadCommands
             .compactMap { cmd in
