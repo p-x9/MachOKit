@@ -14,7 +14,10 @@ extension String {
     init(tuple: CCharTuple16) {
         self = Mirror(reflecting: tuple).children
             .compactMap {
-                $0.value as? CChar
+                if let value = $0.value as? CChar,
+                   value != 0 {
+                    return value
+                } else { return nil }
             }
             .map(UInt8.init)
             .map(UnicodeScalar.init)
