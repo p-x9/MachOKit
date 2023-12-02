@@ -118,6 +118,32 @@ extension MachO {
 }
 
 extension MachO {
+    public var strings: Strings? {
+        if is64Bit,
+           let text = loadCommands.text64,
+           let linkedit = loadCommands.linkedit64,
+           let symtab = loadCommands.symtab {
+            return Strings(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                symtab: symtab
+            )
+        } else if let text = loadCommands.text,
+                  let linkedit = loadCommands.linkedit,
+                  let symtab = loadCommands.symtab {
+            return Strings(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                symtab: symtab
+            )
+        }
+        return nil
+    }
+}
+
+extension MachO {
     public var rpaths: [String] {
         loadCommands
             .compactMap { cmd in
