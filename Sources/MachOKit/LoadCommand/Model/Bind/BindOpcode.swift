@@ -88,7 +88,6 @@ extension BindOpcode: CustomStringConvertible {
     }
 }
 
-
 public enum BindSubOpcode {
     case threaded_set_bind_ordinal_table_size_uleb
     case threaded_apply
@@ -120,4 +119,3 @@ extension BindSubOpcode: CustomStringConvertible {
         }
     }
 }
-

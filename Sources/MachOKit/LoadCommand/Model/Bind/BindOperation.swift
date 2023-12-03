@@ -81,7 +81,6 @@ extension BindOperation: CustomStringConvertible {
     }
 }
 
-
 public enum BindSubOperation {
     case threaded_set_bind_ordinal_table_size_uleb(size: Int)
     case threaded_apply

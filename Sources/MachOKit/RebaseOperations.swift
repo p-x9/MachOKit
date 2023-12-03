@@ -49,7 +49,6 @@ extension RebaseOperations {
     }
 }
 
-
 extension RebaseOperations {
     public struct Iterator: IteratorProtocol {
         public typealias Element = RebaseOperation
@@ -58,7 +57,7 @@ extension RebaseOperations {
         private let rebaseSize: Int
 
         private var nextOffset: Int = 0
-        private var done: Bool = false
+        private var done = false
 
         init(basePointer: UnsafePointer<UInt8>, rebaseSize: Int) {
             self.basePointer = basePointer

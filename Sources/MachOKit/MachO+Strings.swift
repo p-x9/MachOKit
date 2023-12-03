@@ -47,7 +47,7 @@ public struct Strings: Sequence {
 
     public func makeIterator() -> Iterator {
 
-        return Iterator(
+        Iterator(
             basePointer: basePointer,
             tableSize: tableSize
         )

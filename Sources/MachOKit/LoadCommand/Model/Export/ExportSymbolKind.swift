@@ -8,7 +8,6 @@
 
 import Foundation
 
-
 public enum ExportSymbolKind {
     case regular
     case thread_local
@@ -44,4 +43,3 @@ extension ExportSymbolKind: CustomStringConvertible {
         }
     }
 }
-

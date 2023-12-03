@@ -57,7 +57,6 @@ extension BindOperations {
     }
 }
 
-
 extension BindOperations {
     public struct Iterator: IteratorProtocol {
         public typealias Element = BindOperation

@@ -47,4 +47,3 @@ extension BindSpecial: CustomStringConvertible {
         }
     }
 }
-

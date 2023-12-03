@@ -67,4 +67,3 @@ extension RebaseOpcode: CustomStringConvertible {
         }
     }
 }
-
