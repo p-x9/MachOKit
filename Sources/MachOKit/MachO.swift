@@ -172,6 +172,90 @@ extension MachO {
 }
 
 extension MachO {
+    public var bindOperations: BindOperations? {
+        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+
+        guard let info else { return nil }
+
+        if is64Bit,
+           let text = loadCommands.text64,
+           let linkedit = loadCommands.linkedit64 {
+            return BindOperations(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                info: info.layout
+            )
+        } else if let text = loadCommands.text,
+                  let linkedit = loadCommands.linkedit {
+            return BindOperations(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                info: info.layout
+            )
+        }
+        return nil
+    }
+
+    public var weakBindOperations: BindOperations? {
+        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+
+        guard let info else { return nil }
+
+        if is64Bit,
+           let text = loadCommands.text64,
+           let linkedit = loadCommands.linkedit64 {
+            return BindOperations(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                info: info.layout,
+                kind: .weak
+            )
+        } else if let text = loadCommands.text,
+                  let linkedit = loadCommands.linkedit {
+            return BindOperations(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                info: info.layout,
+                kind: .weak
+            )
+        }
+        return nil
+    }
+
+    public var lazyBindOperations: BindOperations? {
+        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+
+        guard let info else { return nil }
+
+        if is64Bit,
+           let text = loadCommands.text64,
+           let linkedit = loadCommands.linkedit64 {
+            return BindOperations(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                info: info.layout,
+                kind: .lazy
+            )
+        } else if let text = loadCommands.text,
+                  let linkedit = loadCommands.linkedit {
+            return BindOperations(
+                ptr: ptr,
+                text: text,
+                linkedit: linkedit,
+                info: info.layout,
+                kind: .lazy
+            )
+        }
+        return nil
+    }
+}
+
+extension MachO {
     public var rpaths: [String] {
         loadCommands
             .compactMap { cmd in
