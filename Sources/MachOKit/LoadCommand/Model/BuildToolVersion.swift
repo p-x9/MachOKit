@@ -9,7 +9,7 @@
 import Foundation
 
 public struct BuildToolVersion: LayoutWrapper {
-    public let layout: build_tool_version
+    public var layout: build_tool_version
 
     public var tool: Tool? {
         .init(rawValue: Int32(layout.tool))

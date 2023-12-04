@@ -12,7 +12,7 @@ import Foundation
 public protocol LayoutWrapper {
     associatedtype Layout
 
-    var layout: Layout { get }
+    var layout: Layout { get set }
 }
 
 extension LayoutWrapper {

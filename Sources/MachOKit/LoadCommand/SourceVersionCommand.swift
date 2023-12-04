@@ -11,7 +11,7 @@ import Foundation
 public struct SourceVersionCommand: LoadCommandWrapper {
     public typealias Layout = source_version_command
 
-    public let layout: Layout
+    public var layout: Layout
     public var offset: Int // offset from mach header trailing
 
     init(_ layout: Layout, offset: Int) {

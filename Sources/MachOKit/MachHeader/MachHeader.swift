@@ -10,7 +10,7 @@ import Foundation
 import Darwin
 
 public struct MachHeader: LayoutWrapper {
-    public let layout: mach_header
+    public var layout: mach_header
 
     public var magic: Magic! {
         .init(rawValue: layout.magic)

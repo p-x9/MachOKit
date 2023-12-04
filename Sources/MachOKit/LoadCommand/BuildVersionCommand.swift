@@ -12,7 +12,7 @@ import MachO
 public struct BuildVersionCommand: LoadCommandWrapper {
     public typealias Layout = build_version_command
 
-    public let layout: Layout
+    public var layout: Layout
     public var offset: Int // offset from mach header trailing
 
     init(_ layout: Layout, offset: Int) {

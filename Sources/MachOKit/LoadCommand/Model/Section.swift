@@ -11,7 +11,7 @@ import Foundation
 public struct Section: LayoutWrapper {
     public typealias Layout = section
 
-    public let layout: Layout
+    public var layout: Layout
 }
 
 extension Section {
@@ -31,7 +31,7 @@ extension Section {
 public struct Section64: LayoutWrapper {
     public typealias Layout = section_64
 
-    public let layout: Layout
+    public var layout: Layout
 }
 
 extension Section64 {

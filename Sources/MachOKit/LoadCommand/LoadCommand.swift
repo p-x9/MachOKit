@@ -129,7 +129,8 @@ extension LoadCommand {
     ) -> LoadCommand? {
         let rawPointer = UnsafeRawPointer(commandPtr)
         let command = commandPtr.pointee
-        guard let type = LoadCommandType(rawValue: command.cmd) else {
+        guard let type = LoadCommandType(rawValue: command.cmd) ??
+                LoadCommandType(rawValue: command.cmd.byteSwapped) else {
             return nil
         }
         switch type {
@@ -477,6 +478,233 @@ extension LoadCommand {
         case let .dyldChainedFixups(info): info
         case let .filesetEntry(info): info
         case let .atomInfo(info): info
+        }
+    }
+}
+
+extension LoadCommand {
+    public func swapped() -> Self {
+        switch self {
+        case let .segment(info):
+            var info = info
+            info.swap()
+            return .segment(info)
+        case let .symtab(info):
+            var info = info
+            info.swap()
+            return .symtab(info)
+        case let .symseg(info):
+            var info = info
+            info.swap()
+            return .symseg(info)
+        case let .thread(info):
+            var info = info
+            info.swap()
+            return .thread(info)
+        case let .unixthread(info):
+            var info = info
+            info.swap()
+            return .unixthread(info)
+        case let .loadfvmlib(info):
+            var info = info
+            info.swap()
+            return .loadfvmlib(info)
+        case let .idfvmlib(info):
+            var info = info
+            info.swap()
+            return .idfvmlib(info)
+        case let .ident(info):
+            var info = info
+            info.swap()
+            return .ident(info)
+        case let .fvmfile(info):
+            var info = info
+            info.swap()
+            return .fvmfile(info)
+        case let .prepage(info):
+            var info = info
+            info.swap()
+            return .prepage(info)
+        case let .dysymtab(info):
+            var info = info
+            info.swap()
+            return .dysymtab(info)
+        case let .loadDylib(info):
+            var info = info
+            info.swap()
+            return .loadDylib(info)
+        case let .idDylib(info):
+            var info = info
+            info.swap()
+            return .idDylib(info)
+        case let .loadDylinker(info):
+            var info = info
+            info.swap()
+            return .loadDylinker(info)
+        case let .idDylinker(info):
+            var info = info
+            info.swap()
+            return .idDylinker(info)
+        case let .preboundDylib(info):
+            var info = info
+            info.swap()
+            return .preboundDylib(info)
+        case let .routines(info):
+            var info = info
+            info.swap()
+            return .routines(info)
+        case let .subFramework(info):
+            var info = info
+            info.swap()
+            return .subFramework(info)
+        case let .subUmbrella(info):
+            var info = info
+            info.swap()
+            return .subUmbrella(info)
+        case let .subClient(info):
+            var info = info
+            info.swap()
+            return .subClient(info)
+        case let .subLibrary(info):
+            var info = info
+            info.swap()
+            return .subLibrary(info)
+        case let .twolevelHints(info):
+            var info = info
+            info.swap()
+            return .twolevelHints(info)
+        case let .prebindCksum(info):
+            var info = info
+            info.swap()
+            return .prebindCksum(info)
+        case let .loadWeakDylib(info):
+            var info = info
+            info.swap()
+            return .loadWeakDylib(info)
+        case let .segment64(info):
+            var info = info
+            info.swap()
+            return .segment64(info)
+        case let .routines64(info):
+            var info = info
+            info.swap()
+            return .routines64(info)
+        case let .uuid(info):
+            var info = info
+            info.swap()
+            return .uuid(info)
+        case let .rpath(info):
+            var info = info
+            info.swap()
+            return .rpath(info)
+        case let .codeSignature(info):
+            var info = info
+            info.swap()
+            return .codeSignature(info)
+        case let .segmentSplitInfo(info):
+            var info = info
+            info.swap()
+            return .segmentSplitInfo(info)
+        case let .reexportDylib(info):
+            var info = info
+            info.swap()
+            return .reexportDylib(info)
+        case let .lazyLoadDylib(info):
+            var info = info
+            info.swap()
+            return .lazyLoadDylib(info)
+        case let .encryptionInfo(info):
+            var info = info
+            info.swap()
+            return .encryptionInfo(info)
+        case let .dyldInfo(info):
+            var info = info
+            info.swap()
+            return .dyldInfo(info)
+        case let .dyldInfoOnly(info):
+            var info = info
+            info.swap()
+            return .dyldInfoOnly(info)
+        case let .loadUpwardDylib(info):
+            var info = info
+            info.swap()
+            return .loadUpwardDylib(info)
+        case let .versionMinMacosx(info):
+            var info = info
+            info.swap()
+            return .versionMinMacosx(info)
+        case let .versionMinIphoneos(info):
+            var info = info
+            info.swap()
+            return .versionMinIphoneos(info)
+        case let .functionStarts(info):
+            var info = info
+            info.swap()
+            return .functionStarts(info)
+        case let .dyldEnvironment(info):
+            var info = info
+            info.swap()
+            return .dyldEnvironment(info)
+        case let .main(info):
+            var info = info
+            info.swap()
+            return .main(info)
+        case let .dataInCode(info):
+            var info = info
+            info.swap()
+            return .dataInCode(info)
+        case let .sourceVersion(info):
+            var info = info
+            info.swap()
+            return .sourceVersion(info)
+        case let .dylibCodeSignDrs(info):
+            var info = info
+            info.swap()
+            return .dylibCodeSignDrs(info)
+        case let .encryptionInfo64(info):
+            var info = info
+            info.swap()
+            return .encryptionInfo64(info)
+        case let .linkerOption(info):
+            var info = info
+            info.swap()
+            return .linkerOption(info)
+        case let .linkerOptimizationHint(info):
+            var info = info
+            info.swap()
+            return .linkerOptimizationHint(info)
+        case let .versionMinTvos(info):
+            var info = info
+            info.swap()
+            return .versionMinTvos(info)
+        case let .versionMinWatchos(info):
+            var info = info
+            info.swap()
+            return .versionMinWatchos(info)
+        case let .note(info):
+            var info = info
+            info.swap()
+            return .note(info)
+        case let .buildVersion(info):
+            var info = info
+            info.swap()
+            return .buildVersion(info)
+        case let .dyldExportsTrie(info):
+            var info = info
+            info.swap()
+            return .dyldExportsTrie(info)
+        case let .dyldChainedFixups(info):
+            var info = info
+            info.swap()
+            return .dyldChainedFixups(info)
+        case let .filesetEntry(info):
+            var info = info
+            info.swap()
+            return .filesetEntry(info)
+        case let .atomInfo(info):
+            var info = info
+            info.swap()
+            return .atomInfo(info)
         }
     }
 }

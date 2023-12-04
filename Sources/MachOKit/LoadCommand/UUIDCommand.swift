@@ -11,7 +11,7 @@ import Foundation
 public struct UUIDCommand: LoadCommandWrapper {
     public typealias Layout = uuid_command
 
-    public let layout: Layout
+    public var layout: Layout
     public var offset: Int // offset from mach header trailing
 
     public var uuid: UUID {

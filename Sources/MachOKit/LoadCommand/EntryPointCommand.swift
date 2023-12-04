@@ -11,7 +11,7 @@ import Foundation
 public struct EntryPointCommand: LoadCommandWrapper {
     public typealias Layout = entry_point_command
 
-    public let layout: Layout
+    public var layout: Layout
     public var offset: Int // offset from mach header trailing
 
     init(_ layout: Layout, offset: Int) {

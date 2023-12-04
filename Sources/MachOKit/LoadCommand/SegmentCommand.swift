@@ -11,7 +11,7 @@ import Foundation
 public struct SegmentCommand: LoadCommandWrapper {
     public typealias Layout = segment_command
 
-    public let layout: Layout
+    public var layout: Layout
     public var offset: Int // offset from mach header trailing
 
     public var segmentName: String {
@@ -39,7 +39,7 @@ public struct SegmentCommand: LoadCommandWrapper {
 public struct SegmentCommand64: LoadCommandWrapper {
     public typealias Layout = segment_command_64
 
-    public let layout: Layout
+    public var layout: Layout
     public var offset: Int // offset from mach header trailing
 
     public var segmentName: String {
