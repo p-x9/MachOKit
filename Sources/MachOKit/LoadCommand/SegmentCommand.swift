@@ -93,3 +93,51 @@ extension SegmentCommand64 {
         )
     }
 }
+
+extension SegmentCommand {
+    public func sections(
+        in machO: MachOFile
+    ) -> DataSequence<Section> {
+        let offset = machO.cmdsStartOffset + offset + MemoryLayout<segment_command>.size
+        machO.fileHandle.seek(toFileOffset: UInt64(offset))
+        let data = machO.fileHandle.readData(
+            ofLength: Int(layout.nsects) * MemoryLayout<segment_command>.size
+        )
+        if machO.isSwapped {
+            data.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else { return }
+                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                    .assumingMemoryBound(to: section.self)
+                swap_section(ptr, layout.nsects, NXHostByteOrder())
+            }
+        }
+        return .init(
+            data: data,
+            numberOfElements: Int(layout.nsects)
+        )
+    }
+}
+
+extension SegmentCommand64 {
+    public func sections(
+        in machO: MachOFile
+    ) -> DataSequence<Section64> {
+        let offset = machO.cmdsStartOffset + offset + MemoryLayout<segment_command_64>.size
+        machO.fileHandle.seek(toFileOffset: UInt64(offset))
+        let data = machO.fileHandle.readData(
+            ofLength: Int(layout.nsects) * MemoryLayout<segment_command_64>.size
+        )
+        if machO.isSwapped {
+            data.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else { return }
+                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                    .assumingMemoryBound(to: section_64.self)
+                swap_section_64(ptr, layout.nsects, NXHostByteOrder())
+            }
+        }
+        return .init(
+            data: data,
+            numberOfElements: Int(layout.nsects)
+        )
+    }
+}
