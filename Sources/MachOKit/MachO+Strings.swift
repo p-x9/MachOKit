@@ -9,11 +9,6 @@
 import Foundation
 
 public struct Strings: Sequence {
-    public struct Element: Codable, Equatable {
-        let string: String
-        let offset: Int // offset from start of string table
-    }
-
     private let basePointer: UnsafePointer<CChar>
     private let tableSize: Int
 
@@ -56,7 +51,7 @@ public struct Strings: Sequence {
 
 extension Strings {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = Strings.Element
+        public typealias Element = StringTableEntry
 
         private let basePointer: UnsafePointer<CChar>
         private let tableSize: Int

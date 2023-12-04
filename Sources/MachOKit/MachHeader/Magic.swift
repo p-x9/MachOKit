@@ -17,11 +17,14 @@ public enum Magic: CaseIterable, Codable, Equatable {
 
     case fatMagic
     case fatCigam
+
+    case fatMagic64
+    case fatCigam64
 }
 
 extension Magic {
     public var isFat: Bool {
-        [.fatMagic, .fatCigam].contains(self)
+        [.fatMagic, .fatCigam, .fatMagic64, .fatCigam64].contains(self)
     }
 
     public var isMach: Bool {
@@ -32,8 +35,16 @@ extension Magic {
         [.magic64, .cigam64].contains(self)
     }
 
+    public var is64BitFat: Bool {
+        [.fatMagic64, .fatCigam64].contains(self)
+    }
+
+    public var is64Bit: Bool {
+        is64BitMach || is64BitFat
+    }
+
     public var isSwapped: Bool {
-        [.cigam, .cigam64, .fatCigam].contains(self)
+        [.cigam, .cigam64, .fatCigam, .fatCigam64].contains(self)
     }
 }
 
@@ -48,6 +59,8 @@ extension Magic: RawRepresentable {
         case MH_CIGAM_64: self = .cigam64
         case FAT_MAGIC: self = .fatMagic
         case FAT_CIGAM: self = .fatCigam
+        case FAT_MAGIC_64: self = .fatMagic64
+        case FAT_CIGAM_64: self = .fatCigam64
         default: return nil
         }
     }
@@ -60,6 +73,8 @@ extension Magic: RawRepresentable {
         case .cigam64: MH_CIGAM_64
         case .fatMagic: FAT_MAGIC
         case .fatCigam: FAT_CIGAM
+        case .fatMagic64: FAT_MAGIC_64
+        case .fatCigam64: FAT_CIGAM_64
         }
     }
 }
@@ -73,6 +88,8 @@ extension Magic: CustomStringConvertible {
         case .cigam64: "MH_CIGAM_64"
         case .fatMagic: "FAT_MAGIC"
         case .fatCigam: "FAT_CIGAM"
+        case .fatMagic64: "FAT_MAGIC_64"
+        case .fatCigam64: "FAT_CIGAM_64"
         }
     }
 }
