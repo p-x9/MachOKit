@@ -29,3 +29,20 @@ extension DylinkerCommand {
         return String(cString: ptr)
     }
 }
+
+extension DylinkerCommand {
+    public func name(in machO: MachOFile) -> String {
+        let offset = machO.cmdsStartOffset + offset + Int(layout.name.offset)
+        machO.fileHandle.seek(toFileOffset: UInt64(offset))
+        let data = machO.fileHandle.readData(
+            ofLength: Int(layout.cmdsize) - MemoryLayout<dylinker_command>.size
+        )
+        // swap is not needed
+        return data.withUnsafeBytes {
+            if let baseAddress = $0.baseAddress {
+                return String(cString: baseAddress.assumingMemoryBound(to: CChar.self))
+            }
+            return ""
+        }
+    }
+}
