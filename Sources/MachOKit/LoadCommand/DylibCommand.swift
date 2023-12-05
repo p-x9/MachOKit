@@ -35,3 +35,27 @@ extension DylibCommand {
         )
     }
 }
+
+extension DylibCommand {
+    public func dylib(in machO: MachOFile) -> Dylib {
+        let offset = machO.cmdsStartOffset + offset + Int(layout.dylib.name.offset)
+        machO.fileHandle.seek(toFileOffset: UInt64(offset))
+        let data = machO.fileHandle.readData(
+            ofLength: Int(layout.cmdsize) - MemoryLayout<dylib_command>.size
+        )
+        // swap is not needed
+        let string: String = data.withUnsafeBytes {
+            if let baseAddress = $0.baseAddress {
+                return String(cString: baseAddress.assumingMemoryBound(to: CChar.self))
+            }
+            return ""
+        }
+
+        return .init(
+            name: string,
+            timestamp: Date(timeIntervalSince1970: TimeInterval(layout.dylib.timestamp)),
+            currentVersion: .init(layout.dylib.current_version),
+            compatibilityVersion: .init(layout.dylib.compatibility_version)
+        )
+    }
+}
