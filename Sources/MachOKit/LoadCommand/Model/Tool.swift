@@ -61,8 +61,8 @@ extension Tool: RawRepresentable {
     }
 }
 
-extension Tool: CustomDebugStringConvertible {
-    public var debugDescription: String {
+extension Tool: CustomStringConvertible {
+    public var description: String {
         switch self {
         case .clang: "TOOL_CLANG"
         case .swift: "TOOL_SWIFT"

@@ -68,8 +68,8 @@ extension FileType: RawRepresentable {
     }
 }
 
-extension FileType: CustomDebugStringConvertible {
-    public var debugDescription: String {
+extension FileType: CustomStringConvertible {
+    public var description: String {
         switch self {
         case .object: "MH_OBJECT"
         case .execute: "MH_EXECUTE"

@@ -247,8 +247,8 @@ extension LoadCommandType {
     }
 }
 
-extension LoadCommandType: CustomDebugStringConvertible {
-    public var debugDescription: String {
+extension LoadCommandType: CustomStringConvertible {
+    public var description: String {
         switch self {
         case .segment: "LC_SEGMENT"
         case .symtab: "LC_SYMTAB"

@@ -69,8 +69,8 @@ extension Platform: RawRepresentable {
     }
 }
 
-extension Platform: CustomDebugStringConvertible {
-    public var debugDescription: String {
+extension Platform: CustomStringConvertible {
+    public var description: String {
         switch self {
         case .unknown: "PLATFORM_UNKNOWN"
         case .any: "PLATFORM_ANY"
