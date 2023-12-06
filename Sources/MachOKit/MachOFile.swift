@@ -75,3 +75,12 @@ extension MachOFile {
         return nil
     }
 }
+
+extension MachOFile {
+    public var rpaths: [String] {
+        loadCommands
+            .compactMap { cmd in
+                if case let .rpath(info) = cmd { info.path(in: self) } else { nil }
+            }
+    }
+}
