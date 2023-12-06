@@ -41,7 +41,7 @@ extension DylibCommand {
         let offset = machO.cmdsStartOffset + offset + Int(layout.dylib.name.offset)
         machO.fileHandle.seek(toFileOffset: UInt64(offset))
         let data = machO.fileHandle.readData(
-            ofLength: Int(layout.cmdsize) - MemoryLayout<dylib_command>.size
+            ofLength: Int(layout.cmdsize) - layoutSize
         )
         // swap is not needed
         let string: String = data.withUnsafeBytes {

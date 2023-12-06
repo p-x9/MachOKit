@@ -20,3 +20,9 @@ extension LayoutWrapper {
         layout[keyPath: keyPath]
     }
 }
+
+extension LayoutWrapper {
+    var layoutSize: Int {
+        MemoryLayout<Layout>.size
+    }
+}

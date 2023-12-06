@@ -22,7 +22,7 @@ public struct ThreadCommand: LoadCommandWrapper {
 
 extension ThreadCommand {
     public func _flavor(cmdsStart: UnsafeRawPointer) -> UInt32? {
-        let minCmdSize = MemoryLayout<Layout>.size
+        let minCmdSize = layoutSize
         guard Int(layout.cmdsize) >= minCmdSize + MemoryLayout<UInt32>.size else {
             return nil
         }
@@ -35,23 +35,23 @@ extension ThreadCommand {
     }
 
     public func count(cmdsStart: UnsafeRawPointer) -> UInt32? {
-        let minCmdSize = MemoryLayout<Layout>.size
+        let minCmdSize = layoutSize
         guard Int(layout.cmdsize) >= minCmdSize + 2 * MemoryLayout<UInt32>.size else {
             return nil
         }
-        let flavor = cmdsStart
+        let count = cmdsStart
             .load(
                 fromByteOffset: offset + minCmdSize + MemoryLayout<UInt32>.size,
                 as: UInt32.self
             )
-        return flavor
+        return count
     }
 
     public func state(cmdsStart: UnsafeRawPointer) -> Data? {
         guard let count = count(cmdsStart: cmdsStart) else {
             return nil
         }
-        let minCmdSize = MemoryLayout<Layout>.size
+        let minCmdSize = layoutSize
         let stateSizeExpected = Int(count) * MemoryLayout<UInt32>.size
         let stateSize = Int(layout.cmdsize) - minCmdSize - 2 * MemoryLayout<UInt32>.size
         guard stateSizeExpected == stateSize else { return nil }

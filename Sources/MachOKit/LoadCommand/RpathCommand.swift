@@ -36,7 +36,7 @@ extension RpathCommand {
         let offset = machO.cmdsStartOffset + offset + Int(layout.path.offset)
         machO.fileHandle.seek(toFileOffset: UInt64(offset))
         let data = machO.fileHandle.readData(
-            ofLength: Int(layout.cmdsize) - MemoryLayout<rpath_command>.size
+            ofLength: Int(layout.cmdsize) - layoutSize
         )
         // swap is not needed
         return data.withUnsafeBytes {

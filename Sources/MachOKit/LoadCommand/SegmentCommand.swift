@@ -101,7 +101,7 @@ extension SegmentCommand {
         let offset = machO.cmdsStartOffset + offset + MemoryLayout<segment_command>.size
         machO.fileHandle.seek(toFileOffset: UInt64(offset))
         let data = machO.fileHandle.readData(
-            ofLength: Int(layout.nsects) * MemoryLayout<segment_command>.size
+            ofLength: Int(layout.nsects) * MemoryLayout<section>.size
         )
         if machO.isSwapped {
             data.withUnsafeBytes {
@@ -125,7 +125,7 @@ extension SegmentCommand64 {
         let offset = machO.cmdsStartOffset + offset + MemoryLayout<segment_command_64>.size
         machO.fileHandle.seek(toFileOffset: UInt64(offset))
         let data = machO.fileHandle.readData(
-            ofLength: Int(layout.nsects) * MemoryLayout<segment_command_64>.size
+            ofLength: Int(layout.nsects) * MemoryLayout<section_64>.size
         )
         if machO.isSwapped {
             data.withUnsafeBytes {

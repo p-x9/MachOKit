@@ -41,7 +41,7 @@ extension BuildVersionCommand {
     ) -> MemorySequence<BuildToolVersion> {
         let base = cmdsStart
             .advanced(by: offset)
-            .advanced(by: MemoryLayout<Layout>.size)
+            .advanced(by: layoutSize)
             .assumingMemoryBound(to: BuildToolVersion.self)
         return .init(
             basePointer: base,
@@ -54,7 +54,7 @@ extension BuildVersionCommand {
     public func tools(
         in machO: MachOFile
     ) -> DataSequence<BuildToolVersion> {
-        let offset = machO.cmdsStartOffset + offset + MemoryLayout<Layout>.size
+        let offset = machO.cmdsStartOffset + offset + layoutSize
         machO.fileHandle.seek(toFileOffset: UInt64(offset))
         let data = machO.fileHandle.readData(
             ofLength: Int(layout.ntools) * MemoryLayout<BuildToolVersion>.size
