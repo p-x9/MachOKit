@@ -59,7 +59,7 @@ extension DataSequence {
 
             return data.withUnsafeBytes {
                 guard let baseAddress = $0.baseAddress else { return nil }
-                return baseAddress.load(as: Element.self)
+                return baseAddress.advanced(by: nextOffset).load(as: Element.self)
             }
         }
     }

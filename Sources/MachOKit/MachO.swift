@@ -118,7 +118,7 @@ extension MachO {
 }
 
 extension MachO {
-    public var strings: Strings? {
+    public var symbolStrings: Strings? {
         if is64Bit,
            let text = loadCommands.text64,
            let linkedit = loadCommands.linkedit64,
@@ -289,5 +289,47 @@ extension MachO {
             .compactMap { cmd in
                 if case let .rpath(info) = cmd { info.path(cmdsStart: cmdsStartPtr) } else { nil }
             }
+    }
+}
+
+extension MachO {
+    /// Strings in `__TEXT, __cstring` section
+    public var cStrings: Strings? {
+        if is64Bit, let text = loadCommands.text64 {
+            let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
+                $0.sectionName == "__cstring"
+            }.first
+            guard let cstrings else { return nil }
+            return cstrings.strings(ptr: ptr)
+        } else if let text = loadCommands.text {
+            let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
+                $0.sectionName == "__cstring"
+            }.first
+            guard let cstrings else { return nil }
+            return cstrings.strings(ptr: ptr)
+        }
+        return nil
+    }
+
+    /// All strings in `__TEXT` segment
+    public var allCStrings: [String] {
+        let sections: [any SectionProtocol]
+        if is64Bit {
+            let segments = loadCommands.infos(of: LoadCommand.segment64)
+            sections = segments.reduce(into: []) { partialResult, segment in
+                partialResult += Array(segment.sections(cmdsStart: cmdsStartPtr))
+            }
+        } else {
+            let segments = loadCommands.infos(of: LoadCommand.segment)
+            sections = segments.reduce(into: []) { partialResult, segment in
+                partialResult += Array(segment.sections(cmdsStart: cmdsStartPtr))
+            }
+        }
+
+        return sections.reduce(into: []) { partialResult, section in
+            if let strings = section.strings(ptr: ptr) {
+                partialResult += Array(strings).map(\.string)
+            }
+        }
     }
 }

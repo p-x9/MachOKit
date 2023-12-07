@@ -8,7 +8,19 @@
 
 import Foundation
 
-public struct Section: LayoutWrapper {
+public protocol SectionProtocol: LayoutWrapper {
+    var sectionName: String { get }
+    var segmentName: String { get }
+    var flags: SectionFlags { get }
+
+    /// returns nil except when type is `cstring_literals
+    func strings(ptr: UnsafeRawPointer) -> Strings?
+
+    /// returns nil except when type is `cstring_literals
+    func strings(in machO: MachOFile) -> MachOFile.Strings?
+}
+
+public struct Section: SectionProtocol {
     public typealias Layout = section
 
     public var layout: Layout
@@ -28,7 +40,7 @@ extension Section {
     }
 }
 
-public struct Section64: LayoutWrapper {
+public struct Section64: SectionProtocol {
     public typealias Layout = section_64
 
     public var layout: Layout
@@ -45,5 +57,62 @@ extension Section64 {
 
     public var flags: SectionFlags {
         .init(rawValue: layout.flags)
+    }
+}
+
+extension SectionProtocol {
+    fileprivate func _strings(
+        ptr: UnsafeRawPointer,
+        sectionOffset: UInt32,
+        sectionSize: UInt64
+    ) -> Strings? {
+        guard flags.type == .cstring_literals else { return nil }
+        let basePointer = ptr
+            .advanced(by: numericCast(sectionOffset))
+            .assumingMemoryBound(to: CChar.self)
+        let tableSize = Int(sectionSize)
+        return Strings(
+            basePointer: basePointer,
+            tableSize: tableSize
+        )
+    }
+
+    fileprivate func _strings(
+        in machO: MachOFile,
+        sectionOffset: UInt32,
+        sectionSize: UInt64
+    ) -> MachOFile.Strings? {
+        guard flags.type == .cstring_literals else {
+            return nil
+        }
+        let startOffset = machO.headerStartOffset + numericCast(sectionOffset)
+        let tableSize = Int(sectionSize)
+
+        machO.fileHandle.seek(toFileOffset: UInt64(startOffset))
+        let data = machO.fileHandle.readData(ofLength: tableSize)
+
+        return MachOFile.Strings(
+            data: data
+        )
+    }
+}
+
+extension Section {
+    public func strings(ptr: UnsafeRawPointer) -> Strings? {
+        _strings(ptr: ptr, sectionOffset: layout.offset, sectionSize: UInt64(layout.size))
+    }
+
+    public func strings(in machO: MachOFile) -> MachOFile.Strings? {
+        _strings(in: machO, sectionOffset: layout.offset, sectionSize: UInt64(layout.size))
+    }
+}
+
+extension Section64 {
+    public func strings(ptr: UnsafeRawPointer) -> Strings? {
+        _strings(ptr: ptr, sectionOffset: layout.offset, sectionSize: layout.size)
+    }
+
+    public func strings(in machO: MachOFile) -> MachOFile.Strings? {
+        _strings(in: machO, sectionOffset: layout.offset, sectionSize: UInt64(layout.size))
     }
 }

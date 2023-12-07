@@ -9,9 +9,23 @@
 import Foundation
 
 public struct Strings: Sequence {
-    private let basePointer: UnsafePointer<CChar>
-    private let tableSize: Int
+    public let basePointer: UnsafePointer<CChar>
+    public let tableSize: Int
 
+    init(basePointer: UnsafePointer<CChar>, tableSize: Int) {
+        self.basePointer = basePointer
+        self.tableSize = tableSize
+    }
+
+    public func makeIterator() -> Iterator {
+        Iterator(
+            basePointer: basePointer,
+            tableSize: tableSize
+        )
+    }
+}
+
+extension Strings {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
@@ -38,14 +52,6 @@ public struct Strings: Sequence {
             .advanced(by: numericCast(fileSlide))
             .assumingMemoryBound(to: CChar.self)
         self.tableSize = Int(symtab.strsize)
-    }
-
-    public func makeIterator() -> Iterator {
-
-        Iterator(
-            basePointer: basePointer,
-            tableSize: tableSize
-        )
     }
 }
 
