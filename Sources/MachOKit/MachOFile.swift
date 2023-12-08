@@ -77,6 +77,52 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    public var symbols: AnySequence<Symbol> {
+        if is64Bit, let symbols64 {
+            AnySequence(symbols64)
+        } else if let symbols32 {
+            AnySequence(symbols32)
+        } else {
+            AnySequence([])
+        }
+    }
+
+    public var symbols64: Symbols64? {
+        guard is64Bit else {
+            return nil
+        }
+        if let text = loadCommands.text64,
+           let linkedit = loadCommands.linkedit64,
+           let symtab = loadCommands.symtab {
+            return Symbols64(
+                machO: self,
+                text: text,
+                linkedit: linkedit,
+                symtab: symtab
+            )
+        }
+        return nil
+    }
+
+    public var symbols32: Symbols? {
+        guard !is64Bit else {
+            return nil
+        }
+        if let text = loadCommands.text,
+           let linkedit = loadCommands.linkedit,
+           let symtab = loadCommands.symtab {
+            return Symbols(
+                machO: self,
+                text: text,
+                linkedit: linkedit,
+                symtab: symtab
+            )
+        }
+        return nil
+    }
+}
+
+extension MachOFile {
     public var rpaths: [String] {
         loadCommands
             .compactMap { cmd in
