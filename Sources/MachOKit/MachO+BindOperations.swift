@@ -1,5 +1,5 @@
 //
-//  BindOperations.swift
+//  MachO+BindOperations.swift
 //
 //
 //  Created by p-x9 on 2023/12/03.
@@ -8,16 +8,18 @@
 
 import Foundation
 
-public struct BindOperations: Sequence {
-    public let basePointer: UnsafePointer<UInt8>
-    public let bindSize: Int
+extension MachO {
+    public struct BindOperations: Sequence {
+        public let basePointer: UnsafePointer<UInt8>
+        public let bindSize: Int
 
-    public func makeIterator() -> Iterator {
-        .init(basePointer: basePointer, bindSize: bindSize)
+        public func makeIterator() -> Iterator {
+            .init(basePointer: basePointer, bindSize: bindSize)
+        }
     }
 }
 
-extension BindOperations {
+extension MachO.BindOperations {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
@@ -51,7 +53,7 @@ extension BindOperations {
     }
 }
 
-extension BindOperations {
+extension MachO.BindOperations {
     public struct Iterator: IteratorProtocol {
         public typealias Element = BindOperation
 
