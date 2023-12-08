@@ -10,9 +10,9 @@ import Foundation
 
 extension UnsafePointer<UInt8> {
     /// (value, size)
-    func readULEB128() -> (Int, Int) {
-        var value: Int = 0
-        var shift: Int = 0
+    func readULEB128() -> (UInt, Int) {
+        var value: UInt = 0
+        var shift: UInt = 0
         var offset: Int = 0
 
         var byte: UInt8 = 0
@@ -20,7 +20,7 @@ extension UnsafePointer<UInt8> {
         repeat {
             byte = advanced(by: offset).pointee
 
-            value += Int(byte & 0x7F) << shift
+            value += UInt(byte & 0x7F) << shift
             shift += 7
             offset += 1
         } while byte >= 128

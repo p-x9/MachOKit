@@ -11,15 +11,15 @@ import Foundation
 public struct ExportTrieEntry {
     public struct Child {
         let label: String
-        let offset: Int // offset from start of export (dyld_info_command.dyld_info_command + offset)
+        let offset: UInt // offset from start of export (dyld_info_command.dyld_info_command + offset)
     }
 
     let terminalSize: UInt8
     var flags: ExportSymbolFlags? // null when terminalSize == 0
 
-    var ordinal: Int?
+    var ordinal: UInt?
     var importedName: String?
-    var symbolOffset: Int?
+    var symbolOffset: UInt?
 
     var children: [Child]
 }

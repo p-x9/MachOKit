@@ -10,18 +10,18 @@ import Foundation
 
 public enum BindOperation {
     case done
-    case set_dylib_ordinal_imm(ordinal: Int)
-    case set_dylib_ordinal_uleb(ordinal: Int)
+    case set_dylib_ordinal_imm(ordinal: UInt)
+    case set_dylib_ordinal_uleb(ordinal: UInt)
     case set_dylib_special_imm(special: BindSpecial)
-    case set_symbol_trailing_flags_imm(flags: Int, symbol: String)
+    case set_symbol_trailing_flags_imm(flags: UInt, symbol: String)
     case set_type_imm(type: BindType)
     case set_addend_sleb(addend: Int)
-    case set_segment_and_offset_uleb(segment: Int, offset: Int)
-    case add_addr_uleb(offset: Int)
+    case set_segment_and_offset_uleb(segment: UInt, offset: UInt)
+    case add_addr_uleb(offset: UInt)
     case do_bind
-    case do_bind_add_addr_uleb(offset: Int)
-    case do_bind_add_addr_imm_scaled(scale: Int)
-    case do_bind_uleb_times_skipping_uleb(count: Int, skip: Int)
+    case do_bind_add_addr_uleb(offset: UInt)
+    case do_bind_add_addr_imm_scaled(scale: UInt)
+    case do_bind_uleb_times_skipping_uleb(count: UInt, skip: UInt)
     case threaded(BindSubOperation)
 }
 
@@ -128,7 +128,7 @@ extension BindOperation {
             return .done
 
         case .set_dylib_ordinal_imm:
-            return .set_dylib_ordinal_imm(ordinal: Int(imm))
+            return .set_dylib_ordinal_imm(ordinal: UInt(imm))
 
         case .set_dylib_ordinal_uleb:
             let (value, ulebSize) = basePointer
@@ -146,7 +146,7 @@ extension BindOperation {
                 .advanced(by: nextOffset)
                 .readString()
             nextOffset += stringSize
-            return .set_symbol_trailing_flags_imm(flags: Int(imm), symbol: string)
+            return .set_symbol_trailing_flags_imm(flags: UInt(imm), symbol: string)
 
         case .set_type_imm:
             let type = BindType(rawValue: imm) ?? .pointer
@@ -164,7 +164,7 @@ extension BindOperation {
                 .advanced(by: nextOffset)
                 .readULEB128()
             nextOffset += ulebSize
-            return .set_segment_and_offset_uleb(segment: Int(imm), offset: value)
+            return .set_segment_and_offset_uleb(segment: UInt(imm), offset: value)
 
         case .add_addr_uleb:
             let (value, ulebSize) = basePointer
@@ -184,7 +184,7 @@ extension BindOperation {
             return .do_bind_add_addr_uleb(offset: value)
 
         case .do_bind_add_addr_imm_scaled:
-            return .do_bind_add_addr_imm_scaled(scale: Int(imm))
+            return .do_bind_add_addr_imm_scaled(scale: UInt(imm))
 
         case .do_bind_uleb_times_skipping_uleb:
             let (count, ulebSize) = basePointer
