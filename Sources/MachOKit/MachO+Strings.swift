@@ -13,11 +13,6 @@ extension MachO {
         public let basePointer: UnsafePointer<CChar>
         public let tableSize: Int
 
-        init(basePointer: UnsafePointer<CChar>, tableSize: Int) {
-            self.basePointer = basePointer
-            self.tableSize = tableSize
-        }
-
         public func makeIterator() -> Iterator {
             Iterator(
                 basePointer: basePointer,
