@@ -105,3 +105,112 @@ extension BindSubOperation: CustomStringConvertible {
         }
     }
 }
+
+extension BindOperation {
+    internal static func readNext(
+        basePointer: UnsafePointer<UInt8>,
+        bindSize: Int,
+        nextOffset: inout Int
+    ) -> BindOperation? {
+        guard nextOffset < bindSize else { return nil }
+
+        let val = basePointer.advanced(by: nextOffset).pointee
+        nextOffset += MemoryLayout<UInt8>.size
+
+        let imm = Int32(val) & BIND_IMMEDIATE_MASK
+        let opcodeRaw = Int32(val) & BIND_OPCODE_MASK
+        guard let opcode = BindOpcode(rawValue: opcodeRaw) else {
+            return nil
+        }
+
+        switch opcode {
+        case .done:
+            return .done
+
+        case .set_dylib_ordinal_imm:
+            return .set_dylib_ordinal_imm(ordinal: UInt(imm))
+
+        case .set_dylib_ordinal_uleb:
+            let (value, ulebSize) = basePointer
+                .advanced(by: nextOffset)
+                .readULEB128()
+            nextOffset += ulebSize
+            return .set_dylib_ordinal_uleb(ordinal: value)
+
+        case .set_dylib_special_imm:
+            let special = BindSpecial(rawValue: imm)!
+            return .set_dylib_special_imm(special: special)
+
+        case .set_symbol_trailing_flags_imm:
+            let (string, stringSize) = basePointer
+                .advanced(by: nextOffset)
+                .readString()
+            nextOffset += stringSize
+            return .set_symbol_trailing_flags_imm(flags: UInt(imm), symbol: string)
+
+        case .set_type_imm:
+            let type = BindType(rawValue: imm) ?? .pointer
+            return .set_type_imm(type: type)
+
+        case .set_addend_sleb:
+            let (value, slebSize) = basePointer
+                .advanced(by: nextOffset)
+                .readSLEB128()
+            nextOffset += slebSize
+            return .set_addend_sleb(addend: value)
+
+        case .set_segment_and_offset_uleb:
+            let (value, ulebSize) = basePointer
+                .advanced(by: nextOffset)
+                .readULEB128()
+            nextOffset += ulebSize
+            return .set_segment_and_offset_uleb(segment: UInt(imm), offset: value)
+
+        case .add_addr_uleb:
+            let (value, ulebSize) = basePointer
+                .advanced(by: nextOffset)
+                .readULEB128()
+            nextOffset += ulebSize
+            return .add_addr_uleb(offset: value)
+
+        case .do_bind:
+            return .do_bind
+
+        case .do_bind_add_addr_uleb:
+            let (value, ulebSize) = basePointer
+                .advanced(by: nextOffset)
+                .readULEB128()
+            nextOffset += ulebSize
+            return .do_bind_add_addr_uleb(offset: value)
+
+        case .do_bind_add_addr_imm_scaled:
+            return .do_bind_add_addr_imm_scaled(scale: UInt(imm))
+
+        case .do_bind_uleb_times_skipping_uleb:
+            let (count, ulebSize) = basePointer
+                .advanced(by: nextOffset)
+                .readULEB128()
+            nextOffset += ulebSize
+
+            let (skip, ulebSize2) = basePointer
+                .advanced(by: nextOffset)
+                .readULEB128()
+            nextOffset += ulebSize2
+
+            return .do_bind_uleb_times_skipping_uleb(count: count, skip: skip)
+
+        case .threaded:
+            let subopcode = BindSubOpcode(rawValue: imm)!
+            switch subopcode {
+            case .threaded_apply:
+                return .threaded(.threaded_apply)
+            case .threaded_set_bind_ordinal_table_size_uleb:
+                let (size, ulebOff) = basePointer
+                    .advanced(by: nextOffset)
+                    .readULEB128()
+                nextOffset += ulebOff
+                return .threaded(.threaded_set_bind_ordinal_table_size_uleb(size: Int(size)))
+            }
+        }
+    }
+}

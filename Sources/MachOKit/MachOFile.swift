@@ -131,6 +131,38 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    public var bindOperations: BindOperations? {
+        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        guard let info else { return nil }
+        return .init(
+            machO: self,
+            info: info.layout,
+            kind: .normal
+        )
+    }
+
+    public var weakBindOperations: BindOperations? {
+        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        guard let info else { return nil }
+        return .init(
+            machO: self,
+            info: info.layout,
+            kind: .weak
+        )
+    }
+
+    public var lazyBindOperations: BindOperations? {
+        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        guard let info else { return nil }
+        return .init(
+            machO: self,
+            info: info.layout,
+            kind: .lazy
+        )
+    }
+}
+
+extension MachOFile {
     public var rpaths: [String] {
         loadCommands
             .compactMap { cmd in
