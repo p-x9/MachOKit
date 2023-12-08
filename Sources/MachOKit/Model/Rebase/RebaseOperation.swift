@@ -11,13 +11,13 @@ import Foundation
 public enum RebaseOperation {
     case done
     case set_type_imm(RebaseType)
-    case set_segment_and_offset_uleb(segment: Int, offset: UInt)
-    case add_addr_uleb(offset: UInt)
-    case add_addr_imm_scaled(scale: UInt)
-    case do_rebase_imm_times(count: UInt)
-    case do_rebase_uleb_times(count: UInt)
-    case do_rebase_add_addr_uleb(offset: UInt)
-    case do_rebase_uleb_times_skipping_uleb(count: UInt, skip: UInt)
+    case set_segment_and_offset_uleb(segment: Int, offset: Int)
+    case add_addr_uleb(offset: Int)
+    case add_addr_imm_scaled(scale: Int)
+    case do_rebase_imm_times(count: Int)
+    case do_rebase_uleb_times(count: Int)
+    case do_rebase_add_addr_uleb(offset: Int)
+    case do_rebase_uleb_times_skipping_uleb(count: Int, skip: Int)
 }
 
 extension RebaseOperation {
@@ -103,10 +103,10 @@ extension RebaseOperation {
             return .add_addr_uleb(offset: value)
 
         case .add_addr_imm_scaled:
-            return .add_addr_imm_scaled(scale: UInt(imm))
+            return .add_addr_imm_scaled(scale: Int(imm))
 
         case .do_rebase_imm_times:
-            return .do_rebase_imm_times(count: UInt(imm))
+            return .do_rebase_imm_times(count: Int(imm))
 
         case .do_rebase_uleb_times:
             let (value, ulebSize) = basePointer
