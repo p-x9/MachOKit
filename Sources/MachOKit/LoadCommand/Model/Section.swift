@@ -14,7 +14,7 @@ public protocol SectionProtocol: LayoutWrapper {
     var flags: SectionFlags { get }
 
     /// returns nil except when type is `cstring_literals
-    func strings(ptr: UnsafeRawPointer) -> Strings?
+    func strings(ptr: UnsafeRawPointer) -> MachO.Strings?
 
     /// returns nil except when type is `cstring_literals
     func strings(in machO: MachOFile) -> MachOFile.Strings?
@@ -65,13 +65,13 @@ extension SectionProtocol {
         ptr: UnsafeRawPointer,
         sectionOffset: UInt32,
         sectionSize: UInt64
-    ) -> Strings? {
+    ) -> MachO.Strings? {
         guard flags.type == .cstring_literals else { return nil }
         let basePointer = ptr
             .advanced(by: numericCast(sectionOffset))
             .assumingMemoryBound(to: CChar.self)
         let tableSize = Int(sectionSize)
-        return Strings(
+        return MachO.Strings(
             basePointer: basePointer,
             tableSize: tableSize
         )
@@ -98,7 +98,7 @@ extension SectionProtocol {
 }
 
 extension Section {
-    public func strings(ptr: UnsafeRawPointer) -> Strings? {
+    public func strings(ptr: UnsafeRawPointer) -> MachO.Strings? {
         _strings(ptr: ptr, sectionOffset: layout.offset, sectionSize: UInt64(layout.size))
     }
 
@@ -108,7 +108,7 @@ extension Section {
 }
 
 extension Section64 {
-    public func strings(ptr: UnsafeRawPointer) -> Strings? {
+    public func strings(ptr: UnsafeRawPointer) -> MachO.Strings? {
         _strings(ptr: ptr, sectionOffset: layout.offset, sectionSize: layout.size)
     }
 

@@ -8,24 +8,27 @@
 
 import Foundation
 
-public struct Strings: Sequence {
-    public let basePointer: UnsafePointer<CChar>
-    public let tableSize: Int
+extension MachO {
+    public struct Strings: Sequence {
+        public let basePointer: UnsafePointer<CChar>
+        public let tableSize: Int
 
-    init(basePointer: UnsafePointer<CChar>, tableSize: Int) {
-        self.basePointer = basePointer
-        self.tableSize = tableSize
+        init(basePointer: UnsafePointer<CChar>, tableSize: Int) {
+            self.basePointer = basePointer
+            self.tableSize = tableSize
+        }
+
+        public func makeIterator() -> Iterator {
+            Iterator(
+                basePointer: basePointer,
+                tableSize: tableSize
+            )
+        }
     }
 
-    public func makeIterator() -> Iterator {
-        Iterator(
-            basePointer: basePointer,
-            tableSize: tableSize
-        )
-    }
 }
 
-extension Strings {
+extension MachO.Strings {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
@@ -55,7 +58,7 @@ extension Strings {
     }
 }
 
-extension Strings {
+extension MachO.Strings {
     public struct Iterator: IteratorProtocol {
         public typealias Element = StringTableEntry
 
@@ -81,6 +84,5 @@ extension Strings {
 
             return .init(string: string, offset: offset)
         }
-
     }
 }
