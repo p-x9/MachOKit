@@ -8,9 +8,12 @@
 
 import Foundation
 
-public struct Symbol {
-    public let name: String
-    public let address: UnsafeRawPointer
+extension MachO {
+    public struct Symbol {
+        public let name: String
+        public let address: UnsafeRawPointer
+        public let nlist: any NlistProtocol // Nlist or Nlist64
+    }
 }
 
 // https://stackoverflow.com/questions/20481058/find-pathname-from-dlopen-handle-on-osx
@@ -69,7 +72,7 @@ extension MachO {
 
 extension MachO.Symbols64 {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = Symbol
+        public typealias Element = MachO.Symbol
 
         public let stringBase: UnsafeRawPointer
         public let addressBase: UnsafeRawPointer
@@ -94,12 +97,8 @@ extension MachO.Symbols64 {
             guard nextIndex < numberOfSymbols else {
                 return nil
             }
-            var symbol = symbols.advanced(by: nextIndex).pointee
-            while nextIndex < numberOfSymbols,
-                    symbol.n_type & UInt8(N_EXT) != UInt8(N_EXT) || symbol.n_value == 0 {
-                nextIndex += 1
-                symbol = symbols.advanced(by: nextIndex).pointee
-            }
+            let symbol = symbols.advanced(by: nextIndex).pointee
+
             let str = stringBase
                 .advanced(by: Int(symbol.n_un.n_strx))
                 .assumingMemoryBound(to: CChar.self)
@@ -107,7 +106,11 @@ extension MachO.Symbols64 {
                 .advanced(by: Int(symbol.n_value))
             let name = String(cString: str)
 
-            let result = Symbol(name: name, address: address)
+            let result = MachO.Symbol(
+                name: name,
+                address: address,
+                nlist: Nlist64(layout: symbol)
+            )
 
             nextIndex += 1
 
@@ -118,7 +121,7 @@ extension MachO.Symbols64 {
 
 extension MachO.Symbols {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = Symbol
+        public typealias Element = MachO.Symbol
 
         public let stringBase: UnsafeRawPointer
         public let addressBase: UnsafeRawPointer
@@ -144,11 +147,7 @@ extension MachO.Symbols {
                 return nil
             }
             var symbol = symbols.advanced(by: nextIndex).pointee
-            while nextIndex < numberOfSymbols,
-                  symbol.n_type & UInt8(N_EXT) != UInt8(N_EXT) || symbol.n_value == 0 {
-                nextIndex += 1
-                symbol = symbols.advanced(by: nextIndex).pointee
-            }
+
             let str = stringBase
                 .advanced(by: Int(symbol.n_un.n_strx))
                 .assumingMemoryBound(to: CChar.self)
@@ -156,7 +155,11 @@ extension MachO.Symbols {
                 .advanced(by: Int(symbol.n_value))
             let name = String(cString: str)
 
-            let result = Symbol(name: name, address: address)
+            let result = MachO.Symbol(
+                name: name,
+                address: address,
+                nlist: Nlist(layout: symbol)
+            )
 
             nextIndex += 1
 
