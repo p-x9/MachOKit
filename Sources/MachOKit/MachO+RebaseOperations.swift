@@ -1,5 +1,5 @@
 //
-//  RebaseOperations.swift
+//  MachO+RebaseOperations.swift
 //
 //
 //  Created by p-x9 on 2023/12/03.
@@ -8,16 +8,18 @@
 
 import Foundation
 
-public struct RebaseOperations: Sequence {
-    public let basePointer: UnsafePointer<UInt8>
-    public let rebaseSize: Int
+extension MachO {
+    public struct RebaseOperations: Sequence {
+        public let basePointer: UnsafePointer<UInt8>
+        public let rebaseSize: Int
 
-    public func makeIterator() -> Iterator {
-        .init(basePointer: basePointer, rebaseSize: rebaseSize)
+        public func makeIterator() -> Iterator {
+            .init(basePointer: basePointer, rebaseSize: rebaseSize)
+        }
     }
 }
 
-extension RebaseOperations {
+extension MachO.RebaseOperations {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
@@ -49,7 +51,7 @@ extension RebaseOperations {
     }
 }
 
-extension RebaseOperations {
+extension MachO.RebaseOperations {
     public struct Iterator: IteratorProtocol {
         public typealias Element = RebaseOperation
 
