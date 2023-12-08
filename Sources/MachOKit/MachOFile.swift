@@ -64,19 +64,6 @@ public class MachOFile {
 }
 
 extension MachOFile {
-    public var symbolStrings: Strings? {
-        if let symtab = loadCommands.symtab {
-            fileHandle.seek(toFileOffset: UInt64(headerStartOffset) + UInt64(symtab.stroff))
-            let data = fileHandle.readData(ofLength: Int(symtab.strsize))
-            return Strings(
-                data: data
-            )
-        }
-        return nil
-    }
-}
-
-extension MachOFile {
     public var symbols: AnySequence<Symbol> {
         if is64Bit, let symbols64 {
             AnySequence(symbols64)
@@ -119,6 +106,27 @@ extension MachOFile {
             )
         }
         return nil
+    }
+}
+
+extension MachOFile {
+    public var symbolStrings: Strings? {
+        if let symtab = loadCommands.symtab {
+            fileHandle.seek(toFileOffset: UInt64(headerStartOffset) + UInt64(symtab.stroff))
+            let data = fileHandle.readData(ofLength: Int(symtab.strsize))
+            return Strings(
+                data: data
+            )
+        }
+        return nil
+    }
+}
+
+extension MachOFile {
+    public var rebaseOperations: RebaseOperations? {
+        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        guard let info else { return nil }
+        return .init(machO: self, info: info.layout)
     }
 }
 
