@@ -163,6 +163,16 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    public var exportTrieEntries: ExportTrieEntries? {
+        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+
+        guard let info else { return nil }
+
+        return .init(machO: self, info: info.layout)
+    }
+}
+
+extension MachOFile {
     public var rpaths: [String] {
         loadCommands
             .compactMap { cmd in
