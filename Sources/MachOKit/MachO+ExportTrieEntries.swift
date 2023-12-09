@@ -1,5 +1,5 @@
 //
-//  ExportTrieEntries.swift
+//  MachO+ExportTrieEntries.swift
 //
 //
 //  Created by p-x9 on 2023/12/04.
@@ -8,16 +8,18 @@
 
 import Foundation
 
-public struct ExportTrieEntries: Sequence {
-    public let basePointer: UnsafePointer<UInt8>
-    public let exportSize: Int
+extension MachO {
+    public struct ExportTrieEntries: Sequence {
+        public let basePointer: UnsafePointer<UInt8>
+        public let exportSize: Int
 
-    public func makeIterator() -> Iterator {
-        .init(basePointer: basePointer, exportSize: exportSize)
+        public func makeIterator() -> Iterator {
+            .init(basePointer: basePointer, exportSize: exportSize)
+        }
     }
 }
 
-extension ExportTrieEntries {
+extension MachO.ExportTrieEntries {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
@@ -49,7 +51,7 @@ extension ExportTrieEntries {
     }
 }
 
-extension ExportTrieEntries {
+extension MachO.ExportTrieEntries {
     public struct Iterator: IteratorProtocol {
         public typealias Element = ExportTrieEntry
 
