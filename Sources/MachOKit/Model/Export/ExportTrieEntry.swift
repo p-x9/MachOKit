@@ -47,9 +47,9 @@ extension ExportTrieEntry: CustomStringConvertible {
 
         let children = children
             .lazy
-            .map(\.description)
-            .map { "    - " + $0 }
-        text += "children:\n"
+            .enumerated()
+            .map { "\($0)    - " + $1.description }
+        text += "children(\(self.children.count)):\n"
         text += "\(children.joined(separator: "\n"))"
 
         return text
@@ -63,6 +63,7 @@ extension ExportTrieEntry.Child: CustomStringConvertible {
 }
 
 // https://opensource.apple.com/source/dyld/dyld-132.13/launch-cache/MachOTrie.hpp
+// https://opensource.apple.com/source/ld64/ld64-253.9/src/other/dyldinfo.cpp.auto.html
 extension ExportTrieEntry {
     internal static func readNext(
         basePointer: UnsafePointer<UInt8>,
@@ -97,6 +98,13 @@ extension ExportTrieEntry {
                 nextOffset += ulebOffset
 
                 entry.ordinal = value
+
+                let (string, stringOffset) = basePointer
+                    .advanced(by: nextOffset)
+                    .readString()
+                nextOffset += stringOffset
+
+                entry.importedName = string
             } else {
                 let (value, ulebOffset) = basePointer
                     .advanced(by: nextOffset)
@@ -106,13 +114,13 @@ extension ExportTrieEntry {
                 entry.symbolOffset = value
             }
 
-            if flags.contains(.stub_and_resolver) || flags.contains(.static_resolver) {
-                let (string, stringOffset) = basePointer
+            if flags.contains(.stub_and_resolver)  {
+                let (value, ulebOffset) = basePointer
                     .advanced(by: nextOffset)
-                    .readString()
-                nextOffset += stringOffset
+                    .readULEB128()
+                nextOffset += ulebOffset
 
-                entry.importedName = string
+                entry.ordinal = value
             }
         }
 
@@ -136,7 +144,6 @@ extension ExportTrieEntry {
             entry.children.append(child)
         }
 
-        print("child", childrenOffset)
         nextOffset = childrenOffset
 
         return entry
