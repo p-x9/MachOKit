@@ -45,12 +45,14 @@ extension ExportTrieEntry: CustomStringConvertible {
             text += "symbolOffset: \(symbolOffset)\n"
         }
 
-        let children = children
-            .lazy
-            .enumerated()
-            .map { "\($0)    - " + $1.description }
-        text += "children(\(self.children.count)):\n"
-        text += "\(children.joined(separator: "\n"))"
+        if !children.isEmpty {
+            let children = children
+                .lazy
+                .enumerated()
+                .map { "\($0)    - " + $1.description }
+            text += "children(\(self.children.count)):\n"
+            text += "\(children.joined(separator: "\n"))"
+        }
 
         return text
     }
@@ -114,7 +116,7 @@ extension ExportTrieEntry {
                 entry.symbolOffset = value
             }
 
-            if flags.contains(.stub_and_resolver)  {
+            if flags.contains(.stub_and_resolver) {
                 let (value, ulebOffset) = basePointer
                     .advanced(by: nextOffset)
                     .readULEB128()

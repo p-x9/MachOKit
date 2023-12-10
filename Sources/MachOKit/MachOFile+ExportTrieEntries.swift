@@ -9,14 +9,27 @@
 import Foundation
 
 extension MachOFile {
-    public struct ExportTrieEntries {
+    public struct ExportTrieEntries: Sequence {
         let machO: MachOFile
         public let exportOffset: Int
         public let exportSize: Int
+
+        public func makeIterator() -> Iterator {
+            let offset = machO.headerStartOffset + exportOffset
+            machO.fileHandle.seek(
+                toFileOffset: UInt64(offset)
+            )
+
+            // FIXME: exportSize does not include the size of the last entry's children information
+            // Therefore, read to the end of the file.
+            let data = machO.fileHandle.readDataToEndOfFile()
+
+            return .init(data: data, exportSize: exportSize)
+        }
     }
 }
 
-extension MachOFile.ExportTrieEntries: Sequence {
+extension MachOFile.ExportTrieEntries {
     init(
         machO: MachOFile,
         info: dyld_info_command
@@ -28,17 +41,28 @@ extension MachOFile.ExportTrieEntries: Sequence {
         )
     }
 
-    public func makeIterator() -> Iterator {
-        let offset = machO.headerStartOffset + exportOffset
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(offset)
+    init(
+        machO: MachOFile,
+        linkedit: SegmentCommand64,
+        export: linkedit_data_command
+    ) {
+        self.init(
+            machO: machO,
+            exportOffset: Int(export.dataoff), // No need to consider headerStartOffset
+            exportSize: Int(export.datasize)
         )
+    }
 
-        // FIXME: exportSize does not include the size of the last entry's children information
-        // Therefore, read to the end of the file.
-        let data = machO.fileHandle.readDataToEndOfFile()
-
-        return .init(data: data, exportSize: exportSize)
+    init(
+        machO: MachOFile,
+        linkedit: SegmentCommand,
+        export: linkedit_data_command
+    ) {
+        self.init(
+            machO: machO,
+            exportOffset: Int(export.dataoff), //　No need to consider headerStartOffset
+            exportSize: Int(export.datasize)
+        )
     }
 }
 

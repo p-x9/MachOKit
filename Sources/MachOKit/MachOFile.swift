@@ -166,9 +166,30 @@ extension MachOFile {
     public var exportTrieEntries: ExportTrieEntries? {
         let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
 
-        guard let info else { return nil }
+        if let info {
+            return .init(machO: self, info: info.layout)
+        }
 
-        return .init(machO: self, info: info.layout)
+        guard let export = Array(loadCommands.infos(of: LoadCommand.dyldExportsTrie)).first else {
+            return nil
+        }
+
+        if is64Bit,
+           let linkedit = loadCommands.linkedit64 {
+            return ExportTrieEntries(
+                machO: self,
+                linkedit: linkedit,
+                export: export.layout
+            )
+        } else if let linkedit = loadCommands.linkedit {
+            return ExportTrieEntries(
+                machO: self,
+                linkedit: linkedit,
+                export: export.layout
+            )
+        }
+
+        return nil
     }
 }
 

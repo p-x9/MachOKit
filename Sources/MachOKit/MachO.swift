@@ -79,6 +79,21 @@ extension MachO {
         dladdr(ptr, &info)
         return String(cString: info.dli_fname)
     }
+
+    public var vmaddrSlide: Int? {
+        guard self.path != nil else { return nil }
+
+        let indices = 0..<_dyld_image_count()
+        let index = indices.first { index in
+            guard let pathC = _dyld_get_image_name(index) else {
+                return false
+            }
+            let path = String(cString: pathC)
+            return path == self.path
+        }
+
+        return _dyld_get_image_vmaddr_slide(index ?? 0)
+    }
 }
 
 extension MachO {
@@ -259,26 +274,47 @@ extension MachO {
     public var exportTrieEntries: ExportTrieEntries? {
         let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
 
-        guard let info else { return nil }
+        if let info {
+            if is64Bit,
+               let text = loadCommands.text64,
+               let linkedit = loadCommands.linkedit64 {
+                return ExportTrieEntries(
+                    ptr: ptr,
+                    text: text,
+                    linkedit: linkedit,
+                    info: info.layout
+                )
+            } else if let text = loadCommands.text,
+                      let linkedit = loadCommands.linkedit {
+                return ExportTrieEntries(
+                    ptr: ptr,
+                    text: text,
+                    linkedit: linkedit,
+                    info: info.layout
+                )
+            }
+        }
+
+        guard let export = Array(loadCommands.infos(of: LoadCommand.dyldExportsTrie)).first,
+              let vmaddrSlide else {
+            return nil
+        }
 
         if is64Bit,
-           let text = loadCommands.text64,
            let linkedit = loadCommands.linkedit64 {
             return ExportTrieEntries(
-                ptr: ptr,
-                text: text,
                 linkedit: linkedit,
-                info: info.layout
+                export: export.layout,
+                vmaddrSlide: vmaddrSlide
             )
-        } else if let text = loadCommands.text,
-                  let linkedit = loadCommands.linkedit {
+        } else if let linkedit = loadCommands.linkedit {
             return ExportTrieEntries(
-                ptr: ptr,
-                text: text,
                 linkedit: linkedit,
-                info: info.layout
+                export: export.layout,
+                vmaddrSlide: vmaddrSlide
             )
         }
+
         return nil
     }
 }

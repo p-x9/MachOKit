@@ -49,6 +49,33 @@ extension MachO.ExportTrieEntries {
 
         self.init(basePointer: ptr, exportSize: Int(info.export_size))
     }
+
+    init(
+        linkedit: SegmentCommand64,
+        export: linkedit_data_command,
+        vmaddrSlide: Int
+    ) {
+
+        let linkeditStart = vmaddrSlide + Int(linkedit.layout.vmaddr - linkedit.layout.fileoff)
+        let ptr = UnsafeRawPointer(bitPattern: linkeditStart)!
+            .advanced(by: Int(export.dataoff))
+            .assumingMemoryBound(to: UInt8.self)
+
+        self.init(basePointer: ptr, exportSize: Int(export.datasize))
+    }
+
+    init(
+        linkedit: SegmentCommand,
+        export: linkedit_data_command,
+        vmaddrSlide: Int
+    ) {
+        let linkeditStart = vmaddrSlide + Int(linkedit.layout.vmaddr - linkedit.layout.fileoff)
+        let ptr = UnsafeRawPointer(bitPattern: linkeditStart)!
+            .advanced(by: Int(export.dataoff))
+            .assumingMemoryBound(to: UInt8.self)
+
+        self.init(basePointer: ptr, exportSize: Int(export.datasize))
+    }
 }
 
 extension MachO.ExportTrieEntries {
