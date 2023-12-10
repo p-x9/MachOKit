@@ -9,7 +9,7 @@
 import Foundation
 
 public class MachOFile {
-    let url: URL
+    public let url: URL
     let fileHandle: FileHandle
 
     public private(set) var isSwapped: Bool
@@ -37,7 +37,7 @@ public class MachOFile {
         )
     }
 
-    init(url: URL, headerStartOffset: Int = 0) throws {
+    public init(url: URL, headerStartOffset: Int = 0) throws {
         self.url = url
         let fileHandle = try FileHandle(forReadingFrom: url)
         self.fileHandle = fileHandle

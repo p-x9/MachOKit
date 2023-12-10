@@ -6,7 +6,7 @@ public enum MachOKit {
         case fat(FatFile)
     }
 
-    static func loadFromFile(url: URL) throws -> File {
+    public static func loadFromFile(url: URL) throws -> File {
         let fileHandle = try FileHandle(forReadingFrom: url)
         let magicData = fileHandle.readData(ofLength: 4)
         let magicRaw = magicData.withUnsafeBytes { $0.load(as: UInt32.self) }

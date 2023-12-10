@@ -21,7 +21,7 @@ public struct EntryPointCommand: LoadCommandWrapper {
 }
 
 extension EntryPointCommand {
-    func mainStartPointer(machOStart: UnsafeRawPointer) -> UnsafeRawPointer {
+    public func mainStartPointer(machOStart: UnsafeRawPointer) -> UnsafeRawPointer {
         machOStart
             .advanced(by: numericCast(layout.entryoff))
     }

@@ -9,7 +9,7 @@
 import Foundation
 
 public struct StringTableEntry: Codable, Equatable {
-    let string: String
+    public let string: String
     ///  Offset from the beginning of the string table
-    let offset: Int
+    public let offset: Int
 }
