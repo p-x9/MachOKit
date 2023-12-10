@@ -1,5 +1,182 @@
 import Foundation
 
+public enum CPUSubType {
+    case any(CPUAnySubType)
+    case vax(CPUVAXSubType)
+    case mc680x0(CPUMC680x0SubType)
+    case i386(CPUI386SubType)
+    case x86(CPUX86SubType)
+    case mips(CPUMipsSubType)
+    case mc98000(CPUMC98000SubType)
+    case hppa(CPUHPPASubType)
+    case mc88000(CPUMC88000SubType)
+    case sparc(CPUSPARCSubType)
+    case i860(CPUI860SubType)
+    case powerpc(CPUPowerPCSubType)
+    case arm(CPUARMSubType)
+    case arm64(CPUARM64SubType)
+    case arm64_32(CPUARM64_32SubType)
+
+    init?(rawValue: cpu_subtype_t, of cputype: CPUType) {
+        switch cputype {
+        case .any:
+            guard let subtype = CPUAnySubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .any(subtype)
+        case .vax:
+            guard let subtype = CPUVAXSubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .vax(subtype)
+        case .mc680x0:
+            guard let subtype = CPUMC680x0SubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .mc680x0(subtype)
+        case .x86:
+            guard let subtype = CPUX86SubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .x86(subtype)
+        case .i386:
+            guard let subtype = CPUI386SubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .i386(subtype)
+        case .x86_64:
+            guard let subtype = CPUX86SubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .x86(subtype)
+        case .mc98000:
+            guard let subtype = CPUMC98000SubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .mc98000(subtype)
+        case .hppa:
+            guard let subtype = CPUHPPASubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .hppa(subtype)
+        case .arm:
+            guard let subtype = CPUARMSubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .arm(subtype)
+        case .arm64:
+            guard let subtype = CPUARM64SubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .arm64(subtype)
+        case .arm64_32:
+            guard let subtype = CPUARM64_32SubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .arm64_32(subtype)
+        case .mc88000:
+            guard let subtype = CPUMC88000SubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .mc88000(subtype)
+        case .sparc:
+            guard let subtype = CPUSPARCSubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .sparc(subtype)
+        case .i860:
+            guard let subtype = CPUI860SubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .i860(subtype)
+        case .powerpc:
+            guard let subtype = CPUPowerPCSubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .powerpc(subtype)
+        case .powerpc64:
+            guard let subtype = CPUPowerPCSubType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .powerpc(subtype)
+        }
+    }
+}
+
+extension CPUSubType {
+    public var rawValue: cpu_subtype_t {
+        switch self {
+        case let .any(type):
+            type.rawValue
+        case let .vax(type):
+            type.rawValue
+        case let .mc680x0(type):
+            type.rawValue
+        case let .i386(type):
+            type.rawValue
+        case let .x86(type):
+            type.rawValue
+        case let .mips(type):
+            type.rawValue
+        case let .mc98000(type):
+            type.rawValue
+        case let .hppa(type):
+            type.rawValue
+        case let .mc88000(type):
+            type.rawValue
+        case let .sparc(type):
+            type.rawValue
+        case let .i860(type):
+            type.rawValue
+        case let .powerpc(type):
+            type.rawValue
+        case let .arm(type):
+            type.rawValue
+        case let .arm64(type):
+            type.rawValue
+        case let .arm64_32(type):
+            type.rawValue
+        }
+    }
+}
+
+extension CPUSubType: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case let .any(type):
+            type.description
+        case let .vax(type):
+            type.description
+        case let .mc680x0(type):
+            type.description
+        case let .i386(type):
+            type.description
+        case let .x86(type):
+            type.description
+        case let .mips(type):
+            type.description
+        case let .mc98000(type):
+            type.description
+        case let .hppa(type):
+            type.description
+        case let .mc88000(type):
+            type.description
+        case let .sparc(type):
+            type.description
+        case let .i860(type):
+            type.description
+        case let .powerpc(type):
+            type.description
+        case let .arm(type):
+            type.description
+        case let .arm64(type):
+            type.description
+        case let .arm64_32(type):
+            type.description
+        }
+    }
+}
+
 // MARK: - Any
 public enum CPUAnySubType {
     /// CPU_SUBTYPE_MULTIPLE
