@@ -9,11 +9,17 @@
 import Foundation
 
 public enum SymbolReferenceFlag {
+    /// REFERENCE_FLAG_UNDEFINED_NON_LAZY
     case undefined_non_lazy
+    /// REFERENCE_FLAG_UNDEFINED_LAZY
     case undefined_lazy
+    /// REFERENCE_FLAG_DEFINED
     case defined
+    /// REFERENCE_FLAG_PRIVATE_DEFINED
     case private_defined
+    /// REFERENCE_FLAG_PRIVATE_UNDEFINED_NON_LAZY
     case private_undefined_non_lazy
+    /// REFERENCE_FLAG_PRIVATE_UNDEFINED_LAZY
     case private_undefined_lazy
 }
 

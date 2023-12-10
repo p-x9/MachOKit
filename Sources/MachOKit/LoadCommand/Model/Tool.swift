@@ -9,18 +9,29 @@
 import Foundation
 
 public enum Tool {
+    ///  TOOL_CLANG
     case clang
+    /// TOOL_SWIFT
     case swift
+    /// TOOL_LD
     case ld
+    /// TOOL_LLD
     case lld
 
     /* values for gpu tools (1024 to 1048) */
+    /// TOOL_METAL
     case metal
+    /// TOOL_AIRLLD
     case airLld
+    /// TOOL_AIRNT
     case airNt
+    /// TOOL_AIRNT_PLUGIN
     case airNtPlugin
+    /// TOOL_AIRPACK
     case airPack
+    /// TOOL_GPUARCHIVER
     case gpuArchiver
+    ///  TOOL_METAL_FRAMEWORK
     case metalFramework
 }
 

@@ -9,16 +9,24 @@
 import Foundation
 
 public enum Magic: CaseIterable, Codable, Equatable {
+    /// MH_MAGIC
     case magic
+    /// MH_CIGAM
     case cigam
 
+    /// MH_MAGIC_64
     case magic64
+    /// MH_CIGAM_64
     case cigam64
 
+    /// FAT_MAGIC
     case fatMagic
+    /// FAT_CIGAM
     case fatCigam
 
+    /// FAT_MAGIC_64
     case fatMagic64
+    /// FAT_CIGAM_64
     case fatCigam64
 }
 

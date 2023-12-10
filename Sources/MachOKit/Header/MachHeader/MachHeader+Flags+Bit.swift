@@ -10,34 +10,63 @@ import Foundation
 
 extension MachHeader.Flags {
     public enum Bit: CaseIterable {
+        /// MH_NOUNDEFS
         case noundefs
+        /// MH_INCRLINK
         case incrlink
+        /// MH_DYLDLINK
         case dyldlink
+        /// MH_BINDATLOAD
         case bindatload
+        /// MH_PREBOUND
         case prebound
+        /// MH_SPLIT_SEGS
         case split_segs
+        /// MH_LAZY_INIT
         case lazy_init
+        /// MH_TWOLEVEL
         case twolevel
+        /// MH_FORCE_FLAT
         case force_flat
+        /// MH_NOMULTIDEFS
         case nomultidefs
+        /// MH_NOFIXPREBINDING
         case nofixprebinding
+        /// MH_PREBINDABLE
         case prebindable
+        /// MH_ALLMODSBOUND
         case allmodsbound
+        /// MH_SUBSECTIONS_VIA_SYMBOLS
         case subsections_via_symbols
+        /// MH_CANONICAL
         case canonical
+        /// MH_WEAK_DEFINES
         case weak_defines
+        /// MH_BINDS_TO_WEAK
         case binds_to_weak
+        /// MH_ALLOW_STACK_EXECUTION
         case allow_stack_execution
+        /// MH_ROOT_SAFE
         case root_safe
+        /// MH_SETUID_SAFE
         case setuid_safe
+        /// MH_NO_REEXPORTED_DYLIBS
         case no_reexported_dylibs
+        /// MH_PIE
         case pie
+        /// MH_DEAD_STRIPPABLE_DYLIB
         case dead_strippable_dylib
+        /// MH_HAS_TLV_DESCRIPTORS
         case has_tlv_descriptors
+        /// MH_NO_HEAP_EXECUTION
         case no_heap_execution
+        /// MH_APP_EXTENSION_SAFE
         case app_extension_safe
+        /// MH_NLIST_OUTOFSYNC_WITH_DYLDINFO
         case nlist_outofsync_with_dyldinfo
+        /// MH_SIM_SUPPORT
         case sim_support
+        /// MH_DYLIB_IN_CACHE
         case dylib_in_cache
     }
 }

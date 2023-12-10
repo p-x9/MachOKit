@@ -27,33 +27,43 @@ public struct SymbolDescription: OptionSet {
 }
 
 extension SymbolDescription {
+    /// REFERENCED_DYNAMICALLY
     public static let referenced_dynamically = SymbolDescription(
         rawValue: Bit.referenced_dynamically.rawValue
     )
+    /// N_NO_DEAD_STRIP
     public static let no_dead_strip = SymbolDescription(
         rawValue: Bit.no_dead_strip.rawValue
     )
+    /// N_DESC_DISCARDED
     public static let desc_discarded = SymbolDescription(
         rawValue: Bit.desc_discarded.rawValue
     )
+    /// N_WEAK_REF
     public static let weak_ref = SymbolDescription(
         rawValue: Bit.weak_ref.rawValue
     )
+    /// N_WEAK_DEF
     public static let weak_def = SymbolDescription(
         rawValue: Bit.weak_def.rawValue
     )
+    /// N_REF_TO_WEAK
     public static let ref_to_weak = SymbolDescription(
         rawValue: Bit.ref_to_weak.rawValue
     )
+    /// N_ARM_THUMB_DEF
     public static let arm_thumb_def = SymbolDescription(
         rawValue: Bit.arm_thumb_def.rawValue
     )
+    /// N_SYMBOL_RESOLVER
     public static let symbol_resolver = SymbolDescription(
         rawValue: Bit.symbol_resolver.rawValue
     )
+    /// N_ALT_ENTRY
     public static let alt_entry = SymbolDescription(
         rawValue: Bit.alt_entry.rawValue
     )
+    /// N_COLD_FUNC
     public static let cold_func = SymbolDescription(
         rawValue: Bit.cold_func.rawValue
     )
@@ -71,15 +81,25 @@ extension SymbolDescription {
 
 extension SymbolDescription {
     public enum Bit: CaseIterable {
+        /// REFERENCED_DYNAMICALLY
         case referenced_dynamically
+        /// N_NO_DEAD_STRIP
         case no_dead_strip
+        /// N_DESC_DISCARDED
         case desc_discarded
+        /// N_WEAK_REF
         case weak_ref
+        /// N_WEAK_DEF
         case weak_def
+        /// N_REF_TO_WEAK
         case ref_to_weak
+        /// N_ARM_THUMB_DEF
         case arm_thumb_def
+        /// N_SYMBOL_RESOLVER
         case symbol_resolver
+        /// N_ALT_ENTRY
         case alt_entry
+        /// N_COLD_FUNC
         case cold_func
     }
 }

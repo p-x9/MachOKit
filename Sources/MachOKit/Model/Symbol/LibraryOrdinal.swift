@@ -9,9 +9,13 @@
 import Foundation
 
 public enum LibraryOrdinal {
+    /// SELF_LIBRARY_ORDINAL
     case `self`
+    /// MAX_LIBRARY_ORDINAL
     case max
+    /// DYNAMIC_LOOKUP_ORDINAL
     case dynamic_lookup_ordinal
+    /// EXECUTABLE_ORDINAL
     case executable_ordinal
 }
 

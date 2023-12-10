@@ -9,8 +9,11 @@
 import Foundation
 
 public enum ExportSymbolKind {
+    /// EXPORT_SYMBOL_FLAGS_KIND_REGULAR
     case regular
+    /// EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL
     case thread_local
+    /// EXPORT_SYMBOL_FLAGS_KIND_ABSOLUTE
     case absolute
 }
 

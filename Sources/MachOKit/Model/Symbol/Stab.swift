@@ -9,36 +9,67 @@
 import Foundation
 
 public enum Stab {
+    /// N_GSYM
     case gsym
+    /// N_FNAME
     case fname
+    /// N_FUN
     case fun
+    /// N_STSYM
     case stsym
+    /// N_LCSYM
     case lcsym
+    /// N_BNSYM
     case bnsym
+    /// N_AST
     case ast
+    /// N_OPT
     case opt
+    /// N_RSYM
     case rsym
+    /// N_SLINE
     case sline
+    /// N_ENSYM
     case ensym
+    /// N_SSYM
     case ssym
+    /// N_SO
     case so
+    /// N_OSO
     case oso
+    /// N_LSYM
     case lsym
+    /// N_BINCL
     case bincl
+    /// N_SOL
     case sol
+    /// N_PARAMS
     case params
+    /// N_VERSION
     case version
+    /// N_OLEVEL
     case olevel
+    /// N_PSYM
     case psym
+    /// N_EINCL
     case eincl
+    /// N_ENTRY
     case entry
+    /// N_LBRAC
     case lbrac
+    /// N_EXCL
     case excl
+    /// N_RBRAC
     case rbrac
+    /// N_BCOMM
     case bcomm
+    /// N_ECOMM
     case ecomm
+    /// N_ECOML
     case ecoml
+    /// N_LENG
     case leng
+    /// N_PC
     case pc
 }
 

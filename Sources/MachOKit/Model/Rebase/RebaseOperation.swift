@@ -9,14 +9,23 @@
 import Foundation
 
 public enum RebaseOperation {
+    /// REBASE_OPCODE_DONE
     case done
+    /// REBASE_OPCODE_SET_TYPE_IMM
     case set_type_imm(RebaseType)
+    /// REBASE_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB
     case set_segment_and_offset_uleb(segment: Int, offset: UInt)
+    /// REBASE_OPCODE_ADD_ADDR_ULEB
     case add_addr_uleb(offset: UInt)
+    /// REBASE_OPCODE_ADD_ADDR_IMM_SCALED
     case add_addr_imm_scaled(scale: UInt)
+    /// REBASE_OPCODE_DO_REBASE_IMM_TIMES
     case do_rebase_imm_times(count: UInt)
+    /// REBASE_OPCODE_DO_REBASE_ULEB_TIMES
     case do_rebase_uleb_times(count: UInt)
+    /// REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB
     case do_rebase_add_addr_uleb(offset: UInt)
+    /// REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIPPING_ULEB
     case do_rebase_uleb_times_skipping_uleb(count: UInt, skip: UInt)
 }
 

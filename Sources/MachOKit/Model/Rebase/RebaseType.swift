@@ -9,8 +9,11 @@
 import Foundation
 
 public enum RebaseType {
+    /// REBASE_TYPE_POINTER
     case pointer
+    /// REBASE_TYPE_TEXT_ABSOLUTE32
     case text_absolute32
+    /// REBASE_TYPE_TEXT_PCREL32
     case text_pcrel32
 }
 

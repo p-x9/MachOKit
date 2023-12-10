@@ -9,28 +9,51 @@
 import Foundation
 
 public enum SectionType {
+    /// S_REGULAR
     case regular
+    /// S_ZEROFILL
     case zerofill
+    /// S_CSTRING_LITERALS
     case cstring_literals
+    /// S_4BYTE_LITERALS
     case _4byte_literals
+    /// S_8BYTE_LITERALS
     case _8byte_literals
+    /// S_LITERAL_POINTERS
     case literal_pointers
+    /// S_NON_LAZY_SYMBOL_POINTERS
     case non_lazy_symbol_pointers
+    /// S_LAZY_SYMBOL_POINTERS
     case lazy_symbol_pointers
+    /// S_SYMBOL_STUBS
     case symbol_stubs
+    /// S_MOD_INIT_FUNC_POINTERS
     case mod_init_func_pointers
+    /// S_MOD_TERM_FUNC_POINTERS
     case mod_term_func_pointers
+    /// S_COALESCED
     case coalesced
+    /// S_GB_ZEROFILL
     case gb_zerofill
+    /// S_INTERPOSING
     case interposing
+    /// S_16BYTE_LITERALS
     case _16byte_literals
+    /// S_DTRACE_DOF
     case dtrace_dof
+    /// S_LAZY_DYLIB_SYMBOL_POINTERS
     case lazy_dylib_symbol_pointers
+    /// S_THREAD_LOCAL_REGULAR
     case thread_local_regular
+    /// S_THREAD_LOCAL_ZEROFILL
     case thread_local_zerofill
+    /// S_THREAD_LOCAL_VARIABLES
     case thread_local_variables
+    /// S_THREAD_LOCAL_VARIABLE_POINTERS
     case thread_local_variable_pointers
+    /// S_THREAD_LOCAL_INIT_FUNCTION_POINTERS
     case thread_local_init_function_pointers
+    /// S_INIT_FUNC_OFFSETS
     case init_func_offsets
 }
 

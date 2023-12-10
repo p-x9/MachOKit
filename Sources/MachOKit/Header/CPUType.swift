@@ -9,21 +9,37 @@
 import Foundation
 
 public enum CPUType {
+    /// CPU_TYPE_ANY
     case any
+    /// CPU_TYPE_VAX
     case vax
+    /// CPU_TYPE_MC680x0
     case mc680x0
+    /// CPU_TYPE_X86
     case x86
+    /// CPU_TYPE_I386
     case i386
+    /// CPU_TYPE_X86_64
     case x86_64
+    /// CPU_TYPE_MC98000
     case mc98000
+    /// CPU_TYPE_HPPA
     case hppa
+    /// CPU_TYPE_ARM
     case arm
+    /// CPU_TYPE_ARM64
     case arm64
+    /// CPU_TYPE_ARM64_32
     case arm64_32
+    /// CPU_TYPE_MC88000
     case mc88000
+    /// CPU_TYPE_SPARC
     case sparc
+    /// CPU_TYPE_I860
     case i860
+    /// CPU_TYPE_POWERPC
     case powerpc
+    /// CPU_TYPE_POWERPC64
     case powerpc64
 }
 

@@ -9,9 +9,13 @@
 import Foundation
 
 public enum BindSpecial {
+    /// BIND_SPECIAL_DYLIB_SELF
     case dylib_self
+    /// BIND_SPECIAL_DYLIB_MAIN_EXECUTABLE
     case dylib_main_executable
+    /// BIND_SPECIAL_DYLIB_FLAT_LOOKUP
     case dylib_flat_lookup
+    /// BIND_SPECIAL_DYLIB_WEAK_LOOKUP
     case dylib_weak_lookup
 }
 

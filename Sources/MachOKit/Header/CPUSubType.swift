@@ -1,186 +1,12 @@
 import Foundation
 
-public enum CPUSubType {
-    case any(CPUAnySubType)
-    case vax(CPUVAXSubType)
-    case mc680x0(CPUMC680x0SubType)
-    case i386(CPUI386SubType)
-    case x86(CPUX86SubType)
-    case mips(CPUMipsSubType)
-    case mc98000(CPUMC98000SubType)
-    case hppa(CPUHPPASubType)
-    case mc88000(CPUMC88000SubType)
-    case sparc(CPUSPARCSubType)
-    case i860(CPUI860SubType)
-    case powerpc(CPUPowerPCSubType)
-    case arm(CPUARMSubType)
-    case arm64(CPUARM64SubType)
-    case arm64_32(CPUARM64_32SubType)
-
-    init?(rawValue: cpu_subtype_t, of cputype: CPUType) {
-        switch cputype {
-        case .any:
-            guard let subtype = CPUAnySubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .any(subtype)
-        case .vax:
-            guard let subtype = CPUVAXSubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .vax(subtype)
-        case .mc680x0:
-            guard let subtype = CPUMC680x0SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .mc680x0(subtype)
-        case .x86:
-            guard let subtype = CPUX86SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .x86(subtype)
-        case .i386:
-            guard let subtype = CPUI386SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .i386(subtype)
-        case .x86_64:
-            guard let subtype = CPUX86SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .x86(subtype)
-        case .mc98000:
-            guard let subtype = CPUMC98000SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .mc98000(subtype)
-        case .hppa:
-            guard let subtype = CPUHPPASubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .hppa(subtype)
-        case .arm:
-            guard let subtype = CPUARMSubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .arm(subtype)
-        case .arm64:
-            guard let subtype = CPUARM64SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .arm64(subtype)
-        case .arm64_32:
-            guard let subtype = CPUARM64_32SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .arm64_32(subtype)
-        case .mc88000:
-            guard let subtype = CPUMC88000SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .mc88000(subtype)
-        case .sparc:
-            guard let subtype = CPUSPARCSubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .sparc(subtype)
-        case .i860:
-            guard let subtype = CPUI860SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .i860(subtype)
-        case .powerpc:
-            guard let subtype = CPUPowerPCSubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .powerpc(subtype)
-        case .powerpc64:
-            guard let subtype = CPUPowerPCSubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .powerpc(subtype)
-        }
-    }
-}
-
-extension CPUSubType {
-    public var rawValue: cpu_subtype_t {
-        switch self {
-        case let .any(type):
-            type.rawValue
-        case let .vax(type):
-            type.rawValue
-        case let .mc680x0(type):
-            type.rawValue
-        case let .i386(type):
-            type.rawValue
-        case let .x86(type):
-            type.rawValue
-        case let .mips(type):
-            type.rawValue
-        case let .mc98000(type):
-            type.rawValue
-        case let .hppa(type):
-            type.rawValue
-        case let .mc88000(type):
-            type.rawValue
-        case let .sparc(type):
-            type.rawValue
-        case let .i860(type):
-            type.rawValue
-        case let .powerpc(type):
-            type.rawValue
-        case let .arm(type):
-            type.rawValue
-        case let .arm64(type):
-            type.rawValue
-        case let .arm64_32(type):
-            type.rawValue
-        }
-    }
-}
-
-extension CPUSubType: CustomStringConvertible {
-    public var description: String {
-        switch self {
-        case let .any(type):
-            type.description
-        case let .vax(type):
-            type.description
-        case let .mc680x0(type):
-            type.description
-        case let .i386(type):
-            type.description
-        case let .x86(type):
-            type.description
-        case let .mips(type):
-            type.description
-        case let .mc98000(type):
-            type.description
-        case let .hppa(type):
-            type.description
-        case let .mc88000(type):
-            type.description
-        case let .sparc(type):
-            type.description
-        case let .i860(type):
-            type.description
-        case let .powerpc(type):
-            type.description
-        case let .arm(type):
-            type.description
-        case let .arm64(type):
-            type.description
-        case let .arm64_32(type):
-            type.description
-        }
-    }
-}
-
 // MARK: - Any
 public enum CPUAnySubType {
+    /// CPU_SUBTYPE_MULTIPLE
     case multiple
+    /// CPU_SUBTYPE_LITTLE_ENDIAN
     case little_endian
+    /// CPU_SUBTYPE_BIG_ENDIAN
     case big_endian
 }
 
@@ -217,18 +43,31 @@ extension CPUAnySubType: CustomStringConvertible {
 
 // MARK: - VAX
 public enum CPUVAXSubType {
+    /// CPU_SUBTYPE_VAX_ALL
     case vax_all
+    /// CPU_SUBTYPE_VAX780
     case vax780
+    /// CPU_SUBTYPE_VAX785
     case vax785
+    /// CPU_SUBTYPE_VAX750
     case vax750
+    /// CPU_SUBTYPE_VAX730
     case vax730
+    /// CPU_SUBTYPE_UVAXI
     case uvaxi
+    /// CPU_SUBTYPE_UVAXII
     case uvaxii
+    /// CPU_SUBTYPE_VAX8200
     case vax8200
+    /// CPU_SUBTYPE_VAX8500
     case vax8500
+    /// CPU_SUBTYPE_VAX8600
     case vax8600
+    /// CPU_SUBTYPE_VAX8650
     case vax8650
+    /// CPU_SUBTYPE_VAX8800
     case vax8800
+    /// CPU_SUBTYPE_UVAXIII
     case uvaxiii
 }
 
@@ -295,9 +134,13 @@ extension CPUVAXSubType: CustomStringConvertible {
 
 // MARK: - MC680x0
 public enum CPUMC680x0SubType {
+    /// CPU_SUBTYPE_MC680x0_ALL
     case mc680x0_all
+    /// CPU_SUBTYPE_MC68030
     case mc68030
+    /// CPU_SUBTYPE_MC68040
     case mc68040
+    /// CPU_SUBTYPE_MC68030_ONLY
     case mc68030_only
 }
 
@@ -337,27 +180,49 @@ extension CPUMC680x0SubType: CustomStringConvertible {
 
 // MARK: - I386
 public enum CPUI386SubType {
+    /// CPU_SUBTYPE_I386_ALL
     case i386_all
+    /// CPU_SUBTYPE_386
     case _386
+    /// CPU_SUBTYPE_486
     case _486
+    /// CPU_SUBTYPE_486SX
     case _486sx
+    /// CPU_SUBTYPE_586
     case _586
+    /// CPU_SUBTYPE_PENT
     case pent
+    /// CPU_SUBTYPE_PENTPRO
     case pentpro
+    /// CPU_SUBTYPE_PENTII_M3
     case pentii_m3
+    /// CPU_SUBTYPE_PENTII_M5
     case pentii_m5
+    /// CPU_SUBTYPE_CELERON
     case celeron
+    /// CPU_SUBTYPE_CELERON_MOBILE
     case celeron_mobile
+    /// CPU_SUBTYPE_PENTIUM_3
     case pentium_3
+    /// CPU_SUBTYPE_PENTIUM_3_M
     case pentium_3_m
+    /// CPU_SUBTYPE_PENTIUM_3_XEON
     case pentium_3_xeon
+    /// CPU_SUBTYPE_PENTIUM_M
     case pentium_m
+    /// CPU_SUBTYPE_PENTIUM_4
     case pentium_4
+    /// CPU_SUBTYPE_PENTIUM_4_M
     case pentium_4_m
+    /// CPU_SUBTYPE_ITANIUM
     case itanium
+    /// CPU_SUBTYPE_ITANIUM_2
     case itanium_2
+    /// CPU_SUBTYPE_XEON
     case xeon
+    /// CPU_SUBTYPE_XEON_MP
     case xeon_mp
+    /// CPU_SUBTYPE_INTEL_MODEL_ALL
     case intel_model_all
 }
 
@@ -451,9 +316,13 @@ extension CPUI386SubType: CustomStringConvertible {
 
 // MARK: - X86
 public enum CPUX86SubType {
+    /// CPU_SUBTYPE_X86_ALL
     case x86_all
+    /// CPU_SUBTYPE_X86_64_ALL
     case x86_64_all
+    /// CPU_SUBTYPE_X86_ARCH1
     case x86_arch1
+    /// CPU_SUBTYPE_X86_64_H
     case x86_64_h
 }
 
@@ -493,13 +362,21 @@ extension CPUX86SubType: CustomStringConvertible {
 
 // MARK: - Mips
 public enum CPUMipsSubType {
+    /// CPU_SUBTYPE_MIPS_ALL
     case mips_all
+    /// CPU_SUBTYPE_MIPS_R2300
     case mips_r2300
+    /// CPU_SUBTYPE_MIPS_R2600
     case mips_r2600
+    /// CPU_SUBTYPE_MIPS_R2800
     case mips_r2800
+    /// CPU_SUBTYPE_MIPS_R2000a
     case mips_r2000a
+    /// CPU_SUBTYPE_MIPS_R2000
     case mips_r2000
+    /// CPU_SUBTYPE_MIPS_R3000a
     case mips_r3000a
+    /// CPU_SUBTYPE_MIPS_R3000
     case mips_r3000
 }
 
@@ -551,7 +428,9 @@ extension CPUMipsSubType: CustomStringConvertible {
 
 // MARK: - MC98000
 public enum CPUMC98000SubType {
+    /// CPU_SUBTYPE_MC98000_ALL
     case mc98000_all
+    /// CPU_SUBTYPE_MC98601
     case mc98601
 }
 
@@ -585,8 +464,11 @@ extension CPUMC98000SubType: CustomStringConvertible {
 
 // MARK: - HPPA
 public enum CPUHPPASubType {
+    /// CPU_SUBTYPE_HPPA_ALL
     case hppa_all
+    /// CPU_SUBTYPE_HPPA_7100
     case hppa_7100
+    /// CPU_SUBTYPE_HPPA_7100LC
     case hppa_7100lc
 }
 
@@ -623,8 +505,11 @@ extension CPUHPPASubType: CustomStringConvertible {
 
 // MARK: - MC88000
 public enum CPUMC88000SubType {
+    /// CPU_SUBTYPE_MC88000_ALL
     case mc88000_all
+    /// CPU_SUBTYPE_MC88100
     case mc88100
+    /// CPU_SUBTYPE_MC88110
     case mc88110
 }
 
@@ -661,6 +546,7 @@ extension CPUMC88000SubType: CustomStringConvertible {
 
 // MARK: - SPARC
 public enum CPUSPARCSubType {
+    /// CPU_SUBTYPE_SPARC_ALL
     case sparc_all
 }
 
@@ -691,7 +577,9 @@ extension CPUSPARCSubType: CustomStringConvertible {
 
 // MARK: - I860
 public enum CPUI860SubType {
+    /// CPU_SUBTYPE_I860_ALL
     case i860_all
+    /// CPU_SUBTYPE_I860_860
     case i860_860
 }
 
@@ -725,18 +613,31 @@ extension CPUI860SubType: CustomStringConvertible {
 
 // MARK: - PowerPC
 public enum CPUPowerPCSubType {
+    /// CPU_SUBTYPE_POWERPC_ALL
     case powerpc_all
+    /// CPU_SUBTYPE_POWERPC_601
     case powerpc_601
+    /// CPU_SUBTYPE_POWERPC_602
     case powerpc_602
+    /// CPU_SUBTYPE_POWERPC_603
     case powerpc_603
+    /// CPU_SUBTYPE_POWERPC_603e
     case powerpc_603e
+    /// CPU_SUBTYPE_POWERPC_603ev
     case powerpc_603ev
+    /// CPU_SUBTYPE_POWERPC_604
     case powerpc_604
+    /// CPU_SUBTYPE_POWERPC_604e
     case powerpc_604e
+    /// CPU_SUBTYPE_POWERPC_620
     case powerpc_620
+    /// CPU_SUBTYPE_POWERPC_750
     case powerpc_750
+    /// CPU_SUBTYPE_POWERPC_7400
     case powerpc_7400
+    /// CPU_SUBTYPE_POWERPC_7450
     case powerpc_7450
+    /// CPU_SUBTYPE_POWERPC_970
     case powerpc_970
 }
 
@@ -803,19 +704,33 @@ extension CPUPowerPCSubType: CustomStringConvertible {
 
 // MARK: - ARM
 public enum CPUARMSubType {
+    /// CPU_SUBTYPE_ARM_ALL
     case arm_all
+    /// CPU_SUBTYPE_ARM_V4T
     case arm_v4t
+    /// CPU_SUBTYPE_ARM_V6
     case arm_v6
+    /// CPU_SUBTYPE_ARM_V5TEJ
     case arm_v5tej
+    /// CPU_SUBTYPE_ARM_XSCALE
     case arm_xscale
+    /// CPU_SUBTYPE_ARM_V7
     case arm_v7
+    /// CPU_SUBTYPE_ARM_V7F
     case arm_v7f
+    /// CPU_SUBTYPE_ARM_V7S
     case arm_v7s
+    /// CPU_SUBTYPE_ARM_V7K
     case arm_v7k
+    /// CPU_SUBTYPE_ARM_V8
     case arm_v8
+    /// CPU_SUBTYPE_ARM_V6M
     case arm_v6m
+    /// CPU_SUBTYPE_ARM_V7M
     case arm_v7m
+    /// CPU_SUBTYPE_ARM_V7EM
     case arm_v7em
+    /// CPU_SUBTYPE_ARM_V8M
     case arm_v8m
 }
 
@@ -885,8 +800,11 @@ extension CPUARMSubType: CustomStringConvertible {
 
 // MARK: - ARM64
 public enum CPUARM64SubType {
+    /// CPU_SUBTYPE_ARM64_ALL
     case arm64_all
+    /// CPU_SUBTYPE_ARM64_V8
     case arm64_v8
+    /// CPU_SUBTYPE_ARM64E
     case arm64e
 }
 
@@ -923,7 +841,9 @@ extension CPUARM64SubType: CustomStringConvertible {
 
 // MARK: - ARM64_32
 public enum CPUARM64_32SubType {
+    /// CPU_SUBTYPE_ARM64_32_ALL
     case arm64_32_all
+    /// CPU_SUBTYPE_ARM64_32_V8
     case arm64_32_v8
 }
 

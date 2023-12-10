@@ -9,19 +9,33 @@
 import Foundation
 
 public enum FileType {
+    /// MH_OBJECT
     case object
+    /// MH_EXECUTE
     case execute
+    /// MH_FVMLIB
     case fvmlib
+    /// MH_CORE
     case core
+    /// MH_PRELOAD
     case preload
+    /// MH_DYLIB
     case dylib
+    /// MH_DYLINKER
     case dylinker
+    /// MH_BUNDLE
     case bundle
+    /// MH_DYLIB_STUB
     case dylibStub
+    /// MH_DSYM
     case dsym
+    /// MH_KEXT_BUNDLE
     case kextBundle
+    /// MH_FILESET
     case fileset
+    /// MH_GPU_EXECUTE
     case gpuExecute
+    /// MH_GPU_DYLIB
     case gpuDylib
 }
 

@@ -23,15 +23,19 @@ public struct ExportSymbolFlags: OptionSet {
 }
 
 extension ExportSymbolFlags {
+    /// EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION
     public static let weak_definition = ExportSymbolFlags(
         rawValue: Bit.weak_definition.rawValue
     )
+    /// EXPORT_SYMBOL_FLAGS_REEXPORT
     public static let reexport = ExportSymbolFlags(
         rawValue: Bit.reexport.rawValue
     )
+    /// EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER
     public static let stub_and_resolver = ExportSymbolFlags(
         rawValue: Bit.stub_and_resolver.rawValue
     )
+    /// EXPORT_SYMBOL_FLAGS_STATIC_RESOLVER
     public static let static_resolver = ExportSymbolFlags(
         rawValue: Bit.static_resolver.rawValue
     )
@@ -39,9 +43,13 @@ extension ExportSymbolFlags {
 
 extension ExportSymbolFlags {
     public enum Bit: CaseIterable {
+        /// EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION
         case weak_definition
+        /// EXPORT_SYMBOL_FLAGS_REEXPORT
         case reexport
+        /// EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER
         case stub_and_resolver
+        ///
         case static_resolver
     }
 }

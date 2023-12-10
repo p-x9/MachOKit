@@ -29,10 +29,11 @@ public struct SymbolFlags: OptionSet {
 }
 
 extension SymbolFlags {
+    /// N_PEXT
     public static let pext = SymbolFlags(
         rawValue: Bit.pext.rawValue
     )
-
+    /// N_EXT
     public static let ext = SymbolFlags(
         rawValue: Bit.ext.rawValue
     )
@@ -50,8 +51,10 @@ extension SymbolFlags {
 
 extension SymbolFlags {
     public enum Bit: CaseIterable {
+        /// N_PEXT
         /// private external symbol bit
         case pext
+        /// N_EXT
         /// external symbol bit, set for external symbols
         case ext
     }

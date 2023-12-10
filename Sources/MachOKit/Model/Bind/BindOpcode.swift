@@ -9,19 +9,33 @@
 import Foundation
 
 public enum BindOpcode {
+    /// BIND_OPCODE_DONE
     case done
+    /// BIND_OPCODE_SET_DYLIB_ORDINAL_IMM
     case set_dylib_ordinal_imm
+    /// BIND_OPCODE_SET_DYLIB_ORDINAL_ULEB
     case set_dylib_ordinal_uleb
+    /// BIND_OPCODE_SET_DYLIB_SPECIAL_IMM
     case set_dylib_special_imm
+    /// BIND_OPCODE_SET_SYMBOL_TRAILING_FLAGS_IMM
     case set_symbol_trailing_flags_imm
+    /// BIND_OPCODE_SET_TYPE_IMM
     case set_type_imm
+    /// BIND_OPCODE_SET_ADDEND_SLEB
     case set_addend_sleb
+    /// BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB
     case set_segment_and_offset_uleb
+    /// BIND_OPCODE_ADD_ADDR_ULEB
     case add_addr_uleb
+    /// BIND_OPCODE_DO_BIND
     case do_bind
+    /// BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB
     case do_bind_add_addr_uleb
+    /// BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED
     case do_bind_add_addr_imm_scaled
+    /// BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB
     case do_bind_uleb_times_skipping_uleb
+    /// BIND_OPCODE_THREADED
     case threaded
 }
 
@@ -89,7 +103,9 @@ extension BindOpcode: CustomStringConvertible {
 }
 
 public enum BindSubOpcode {
+    /// BIND_SUBOPCODE_THREADED_SET_BIND_ORDINAL_TABLE_SIZE_ULEB
     case threaded_set_bind_ordinal_table_size_uleb
+    /// BIND_SUBOPCODE_THREADED_APPLY
     case threaded_apply
 }
 

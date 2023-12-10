@@ -22,33 +22,43 @@ public struct SectionAttributes: OptionSet {
 }
 
 extension SectionAttributes {
+    /// S_ATTR_PURE_INSTRUCTIONS
     public static let pure_instructions = SectionAttributes(
         rawValue: Bit.pure_instructions.rawValue
     )
+    /// S_ATTR_NO_TOC
     public static let no_toc = SectionAttributes(
         rawValue: Bit.no_toc.rawValue
     )
+    /// S_ATTR_STRIP_STATIC_SYMS
     public static let strip_static_syms = SectionAttributes(
         rawValue: Bit.strip_static_syms.rawValue
     )
+    /// S_ATTR_NO_DEAD_STRIP
     public static let no_dead_strip = SectionAttributes(
         rawValue: Bit.no_dead_strip.rawValue
     )
+    /// S_ATTR_LIVE_SUPPORT
     public static let live_support = SectionAttributes(
         rawValue: Bit.live_support.rawValue
     )
+    /// S_ATTR_SELF_MODIFYING_CODE
     public static let self_modifying_code = SectionAttributes(
         rawValue: Bit.self_modifying_code.rawValue
     )
+    /// S_ATTR_DEBUG
     public static let debug = SectionAttributes(
         rawValue: Bit.debug.rawValue
     )
+    /// S_ATTR_SOME_INSTRUCTIONS
     public static let some_instructions = SectionAttributes(
         rawValue: Bit.some_instructions.rawValue
     )
+    /// S_ATTR_EXT_RELOC
     public static let ext_reloc = SectionAttributes(
         rawValue: Bit.ext_reloc.rawValue
     )
+    /// S_ATTR_LOC_RELOC
     public static let loc_reloc = SectionAttributes(
         rawValue: Bit.loc_reloc.rawValue
     )
@@ -66,15 +76,25 @@ extension SectionAttributes {
 
 extension SectionAttributes {
     public enum Bit: CaseIterable {
+        /// S_ATTR_PURE_INSTRUCTIONS
         case pure_instructions
+        /// S_ATTR_NO_TOC
         case no_toc
+        /// S_ATTR_STRIP_STATIC_SYMS
         case strip_static_syms
+        /// S_ATTR_NO_DEAD_STRIP
         case no_dead_strip
+        /// S_ATTR_LIVE_SUPPORT
         case live_support
+        /// S_ATTR_SELF_MODIFYING_CODE
         case self_modifying_code
+        /// S_ATTR_DEBUG
         case debug
+        /// S_ATTR_SOME_INSTRUCTIONS
         case some_instructions
+        /// S_ATTR_EXT_RELOC
         case ext_reloc
+        /// S_ATTR_LOC_RELOC
         case loc_reloc
     }
 }

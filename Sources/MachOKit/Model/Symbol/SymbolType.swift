@@ -9,18 +9,23 @@
 import Foundation
 
 public enum SymbolType {
+    /// N_UNDF
     /// undefined, n_sect == NO_SECT
     case undf
 
+    /// N_ABS
     /// absolute, n_sect == NO_SECT
     case abs
 
+    /// N_SECT
     /// defined in section number n_sect
     case sect
 
+    /// N_PBUD
     /// prebound undefined (defined in a dylib)
     case pbud
 
+    /// N_INDR
     /// indirect
     case indr
 }

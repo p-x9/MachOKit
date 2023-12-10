@@ -9,21 +9,35 @@
 import Foundation
 
 public enum Platform {
+    /// PLATFORM_UNKNOWN
     case unknown
+    /// PLATFORM_ANY
     case any
+    /// PLATFORM_MACOS
     case macOS
+    /// PLATFORM_IOS
     case iOS
+    /// PLATFORM_TVOS
     case tvOS
+    /// PLATFORM_WATCHOS
     case watchOS
+    /// PLATFORM_BRIDGEOS
     case bridgeOS
+    /// PLATFORM_MACCATALYST
     case macCatalyst
+    /// PLATFORM_IOSSIMULATOR
     case iOSSimulator
+    /// PLATFORM_TVOSSIMULATOR
     case tvOSSimulator
+    /// PLATFORM_WATCHOSSIMULATOR
     case watchOSSimulator
+    /// PLATFORM_DRIVERKIT
     case driverKit
 
     // __OPEN_SOURCE__
+    /// PLATFORM_FIRMWARE
     case firmware
+    /// PLATFORM_SEPOS
     case sepOS
 }
 
@@ -44,6 +58,8 @@ extension Platform: RawRepresentable {
         case UInt32(PLATFORM_TVOSSIMULATOR): self = .tvOSSimulator
         case UInt32(PLATFORM_WATCHOSSIMULATOR): self = .watchOSSimulator
         case UInt32(PLATFORM_DRIVERKIT): self = .driverKit
+        case UInt32(PLATFORM_FIRMWARE): self = .firmware
+        case UInt32(PLATFORM_SEPOS): self = .sepOS
         default:
             return nil
         }

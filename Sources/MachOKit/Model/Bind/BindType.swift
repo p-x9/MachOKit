@@ -9,8 +9,11 @@
 import Foundation
 
 public enum BindType {
+    /// BIND_TYPE_POINTER
     case pointer
+    /// BIND_TYPE_TEXT_ABSOLUTE32
     case text_absolute32
+    /// BIND_TYPE_TEXT_PCREL32
     case text_pcrel32
 }
 
