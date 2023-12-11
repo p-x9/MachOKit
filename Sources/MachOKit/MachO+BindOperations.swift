@@ -27,7 +27,7 @@ extension MachO.BindOperations {
         info: dyld_info_command,
         kind: BindOperationsKind = .normal
     ) {
-        let fileSlide = linkedit.vmaddr - text.vmaddr - (linkedit.fileoff - text.fileoff)
+        let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff 
         let ptr = ptr
             .advanced(by: Int(kind.bindOffset(of: info)))
             .advanced(by: Int(fileSlide))
@@ -43,7 +43,7 @@ extension MachO.BindOperations {
         info: dyld_info_command,
         kind: BindOperationsKind = .normal
     ) {
-        let fileSlide = linkedit.vmaddr - text.vmaddr - (linkedit.fileoff - text.fileoff)
+        let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff 
         let ptr = ptr
             .advanced(by: Int(kind.bindOffset(of: info)))
             .advanced(by: Int(fileSlide))
