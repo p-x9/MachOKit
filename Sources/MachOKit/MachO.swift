@@ -384,11 +384,11 @@ extension MachO {
         var dependencies = [Dylib]()
         for cmd in loadCommands {
             switch cmd {
-            case let .loadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
-            case let .loadWeakDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
-            case let .reexportDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
-            case let .loadUpwardDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
-            case let .lazyLoadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
+            case let .loadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            case let .loadWeakDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            case let .reexportDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            case let .loadUpwardDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            case let .lazyLoadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
             default: continue
             }
         }
