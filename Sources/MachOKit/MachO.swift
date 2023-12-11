@@ -378,3 +378,20 @@ extension MachO {
         return exportTrieEntries.exportedSymbols
     }
 }
+
+extension MachO {
+    public var dependencies: [Dylib] {
+        var dependencies = [Dylib]()
+        for cmd in loadCommands {
+            switch cmd {
+            case let .loadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
+            case let .loadWeakDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
+            case let .reexportDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
+            case let .loadUpwardDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
+            case let .lazyLoadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: ptr))
+            default: continue
+            }
+        }
+        return dependencies
+    }
+}

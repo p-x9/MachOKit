@@ -252,3 +252,20 @@ extension MachOFile {
         return exportTrieEntries.exportedSymbols
     }
 }
+
+extension MachOFile {
+    public var dependencies: [Dylib] {
+        var dependencies = [Dylib]()
+        for cmd in loadCommands {
+            switch cmd {
+            case let .loadDylib(cmd): dependencies.append(cmd.dylib(in: self))
+            case let .loadWeakDylib(cmd): dependencies.append(cmd.dylib(in: self))
+            case let .reexportDylib(cmd): dependencies.append(cmd.dylib(in: self))
+            case let .loadUpwardDylib(cmd): dependencies.append(cmd.dylib(in: self))
+            case let .lazyLoadDylib(cmd): dependencies.append(cmd.dylib(in: self))
+            default: continue
+            }
+        }
+        return dependencies
+    }
+}

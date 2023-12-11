@@ -81,7 +81,7 @@ public enum LoadCommand {
     /// LC_DYLD_INFO_ONLY
     case dyldInfoOnly(LoadCommandInfo<dyld_info_command>)
     /// LC_LOAD_UPWARD_DYLIB
-    case loadUpwardDylib(LoadCommandInfo<load_command>)
+    case loadUpwardDylib(DylibCommand)
     /// LC_VERSION_MIN_MACOSX
     case versionMinMacosx(VersionMinCommand)
     /// LC_VERSION_MIN_IPHONEOS

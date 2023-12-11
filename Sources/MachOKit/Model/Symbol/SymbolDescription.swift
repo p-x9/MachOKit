@@ -17,8 +17,17 @@ public struct SymbolDescription: OptionSet {
         .init(rawValue: rawValue & REFERENCE_TYPE)
     }
 
-    public var libraryOrdinal: LibraryOrdinal? {
-        .init(rawValue: (rawValue >> 8) & 0xff)
+    /// When included in indices, you can retrieve library information as follows
+    /// 
+    /// ```swift
+    /// machO.dependencies[libraryOrdinal - 1]
+    /// ```
+    public var libraryOrdinal: Int32 {
+        (rawValue >> 8) & 0xff
+    }
+
+    public var libraryOrdinalType: LibraryOrdinalType? {
+        .init(rawValue: libraryOrdinal)
     }
 
     public init(rawValue: RawValue) {
