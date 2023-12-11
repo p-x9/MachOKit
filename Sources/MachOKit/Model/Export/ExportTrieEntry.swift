@@ -14,11 +14,17 @@ public struct ExportTrieEntry {
         let offset: UInt // offset from start of export (dyld_info_command.dyld_info_command + offset)
     }
 
+    let offset: Int // offset from start of export
+
     let terminalSize: UInt8
     var flags: ExportSymbolFlags? // null when terminalSize == 0
 
     var ordinal: UInt?
     var importedName: String?
+
+    var stub: UInt?
+    var resolver: UInt?
+
     var symbolOffset: UInt?
 
     var children: [Child]
@@ -28,6 +34,7 @@ extension ExportTrieEntry: CustomStringConvertible {
     public var description: String {
         var text = ""
 
+        text += "offset: \(offset)\n"
         text += "terminalSize: \(terminalSize)\n"
         if let flags {
             text += "flags: \(flags.bits)\n"
@@ -35,15 +42,14 @@ extension ExportTrieEntry: CustomStringConvertible {
                 text += "kind: \(kind)\n"
             }
         }
-        if let ordinal {
-            text += "ordinal: \(ordinal)\n"
-        }
-        if let importedName {
-            text += "importedName: \(importedName)\n"
-        }
-        if let symbolOffset {
-            text += "symbolOffset: \(symbolOffset)\n"
-        }
+
+        if let ordinal { text += "ordinal: \(ordinal)\n" }
+        if let importedName { text += "importedName: \(importedName)\n" }
+
+        if let stub { text += "stub: \(stub)\n" }
+        if let resolver { text += "resolver: \(resolver)\n" }
+
+        if let symbolOffset { text += "symbolOffset: \(symbolOffset)\n" }
 
         if !children.isEmpty {
             let children = children
@@ -78,6 +84,7 @@ extension ExportTrieEntry {
         nextOffset += MemoryLayout<UInt8>.size
 
         var entry = ExportTrieEntry(
+            offset: nextOffset - 1,
             terminalSize: terminalSize,
             children: []
         )
@@ -107,6 +114,19 @@ extension ExportTrieEntry {
                 nextOffset += stringOffset
 
                 entry.importedName = string
+            } else if flags.contains(.stub_and_resolver) {
+                let (stub, ulebOffset) = basePointer
+                    .advanced(by: nextOffset)
+                    .readULEB128()
+                nextOffset += ulebOffset
+
+                let (resolver, ulebOffset2) = basePointer
+                    .advanced(by: nextOffset)
+                    .readULEB128()
+                nextOffset += ulebOffset2
+
+                entry.stub = stub
+                entry.resolver = resolver
             } else {
                 let (value, ulebOffset) = basePointer
                     .advanced(by: nextOffset)
@@ -115,16 +135,9 @@ extension ExportTrieEntry {
 
                 entry.symbolOffset = value
             }
-
-            if flags.contains(.stub_and_resolver) {
-                let (value, ulebOffset) = basePointer
-                    .advanced(by: nextOffset)
-                    .readULEB128()
-                nextOffset += ulebOffset
-
-                entry.ordinal = value
-            }
         }
+
+        guard childrenOffset < exportSize else { return entry }
 
         let numberOfChildren = basePointer
             .advanced(by: childrenOffset)

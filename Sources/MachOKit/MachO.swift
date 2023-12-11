@@ -369,3 +369,12 @@ extension MachO {
         }
     }
 }
+
+extension MachO {
+    public var exportedSymbols: [ExportedSymbol] {
+        guard let exportTrieEntries else {
+            return []
+        }
+        return exportTrieEntries.exportedSymbols
+    }
+}

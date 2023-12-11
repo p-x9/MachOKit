@@ -20,11 +20,9 @@ extension MachOFile {
                 toFileOffset: UInt64(offset)
             )
 
-            // FIXME: exportSize does not include the size of the last entry's children information
-            // Therefore, read to the end of the file.
-            let data = machO.fileHandle.readDataToEndOfFile()
+            let data = machO.fileHandle.readData(ofLength: exportSize)
 
-            return .init(data: data, exportSize: exportSize)
+            return .init(data: data)
         }
     }
 }
@@ -72,11 +70,9 @@ extension MachOFile.ExportTrieEntries {
 
         private let data: Data
         private var nextOffset: Int = 0
-        private let exportSize: Int
 
-        init(data: Data, exportSize: Int) {
+        init(data: Data) {
             self.data = data
-            self.exportSize = exportSize
         }
 
         public mutating func next() -> ExportTrieEntry? {
@@ -87,7 +83,7 @@ extension MachOFile.ExportTrieEntries {
 
                 return .readNext(
                     basePointer: basePointer.assumingMemoryBound(to: UInt8.self),
-                    exportSize: exportSize,
+                    exportSize: data.count,
                     nextOffset: &nextOffset
                 )
             }
