@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class MachOFile {
+public class MachOFile: MachORepresentable {
     public let url: URL
     let fileHandle: FileHandle
 

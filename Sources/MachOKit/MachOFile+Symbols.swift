@@ -9,14 +9,6 @@
 import Foundation
 
 extension MachOFile {
-    public struct Symbol {
-        public let name: String
-        public let offset: Int // file offset from start of mach header
-        public let nlist: any NlistProtocol // Nlist or Nlist64
-    }
-}
-
-extension MachOFile {
     public struct Symbols64: Sequence {
         let machO: MachOFile
         public let text: SegmentCommand64
@@ -63,7 +55,7 @@ extension MachOFile {
 
 extension MachOFile.Symbols64 {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = MachOFile.Symbol
+        public typealias Element = Symbol
 
         let headerStartOffset: Int
         let stringData: Data
@@ -120,7 +112,7 @@ extension MachOFile.Symbols64 {
 
             return .init(
                 name: string,
-                offset: headerStartOffset + Int(symbol.n_value),
+                offset: Int(symbol.n_value),
                 nlist: Nlist64(layout: symbol)
             )
         }
@@ -174,7 +166,7 @@ extension MachOFile {
 
 extension MachOFile.Symbols {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = MachOFile.Symbol
+        public typealias Element = Symbol
 
         let headerStartOffset: Int
         let stringData: Data
@@ -231,7 +223,7 @@ extension MachOFile.Symbols {
 
             return .init(
                 name: string,
-                offset: headerStartOffset + Int(symbol.n_value),
+                offset: Int(symbol.n_value),
                 nlist: Nlist(layout: symbol)
             )
         }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct MachO {
+public struct MachO: MachORepresentable {
     public let ptr: UnsafeRawPointer
 
     public let is64Bit: Bool
