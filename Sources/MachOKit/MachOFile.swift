@@ -251,6 +251,13 @@ extension MachOFile {
         }
         return exportTrieEntries.exportedSymbols
     }
+
+    public var bindingSymbols: [BindingSymbol] {
+        guard let bindOperations else {
+            return []
+        }
+        return bindOperations.bindings(is64Bit: is64Bit)
+    }
 }
 
 extension MachOFile {

@@ -63,3 +63,118 @@ extension Sequence<ExportTrieEntry> {
         }.flatMap { $0 }
     }
 }
+
+// https://opensource.apple.com/source/ld64/ld64-253.9/src/other/dyldinfo.cpp.auto.html
+extension Sequence<BindOperation> {
+    func bindings(
+        is64Bit: Bool
+    ) -> [BindingSymbol] {
+        var symbolName = "??"
+        var libraryOrdinal: UInt = 0
+        var bindType: BindType = .pointer
+        var addend: Int = 0
+
+        var segmentIndex: UInt = 0
+        var segmentOffset: UInt = 0
+
+        var bindings: [BindingSymbol] = []
+
+        let ptrSize = is64Bit ? MemoryLayout<UInt64>.size : MemoryLayout<UInt32>.size
+
+        var done = false
+        for operation in self {
+            if done { break }
+
+            switch operation {
+            case .done:
+                done = true
+
+            case let .set_dylib_ordinal_imm(ordinal: ordinal):
+                libraryOrdinal = ordinal
+
+            case let .set_dylib_ordinal_uleb(ordinal: ordinal):
+                libraryOrdinal = ordinal
+
+            case let .set_dylib_special_imm(special: special):
+                if special.rawValue == 0 { libraryOrdinal = 0 } else {
+                    let signExtended = BIND_OPCODE_MASK | special.rawValue
+                    libraryOrdinal = UInt(signExtended)
+                }
+
+            case let .set_symbol_trailing_flags_imm(flags: _, symbol: symbol):
+                symbolName = symbol
+
+            case let .set_type_imm(type: type):
+                bindType = type
+
+            case let .set_addend_sleb(addend: value):
+                addend = value
+
+            case let .set_segment_and_offset_uleb(segment: segment, offset: offset):
+                segmentIndex = segment
+                segmentOffset = offset
+
+            case let .add_addr_uleb(offset: offset):
+                segmentOffset &+= offset
+
+            case .do_bind:
+                bindings.append(
+                    .init(
+                        type: bindType,
+                        libraryOrdinal: libraryOrdinal,
+                        segmentIndex: segmentIndex,
+                        segmentOffset: segmentOffset,
+                        addend: addend,
+                        symbolName: symbolName
+                    )
+                )
+                segmentOffset &+= UInt(ptrSize)
+
+            case let .do_bind_add_addr_uleb(offset: offset):
+                bindings.append(
+                    .init(
+                        type: bindType,
+                        libraryOrdinal: libraryOrdinal,
+                        segmentIndex: segmentIndex,
+                        segmentOffset: segmentOffset,
+                        addend: addend,
+                        symbolName: symbolName
+                    )
+                )
+                segmentOffset &+= UInt(ptrSize)
+                segmentOffset &+= offset
+
+            case let .do_bind_add_addr_imm_scaled(scale: scale):
+                bindings.append(
+                    .init(
+                        type: bindType,
+                        libraryOrdinal: libraryOrdinal,
+                        segmentIndex: segmentIndex,
+                        segmentOffset: segmentOffset,
+                        addend: addend,
+                        symbolName: symbolName
+                    )
+                )
+                segmentOffset &+= (scale + 1) * UInt(ptrSize)
+
+            case let .do_bind_uleb_times_skipping_uleb(count: count, skip: skip):
+                for _ in 0..<count {
+                    bindings.append(
+                        .init(
+                            type: bindType,
+                            libraryOrdinal: libraryOrdinal,
+                            segmentIndex: segmentIndex,
+                            segmentOffset: segmentOffset,
+                            addend: addend,
+                            symbolName: symbolName
+                        )
+                    )
+                    segmentOffset &+= skip + UInt(ptrSize)
+                }
+
+            default: break
+            }
+        }
+        return bindings
+    }
+}
