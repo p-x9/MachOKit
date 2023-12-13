@@ -52,7 +52,7 @@ extension MachO {
         public let symtab: LoadCommandInfo<symtab_command>
 
         public func makeIterator() -> Iterator {
-            let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff 
+            let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff
 
             return Iterator(
                 stringBase: ptr
