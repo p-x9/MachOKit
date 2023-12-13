@@ -395,3 +395,43 @@ extension MachO {
         return dependencies
     }
 }
+
+extension MachO {
+    public var segments: [any SegmentCommandProtocol] {
+        if is64Bit {
+            Array(segments64)
+        } else {
+            Array(segments32)
+        }
+    }
+
+    public var segments64: AnySequence<SegmentCommand64> {
+        loadCommands.infos(of: LoadCommand.segment64)
+    }
+
+    public var segments32: AnySequence<SegmentCommand> {
+        loadCommands.infos(of: LoadCommand.segment)
+    }
+}
+
+extension MachO {
+    public var sections: [any SectionProtocol] {
+        if is64Bit {
+            sections64
+        } else {
+            sections32
+        }
+    }
+
+    public var sections64: [Section64] {
+        segments64.map {
+            $0.sections(cmdsStart: cmdsStartPtr)
+        }.flatMap { $0 }
+    }
+
+    public var sections32: [Section] {
+        segments32.map {
+            $0.sections(cmdsStart: cmdsStartPtr)
+        }.flatMap { $0 }
+    }
+}
