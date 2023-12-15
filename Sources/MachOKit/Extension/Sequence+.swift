@@ -178,3 +178,90 @@ extension Sequence<BindOperation> {
         return bindings
     }
 }
+
+extension Sequence<RebaseOperation> {
+    func rebases(
+        is64Bit: Bool
+    ) -> [Rebase] {
+        var rebaseType: RebaseType = .pointer
+        var segmentIndex: Int = 0
+        var segmentOffset: UInt = 0
+
+        var rebases: [Rebase] = []
+
+        let ptrSize = is64Bit ? MemoryLayout<UInt64>.size : MemoryLayout<UInt32>.size
+
+        var done = false
+        for operation in self {
+            if done { break }
+
+            switch operation {
+            case .done:
+                done = true
+
+            case let .set_type_imm(type):
+                rebaseType = type
+
+            case let .set_segment_and_offset_uleb(segment: segment, offset: offset):
+                segmentIndex = segment
+                segmentOffset = offset
+
+            case let .add_addr_uleb(offset: offset):
+                segmentOffset &+= offset
+
+            case let .add_addr_imm_scaled(scale: scale):
+                segmentOffset &+= scale * UInt(ptrSize)
+
+            case let .do_rebase_imm_times(count: count):
+                for _ in 0..<count {
+                    rebases.append(
+                        .init(
+                            type: rebaseType,
+                            segmentIndex: segmentIndex,
+                            segmentOffset: segmentOffset
+                        )
+                    )
+                    segmentOffset &+= UInt(ptrSize)
+                }
+
+            case let .do_rebase_uleb_times(count: count):
+                for _ in 0..<count {
+                    rebases.append(
+                        .init(
+                            type: rebaseType,
+                            segmentIndex: segmentIndex,
+                            segmentOffset: segmentOffset
+                        )
+                    )
+                    segmentOffset &+= UInt(ptrSize)
+                }
+
+            case let .do_rebase_add_addr_uleb(offset: offset):
+                rebases.append(
+                    .init(
+                        type: rebaseType,
+                        segmentIndex: segmentIndex,
+                        segmentOffset: segmentOffset
+                    )
+                )
+                segmentOffset &+= offset
+                segmentOffset &+= UInt(ptrSize)
+
+            case let .do_rebase_uleb_times_skipping_uleb(count: count, skip: skip):
+                for _ in 0..<count {
+                    rebases.append(
+                        .init(
+                            type: rebaseType,
+                            segmentIndex: segmentIndex,
+                            segmentOffset: segmentOffset
+                        )
+                    )
+                    segmentOffset &+= skip
+                    segmentOffset &+= UInt(ptrSize)
+                }
+            }
+        }
+
+        return rebases
+    }
+}

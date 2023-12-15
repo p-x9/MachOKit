@@ -80,6 +80,7 @@ public protocol MachORepresentable {
 
     var exportedSymbols: [ExportedSymbol] { get }
     var bindingSymbols: [BindingSymbol] { get }
+    var rebases: [Rebase] { get }
 }
 
 extension MachORepresentable {
@@ -135,5 +136,12 @@ extension MachORepresentable {
             return []
         }
         return bindOperations.bindings(is64Bit: is64Bit)
+    }
+
+    public var rebases: [Rebase] {
+        guard let rebaseOperations else {
+            return []
+        }
+        return rebaseOperations.rebases(is64Bit: is64Bit)
     }
 }
