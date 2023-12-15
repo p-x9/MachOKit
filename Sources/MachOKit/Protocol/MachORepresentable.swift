@@ -17,31 +17,59 @@ public protocol MachORepresentable {
     associatedtype ExportTrieEntries: Sequence<ExportTrieEntry>
     associatedtype Strings: Sequence<StringTableEntry>
 
+    /// A boolean value that indicates whether MachO is a 64-bit architecture.
     var is64Bit: Bool { get }
+
+    /// Size of MachO header. [byte]
     var headerSize: Int { get }
 
+    /// MachO header
     var header: MachHeader { get }
+
+    /// Sequence of load commands
     var loadCommands: LoadCommands { get }
 
+    /// List of runpaths
     var rpaths: [String] { get }
+    /// List of depended dynamic libraries
     var dependencies: [Dylib] { get }
 
+    /// List of segments
     var segments: [any SegmentCommandProtocol] { get }
+    /// Sequence of 64-bit architecture segments
     var segments64: AnySequence<SegmentCommand64> { get }
+    /// Sequence of 32-bit architecture segments
     var segments32: AnySequence<SegmentCommand> { get }
 
+    /// List of sections in all segments
     var sections: [any SectionProtocol] { get }
+    /// List of sections in 64-bit architecture segments
     var sections64: [Section64] { get }
+    /// List of sections in 32-bit architecture segments
     var sections32: [Section] { get }
 
+    /// Sequence of symbols
     var symbols: AnySequence<Symbol> { get }
+    /// Sequence of 64-bit architecture symbols
     var symbols64: Symbols64? { get }
+    /// Sequence of 32-bit architecture symbols
     var symbols32: Symbols? { get }
 
+    /// Sequence of symbol strings.
+    /// (symbol string table)
     var symbolStrings: Strings? { get }
 
+    /// Sequence of strings in `__TEXT, __cstring` section
     var cStrings: Strings? { get }
+
+    /// Sequence of all string tables in this MachO
+    ///
+    /// Symbol string table is not included.
     var allCStringTables: [Strings] { get }
+
+    /// Sequence of all strings in this MachO
+    ///
+    /// Symbol strings is not included.
     var allCStrings: [String] { get }
 
     var rebaseOperations: RebaseOperations? { get }

@@ -12,6 +12,9 @@ public class MachOFile: MachORepresentable {
     public let url: URL
     let fileHandle: FileHandle
 
+    /// A Boolean value that indicates whether the byte is swapped or not.
+    ///
+    /// True if the endianness of the currently running CPU is different from the endianness of the target MachO file.
     public private(set) var isSwapped: Bool
 
     public var is64Bit: Bool { header.magic.is64BitMach }
@@ -21,7 +24,9 @@ public class MachOFile: MachORepresentable {
 
     public let header: MachHeader
 
+    /// File offset of header start
     public let headerStartOffset: Int
+    /// File offset of load commands list start
     public var cmdsStartOffset: Int {
         headerStartOffset + headerSize
     }

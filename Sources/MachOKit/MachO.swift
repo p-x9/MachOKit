@@ -9,6 +9,7 @@
 import Foundation
 
 public struct MachO: MachORepresentable {
+    /// Address of MachO header start
     public let ptr: UnsafeRawPointer
 
     public let is64Bit: Bool
@@ -27,6 +28,7 @@ public struct MachO: MachORepresentable {
 
     public let loadCommands: LoadCommands
 
+    /// Address of load commands list start
     public var cmdsStartPtr: UnsafeRawPointer {
         ptr.advanced(by: headerSize)
     }
