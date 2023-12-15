@@ -12,11 +12,20 @@ public struct MachO: MachORepresentable {
     public let ptr: UnsafeRawPointer
 
     public let is64Bit: Bool
-    public let loadCommands: LoadCommands
 
     public var headerSize: Int {
         is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
     }
+
+    public var header: MachHeader {
+        .init(
+            layout: ptr
+                .assumingMemoryBound(to: mach_header.self)
+                .pointee
+        )
+    }
+
+    public let loadCommands: LoadCommands
 
     public var cmdsStartPtr: UnsafeRawPointer {
         ptr.advanced(by: headerSize)
@@ -64,16 +73,6 @@ extension MachO {
 }
 
 extension MachO {
-    public var header: MachHeader {
-        .init(
-            layout: ptr
-                .assumingMemoryBound(to: mach_header.self)
-                .pointee
-        )
-    }
-}
-
-extension MachO {
     public var path: String? {
         var info = Dl_info()
         dladdr(ptr, &info)
@@ -97,14 +96,56 @@ extension MachO {
 }
 
 extension MachO {
-    public var symbols: AnySequence<Symbol> {
-        if is64Bit, let symbols64 {
-            AnySequence(symbols64)
-        } else if let symbols32 {
-            AnySequence(symbols32)
-        } else {
-            AnySequence([])
+    public var rpaths: [String] {
+        loadCommands
+            .compactMap { cmd in
+                if case let .rpath(info) = cmd { info.path(cmdsStart: cmdsStartPtr) } else { nil }
+            }
+    }
+}
+
+extension MachO {
+    public var dependencies: [Dylib] {
+        var dependencies = [Dylib]()
+        for cmd in loadCommands {
+            switch cmd {
+            case let .loadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            case let .loadWeakDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            case let .reexportDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            case let .loadUpwardDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            case let .lazyLoadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            default: continue
+            }
         }
+        return dependencies
+    }
+}
+
+extension MachO {
+    public var sections64: [Section64] {
+        segments64.map {
+            $0.sections(cmdsStart: cmdsStartPtr)
+        }.flatMap { $0 }
+    }
+
+    public var sections32: [Section] {
+        segments32.map {
+            $0.sections(cmdsStart: cmdsStartPtr)
+        }.flatMap { $0 }
+    }
+}
+
+extension MachO {
+    public var symbols32: Symbols? {
+        guard !is64Bit else {
+            return nil
+        }
+        if let text = loadCommands.text,
+           let linkedit = loadCommands.linkedit,
+           let symtab = loadCommands.symtab {
+            return Symbols(ptr: ptr, text: text, linkedit: linkedit, symtab: symtab)
+        }
+        return nil
     }
 
     public var symbols64: Symbols64? {
@@ -115,18 +156,6 @@ extension MachO {
            let linkedit = loadCommands.linkedit64,
            let symtab = loadCommands.symtab {
             return Symbols64(ptr: ptr, text: text, linkedit: linkedit, symtab: symtab)
-        }
-        return nil
-    }
-
-    public var symbols32: Symbols? {
-        guard !is64Bit else {
-            return nil
-        }
-        if let text = loadCommands.text,
-           let linkedit = loadCommands.linkedit,
-           let symtab = loadCommands.symtab {
-            return Symbols(ptr: ptr, text: text, linkedit: linkedit, symtab: symtab)
         }
         return nil
     }
@@ -155,6 +184,52 @@ extension MachO {
             )
         }
         return nil
+    }
+}
+
+extension MachO {
+    /// Strings in `__TEXT, __cstring` section
+    public var cStrings: Strings? {
+        if is64Bit, let text = loadCommands.text64 {
+            let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
+                $0.sectionName == "__cstring"
+            }.first
+            guard let cstrings else { return nil }
+            return cstrings.strings(ptr: ptr)
+        } else if let text = loadCommands.text {
+            let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
+                $0.sectionName == "__cstring"
+            }.first
+            guard let cstrings else { return nil }
+            return cstrings.strings(ptr: ptr)
+        }
+        return nil
+    }
+
+    public var allCStringTables: [Strings] {
+        let sections: [any SectionProtocol]
+        if is64Bit {
+            let segments = loadCommands.infos(of: LoadCommand.segment64)
+            sections = segments.flatMap {
+                $0.sections(cmdsStart: cmdsStartPtr)
+            }
+        } else {
+            let segments = loadCommands.infos(of: LoadCommand.segment)
+            sections = segments.flatMap {
+                $0.sections(cmdsStart: cmdsStartPtr)
+            }
+        }
+
+        return sections.reduce(into: []) { partialResult, section in
+            if let strings = section.strings(ptr: ptr) {
+                partialResult += [strings]
+            }
+        }
+    }
+
+    /// All strings in `__TEXT` segment
+    public var allCStrings: [String] {
+        allCStringTables.flatMap { $0.map(\.string) }
     }
 }
 
@@ -314,131 +389,6 @@ extension MachO {
                 vmaddrSlide: vmaddrSlide
             )
         }
-
         return nil
-    }
-}
-
-extension MachO {
-    public var rpaths: [String] {
-        loadCommands
-            .compactMap { cmd in
-                if case let .rpath(info) = cmd { info.path(cmdsStart: cmdsStartPtr) } else { nil }
-            }
-    }
-}
-
-extension MachO {
-    /// Strings in `__TEXT, __cstring` section
-    public var cStrings: Strings? {
-        if is64Bit, let text = loadCommands.text64 {
-            let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
-                $0.sectionName == "__cstring"
-            }.first
-            guard let cstrings else { return nil }
-            return cstrings.strings(ptr: ptr)
-        } else if let text = loadCommands.text {
-            let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
-                $0.sectionName == "__cstring"
-            }.first
-            guard let cstrings else { return nil }
-            return cstrings.strings(ptr: ptr)
-        }
-        return nil
-    }
-
-    /// All strings in `__TEXT` segment
-    public var allCStrings: [String] {
-        let sections: [any SectionProtocol]
-        if is64Bit {
-            let segments = loadCommands.infos(of: LoadCommand.segment64)
-            sections = segments.reduce(into: []) { partialResult, segment in
-                partialResult += Array(segment.sections(cmdsStart: cmdsStartPtr))
-            }
-        } else {
-            let segments = loadCommands.infos(of: LoadCommand.segment)
-            sections = segments.reduce(into: []) { partialResult, segment in
-                partialResult += Array(segment.sections(cmdsStart: cmdsStartPtr))
-            }
-        }
-
-        return sections.reduce(into: []) { partialResult, section in
-            if let strings = section.strings(ptr: ptr) {
-                partialResult += Array(strings).map(\.string)
-            }
-        }
-    }
-}
-
-extension MachO {
-    public var exportedSymbols: [ExportedSymbol] {
-        guard let exportTrieEntries else {
-            return []
-        }
-        return exportTrieEntries.exportedSymbols
-    }
-
-    public var bindingSymbols: [BindingSymbol] {
-        guard let bindOperations else {
-            return []
-        }
-        return bindOperations.bindings(is64Bit: is64Bit)
-    }
-}
-
-extension MachO {
-    public var dependencies: [Dylib] {
-        var dependencies = [Dylib]()
-        for cmd in loadCommands {
-            switch cmd {
-            case let .loadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
-            case let .loadWeakDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
-            case let .reexportDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
-            case let .loadUpwardDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
-            case let .lazyLoadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
-            default: continue
-            }
-        }
-        return dependencies
-    }
-}
-
-extension MachO {
-    public var segments: [any SegmentCommandProtocol] {
-        if is64Bit {
-            Array(segments64)
-        } else {
-            Array(segments32)
-        }
-    }
-
-    public var segments64: AnySequence<SegmentCommand64> {
-        loadCommands.infos(of: LoadCommand.segment64)
-    }
-
-    public var segments32: AnySequence<SegmentCommand> {
-        loadCommands.infos(of: LoadCommand.segment)
-    }
-}
-
-extension MachO {
-    public var sections: [any SectionProtocol] {
-        if is64Bit {
-            sections64
-        } else {
-            sections32
-        }
-    }
-
-    public var sections64: [Section64] {
-        segments64.map {
-            $0.sections(cmdsStart: cmdsStartPtr)
-        }.flatMap { $0 }
-    }
-
-    public var sections32: [Section] {
-        segments32.map {
-            $0.sections(cmdsStart: cmdsStartPtr)
-        }.flatMap { $0 }
     }
 }
