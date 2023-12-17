@@ -101,7 +101,7 @@ public enum LoadCommand {
     /// LC_ENCRYPTION_INFO_64
     case encryptionInfo64(LoadCommandInfo<encryption_info_command_64>)
     /// LC_LINKER_OPTION
-    case linkerOption(LoadCommandInfo<linker_option_command>)
+    case linkerOption(LinkerOptionCommand)
     /// LC_LINKER_OPTIMIZATION_HINT
     case linkerOptimizationHint(LoadCommandInfo<linkedit_data_command>)
     /// LC_VERSION_MIN_TVOS

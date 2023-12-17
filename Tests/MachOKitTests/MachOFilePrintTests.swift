@@ -298,4 +298,11 @@ extension MachOFilePrintTests {
                 print("0x" + String(offset, radix: 16))
             }
     }
+
+    func testLinkerOptionCommand() {
+        machO.loadCommands.infos(of: LoadCommand.linkerOption)
+            .forEach {
+                print($0.count, $0.options(in: machO))
+            }
+    }
 }
