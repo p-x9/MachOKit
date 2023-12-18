@@ -22,26 +22,24 @@ public struct ThreadCommand: LoadCommandWrapper {
 
 extension ThreadCommand {
     public func _flavor(cmdsStart: UnsafeRawPointer) -> UInt32? {
-        let minCmdSize = layoutSize
-        guard Int(layout.cmdsize) >= minCmdSize + MemoryLayout<UInt32>.size else {
+        guard Int(layout.cmdsize) >= layoutSize + MemoryLayout<UInt32>.size else {
             return nil
         }
         let flavor = cmdsStart
             .load(
-                fromByteOffset: offset + minCmdSize,
+                fromByteOffset: offset + layoutSize,
                 as: UInt32.self
             )
         return flavor
     }
 
     public func count(cmdsStart: UnsafeRawPointer) -> UInt32? {
-        let minCmdSize = layoutSize
-        guard Int(layout.cmdsize) >= minCmdSize + 2 * MemoryLayout<UInt32>.size else {
+        guard Int(layout.cmdsize) >= layoutSize + 2 * MemoryLayout<UInt32>.size else {
             return nil
         }
         let count = cmdsStart
             .load(
-                fromByteOffset: offset + minCmdSize + MemoryLayout<UInt32>.size,
+                fromByteOffset: offset + layoutSize + MemoryLayout<UInt32>.size,
                 as: UInt32.self
             )
         return count
@@ -51,19 +49,60 @@ extension ThreadCommand {
         guard let count = count(cmdsStart: cmdsStart) else {
             return nil
         }
-        let minCmdSize = layoutSize
         let stateSizeExpected = Int(count) * MemoryLayout<UInt32>.size
-        let stateSize = Int(layout.cmdsize) - minCmdSize - 2 * MemoryLayout<UInt32>.size
+        let stateSize = Int(layout.cmdsize) - layoutSize - 2 * MemoryLayout<UInt32>.size
         guard stateSizeExpected == stateSize else { return nil }
         let ptr = cmdsStart
             .advanced(by: offset)
-            .advanced(by: minCmdSize)
+            .advanced(by: layoutSize)
             .advanced(by: 2 * MemoryLayout<UInt32>.size)
 
         return Data(
             bytes: ptr,
-            count: Int(count) * 4 // (count * 32bit)
+            count: stateSizeExpected
         )
+    }
+}
+
+extension ThreadCommand {
+    public func _flavor(in machO: MachOFile) -> UInt32? {
+        guard Int(layout.cmdsize) >= layoutSize + MemoryLayout<UInt32>.size else {
+            return nil
+        }
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(machO.cmdsStartOffset + offset + layoutSize)
+        )
+        let data = machO.fileHandle.readData(ofLength: MemoryLayout<UInt32>.size)
+        return data.withUnsafeBytes {
+            $0.load(as: UInt32.self)
+        }
+    }
+
+    public func count(in machO: MachOFile) -> UInt32? {
+        guard Int(layout.cmdsize) >= layoutSize + 2 * MemoryLayout<UInt32>.size else {
+            return nil
+        }
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(machO.cmdsStartOffset + offset + layoutSize + MemoryLayout<UInt32>.size)
+        )
+        let data = machO.fileHandle.readData(ofLength: MemoryLayout<UInt32>.size)
+        return data.withUnsafeBytes {
+            $0.load(as: UInt32.self)
+        }
+    }
+
+    public func state(in machO: MachOFile) -> Data? {
+        guard let count = count(in: machO) else {
+            return nil
+        }
+        let stateSizeExpected = Int(count) * MemoryLayout<UInt32>.size
+        let stateSize = Int(layout.cmdsize) - layoutSize - 2 * MemoryLayout<UInt32>.size
+        guard stateSizeExpected == stateSize else { return nil }
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(machO.cmdsStartOffset + offset + layoutSize + 2 * MemoryLayout<UInt32>.size)
+        )
+
+        return machO.fileHandle.readData(ofLength: stateSizeExpected)
     }
 }
 
@@ -75,7 +114,23 @@ extension ThreadCommand {
         guard let rawValue = _flavor(cmdsStart: cmdsStart) else {
             return nil
         }
+        return flavor(rawValue: rawValue, cpuType: cpuType)
+    }
 
+    public func flavor(
+        in machO: MachOFile,
+        cpuType: CPUType
+    ) -> Flavor? {
+        guard let rawValue = _flavor(in: machO) else {
+            return nil
+        }
+        return flavor(rawValue: rawValue, cpuType: cpuType)
+    }
+
+    private func flavor(
+        rawValue: UInt32,
+        cpuType: CPUType
+    ) -> Flavor? {
         switch cpuType {
         case .arm, .arm64, .arm64_32:
             let flavor = ARMThreadStateFlavor(rawValue: rawValue)

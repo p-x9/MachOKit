@@ -305,4 +305,32 @@ extension MachOFilePrintTests {
                 print($0.count, $0.options(in: machO))
             }
     }
+
+    func testThreadCommand() {
+        let path = "/usr/local/bin/texindex" // has thread command
+        let url = URL(fileURLWithPath: path)
+        guard let machO = try? MachOFile(url: url) else { return }
+
+        let commands = Array(machO.loadCommands.infos(of: LoadCommand.thread))
+        + Array(machO.loadCommands.infos(of: LoadCommand.unixthread))
+
+        for command in commands {
+            print("Flavor:",
+                  command.flavor(
+                    in: machO,
+                    cpuType: machO.header.cpuType!
+                  )?.description ?? "unknown"
+            )
+            print("Count:", command.count(in: machO) ?? 0)
+            if let state = command.state(in: machO) {
+                print(
+                    "State:",
+                    state.withUnsafeBytes {
+                        [UInt64]($0.bindMemory(to: UInt64.self))
+                    }.map { "0x" + String($0, radix: 16) }
+                        .joined(separator: ", ")
+                )
+            }
+        }
+    }
 }
