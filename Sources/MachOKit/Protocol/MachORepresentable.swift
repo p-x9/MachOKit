@@ -80,6 +80,8 @@ public protocol MachORepresentable {
 
     var exportedSymbols: [ExportedSymbol] { get }
     var bindingSymbols: [BindingSymbol] { get }
+    var weakBindingSymbols: [BindingSymbol] { get }
+    var lazyBindingSymbols: [BindingSymbol] { get }
     var rebases: [Rebase] { get }
 }
 
@@ -136,6 +138,20 @@ extension MachORepresentable {
             return []
         }
         return bindOperations.bindings(is64Bit: is64Bit)
+    }
+
+    public var weakBindingSymbols: [BindingSymbol] {
+        guard let weakBindOperations else {
+            return []
+        }
+        return weakBindOperations.bindings(is64Bit: is64Bit)
+    }
+
+    public var lazyBindingSymbols: [BindingSymbol] {
+        guard let lazyBindOperations else {
+            return []
+        }
+        return lazyBindOperations.bindings(is64Bit: is64Bit)
     }
 
     public var rebases: [Rebase] {
