@@ -11,6 +11,16 @@ In addition to file reading, parsing of images in memory by `_dyld_get_image_hea
 [![Github stars](https://img.shields.io/github/stars/p-x9/MachOKit)](https://github.com/p-x9/MachOKit/stargazers)
 [![Github top language](https://img.shields.io/github/languages/top/p-x9/MachOKit)](https://github.com/p-x9/MachOKit/)
 
+## Features
+
+- parse load commands
+- symbol list
+- get all cstrings
+- rebase operations
+- binding operations
+- export tries
+- ...
+
 ## Usage
 
 ### Load from memory
