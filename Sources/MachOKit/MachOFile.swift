@@ -147,10 +147,10 @@ extension MachOFile {
 extension MachOFile {
     public var symbolStrings: Strings? {
         if let symtab = loadCommands.symtab {
-            fileHandle.seek(toFileOffset: UInt64(headerStartOffset) + UInt64(symtab.stroff))
-            let data = fileHandle.readData(ofLength: Int(symtab.strsize))
             return Strings(
-                data: data
+                machO: self,
+                offset: headerStartOffset + Int(symtab.stroff),
+                size: Int(symtab.strsize)
             )
         }
         return nil

@@ -88,11 +88,10 @@ extension SectionProtocol {
         let startOffset = machO.headerStartOffset + numericCast(sectionOffset)
         let tableSize = Int(sectionSize)
 
-        machO.fileHandle.seek(toFileOffset: UInt64(startOffset))
-        let data = machO.fileHandle.readData(ofLength: tableSize)
-
         return MachOFile.Strings(
-            data: data
+            machO: machO,
+            offset: startOffset,
+            size: tableSize
         )
     }
 }

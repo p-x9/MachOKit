@@ -42,11 +42,10 @@ extension LinkerOptionCommand {
         let offset = machO.cmdsStartOffset + offset + layoutSize
         let size = Int(layout.cmdsize) - layoutSize
 
-        machO.fileHandle.seek(toFileOffset: UInt64(offset))
-        let data = machO.fileHandle.readData(ofLength: size)
-
         let strings = MachOFile.Strings(
-            data: data
+            machO: machO,
+            offset: offset,
+            size: size
         ).map(\.string)
 
         return Array(strings[0..<Int(layout.count)])

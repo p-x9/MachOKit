@@ -11,8 +11,8 @@ import XCTest
 
 final class MachOFilePrintTests: XCTestCase {
 
-    var fat: FatFile!
-    var machO: MachOFile!
+    private var fat: FatFile!
+    private var machO: MachOFile!
 
     override func setUp() {
         print("----------------------------------------------------")
@@ -142,18 +142,15 @@ final class MachOFilePrintTests: XCTestCase {
     func testSymbolStrings() throws {
         guard let cstrings = machO.symbolStrings else { return }
         for (i, cstring) in cstrings.enumerated() {
-            let offset = Int(machO.loadCommands.symtab!.stroff) + cstring.offset
+            let offset = cstrings.offset + cstring.offset - machO.headerStartOffset
             print(i, "0x" + String(offset, radix: 16), cstring.string)
         }
     }
 
     func testCStrings() throws {
         guard let cstrings = machO.cStrings else { return }
-        let section = machO.loadCommands.text64!.sections(in: machO).filter {
-            $0.sectionName == "__cstring"
-        }.first!
         for (i, cstring) in cstrings.enumerated() {
-            let offset = Int(section.offset) + cstring.offset
+            let offset = cstrings.offset + cstring.offset - machO.headerStartOffset
             print(i, "0x" + String(offset, radix: 16), cstring.string)
         }
     }

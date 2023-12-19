@@ -20,7 +20,6 @@ extension MachO {
             )
         }
     }
-
 }
 
 extension MachO.Strings {
