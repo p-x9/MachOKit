@@ -63,7 +63,7 @@ case .fat(let fatFile): // Fat file
 }
 ```
 
-### 　Main properties and methods
+### Main properties and methods
 
 Both `MachO` and `MachOFile` can use essentially the same properties and methods.
 The available methods are defined in the following file as the `MachORepresentable` protocol.
