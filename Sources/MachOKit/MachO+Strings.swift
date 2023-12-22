@@ -29,7 +29,7 @@ extension MachO.Strings {
         linkedit: SegmentCommand64,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff
+        let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         self.basePointer = ptr
             .advanced(by: numericCast(symtab.stroff))
             .advanced(by: numericCast(fileSlide))
@@ -43,7 +43,7 @@ extension MachO.Strings {
         linkedit: SegmentCommand,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff
+        let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         self.basePointer = ptr
             .advanced(by: numericCast(symtab.stroff))
             .advanced(by: numericCast(fileSlide))
