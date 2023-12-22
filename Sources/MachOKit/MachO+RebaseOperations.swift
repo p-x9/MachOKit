@@ -26,7 +26,7 @@ extension MachO.RebaseOperations {
         linkedit: SegmentCommand64,
         info: dyld_info_command
     ) {
-        let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff
+        let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         let ptr = ptr
             .advanced(by: Int(info.rebase_off))
             .advanced(by: Int(fileSlide))
@@ -41,7 +41,7 @@ extension MachO.RebaseOperations {
         linkedit: SegmentCommand,
         info: dyld_info_command
     ) {
-        let fileSlide = linkedit.vmaddr - text.vmaddr - linkedit.fileoff
+        let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         let ptr = ptr
             .advanced(by: Int(info.rebase_off))
             .advanced(by: Int(fileSlide))
