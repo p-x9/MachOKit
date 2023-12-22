@@ -34,7 +34,9 @@ extension Sequence<ExportTrieEntry> {
         map: [Int: ExportTrieEntry]
     ) -> [ExportedSymbol] {
         var currentOffset = currentOffset
-        if let offset = entry.symbolOffset { currentOffset += Int(offset) }
+        if let offset = entry.symbolOffset {
+            currentOffset += Int(bitPattern: offset)
+        }
 
         guard !entry.children.isEmpty else {
             return [
