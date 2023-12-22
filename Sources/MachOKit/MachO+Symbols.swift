@@ -23,7 +23,7 @@ extension MachO {
                 stringBase: ptr
                     .advanced(by: numericCast(symtab.stroff))
                     .advanced(by: numericCast(fileSlide)),
-                addressStart: numericCast(text.vmaddr),
+                addressStart: -numericCast(text.vmaddr),
                 symbols: ptr
                     .advanced(by: numericCast(symtab.symoff))
                     .advanced(by: numericCast(fileSlide))
@@ -48,7 +48,7 @@ extension MachO {
                 stringBase: ptr
                     .advanced(by: numericCast(symtab.stroff))
                     .advanced(by: numericCast(fileSlide)),
-                addressStart: numericCast(text.vmaddr),
+                addressStart: -numericCast(text.vmaddr),
                 symbols: ptr
                     .advanced(by: numericCast(symtab.symoff))
                     .advanced(by: numericCast(fileSlide))
