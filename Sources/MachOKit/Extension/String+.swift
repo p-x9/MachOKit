@@ -12,16 +12,12 @@ extension String {
     typealias CCharTuple16 = (CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar)
 
     init(tuple: CCharTuple16) {
-        self = Mirror(reflecting: tuple).children
-            .compactMap {
-                if let value = $0.value as? CChar,
-                   value != 0 {
-                    return value
-                } else { return nil }
-            }
-            .map(UInt8.init)
-            .map(UnicodeScalar.init)
-            .map(String.init)
-            .joined()
+        var buffer = tuple
+        self.init(cStringRaw: &buffer)
+    }
+
+    @inlinable
+    init(cStringRaw: UnsafeRawPointer) {
+        self.init(cString: cStringRaw.assumingMemoryBound(to: CChar.self))
     }
 }
