@@ -48,7 +48,7 @@ extension MachO {
             self.linkedit = linkedit
             self.symtab = symtab
 
-            self.fileSlide = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr + linkedit.fileoff)
+            self.fileSlide = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr) - numericCast(linkedit.fileoff)
         }
 
         public func makeIterator() -> Iterator {
@@ -88,7 +88,7 @@ extension MachO {
             self.linkedit = linkedit
             self.symtab = symtab
 
-            self.fileSlide = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr + linkedit.fileoff)
+            self.fileSlide = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr) - numericCast(linkedit.fileoff)
         }
 
         public func makeIterator() -> Iterator {
