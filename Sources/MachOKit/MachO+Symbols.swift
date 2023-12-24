@@ -8,6 +8,25 @@
 
 import Foundation
 
+extension MachO {
+    public struct Symbol: SymbolProtocol {
+        public let nameC: UnsafePointer<CChar>
+
+        /// Offset from start of mach header (`MachO`)
+        /// File offset from mach header (`MachOFile`)
+        public let offset: Int
+
+        /// Nlist or Nlist64
+        public let nlist: any NlistProtocol
+    }
+}
+
+extension MachO.Symbol {
+    public var name: String {
+        .init(cString: nameC)
+    }
+}
+
 // https://stackoverflow.com/questions/20481058/find-pathname-from-dlopen-handle-on-osx
 extension MachO {
     public struct Symbols64: Sequence {
@@ -16,17 +35,32 @@ extension MachO {
         public let linkedit: SegmentCommand64
         public let symtab: LoadCommandInfo<symtab_command>
 
-        public func makeIterator() -> Iterator {
-            let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
+        private let fileSlide: Int
 
-            return Iterator(
+        init(
+            ptr: UnsafeRawPointer,
+            text: SegmentCommand64,
+            linkedit: SegmentCommand64,
+            symtab: LoadCommandInfo<symtab_command>
+        ) {
+            self.ptr = ptr
+            self.text = text
+            self.linkedit = linkedit
+            self.symtab = symtab
+
+            self.fileSlide = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr + linkedit.fileoff)
+        }
+
+        public func makeIterator() -> Iterator {
+            Iterator(
                 stringBase: ptr
                     .advanced(by: numericCast(symtab.stroff))
-                    .advanced(by: numericCast(fileSlide)),
+                    .advanced(by: fileSlide)
+                    .assumingMemoryBound(to: CChar.self),
                 addressStart: -numericCast(text.vmaddr),
                 symbols: ptr
                     .advanced(by: numericCast(symtab.symoff))
-                    .advanced(by: numericCast(fileSlide))
+                    .advanced(by: fileSlide)
                     .assumingMemoryBound(to: nlist_64.self),
                 numberOfSymbols: numericCast(symtab.nsyms)
             )
@@ -41,17 +75,32 @@ extension MachO {
         public let linkedit: SegmentCommand
         public let symtab: LoadCommandInfo<symtab_command>
 
-        public func makeIterator() -> Iterator {
-            let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
+        private let fileSlide: Int
 
-            return Iterator(
+        init(
+            ptr: UnsafeRawPointer,
+            text: SegmentCommand,
+            linkedit: SegmentCommand,
+            symtab: LoadCommandInfo<symtab_command>
+        ) {
+            self.ptr = ptr
+            self.text = text
+            self.linkedit = linkedit
+            self.symtab = symtab
+
+            self.fileSlide = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr + linkedit.fileoff)
+        }
+
+        public func makeIterator() -> Iterator {
+            Iterator(
                 stringBase: ptr
                     .advanced(by: numericCast(symtab.stroff))
-                    .advanced(by: numericCast(fileSlide)),
+                    .advanced(by: fileSlide)
+                    .assumingMemoryBound(to: CChar.self),
                 addressStart: -numericCast(text.vmaddr),
                 symbols: ptr
                     .advanced(by: numericCast(symtab.symoff))
-                    .advanced(by: numericCast(fileSlide))
+                    .advanced(by: fileSlide)
                     .assumingMemoryBound(to: nlist.self),
                 numberOfSymbols: numericCast(symtab.nsyms)
             )
@@ -61,9 +110,9 @@ extension MachO {
 
 extension MachO.Symbols64 {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = Symbol
+        public typealias Element = MachO.Symbol
 
-        public let stringBase: UnsafeRawPointer
+        public let stringBase: UnsafePointer<CChar>
         public let addressStart: Int
         public let symbols: UnsafePointer<nlist_64>
         public let numberOfSymbols: Int
@@ -71,7 +120,7 @@ extension MachO.Symbols64 {
         private var nextIndex: Int = 0
 
         init(
-            stringBase: UnsafeRawPointer,
+            stringBase: UnsafePointer<CChar>,
             addressStart: Int,
             symbols: UnsafePointer<nlist_64>,
             numberOfSymbols: Int
@@ -86,32 +135,30 @@ extension MachO.Symbols64 {
             guard nextIndex < numberOfSymbols else {
                 return nil
             }
-            let symbol = symbols.advanced(by: nextIndex).pointee
 
+            defer {
+                nextIndex += 1
+            }
+
+            var symbol = symbols.advanced(by: nextIndex).pointee
             let str = stringBase
-                .advanced(by: Int(symbol.n_un.n_strx))
-                .assumingMemoryBound(to: CChar.self)
-            let address = addressStart + Int(symbol.n_value)
-            let name = String(cString: str)
+                .advanced(by: numericCast(symbol.n_un.n_strx))
+            let address = addressStart + numericCast(symbol.n_value)
 
-            let result = Symbol(
-                name: name,
+            return MachO.Symbol(
+                nameC: str,
                 offset: address,
                 nlist: Nlist64(layout: symbol)
             )
-
-            nextIndex += 1
-
-            return result
         }
     }
 }
 
 extension MachO.Symbols {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = Symbol
+        public typealias Element = MachO.Symbol
 
-        public let stringBase: UnsafeRawPointer
+        public let stringBase: UnsafePointer<CChar>
         public let addressStart: Int
         public let symbols: UnsafePointer<nlist>
         public let numberOfSymbols: Int
@@ -119,7 +166,7 @@ extension MachO.Symbols {
         private var nextIndex: Int = 0
 
         init(
-            stringBase: UnsafeRawPointer,
+            stringBase: UnsafePointer<CChar>,
             addressStart: Int,
             symbols: UnsafePointer<nlist>,
             numberOfSymbols: Int
@@ -134,23 +181,21 @@ extension MachO.Symbols {
             guard nextIndex < numberOfSymbols else {
                 return nil
             }
-            let symbol = symbols.advanced(by: nextIndex).pointee
 
+            defer {
+                nextIndex += 1
+            }
+
+            let symbol = symbols.advanced(by: nextIndex).pointee
             let str = stringBase
                 .advanced(by: Int(symbol.n_un.n_strx))
-                .assumingMemoryBound(to: CChar.self)
-            let address = addressStart + Int(symbol.n_value)
-            let name = String(cString: str)
+            let address = addressStart + numericCast(symbol.n_value)
 
-            let result = Symbol(
-                name: name,
+            return MachO.Symbol(
+                nameC: str,
                 offset: address,
                 nlist: Nlist(layout: symbol)
             )
-
-            nextIndex += 1
-
-            return result
         }
     }
 }

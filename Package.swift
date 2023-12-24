@@ -12,8 +12,8 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "MachOKit")
-        ,
+            name: "MachOKit"
+        ),
         .testTarget(
             name: "MachOKitTests",
             dependencies: ["MachOKit"]

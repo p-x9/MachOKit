@@ -47,12 +47,12 @@ extension MachO.LoadCommands {
             let ptr = start.advanced(by: nextOffset)
                 .assumingMemoryBound(to: load_command.self)
 
-            let next = LoadCommand.convert(ptr, offset: nextOffset)
+            defer {
+                nextOffset += numericCast(ptr.pointee.cmdsize)
+                nextIndex += 1
+            }
 
-            nextOffset += Int(ptr.pointee.cmdsize)
-            nextIndex += 1
-
-            return next
+            return LoadCommand.convert(ptr, offset: nextOffset)
         }
     }
 }

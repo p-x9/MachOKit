@@ -8,13 +8,13 @@
 
 import Foundation
 
-public struct Symbol {
-    public let name: String
+public protocol SymbolProtocol {
+    var name: String { get }
 
     /// Offset from start of mach header (`MachO`)
     /// File offset from mach header (`MachOFile`)
-    public let offset: Int
+    var offset: Int { get }
 
     /// Nlist or Nlist64
-    public let nlist: any NlistProtocol
+    var nlist: any NlistProtocol { get }
 }
