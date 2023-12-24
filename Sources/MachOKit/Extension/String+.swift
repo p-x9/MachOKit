@@ -13,11 +13,6 @@ extension String {
 
     init(tuple: CCharTuple16) {
         var buffer = tuple
-        self.init(cStringRaw: &buffer)
-    }
-
-    @inlinable
-    init(cStringRaw: UnsafeRawPointer) {
-        self.init(cString: cStringRaw.assumingMemoryBound(to: CChar.self))
+        self = withUnsafePointer(to: &buffer.0) { String(cString: $0) }
     }
 }

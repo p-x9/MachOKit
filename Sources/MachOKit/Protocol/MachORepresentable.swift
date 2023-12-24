@@ -10,6 +10,7 @@ import Foundation
 
 public protocol MachORepresentable {
     associatedtype LoadCommands: LoadCommandsProtocol
+    associatedtype Symbol: SymbolProtocol
     associatedtype Symbols64: Sequence<Symbol>
     associatedtype Symbols: Sequence<Symbol>
     associatedtype RebaseOperations: Sequence<RebaseOperation>
