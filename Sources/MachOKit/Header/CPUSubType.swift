@@ -1056,24 +1056,65 @@ extension CPUARM64_32SubType: CustomStringConvertible {
  I386 series declarations cannot be used from swift
  because macro functions are used.
  */
-private let CPU_SUBTYPE_I386_ALL = cpu_subtype_t(3 + (0 << 4))
-private let CPU_SUBTYPE_386 = cpu_subtype_t(3 + (0 << 4))
-private let CPU_SUBTYPE_486 = cpu_subtype_t(4 + (0 << 4))
-private let CPU_SUBTYPE_486SX = cpu_subtype_t(4 + (8 << 4)) // 8 << 4 = 128
-private let CPU_SUBTYPE_586 = cpu_subtype_t(5 + (0 << 4))
-private let CPU_SUBTYPE_PENT = cpu_subtype_t(5 + (0 << 4))
-private let CPU_SUBTYPE_PENTPRO = cpu_subtype_t(6 + (1 << 4))
-private let CPU_SUBTYPE_PENTII_M3 = cpu_subtype_t(6 + (3 << 4))
-private let CPU_SUBTYPE_PENTII_M5 = cpu_subtype_t(6 + (5 << 4))
-private let CPU_SUBTYPE_CELERON = cpu_subtype_t(7 + (6 << 4))
-private let CPU_SUBTYPE_CELERON_MOBILE = cpu_subtype_t(7 + (7 << 4))
-private let CPU_SUBTYPE_PENTIUM_3 = cpu_subtype_t(8 + (0 << 4))
-private let CPU_SUBTYPE_PENTIUM_3_M = cpu_subtype_t(8 + (1 << 4))
-private let CPU_SUBTYPE_PENTIUM_3_XEON = cpu_subtype_t(8 + (2 << 4))
-private let CPU_SUBTYPE_PENTIUM_M = cpu_subtype_t(9 + (0 << 4))
-private let CPU_SUBTYPE_PENTIUM_4 = cpu_subtype_t(10 + (0 << 4))
-private let CPU_SUBTYPE_PENTIUM_4_M = cpu_subtype_t(10 + (1 << 4))
-private let CPU_SUBTYPE_ITANIUM = cpu_subtype_t(11 + (0 << 4))
-private let CPU_SUBTYPE_ITANIUM_2 = cpu_subtype_t(11 + (1 << 4))
-private let CPU_SUBTYPE_XEON = cpu_subtype_t(12 + (0 << 4))
-private let CPU_SUBTYPE_XEON_MP = cpu_subtype_t(12 + (1 << 4))
+private var CPU_SUBTYPE_I386_ALL: cpu_subtype_t {
+    cpu_subtype_t(3 + (0 << 4))
+}
+private var CPU_SUBTYPE_386: cpu_subtype_t { 
+    cpu_subtype_t(3 + (0 << 4))
+}
+private var CPU_SUBTYPE_486: cpu_subtype_t {
+    cpu_subtype_t(4 + (0 << 4))
+}
+private var CPU_SUBTYPE_486SX: cpu_subtype_t { 
+    cpu_subtype_t(4 + (8 << 4)) // 8 << 4 = 128}
+}
+private var CPU_SUBTYPE_586: cpu_subtype_t { 
+    cpu_subtype_t(5 + (0 << 4)) }
+private var CPU_SUBTYPE_PENT: cpu_subtype_t {
+    cpu_subtype_t(5 + (0 << 4))
+}
+private var CPU_SUBTYPE_PENTPRO: cpu_subtype_t { 
+    cpu_subtype_t(6 + (1 << 4))
+}
+private var CPU_SUBTYPE_PENTII_M3: cpu_subtype_t { 
+    cpu_subtype_t(6 + (3 << 4))
+}
+private var CPU_SUBTYPE_PENTII_M5: cpu_subtype_t { 
+    cpu_subtype_t(6 + (5 << 4))
+}
+private var CPU_SUBTYPE_CELERON: cpu_subtype_t { 
+    cpu_subtype_t(7 + (6 << 4))
+}
+private var CPU_SUBTYPE_CELERON_MOBILE: cpu_subtype_t {
+    cpu_subtype_t(7 + (7 << 4))
+}
+private var CPU_SUBTYPE_PENTIUM_3: cpu_subtype_t { 
+    cpu_subtype_t(8 + (0 << 4))
+}
+private var CPU_SUBTYPE_PENTIUM_3_M: cpu_subtype_t { 
+    cpu_subtype_t(8 + (1 << 4))
+}
+private var CPU_SUBTYPE_PENTIUM_3_XEON: cpu_subtype_t { 
+    cpu_subtype_t(8 + (2 << 4))
+}
+private var CPU_SUBTYPE_PENTIUM_M: cpu_subtype_t { 
+    cpu_subtype_t(9 + (0 << 4))
+}
+private var CPU_SUBTYPE_PENTIUM_4: cpu_subtype_t { 
+    cpu_subtype_t(10 + (0 << 4))
+}
+private var CPU_SUBTYPE_PENTIUM_4_M: cpu_subtype_t { 
+    cpu_subtype_t(10 + (1 << 4))
+}
+private var CPU_SUBTYPE_ITANIUM: cpu_subtype_t { 
+    cpu_subtype_t(11 + (0 << 4))
+}
+private var CPU_SUBTYPE_ITANIUM_2: cpu_subtype_t { 
+    cpu_subtype_t(11 + (1 << 4))
+}
+private var CPU_SUBTYPE_XEON: cpu_subtype_t { 
+    cpu_subtype_t(12 + (0 << 4))
+}
+private var CPU_SUBTYPE_XEON_MP: cpu_subtype_t { 
+    cpu_subtype_t(12 + (1 << 4))
+}
