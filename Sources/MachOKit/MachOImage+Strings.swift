@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension MachO {
+extension MachOImage {
     public struct Strings: Sequence {
         public let basePointer: UnsafePointer<CChar>
         public let tableSize: Int
@@ -22,7 +22,7 @@ extension MachO {
     }
 }
 
-extension MachO.Strings {
+extension MachOImage.Strings {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
@@ -52,7 +52,7 @@ extension MachO.Strings {
     }
 }
 
-extension MachO.Strings {
+extension MachOImage.Strings {
     public struct Iterator: IteratorProtocol {
         public typealias Element = StringTableEntry
 

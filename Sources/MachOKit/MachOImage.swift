@@ -1,5 +1,5 @@
 //
-//  MachO.swift
+//  MachOImage.swift
 //
 //
 //  Created by p-x9 on 2023/11/28.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct MachO: MachORepresentable {
+public struct MachOImage: MachORepresentable {
     /// Address of MachO header start
     public let ptr: UnsafeRawPointer
 
@@ -47,7 +47,7 @@ public struct MachO: MachORepresentable {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public init?(name: String) {
         let indices = 0..<_dyld_image_count()
         let index = indices.first { index in
@@ -74,7 +74,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public var path: String? {
         var info = Dl_info()
         dladdr(ptr, &info)
@@ -97,7 +97,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public var rpaths: [String] {
         loadCommands
             .compactMap { cmd in
@@ -106,7 +106,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public var dependencies: [Dylib] {
         var dependencies = [Dylib]()
         for cmd in loadCommands {
@@ -123,7 +123,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public var sections64: [Section64] {
         segments64.map {
             $0.sections(cmdsStart: cmdsStartPtr)
@@ -137,7 +137,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public var symbols32: Symbols? {
         guard !is64Bit else {
             return nil
@@ -163,7 +163,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public var symbolStrings: Strings? {
         if is64Bit,
            let text = loadCommands.text64,
@@ -189,7 +189,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     /// Strings in `__TEXT, __cstring` section
     public var cStrings: Strings? {
         if is64Bit, let text = loadCommands.text64 {
@@ -235,7 +235,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public var rebaseOperations: RebaseOperations? {
         let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
 
@@ -263,7 +263,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public var bindOperations: BindOperations? {
         let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
 
@@ -347,7 +347,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public var exportTrieEntries: ExportTrieEntries? {
         let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
 

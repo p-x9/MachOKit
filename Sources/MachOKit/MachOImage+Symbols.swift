@@ -1,5 +1,5 @@
 //
-//  MachO+Symbols..swift
+//  MachOImage+Symbols..swift
 //
 //
 //  Created by p-x9 on 2023/11/28.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension MachO {
+extension MachOImage {
     public struct Symbol: SymbolProtocol {
         public let nameC: UnsafePointer<CChar>
 
@@ -21,14 +21,14 @@ extension MachO {
     }
 }
 
-extension MachO.Symbol {
+extension MachOImage.Symbol {
     public var name: String {
         .init(cString: nameC)
     }
 }
 
 // https://stackoverflow.com/questions/20481058/find-pathname-from-dlopen-handle-on-osx
-extension MachO {
+extension MachOImage {
     public struct Symbols64: Sequence {
         public let ptr: UnsafeRawPointer
         public let text: SegmentCommand64
@@ -68,7 +68,7 @@ extension MachO {
     }
 }
 
-extension MachO {
+extension MachOImage {
     public struct Symbols: Sequence {
         public let ptr: UnsafeRawPointer
         public let text: SegmentCommand
@@ -108,9 +108,9 @@ extension MachO {
     }
 }
 
-extension MachO.Symbols64 {
+extension MachOImage.Symbols64 {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = MachO.Symbol
+        public typealias Element = MachOImage.Symbol
 
         public let stringBase: UnsafePointer<CChar>
         public let addressStart: Int
@@ -145,7 +145,7 @@ extension MachO.Symbols64 {
                 .advanced(by: numericCast(symbol.n_un.n_strx))
             let address = addressStart + numericCast(symbol.n_value)
 
-            return MachO.Symbol(
+            return MachOImage.Symbol(
                 nameC: str,
                 offset: address,
                 nlist: Nlist64(layout: symbol)
@@ -154,9 +154,9 @@ extension MachO.Symbols64 {
     }
 }
 
-extension MachO.Symbols {
+extension MachOImage.Symbols {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = MachO.Symbol
+        public typealias Element = MachOImage.Symbol
 
         public let stringBase: UnsafePointer<CChar>
         public let addressStart: Int
@@ -191,7 +191,7 @@ extension MachO.Symbols {
                 .advanced(by: Int(symbol.n_un.n_strx))
             let address = addressStart + numericCast(symbol.n_value)
 
-            return MachO.Symbol(
+            return MachOImage.Symbol(
                 nameC: str,
                 offset: address,
                 nlist: Nlist(layout: symbol)

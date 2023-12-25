@@ -15,14 +15,14 @@ public struct Rebase {
 }
 
 extension Rebase {
-    public func segment64(in machO: MachO) -> SegmentCommand64? {
+    public func segment64(in machO: MachOImage) -> SegmentCommand64? {
         let segments = Array(machO.segments64)
         let index = Int(segmentIndex)
         guard segments.indices.contains(index) else { return nil }
         return segments[index]
     }
 
-    public func segment32(in machO: MachO) -> SegmentCommand? {
+    public func segment32(in machO: MachOImage) -> SegmentCommand? {
         let segments = Array(machO.segments32)
         let index = Int(segmentIndex)
         guard segments.indices.contains(index) else { return nil }
@@ -45,7 +45,7 @@ extension Rebase {
 }
 
 extension Rebase {
-    public func section64(in machO: MachO) -> Section64? {
+    public func section64(in machO: MachOImage) -> Section64? {
         guard let segment = segment64(in: machO) else { return nil  }
         let sections = segment.sections(cmdsStart: machO.cmdsStartPtr)
 
@@ -62,7 +62,7 @@ extension Rebase {
         })
     }
 
-    public func section32(in machO: MachO) -> Section? {
+    public func section32(in machO: MachOImage) -> Section? {
         guard let segment = segment32(in: machO) else { return nil  }
         let sections = segment.sections(cmdsStart: machO.cmdsStartPtr)
 
@@ -115,7 +115,7 @@ extension Rebase {
 }
 
 extension Rebase {
-    public func address(in machO: MachO) -> UInt? {
+    public func address(in machO: MachOImage) -> UInt? {
         if machO.is64Bit, let segment = segment64(in: machO) {
             return UInt(segment.vmaddr) + segmentOffset
         } else if let segment = segment32(in: machO) {

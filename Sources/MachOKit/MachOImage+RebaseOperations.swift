@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension MachO {
+extension MachOImage {
     public struct RebaseOperations: Sequence {
         public let basePointer: UnsafePointer<UInt8>
         public let rebaseSize: Int
@@ -19,7 +19,7 @@ extension MachO {
     }
 }
 
-extension MachO.RebaseOperations {
+extension MachOImage.RebaseOperations {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
@@ -51,7 +51,7 @@ extension MachO.RebaseOperations {
     }
 }
 
-extension MachO.RebaseOperations {
+extension MachOImage.RebaseOperations {
     public struct Iterator: IteratorProtocol {
         public typealias Element = RebaseOperation
 

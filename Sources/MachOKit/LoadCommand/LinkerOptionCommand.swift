@@ -28,7 +28,7 @@ extension LinkerOptionCommand {
             .advanced(by: offset)
             .advanced(by: layoutSize)
             .assumingMemoryBound(to: CChar.self)
-        let strings = MachO.Strings(
+        let strings = MachOImage.Strings(
             basePointer: ptr,
             tableSize: Int(layout.cmdsize) - layoutSize
         ).map(\.string)
