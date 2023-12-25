@@ -1,5 +1,5 @@
 //
-//  MachO+LoadCommands.swift
+//  MachOImage+LoadCommands.swift
 //
 //
 //  Created by p-x9 on 2023/11/28.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension MachO {
+extension MachOImage {
     public struct LoadCommands: Sequence {
         public let start: UnsafeRawPointer
         public let numberOfCommands: Int
@@ -22,7 +22,7 @@ extension MachO {
     }
 }
 
-extension MachO.LoadCommands {
+extension MachOImage.LoadCommands {
     public struct Iterator: IteratorProtocol {
         public typealias Element = LoadCommand
 
@@ -57,4 +57,4 @@ extension MachO.LoadCommands {
     }
 }
 
-extension MachO.LoadCommands: LoadCommandsProtocol {}
+extension MachOImage.LoadCommands: LoadCommandsProtocol {}

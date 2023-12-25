@@ -31,14 +31,14 @@ It can be initialized by using the Mach-O Header pointer obtained by `_dyld_get_
 
 ```swift
 guard let mh = _dyld_get_image_header(0) else { return }
-let machO = MachO(ptr: mh)
+let machO = MachOImage(ptr: mh)
 ```
 
 Alternatively, it can be initialized using the name.
 
 ```swift
 // /System/Library/Frameworks/Foundation.framework/Versions/C/Foundation
-guard let machO = MachO(name: "Foundation") else { return }
+guard let machO = MachOImage(name: "Foundation") else { return }
 ```
 
 ### Load from file

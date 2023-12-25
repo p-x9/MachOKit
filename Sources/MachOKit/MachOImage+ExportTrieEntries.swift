@@ -1,5 +1,5 @@
 //
-//  MachO+ExportTrieEntries.swift
+//  MachOImage+ExportTrieEntries.swift
 //
 //
 //  Created by p-x9 on 2023/12/04.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension MachO {
+extension MachOImage {
     public struct ExportTrieEntries: Sequence {
         public let basePointer: UnsafePointer<UInt8>
         public let exportSize: Int
@@ -19,7 +19,7 @@ extension MachO {
     }
 }
 
-extension MachO.ExportTrieEntries {
+extension MachOImage.ExportTrieEntries {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
@@ -78,7 +78,7 @@ extension MachO.ExportTrieEntries {
     }
 }
 
-extension MachO.ExportTrieEntries {
+extension MachOImage.ExportTrieEntries {
     public struct Iterator: IteratorProtocol {
         public typealias Element = ExportTrieEntry
 

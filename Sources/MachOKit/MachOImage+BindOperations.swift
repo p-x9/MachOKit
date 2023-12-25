@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension MachO {
+extension MachOImage {
     public struct BindOperations: Sequence {
         public let basePointer: UnsafePointer<UInt8>
         public let bindSize: Int
@@ -19,7 +19,7 @@ extension MachO {
     }
 }
 
-extension MachO.BindOperations {
+extension MachOImage.BindOperations {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
@@ -53,7 +53,7 @@ extension MachO.BindOperations {
     }
 }
 
-extension MachO.BindOperations {
+extension MachOImage.BindOperations {
     public struct Iterator: IteratorProtocol {
         public typealias Element = BindOperation
 

@@ -10,10 +10,10 @@ import XCTest
 @testable import MachOKit
 
 final class MachOPrintTests: XCTestCase {
-    private var machO: MachO!
+    private var machO: MachOImage!
 
     override func setUp() {
-        machO = MachO(name: "MachOKitTests")
+        machO = MachOImage(name: "MachOKitTests")
     }
 
     func testHeader() throws {
