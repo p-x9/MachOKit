@@ -142,6 +142,24 @@ extension MachOFile {
         }
         return nil
     }
+
+    public typealias IndirectSymbols = DataSequence<IndirectSymbol>
+    public var indirectSymbols: IndirectSymbols? {
+        guard let dysymtab = loadCommands.dysymtab else { return nil }
+        fileHandle.seek(
+            toFileOffset: numericCast(headerStartOffset) + numericCast(dysymtab.indirectsymoff)
+        )
+        let data = fileHandle.readData(
+            ofLength: numericCast(dysymtab.nindirectsyms) * MemoryLayout<UInt32>.size
+        )
+
+        return .init(
+            data: data,
+            numberOfElements: numericCast(
+                dysymtab.nindirectsyms
+            )
+        )
+    }
 }
 
 extension MachOFile {

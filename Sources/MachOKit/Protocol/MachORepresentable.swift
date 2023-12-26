@@ -13,6 +13,7 @@ public protocol MachORepresentable {
     associatedtype Symbol: SymbolProtocol
     associatedtype Symbols64: Sequence<Symbol>
     associatedtype Symbols: Sequence<Symbol>
+    associatedtype IndirectSymbols: Sequence<IndirectSymbol>
     associatedtype RebaseOperations: Sequence<RebaseOperation>
     associatedtype BindOperations: Sequence<BindOperation>
     associatedtype ExportTrieEntries: Sequence<ExportTrieEntry>
@@ -55,6 +56,9 @@ public protocol MachORepresentable {
     var symbols64: Symbols64? { get }
     /// Sequence of 32-bit architecture symbols
     var symbols32: Symbols? { get }
+
+    /// Sequence of Indirect symbols
+    var indirectSymbols: IndirectSymbols? { get }
 
     /// Sequence of symbol strings.
     /// (symbol string table)

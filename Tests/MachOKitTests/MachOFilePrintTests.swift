@@ -16,17 +16,22 @@ final class MachOFilePrintTests: XCTestCase {
 
     override func setUp() {
         print("----------------------------------------------------")
-        let path = "/System/Applications/Calculator.app/Contents/MacOS/Calculator"
+        let path = "/Applications/Monity.app/Contents/MacOS/Monity"
 //        let path = "/System/Applications/Calculator.app/Contents/PlugIns/BasicAndSci.calcview/Contents/MacOS/BasicAndSci"
         let url = URL(fileURLWithPath: path)
-        guard let file = try? MachOKit.loadFromFile(url: url),
-              case let .fat(fatFile) = file,
-              let machOs = try? fatFile.machOFiles() else {
-            XCTFail("Failed to load file")
+//        guard let file = try? MachOKit.loadFromFile(url: url),
+//              case let .fat(fatFile) = file,
+//              let machOs = try? fatFile.machOFiles() else {
+//            XCTFail("Failed to load file")
+//            return
+//        }
+//        self.fat = fatFile
+//        self.machO = machOs[1]
+        let file = try! MachOKit.loadFromFile(url: url)
+        guard case let .machO(machO) = file else {
             return
         }
-        self.fat = fatFile
-        self.machO = machOs[1]
+        self.machO = machO
     }
 
     func testHeader() throws {
@@ -135,6 +140,22 @@ final class MachOFilePrintTests: XCTestCase {
                 } else if machO.dependencies.indices.contains(libraryOrdinal) {
                     print("LibraryOrdinal:", machO.dependencies[libraryOrdinal].name)
                 }
+            }
+        }
+    }
+
+    func testIndirectSymbols() throws {
+        guard let indirectSymbols = machO.indirectSymbols else { return }
+        let symbols = Array(machO.symbols)
+        for symbol in indirectSymbols {
+            print(symbol.index, terminator: " ")
+            if symbol._index == INDIRECT_SYMBOL_ABS {
+                print("INDIRECT_SYMBOL_ABS")
+            } else if symbol._index == INDIRECT_SYMBOL_LOCAL {
+                print("INDIRECT_SYMBOL_LOCAL")
+            } else {
+                let symbol = symbols[symbol.index]
+                print(symbol.name)
             }
         }
     }
