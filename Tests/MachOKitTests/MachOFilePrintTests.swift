@@ -16,22 +16,17 @@ final class MachOFilePrintTests: XCTestCase {
 
     override func setUp() {
         print("----------------------------------------------------")
-        let path = "/Applications/Monity.app/Contents/MacOS/Monity"
-//        let path = "/System/Applications/Calculator.app/Contents/PlugIns/BasicAndSci.calcview/Contents/MacOS/BasicAndSci"
+        let path = "/System/Applications/Calculator.app/Contents/MacOS/Calculator"
+        //        let path = "/System/Applications/Calculator.app/Contents/PlugIns/BasicAndSci.calcview/Contents/MacOS/BasicAndSci"
         let url = URL(fileURLWithPath: path)
-//        guard let file = try? MachOKit.loadFromFile(url: url),
-//              case let .fat(fatFile) = file,
-//              let machOs = try? fatFile.machOFiles() else {
-//            XCTFail("Failed to load file")
-//            return
-//        }
-//        self.fat = fatFile
-//        self.machO = machOs[1]
-        let file = try! MachOKit.loadFromFile(url: url)
-        guard case let .machO(machO) = file else {
+        guard let file = try? MachOKit.loadFromFile(url: url),
+              case let .fat(fatFile) = file,
+              let machOs = try? fatFile.machOFiles() else {
+            XCTFail("Failed to load file")
             return
         }
-        self.machO = machO
+        self.fat = fatFile
+        self.machO = machOs[1]
     }
 
     func testHeader() throws {
