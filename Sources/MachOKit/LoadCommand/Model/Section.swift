@@ -13,6 +13,9 @@ public protocol SectionProtocol: LayoutWrapper {
     var segmentName: String { get }
     var flags: SectionFlags { get }
 
+    var indirectSymbolIndex: Int? { get }
+    var numberOfIndirectSymbols: Int? { get }
+
     /// returns nil except when type is `cstring_literals
     func strings(ptr: UnsafeRawPointer) -> MachOImage.Strings?
 
@@ -38,6 +41,32 @@ extension Section {
     public var flags: SectionFlags {
         .init(rawValue: layout.flags)
     }
+
+    public var indirectSymbolIndex: Int? {
+        let types: [SectionType] = [
+            .lazy_symbol_pointers,
+            .non_lazy_symbol_pointers,
+            .lazy_dylib_symbol_pointers,
+            .symbol_stubs
+        ]
+        guard let type = flags.type,
+              types.contains(type) else {
+            return nil
+        }
+        return numericCast(layout.reserved1)
+    }
+
+    public var numberOfIndirectSymbols: Int? {
+        guard let type = flags.type,
+              indirectSymbolIndex != nil else {
+            return nil
+        }
+        if type == .symbol_stubs {
+            return numericCast(layout.size) / numericCast(layout.reserved2)
+        } else {
+            return numericCast(layout.size) / MemoryLayout<pointer_t>.size
+        }
+    }
 }
 
 public struct Section64: SectionProtocol {
@@ -57,6 +86,32 @@ extension Section64 {
 
     public var flags: SectionFlags {
         .init(rawValue: layout.flags)
+    }
+
+    public var indirectSymbolIndex: Int? {
+        let types: [SectionType] = [
+            .lazy_symbol_pointers,
+            .non_lazy_symbol_pointers,
+            .lazy_dylib_symbol_pointers,
+            .symbol_stubs
+        ]
+        guard let type = flags.type,
+              types.contains(type) else {
+            return nil
+        }
+        return numericCast(layout.reserved1)
+    }
+
+    public var numberOfIndirectSymbols: Int? {
+        guard let type = flags.type,
+              indirectSymbolIndex != nil else {
+            return nil
+        }
+        if type == .symbol_stubs {
+            return numericCast(layout.size) / numericCast(layout.reserved2)
+        } else {
+            return numericCast(layout.size) / MemoryLayout<pointer_t>.size
+        }
     }
 }
 
