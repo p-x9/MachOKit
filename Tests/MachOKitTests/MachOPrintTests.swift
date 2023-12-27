@@ -118,6 +118,30 @@ final class MachOPrintTests: XCTestCase {
         }
     }
 
+    func testIndirectSymbols() throws {
+        guard let _indirectSymbols = machO.indirectSymbols else { return }
+        let symbols = Array(machO.symbols)
+        let indirectSymbols = Array(_indirectSymbols)
+
+        for section in machO.sections {
+            guard let index = section.indirectSymbolIndex,
+                  let size = section.numberOfIndirectSymbols else {
+                continue
+            }
+            print(section.segmentName + "." + section.sectionName)
+
+            let indirectSymbols = indirectSymbols[index..<index + size]
+            for symbol in indirectSymbols {
+                print(" ", symbol._value, terminator: " ")
+                if let index = symbol.index {
+                    print(symbols[index].name)
+                } else {
+                    print(symbol)
+                }
+            }
+        }
+    }
+
     func testSymbolStrings() throws {
         guard let cstrings = machO.symbolStrings else { return }
         for (i, cstring) in cstrings.enumerated() {

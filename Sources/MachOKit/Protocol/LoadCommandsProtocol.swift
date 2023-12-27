@@ -66,4 +66,11 @@ extension LoadCommandsProtocol {
             if case let .symtab(info) = $0 { info } else { nil }
         }.first
     }
+
+    var dysymtab: LoadCommandInfo<dysymtab_command>? {
+        compactMap {
+            if case let .dysymtab(info) = $0 { info } else { nil }
+        }.first
+    }
+
 }

@@ -161,6 +161,31 @@ extension MachOImage {
         }
         return nil
     }
+
+    public typealias IndirectSymbols = MemorySequence<IndirectSymbol>
+    public var indirectSymbols: IndirectSymbols? {
+        let fileSlide: Int
+        guard let dysymtab = loadCommands.dysymtab else { return nil }
+
+        if let text = loadCommands.text64,
+           let linkedit = loadCommands.linkedit64 {
+            fileSlide = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr) - numericCast(linkedit.fileoff)
+        } else if let text = loadCommands.text,
+                  let linkedit = loadCommands.linkedit {
+            fileSlide = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr) - numericCast(linkedit.fileoff)
+        } else {
+            return nil
+        }
+
+        return .init(
+            basePointer: ptr
+                .advanced(
+                    by: fileSlide + numericCast(dysymtab.indirectsymoff)
+                )
+                .assumingMemoryBound(to: IndirectSymbol.self),
+            numberOfElements: numericCast(dysymtab.nindirectsyms)
+        )
+    }
 }
 
 extension MachOImage {

@@ -17,7 +17,7 @@ final class MachOFilePrintTests: XCTestCase {
     override func setUp() {
         print("----------------------------------------------------")
         let path = "/System/Applications/Calculator.app/Contents/MacOS/Calculator"
-//        let path = "/System/Applications/Calculator.app/Contents/PlugIns/BasicAndSci.calcview/Contents/MacOS/BasicAndSci"
+        //        let path = "/System/Applications/Calculator.app/Contents/PlugIns/BasicAndSci.calcview/Contents/MacOS/BasicAndSci"
         let url = URL(fileURLWithPath: path)
         guard let file = try? MachOKit.loadFromFile(url: url),
               case let .fat(fatFile) = file,
@@ -134,6 +134,30 @@ final class MachOFilePrintTests: XCTestCase {
                     print("LibraryOrdinal:", info.dylib(in: machO).name)
                 } else if machO.dependencies.indices.contains(libraryOrdinal) {
                     print("LibraryOrdinal:", machO.dependencies[libraryOrdinal].name)
+                }
+            }
+        }
+    }
+
+    func testIndirectSymbols() throws {
+        guard let _indirectSymbols = machO.indirectSymbols else { return }
+        let symbols = Array(machO.symbols)
+        let indirectSymbols = Array(_indirectSymbols)
+
+        for section in machO.sections {
+            guard let index = section.indirectSymbolIndex,
+                  let size = section.numberOfIndirectSymbols else {
+                continue
+            }
+            print(section.segmentName + "." + section.sectionName)
+
+            let indirectSymbols = indirectSymbols[index..<index + size]
+            for symbol in indirectSymbols {
+                print(" ", symbol._value, terminator: " ")
+                if let index = symbol.index {
+                    print(symbols[index].name)
+                } else {
+                    print(symbol)
                 }
             }
         }
