@@ -88,7 +88,15 @@ public protocol MachORepresentable {
     var weakBindingSymbols: [BindingSymbol] { get }
     var lazyBindingSymbols: [BindingSymbol] { get }
     var rebases: [Rebase] { get }
-
+    
+    /// Find the symbol closest to the address at the specified offset.
+    ///
+    /// Behaves almost identically to the `dladdr` function
+    ///
+    /// - Parameters:
+    ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - sectionNumber: Section number to be searched.
+    /// - Returns: Closest symbol.
     func closestSymbol(at offset: Int, inSection sectionNumber: Int) -> Symbol?
 }
 
