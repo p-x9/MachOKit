@@ -140,7 +140,7 @@ extension MachOImage.Symbols64 {
                 nextIndex += 1
             }
 
-            var symbol = symbols.advanced(by: nextIndex).pointee
+            let symbol = symbols.advanced(by: nextIndex).pointee
             let str = stringBase
                 .advanced(by: numericCast(symbol.n_un.n_strx))
             let address = addressStart + numericCast(symbol.n_value)

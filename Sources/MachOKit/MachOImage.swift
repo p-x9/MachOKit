@@ -419,3 +419,16 @@ extension MachOImage {
         return nil
     }
 }
+
+extension MachOImage {
+    public func closestSymbol(
+        at address: UnsafeRawPointer,
+        inSection sectionNumber: Int = 0
+    ) -> Symbol? {
+        let offset = Int(bitPattern: address) - Int(bitPattern: ptr)
+        return closestSymbol(
+            at: offset,
+            inSection: sectionNumber
+        )
+    }
+}
