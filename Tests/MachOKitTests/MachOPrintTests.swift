@@ -330,3 +330,42 @@ extension MachOPrintTests {
         }
     }
 }
+
+extension MachOPrintTests {
+    func testClosestSymbol() {
+        for symbol in machO.symbols {
+            let offset = symbol.offset + Int.random(in: 0..<100)
+            guard let best = machO.closestSymbol(
+                at: offset
+            ) else {
+                continue
+            }
+
+            let diff = best.offset - offset
+
+            var info = Dl_info()
+            let isSucceeded = dladdr(machO.ptr.advanced(by: offset), &info) != 0
+            if !isSucceeded { print("failed") }
+
+            guard let dli_saddr = info.dli_saddr,
+                  let dli_sname = info.dli_sname else {
+                print("[dladdr is nil]", best.name, diff)
+                continue
+            }
+
+            XCTAssertEqual(
+                dli_saddr,
+                machO.ptr.advanced(by: best.offset)
+            )
+
+            print(
+                offset == best.offset,
+                dli_saddr == machO.ptr.advanced(by: offset),
+                dli_saddr == machO.ptr.advanced(by: best.offset),
+                strcmp(best.nameC + 1, dli_sname),
+                best.name,
+                diff
+            )
+        }
+    }
+}

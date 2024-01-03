@@ -355,3 +355,27 @@ extension MachOFilePrintTests {
         }
     }
 }
+
+extension MachOFilePrintTests {
+    func testClosestSymbol() {
+        for symbol in machO.symbols {
+            let offset = symbol.offset + Int.random(in: 0..<100)
+            guard let best = machO.closestSymbol(
+                at: offset
+            ) else {
+                continue
+            }
+
+            let diff = best.offset - offset
+
+            print(
+                offset == best.offset,
+                symbol.offset == best.offset,
+                symbol.name == best.name,
+                symbol.name,
+                best.name,
+                diff
+            )
+        }
+    }
+}

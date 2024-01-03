@@ -88,6 +88,16 @@ public protocol MachORepresentable {
     var weakBindingSymbols: [BindingSymbol] { get }
     var lazyBindingSymbols: [BindingSymbol] { get }
     var rebases: [Rebase] { get }
+    
+    /// Find the symbol closest to the address at the specified offset.
+    ///
+    /// Behaves almost identically to the `dladdr` function
+    ///
+    /// - Parameters:
+    ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - sectionNumber: Section number to be searched.
+    /// - Returns: Closest symbol.
+    func closestSymbol(at offset: Int, inSection sectionNumber: Int) -> Symbol?
 }
 
 extension MachORepresentable {
@@ -164,5 +174,68 @@ extension MachORepresentable {
             return []
         }
         return rebaseOperations.rebases(is64Bit: is64Bit)
+    }
+}
+
+extension MachORepresentable {
+    public func closestSymbol(
+        at offset: Int,
+        inSection sectionNumber: Int = 0
+    ) -> Symbol? {
+        let symbols = Array(self.symbols)
+        var bestSymbol: Symbol?
+
+        if let dysym = loadCommands.dysymtab {
+            // find closest match in globals
+            let globalStart: Int = numericCast(dysym.iextdefsym)
+            let globalCount: Int = numericCast(dysym.nextdefsym)
+            for i in globalStart ..< globalStart + globalCount {
+                let symbol = symbols[i]
+                let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
+                guard nlist.flags?.type == .sect,
+                      symbol.offset <= offset,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
+                      bestSymbol == nil || bestSymbol!.offset < symbol.offset else {
+                    continue
+                }
+                bestSymbol = symbol
+            }
+
+            // find closest match in locals
+            let localStart: Int = numericCast(dysym.ilocalsym)
+            let localCount: Int = numericCast(dysym.nlocalsym)
+            for i in localStart ..< localStart + localCount {
+                let symbol = symbols[i]
+                let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
+                guard nlist.flags?.type == .sect,
+                      nlist.flags?.stab == nil,
+                      symbol.offset <= offset,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
+                      bestSymbol == nil || bestSymbol!.offset < symbol.offset else {
+                    continue
+                }
+                bestSymbol = symbol
+            }
+        } else {
+            // find closest match in locals
+            for symbol in symbols {
+                let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+                guard nlist.flags?.type == .sect,
+                      nlist.flags?.stab == nil,
+                      symbol.offset <= offset,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
+                      bestSymbol == nil || bestSymbol!.offset < symbol.offset else {
+                    continue
+                }
+                bestSymbol = symbol
+            }
+        }
+
+        return bestSymbol
     }
 }

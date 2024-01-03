@@ -419,3 +419,24 @@ extension MachOImage {
         return nil
     }
 }
+
+extension MachOImage {
+    /// Find the symbol closest to the address.
+    ///
+    /// Behaves almost identically to the `dladdr` function
+    ///
+    /// - Parameters:
+    ///   - address: Address to find closest symbol.
+    ///   - sectionNumber: Section number to be searched.
+    /// - Returns: Closest symbol.
+    public func closestSymbol(
+        at address: UnsafeRawPointer,
+        inSection sectionNumber: Int = 0
+    ) -> Symbol? {
+        let offset = Int(bitPattern: address) - Int(bitPattern: ptr)
+        return closestSymbol(
+            at: offset,
+            inSection: sectionNumber
+        )
+    }
+}
