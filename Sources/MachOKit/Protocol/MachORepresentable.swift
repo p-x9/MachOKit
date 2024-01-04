@@ -98,6 +98,11 @@ public protocol MachORepresentable {
     ///   - sectionNumber: Section number to be searched.
     /// - Returns: Closest symbol.
     func closestSymbol(at offset: Int, inSection sectionNumber: Int) -> Symbol?
+    
+    /// Find symbols matching the specified offset.
+    /// - Parameter offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    /// - Returns: Matched symbol
+    func symbol(for offset: Int) -> Symbol?
 }
 
 extension MachORepresentable {
@@ -237,5 +242,12 @@ extension MachORepresentable {
         }
 
         return bestSymbol
+    }
+}
+
+extension MachORepresentable {
+    public func symbol(for offset: Int) -> Symbol? {
+        let best = closestSymbol(at: offset)
+        return best?.offset == offset ? best : nil
     }
 }
