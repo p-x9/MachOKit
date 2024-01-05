@@ -103,7 +103,12 @@ public protocol MachORepresentable {
     /// - Parameter offset: Offset from start of mach header. (``SymbolProtocol.offset``)
     /// - Returns: Matched symbol
     func symbol(for offset: Int) -> Symbol?
-
+    
+    /// Find the symbol matching the given name.
+    /// - Parameters:
+    ///   - name: Symbol name to find
+    ///   - mangled: A boolean value that indicates whether the specified name is mangled with Swift
+    /// - Returns: Matched symbol
     func symbol(named name: String, mangled: Bool) -> Symbol?
 }
 
