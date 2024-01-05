@@ -369,3 +369,29 @@ extension MachOPrintTests {
         }
     }
 }
+
+extension MachOPrintTests {
+    func testFindSymbolByName() {
+        let name = "$s13MachOKitTests0a10OFilePrintC0C11testSymbolsyyKF0aB011LoadCommandOAE05DylibI0VcAGmcfu_AgIcfu0_"
+        let demangledName = "MachOKitTests.MachOFilePrintTests.testLinkerOptionCommand() -> ()"
+
+        guard let symbol = machO.symbol(named: name) else {
+            XCTFail("not found symbol named \"\(name)\"")
+            return
+        }
+        print("found", symbol.name)
+        XCTAssert(
+            name == symbol.name ||
+            "_" + name == symbol.name
+        )
+
+        guard let symbol2 = machO.symbol(named: demangledName, mangled: false) else {
+            XCTFail("not found symbol named \"\(demangledName)\"")
+            return
+        }
+        print("found", symbol2.name)
+        XCTAssert(
+            demangledName == stdlib_demangleName(symbol2.name)
+        )
+    }
+}
