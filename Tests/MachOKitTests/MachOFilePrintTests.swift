@@ -16,8 +16,8 @@ final class MachOFilePrintTests: XCTestCase {
 
     override func setUp() {
         print("----------------------------------------------------")
-        let path = "/System/Applications/Calculator.app/Contents/MacOS/Calculator"
-        //        let path = "/System/Applications/Calculator.app/Contents/PlugIns/BasicAndSci.calcview/Contents/MacOS/BasicAndSci"
+//        let path = "/System/Applications/Calculator.app/Contents/MacOS/Calculator"
+        let path = "/System/Applications/Freeform.app/Contents/MacOS/Freeform"
         let url = URL(fileURLWithPath: path)
         guard let file = try? MachOKit.loadFromFile(url: url),
               case let .fat(fatFile) = file,
@@ -167,7 +167,7 @@ final class MachOFilePrintTests: XCTestCase {
         guard let cstrings = machO.symbolStrings else { return }
         for (i, cstring) in cstrings.enumerated() {
             let offset = cstrings.offset + cstring.offset - machO.headerStartOffset
-            print(i, "0x" + String(offset, radix: 16), cstring.string)
+            print(i, "0x" + String(offset, radix: 16), cstring.string, stdlib_demangleName(cstring.string))
         }
     }
 
@@ -377,5 +377,31 @@ extension MachOFilePrintTests {
                 diff
             )
         }
+    }
+}
+
+extension MachOFilePrintTests {
+    func testFindSymbolByName() {
+        let name = "$s15GroupActivities0A16SessionMessengerC8MessagesV8IteratorV4nextx_AC14MessageContextVtSgyYaF"
+        let demangledName = "GroupActivities.GroupSessionMessenger.Messages.Iterator.next() async -> Swift.Optional<(A, GroupActivities.GroupSessionMessenger.MessageContext)>"
+
+        guard let symbol = machO.symbol(named: name) else {
+            XCTFail("not found symbol named \"\(name)\"")
+            return
+        }
+        print("found", symbol.name)
+        XCTAssert(
+            name == symbol.name ||
+            "_" + name == symbol.name
+        )
+
+        guard let symbol2 = machO.symbol(named: demangledName, mangled: false) else {
+            XCTFail("not found symbol named \"\(demangledName)\"")
+            return
+        }
+        print("found", symbol2.name)
+        XCTAssert(
+            demangledName == stdlib_demangleName(symbol2.name)
+        )
     }
 }

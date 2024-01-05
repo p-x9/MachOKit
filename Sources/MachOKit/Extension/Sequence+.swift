@@ -267,3 +267,50 @@ extension Sequence<RebaseOperation> {
         return rebases
     }
 }
+
+extension Sequence where Element == MachOFile.Symbol {
+    func named(
+        _ name: String,
+        mangled: Bool = true
+    ) -> Element? {
+        guard let nameC = name.cString(using: .utf8) else {
+            return nil
+        }
+        for symbol in self {
+            if strcmp(nameC, symbol.name) == 0 ||
+                symbol.name.withCString({ strcmp(nameC, $0 + 1) == 0 })
+            {
+                return symbol
+            } else if !mangled {
+                let demangled = stdlib_demangleName(symbol.name)
+                if strcmp(nameC, demangled) == 0 {
+                    return symbol
+                }
+            }
+        }
+        return nil
+    }
+}
+
+extension Sequence where Element == MachOImage.Symbol {
+    // more faster
+    func named(
+        _ name: String,
+        mangled: Bool = true
+    ) -> Element? {
+        guard let nameC = name.cString(using: .utf8) else {
+            return nil
+        }
+        for symbol in self {
+            if strcmp(nameC, symbol.nameC) == 0 || strcmp(nameC, symbol.nameC + 1) == 0 {
+                return symbol
+            } else if !mangled {
+                let demangled = stdlib_demangleName(symbol.nameC)
+                if strcmp(nameC, demangled) == 0 {
+                    return symbol
+                }
+            }
+        }
+        return nil
+    }
+}

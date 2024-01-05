@@ -103,6 +103,13 @@ public protocol MachORepresentable {
     /// - Parameter offset: Offset from start of mach header. (``SymbolProtocol.offset``)
     /// - Returns: Matched symbol
     func symbol(for offset: Int) -> Symbol?
+    
+    /// Find the symbol matching the given name.
+    /// - Parameters:
+    ///   - name: Symbol name to find
+    ///   - mangled: A boolean value that indicates whether the specified name is mangled with Swift
+    /// - Returns: Matched symbol
+    func symbol(named name: String, mangled: Bool) -> Symbol?
 }
 
 extension MachORepresentable {
@@ -249,5 +256,31 @@ extension MachORepresentable {
     public func symbol(for offset: Int) -> Symbol? {
         let best = closestSymbol(at: offset)
         return best?.offset == offset ? best : nil
+    }
+}
+
+extension MachORepresentable where Symbol == MachOFile.Symbol {
+    public func symbol(
+        named name: String,
+        mangled: Bool = true
+    ) -> Symbol? {
+        if is64Bit {
+            return symbols64?.named(name, mangled: mangled)
+        } else {
+            return symbols32?.named(name, mangled: mangled)
+        }
+    }
+}
+
+extension MachORepresentable where Symbol == MachOImage.Symbol {
+    public func symbol(
+        named name: String,
+        mangled: Bool = true
+    ) -> Symbol? {
+        if is64Bit {
+            return symbols64?.named(name, mangled: mangled)
+        } else {
+            return symbols32?.named(name, mangled: mangled)
+        }
     }
 }
