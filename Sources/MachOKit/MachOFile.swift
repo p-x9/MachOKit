@@ -303,3 +303,40 @@ extension MachOFile {
         return nil
     }
 }
+
+extension MachOFile {
+    public var dataInCode: AnySequence<DataInCodeEntry>? {
+        guard let dataInCode = loadCommands.dataInCode,
+              dataInCode.datasize > 0 else {
+            return nil
+        }
+
+        fileHandle.seek(
+            toFileOffset: numericCast(headerStartOffset) + numericCast(dataInCode.dataoff)
+        )
+        let data = fileHandle.readData(
+            ofLength: numericCast(dataInCode.datasize)
+        )
+
+        var entries = Array(
+            DataSequence<DataInCodeEntry>(
+                data: data,
+                numberOfElements: data.count / MemoryLayout<DataInCodeEntry>.size
+            )
+        )
+
+        if isSwapped {
+            entries = entries.map {
+                .init(
+                    layout: .init(
+                        offset: $0.offset.byteSwapped,
+                        length: $0.length.byteSwapped,
+                        kind: $0.layout.kind.byteSwapped
+                    )
+                )
+            }
+        }
+
+        return AnySequence(entries)
+    }
+}
