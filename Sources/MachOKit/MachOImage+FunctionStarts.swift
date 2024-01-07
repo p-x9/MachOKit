@@ -25,6 +25,56 @@ extension MachOImage {
 }
 
 extension MachOImage.FunctionStarts {
+    init?(
+        functionStarts: linkedit_data_command,
+        linkedit: SegmentCommand64,
+        text: SegmentCommand64,
+        vmaddrSlide: Int
+    ) {
+        var linkeditStart = vmaddrSlide
+        linkeditStart += numericCast(linkedit.layout.vmaddr - linkedit.layout.fileoff)
+        guard let linkeditStartPtr = UnsafeRawPointer(bitPattern: linkeditStart) else {
+            return nil
+        }
+
+        let start = linkeditStartPtr
+            .advanced(by: numericCast(functionStarts.dataoff))
+            .assumingMemoryBound(to: UInt8.self)
+        let size: Int = numericCast(functionStarts.datasize)
+
+        self.init(
+            basePointer: start,
+            functionStartsSize: size,
+            functionStartBase: numericCast(text.vmaddr)
+        )
+    }
+
+    init?(
+        functionStarts: linkedit_data_command,
+        linkedit: SegmentCommand,
+        text: SegmentCommand,
+        vmaddrSlide: Int
+    ) {
+        var linkeditStart = vmaddrSlide
+        linkeditStart += numericCast(linkedit.layout.vmaddr - linkedit.layout.fileoff)
+        guard let linkeditStartPtr = UnsafeRawPointer(bitPattern: linkeditStart) else {
+            return nil
+        }
+
+        let start = linkeditStartPtr
+            .advanced(by: numericCast(functionStarts.dataoff))
+            .assumingMemoryBound(to: UInt8.self)
+        let size: Int = numericCast(functionStarts.datasize)
+
+        self.init(
+            basePointer: start,
+            functionStartsSize: size,
+            functionStartBase: numericCast(text.vmaddr)
+        )
+    }
+}
+
+extension MachOImage.FunctionStarts {
     public struct Iterator: IteratorProtocol {
         public typealias Element = FunctionStart
 

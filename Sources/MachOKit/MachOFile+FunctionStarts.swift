@@ -32,6 +32,34 @@ extension MachOFile {
 }
 
 extension MachOFile.FunctionStarts {
+    init(
+        machO: MachOFile,
+        functionStarts: linkedit_data_command,
+        text: SegmentCommand64
+    ) {
+        self.init(
+            machO: machO,
+            functionStartsOffset: numericCast(functionStarts.dataoff),
+            functionStartsSize: numericCast(functionStarts.datasize),
+            functionStartBase: numericCast(text.vmaddr)
+        )
+    }
+
+    init(
+        machO: MachOFile,
+        functionStarts: linkedit_data_command,
+        text: SegmentCommand
+    ) {
+        self.init(
+            machO: machO,
+            functionStartsOffset: numericCast(functionStarts.dataoff),
+            functionStartsSize: numericCast(functionStarts.datasize),
+            functionStartBase: numericCast(text.vmaddr)
+        )
+    }
+}
+
+extension MachOFile.FunctionStarts {
     public struct Iterator: IteratorProtocol {
         public typealias Element = FunctionStart
 

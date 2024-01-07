@@ -273,21 +273,10 @@ extension MachOFile {
             return nil
         }
 
-        if is64Bit,
-           let linkedit = loadCommands.linkedit64 {
-            return ExportTrieEntries(
-                machO: self,
-                linkedit: linkedit,
-                export: export.layout
-            )
-        } else if let linkedit = loadCommands.linkedit {
-            return ExportTrieEntries(
-                machO: self,
-                linkedit: linkedit,
-                export: export.layout
-            )
-        }
-        return nil
+        return .init(
+            machO: self,
+            export: export.layout
+        )
     }
 }
 
@@ -298,18 +287,19 @@ extension MachOFile {
             return nil
         }
 
-        var functionStartBase: UInt = 0
         if let text = loadCommands.text64 {
-            functionStartBase = numericCast(text.vmaddr)
+            return .init(
+                machO: self,
+                functionStarts: functionStarts.layout,
+                text: text
+            )
         } else if let text = loadCommands.text {
-            functionStartBase = numericCast(text.vmaddr)
+            return .init(
+                machO: self,
+                functionStarts: functionStarts.layout,
+                text: text
+            )
         }
-
-        return .init(
-            machO: self,
-            functionStartsOffset: numericCast(functionStarts.dataoff),
-            functionStartsSize: numericCast(functionStarts.datasize),
-            functionStartBase: functionStartBase
-        )
+        return nil
     }
 }
