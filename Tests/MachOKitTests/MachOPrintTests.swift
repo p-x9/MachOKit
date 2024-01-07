@@ -422,3 +422,14 @@ extension MachOPrintTests {
         }
     }
 }
+
+extension MachOPrintTests {
+    func testDataInCode() {
+        // x86_64 `Foundation`
+        if let dataInCode = machO.dataInCode {
+            for data in dataInCode {
+                print(String(data.offset, radix: 16), data.length, data.kind?.description ?? "unknown")
+            }
+        }
+    }
+}
