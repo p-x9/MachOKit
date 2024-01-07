@@ -448,3 +448,42 @@ extension MachOImage {
         return symbol(for: offset)
     }
 }
+
+extension MachOImage {
+    public var functionStarts: FunctionStarts? {
+        guard let vmaddrSlide,
+              let functionStarts = loadCommands.functionStarts,
+              functionStarts.datasize > 0 else {
+            return nil
+        }
+        var linkeditStart: Int = vmaddrSlide
+
+        if let linkedit = loadCommands.linkedit64 {
+            linkeditStart += numericCast(linkedit.layout.vmaddr - linkedit.layout.fileoff)
+        } else if let linkedit = loadCommands.linkedit {
+            linkeditStart += numericCast(linkedit.layout.vmaddr - linkedit.layout.fileoff)
+        } else { return nil }
+
+        guard let linkeditStartPtr = UnsafeRawPointer(bitPattern: linkeditStart) else {
+            return nil
+        }
+
+        var functionStartBase: UInt = 0
+        if let text = loadCommands.text64 {
+            functionStartBase = numericCast(text.vmaddr)
+        } else if let text = loadCommands.text {
+            functionStartBase = numericCast(text.vmaddr)
+        }
+
+        let start = linkeditStartPtr
+            .advanced(by: numericCast(functionStarts.dataoff))
+            .assumingMemoryBound(to: UInt8.self)
+        let size: Int = numericCast(functionStarts.datasize)
+
+        return .init(
+            basePointer: start,
+            functionStartsSize: size, 
+            functionStartBase: functionStartBase
+        )
+    }
+}

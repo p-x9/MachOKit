@@ -73,4 +73,9 @@ extension LoadCommandsProtocol {
         }.first
     }
 
+    var functionStarts: LoadCommandInfo<linkedit_data_command>? {
+        compactMap {
+            if case let .functionStarts(info) = $0 { info } else { nil }
+        }.first
+    }
 }
