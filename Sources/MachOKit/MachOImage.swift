@@ -477,3 +477,27 @@ extension MachOImage {
         return nil
     }
 }
+
+extension MachOImage {
+    public var dataInCode: MemorySequence<DataInCodeEntry>? {
+        guard let vmaddrSlide,
+              let dataInCode = loadCommands.dataInCode,
+              let linkedit = loadCommands.linkedit64,
+              dataInCode.datasize > 0 else {
+            return nil
+        }
+
+        var linkeditStart = vmaddrSlide
+        linkeditStart += numericCast(linkedit.layout.vmaddr - linkedit.layout.fileoff)
+        guard let linkeditStartPtr = UnsafeRawPointer(bitPattern: linkeditStart) else {
+            return nil
+        }
+
+        let start = linkeditStartPtr
+            .advanced(by: numericCast(dataInCode.dataoff))
+            .assumingMemoryBound(to: DataInCodeEntry.self)
+        let size: Int = numericCast(dataInCode.datasize) / MemoryLayout<DataInCodeEntry>.size
+
+        return .init(basePointer: start, numberOfElements: size)
+    }
+}

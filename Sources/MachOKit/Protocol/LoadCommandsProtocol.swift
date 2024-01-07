@@ -78,4 +78,10 @@ extension LoadCommandsProtocol {
             if case let .functionStarts(info) = $0 { info } else { nil }
         }.first
     }
+
+    var dataInCode: LoadCommandInfo<linkedit_data_command>? {
+        compactMap {
+            if case let .dataInCode(info) = $0 { info } else { nil }
+        }.first
+    }
 }
