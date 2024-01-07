@@ -395,3 +395,30 @@ extension MachOPrintTests {
         )
     }
 }
+
+extension MachOPrintTests {
+    func testFunctionStarts() {
+        guard let functionStarts = machO.functionStarts else { return }
+        let starts = Array(functionStarts)
+
+        var lastOffset: UInt = functionStarts.functionStartBase
+        for start in starts {
+            print(
+                "+\(start.offset - lastOffset)",
+                String(start.offset, radix: 16)
+            )
+            lastOffset = start.offset
+
+            let address = machO.ptr
+                .advanced(by: numericCast(start.offset))
+            var info = Dl_info()
+            dladdr(address, &info)
+
+            // Not always matched.
+            let diff = UInt(bitPattern: address) - UInt(bitPattern: info.dli_saddr)
+            if diff != 0 {
+                print("dladdr diff", diff)
+            }
+        }
+    }
+}

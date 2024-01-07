@@ -405,3 +405,19 @@ extension MachOFilePrintTests {
         )
     }
 }
+
+extension MachOFilePrintTests {
+    func testFunctionStarts() {
+        guard let functionStarts = machO.functionStarts else { return }
+        let starts = Array(functionStarts)
+
+        var lastOffset: UInt = functionStarts.functionStartBase
+        for start in starts {
+            print(
+                "+\(start.offset - lastOffset)",
+                String(start.offset, radix: 16)
+            )
+            lastOffset = start.offset
+        }
+    }
+}
