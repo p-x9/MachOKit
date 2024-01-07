@@ -41,24 +41,11 @@ extension MachOFile.ExportTrieEntries {
 
     init(
         machO: MachOFile,
-        linkedit: SegmentCommand64,
         export: linkedit_data_command
     ) {
         self.init(
             machO: machO,
-            exportOffset: Int(export.dataoff), // No need to consider headerStartOffset
-            exportSize: Int(export.datasize)
-        )
-    }
-
-    init(
-        machO: MachOFile,
-        linkedit: SegmentCommand,
-        export: linkedit_data_command
-    ) {
-        self.init(
-            machO: machO,
-            exportOffset: Int(export.dataoff), //　No need to consider headerStartOffset
+            exportOffset: Int(export.dataoff),
             exportSize: Int(export.datasize)
         )
     }
