@@ -24,8 +24,6 @@ extension MachOFile {
 extension MachOFile {
     public struct Symbols64: Sequence {
         let machO: MachOFile
-        public let text: SegmentCommand64
-        public let linkedit: SegmentCommand64
         public let symtab: LoadCommandInfo<symtab_command>
 
         public func makeIterator() -> Iterator {
@@ -135,8 +133,6 @@ extension MachOFile.Symbols64 {
 extension MachOFile {
     public struct Symbols: Sequence {
         let machO: MachOFile
-        public let text: SegmentCommand
-        public let linkedit: SegmentCommand
         public let symtab: LoadCommandInfo<symtab_command>
 
         public func makeIterator() -> Iterator {
