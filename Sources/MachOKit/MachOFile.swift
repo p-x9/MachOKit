@@ -113,13 +113,9 @@ extension MachOFile {
         guard is64Bit else {
             return nil
         }
-        if let text = loadCommands.text64,
-           let linkedit = loadCommands.linkedit64,
-           let symtab = loadCommands.symtab {
+        if let symtab = loadCommands.symtab {
             return Symbols64(
                 machO: self,
-                text: text,
-                linkedit: linkedit,
                 symtab: symtab
             )
         }
@@ -130,13 +126,9 @@ extension MachOFile {
         guard !is64Bit else {
             return nil
         }
-        if let text = loadCommands.text,
-           let linkedit = loadCommands.linkedit,
-           let symtab = loadCommands.symtab {
+        if let symtab = loadCommands.symtab {
             return Symbols(
                 machO: self,
-                text: text,
-                linkedit: linkedit,
                 symtab: symtab
             )
         }
