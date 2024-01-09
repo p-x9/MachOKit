@@ -17,8 +17,6 @@ public enum RelocationType {
 }
 
 public enum GenericRelocationType: UInt32 {
-    /// GENERIC_RELOC_INVALID
-    case invalid
     /// GENERIC_RELOC_VANILLA
     case vanilla
     /// GENERIC_RELOC_PAIR
@@ -31,6 +29,8 @@ public enum GenericRelocationType: UInt32 {
     case local_sectdiff
     /// GENERIC_RELOC_TLV
     case tlv
+    /// GENERIC_RELOC_INVALID
+    case invalid = 0xff
 }
 
 extension GenericRelocationType: CustomStringConvertible {
