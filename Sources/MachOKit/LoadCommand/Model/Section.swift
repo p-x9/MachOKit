@@ -21,6 +21,15 @@ public protocol SectionProtocol: LayoutWrapper {
 
     /// returns nil except when type is `cstring_literals
     func strings(in machO: MachOFile) -> MachOFile.Strings?
+
+    /// relocation informations.
+    /// (contains only in object file (.o))
+    ///
+    /// It can also be obtained with the following command
+    /// ```sh
+    /// otool -r <path to object file>
+    /// ```
+    func relocations(in machO: MachOFile) -> DataSequence<Relocation>
 }
 
 public struct Section: SectionProtocol {
@@ -168,5 +177,58 @@ extension Section64 {
 
     public func strings(in machO: MachOFile) -> MachOFile.Strings? {
         _strings(in: machO, sectionOffset: layout.offset, sectionSize: UInt64(layout.size))
+    }
+}
+
+extension SectionProtocol {
+    fileprivate func _relocations(
+        in machO: MachOFile,
+        reloff: UInt32,
+        nreloc: UInt32
+    ) -> DataSequence<Relocation> {
+        machO.fileHandle.seek(
+            toFileOffset: numericCast(reloff)
+        )
+        var data = machO.fileHandle.readData(
+            ofLength: numericCast(nreloc) * MemoryLayout<relocation_info>.size
+        )
+
+        if machO.isSwapped {
+            data.withUnsafeMutableBytes {
+                guard let baseAddress = $0.baseAddress else { return }
+                let ptr = baseAddress
+                    .assumingMemoryBound(to: relocation_info.self)
+                swap_relocation_info(ptr, nreloc, NXHostByteOrder())
+            }
+        }
+
+        return DataSequence<Relocation>(
+            data: data,
+            numberOfElements: numericCast(nreloc)
+        )
+    }
+}
+
+extension Section64 {
+    public func relocations(
+        in machO: MachOFile
+    ) -> DataSequence<Relocation> {
+        _relocations(
+            in: machO,
+            reloff: layout.reloff,
+            nreloc: layout.nreloc
+        )
+    }
+}
+
+extension Section {
+    public func relocations(
+        in machO: MachOFile
+    ) -> DataSequence<Relocation> {
+        _relocations(
+            in: machO,
+            reloff: layout.reloff,
+            nreloc: layout.nreloc
+        )
     }
 }

@@ -94,6 +94,52 @@ final class MachOFilePrintTests: XCTestCase {
         }
     }
 
+    func testSectionRelocationInfos() {
+        let symbols = Array(machO.symbols)
+        for section in machO.sections32 where section.nreloc > 0 {
+            print("----")
+            print("Name:", "\(section.segmentName).\(section.sectionName)"
+            )
+            let relocations = section.relocations(in: machO)
+            for relocation in relocations {
+                print("--")
+                switch relocation.info {
+                case let .general(info):
+                    print("Offset:", "0x" + String(info.r_address, radix: 16))
+                    if let length = info.length {
+                        print("Length:", length)
+                    }
+                    print("isExternal:", info.isExternal)
+                    print("isScatted:", info.isScattered)
+                    print("pcRelative:", info.isRelocatedPCRelative)
+                    if let symbolIndex = info.symbolIndex {
+                        print("SymbolIndex:", symbolIndex)
+                        print("SymbolName:", symbols[symbolIndex].name)
+                    }
+                    if let sectionOrdinal = info.sectionOrdinal {
+                        print("SectionOrdinal:", sectionOrdinal)
+                    }
+                    if let cpuType = machO.header.cpuType,
+                       let type = info.type(for: cpuType) {
+                        print("Type:", type)
+                    }
+                case let .scattered(info):
+                    print("Offset:", "0x" + String(info.layout.r_address, radix: 16))
+                    if let length = info.length {
+                        print("Length:", length)
+                    }
+                    print("isScatted:", info.isScattered)
+                    print("pcRelative:", info.isRelocatedPCRelative)
+                    if let cpuType = machO.header.cpuType,
+                       let type = info.type(for: cpuType) {
+                        print("Type:", type)
+                    }
+                    print("Value:", "0x" + String(info.r_value, radix: 16))
+                }
+            }
+        }
+    }
+
     func testDependencies() throws {
         for dependency in machO.dependencies {
             print("----")
