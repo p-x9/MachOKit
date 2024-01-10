@@ -16,6 +16,45 @@ public enum RelocationType {
     case x86_64(X86_64RelocationType)
 }
 
+extension RelocationType {
+    init?(rawValue: UInt32, for cpuType: CPUType) {
+        switch cpuType {
+        case .x86:
+            guard let type = GenericRelocationType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .x86(type)
+
+        case .x86_64:
+            guard let type = X86_64RelocationType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .x86_64(type)
+
+        case .arm:
+            guard let type = ARMRelocationType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .arm(type)
+
+        case .arm64:
+            guard let type = ARM64RelocationType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .arm64(type)
+
+        case .powerpc:
+            guard let type = PPCRelocationType(rawValue: rawValue) else {
+                return nil
+            }
+            self = .ppc(type)
+
+        default:
+            return nil
+        }
+    }
+}
+
 public enum GenericRelocationType: UInt32 {
     /// GENERIC_RELOC_VANILLA
     case vanilla

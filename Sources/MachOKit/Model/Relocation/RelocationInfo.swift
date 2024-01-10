@@ -40,39 +40,6 @@ extension RelocationInfo {
     }
 
     public func type(for cpuType: CPUType) -> RelocationType? {
-        switch cpuType {
-        case .x86:
-            guard let type = GenericRelocationType(rawValue: layout.r_type) else {
-                return nil
-            }
-            return .x86(type)
-
-        case .x86_64:
-            guard let type = X86_64RelocationType(rawValue: layout.r_type) else {
-                return nil
-            }
-            return .x86_64(type)
-
-        case .arm:
-            guard let type = ARMRelocationType(rawValue: layout.r_type) else {
-                return nil
-            }
-            return .arm(type)
-
-        case .arm64:
-            guard let type = ARM64RelocationType(rawValue: layout.r_type) else {
-                return nil
-            }
-            return .arm64(type)
-
-        case .powerpc:
-            guard let type = PPCRelocationType(rawValue: layout.r_type) else {
-                return nil
-            }
-            return .ppc(type)
-
-        default:
-            return nil
-        }
+        .init(rawValue: layout.r_type, for: cpuType)
     }
 }
