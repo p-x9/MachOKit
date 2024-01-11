@@ -478,3 +478,54 @@ extension MachOFilePrintTests {
         }
     }
 }
+
+extension MachOFilePrintTests {
+    func testChainedFixUps() {
+        guard let chainedFixups = machO.dyldChainedFixups else {
+            return
+        }
+
+        guard let header = chainedFixups.header else { return }
+        print("Header:", header.layout)
+
+        guard let startsInImage = chainedFixups.startsInImage else { return }
+        print("Image:", startsInImage.layout)
+
+        let segments = chainedFixups.startsInSegments(of: startsInImage)
+        for segment in segments {
+            print("Segment:", segment.layout)
+            let pages = chainedFixups.pages(of: segment)
+            print(
+                "pages: ",
+                "[" +
+                pages.map {
+                    String($0.offset, radix: 16)
+                }.joined(separator: ", ")
+                + "]"
+            )
+        }
+    }
+
+    func testChainedFixUpsImports() {
+        guard let chainedFixups = machO.dyldChainedFixups else {
+            return
+        }
+        let libraries = machO.dependencies
+
+        let imports = chainedFixups.imports
+        for (i, `import`) in imports.enumerated() {
+            print("----")
+            print("0x" + String(i, radix: 16))
+            let info = `import`.info
+            if let libraryOrdinalType = info.libraryOrdinalType {
+                print("Library:", libraryOrdinalType)
+            } else if libraries.indices.contains(info.libraryOrdinal - 1) {
+                print("Library:", libraries[info.libraryOrdinal - 1].name)
+            }
+            let name = chainedFixups.symbolName(
+                for: info.nameOffset
+            )
+            if let name { print("Name:", name) }
+        }
+    }
+}
