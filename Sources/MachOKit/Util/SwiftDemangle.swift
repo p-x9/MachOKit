@@ -21,8 +21,7 @@ internal func stdlib_demangleName(
     _ mangledName: String
 ) -> String {
     guard !mangledName.isEmpty else { return mangledName }
-    return mangledName.utf8CString.withUnsafeBufferPointer {
-        (mangledNameUTF8) in
+    return mangledName.utf8CString.withUnsafeBufferPointer { mangledNameUTF8 in
         let demangledNamePtr = _stdlib_demangleImpl(
             mangledName: mangledNameUTF8.baseAddress,
             mangledNameLength: numericCast(mangledNameUTF8.count - 1),

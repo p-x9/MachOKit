@@ -35,7 +35,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             let offset: Int = numericCast(header.starts_offset)
             let ptr = UnsafeRawPointer(basePtr)
                 .advanced(by: offset)
-            let layout =  ptr
+            let layout = ptr
                 .assumingMemoryBound(to: DyldChainedStartsInImage.Layout.self)
                 .pointee
             let ret: DyldChainedStartsInImage = .init(

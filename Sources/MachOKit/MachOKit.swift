@@ -20,4 +20,3 @@ public func loadFromFile(url: URL) throws -> File {
         return .machO(try MachOFile(url: url))
     }
 }
-

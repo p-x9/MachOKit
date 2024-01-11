@@ -20,12 +20,12 @@ extension IndirectSymbol {
     }
 
     /// INDIRECT_SYMBOL_LOCAL
-    public var isLocal: Bool  {
+    public var isLocal: Bool {
         _value & ~UInt32(INDIRECT_SYMBOL_ABS) == INDIRECT_SYMBOL_LOCAL
     }
 
     /// INDIRECT_SYMBOL_ABS
-    public var isAbsolute: Bool  {
+    public var isAbsolute: Bool {
         _value & UInt32(INDIRECT_SYMBOL_ABS) != 0
     }
 }

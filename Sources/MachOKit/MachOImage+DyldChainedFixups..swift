@@ -76,7 +76,7 @@ extension MachOImage.DyldChainedFixups: DyldChainedFixupsProtocol {
         let offset: Int = numericCast(header.starts_offset)
         let ptr = UnsafeRawPointer(basePointer)
             .advanced(by: offset)
-        let layout =  ptr
+        let layout = ptr
             .assumingMemoryBound(to: DyldChainedStartsInImage.Layout.self)
             .pointee
         return .init(layout: layout, offset: offset)
@@ -88,7 +88,7 @@ extension MachOImage.DyldChainedFixups: DyldChainedFixupsProtocol {
         guard let startsInImage else {
             return []
         }
-        let offsets: [Int] =  {
+        let offsets: [Int] = {
             let ptr = UnsafeRawPointer(basePointer)
                 .advanced(by: startsInImage.offset)
                 .advanced(by: DyldChainedStartsInImage.layoutOffset(of: \.seg_info_offset))
