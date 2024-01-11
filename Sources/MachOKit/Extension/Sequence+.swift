@@ -278,8 +278,7 @@ extension Sequence where Element == MachOFile.Symbol {
         }
         for symbol in self {
             if strcmp(nameC, symbol.name) == 0 ||
-                symbol.name.withCString({ strcmp(nameC, $0 + 1) == 0 })
-            {
+                symbol.name.withCString({ strcmp(nameC, $0 + 1) == 0 }) {
                 return symbol
             } else if !mangled {
                 let demangled = stdlib_demangleName(symbol.name)

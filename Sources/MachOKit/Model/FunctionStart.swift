@@ -36,8 +36,8 @@ extension FunctionStart {
             nextOffset += 1
             delta |= ((numericCast(byte) & 0x7F) << shift)
             shift += 7
-            if ( byte < 0x80 ) {
-                functionOffset += delta;
+            if byte < 0x80 {
+                functionOffset += delta
                 more = false
             }
         } while more

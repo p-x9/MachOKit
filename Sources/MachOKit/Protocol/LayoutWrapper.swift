@@ -40,4 +40,3 @@ extension LayoutWrapper {
         MemoryLayout<Layout>.offset(of: key)!
     }
 }
-

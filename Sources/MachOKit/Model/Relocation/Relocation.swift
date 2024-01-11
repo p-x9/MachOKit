@@ -24,8 +24,7 @@ public struct Relocation {
         var buffer = _data
         if isScattered {
             let info: ScatteredRelocationInfo = withUnsafePointer(
-                to: &buffer,
-                {
+                to: &buffer, {
                     let ptr = UnsafeRawPointer($0)
                     return ptr.autoBoundPointee()
                 }
@@ -33,8 +32,7 @@ public struct Relocation {
             return .scattered(info)
         } else {
             let info: RelocationInfo = withUnsafePointer(
-                to: &buffer,
-                {
+                to: &buffer, {
                     let ptr = UnsafeRawPointer($0)
                     return ptr.autoBoundPointee()
                 }

@@ -144,7 +144,6 @@ extension PPCRelocationType: CustomStringConvertible {
     }
 }
 
-
 public enum ARMRelocationType: UInt32 {
     /// ARM_RELOC_VANILLA
     case reloc_vanilla
@@ -184,7 +183,6 @@ extension ARMRelocationType: CustomStringConvertible {
         }
     }
 }
-
 
 public enum ARM64RelocationType: UInt32 {
     /// ARM64_RELOC_UNSIGNED

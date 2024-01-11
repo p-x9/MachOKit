@@ -484,4 +484,3 @@ extension MachOPrintTests {
         }
     }
 }
-
