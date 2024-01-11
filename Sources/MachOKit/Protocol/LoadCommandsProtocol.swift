@@ -84,4 +84,10 @@ extension LoadCommandsProtocol {
             if case let .dataInCode(info) = $0 { info } else { nil }
         }.first
     }
+
+    var dyldChainedFixups: LoadCommandInfo<linkedit_data_command>? {
+        compactMap {
+            if case let .dyldChainedFixups(info) = $0 { info } else { nil }
+        }.first
+    }
 }

@@ -501,3 +501,32 @@ extension MachOImage {
         return .init(basePointer: start, numberOfElements: size)
     }
 }
+
+extension MachOImage {
+    public var dyldChainedFixups: DyldChainedFixups? {
+        guard let vmaddrSlide,
+              let chainedFixups = loadCommands.dyldChainedFixups,
+              chainedFixups.datasize > 0 else {
+            return nil
+        }
+
+        if let linkedit = loadCommands.linkedit64,
+           let text = loadCommands.text64 {
+            return .init(
+                dyldChainedFixups: chainedFixups.layout,
+                linkedit: linkedit,
+                text: text,
+                vmaddrSlide: vmaddrSlide
+            )
+        } else if let linkedit = loadCommands.linkedit,
+                  let text = loadCommands.text {
+            return .init(
+                dyldChainedFixups: chainedFixups.layout,
+                linkedit: linkedit,
+                text: text,
+                vmaddrSlide: vmaddrSlide
+            )
+        }
+        return nil
+    }
+}

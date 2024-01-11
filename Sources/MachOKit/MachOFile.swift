@@ -332,3 +332,15 @@ extension MachOFile {
         return AnySequence(entries)
     }
 }
+
+extension MachOFile {
+    public var dyldChainedFixups: DyldChainedFixups? {
+        guard let info = loadCommands.dyldChainedFixups else {
+            return nil
+        }
+        fileHandle.seek(toFileOffset: UInt64(headerStartOffset) + numericCast(info.dataoff))
+        let data = fileHandle.readData(ofLength: numericCast(info.datasize))
+
+        return .init(data: data)
+    }
+}
