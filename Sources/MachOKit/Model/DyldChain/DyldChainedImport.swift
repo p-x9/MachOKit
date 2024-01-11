@@ -73,3 +73,69 @@ public struct DyldChainedImportAddend64: DyldChainedImportProtocol {
         numericCast(layout.name_offset)
     }
 }
+
+extension DyldChainedImportGeneral {
+    public var swapped: Self {
+        var layout = self.layout
+        return withUnsafeMutablePointer(to: &layout) {
+            let ptr = UnsafeMutableRawPointer(mutating: $0)
+            let bytes = UnsafeMutableBufferPointer(
+                start: ptr
+                    .assumingMemoryBound(to: UInt32.self),
+                count: 1
+            )
+            bytes[0] = bytes[0].byteSwapped
+
+            return .init(
+                layout: ptr
+                    .assumingMemoryBound(to: Layout.self)
+                    .pointee
+            )
+        }
+    }
+}
+
+extension DyldChainedImportAddend {
+    public var swapped: Self {
+        var layout = self.layout
+        return withUnsafeMutablePointer(to: &layout) {
+            let ptr = UnsafeMutableRawPointer(mutating: $0)
+            let bytes = UnsafeMutableBufferPointer(
+                start: ptr
+                    .assumingMemoryBound(to: UInt32.self),
+                count: 2
+            )
+            bytes[0] = bytes[0].byteSwapped
+            bytes[1] = bytes[1].byteSwapped
+
+            return .init(
+                layout: ptr
+                    .assumingMemoryBound(to: Layout.self)
+                    .pointee
+            )
+        }
+    }
+}
+
+extension DyldChainedImportAddend64 {
+    public var swapped: Self {
+        var layout = self.layout
+        return withUnsafeMutablePointer(to: &layout) {
+            let ptr = UnsafeMutableRawPointer(mutating: $0)
+            let bytes = UnsafeMutableBufferPointer(
+                start: ptr
+                    .assumingMemoryBound(to: UInt64.self),
+                count: 2
+            )
+            bytes[0] = bytes[0].byteSwapped
+            bytes[1] = bytes[1].byteSwapped
+
+            return .init(
+                layout: ptr
+                    .assumingMemoryBound(to: Layout.self)
+                    .pointee
+            )
+        }
+    }
+}
+

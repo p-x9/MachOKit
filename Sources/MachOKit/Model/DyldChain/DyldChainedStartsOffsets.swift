@@ -14,3 +14,13 @@ public struct DyldChainedStartsOffsets: LayoutWrapper {
 
     public var layout: Layout
 }
+
+extension DyldChainedStartsOffsets {
+    public var swapped: Self {
+        var layout = self.layout
+        layout.pointer_format = layout.pointer_format.byteSwapped
+        layout.starts_count = layout.starts_count.byteSwapped
+        layout.chain_starts = layout.chain_starts.byteSwapped
+        return .init(layout: layout)
+    }
+}
