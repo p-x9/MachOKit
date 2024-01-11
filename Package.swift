@@ -12,7 +12,14 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "MachOKit"
+            name: "MachOKit",
+            dependencies: [
+                "MachOKitC"
+            ]
+        ),
+        .target(
+            name: "MachOKitC",
+            publicHeadersPath: "include"
         ),
         .testTarget(
             name: "MachOKitTests",
