@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2024/01/11.
-//  
+//
 //
 
 import Foundation
@@ -12,6 +12,7 @@ import MachOKitC
 extension MachOFile {
     public struct DyldChainedFixups {
         let data: Data
+        let isSwapped: Bool
     }
 }
 
@@ -20,9 +21,10 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
         data.withUnsafeBytes {
             guard let basePtr = $0.baseAddress else { return nil }
             let ptr = UnsafeRawPointer(basePtr)
-            return ptr
+            let ret = ptr
                 .assumingMemoryBound(to: DyldChainedFixupsHeader.self)
                 .pointee
+            return isSwapped ? ret.swapped : ret
         }
     }
 
@@ -36,7 +38,11 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             let layout =  ptr
                 .assumingMemoryBound(to: DyldChainedStartsInImage.Layout.self)
                 .pointee
-            return .init(layout: layout, offset: offset)
+            let ret: DyldChainedStartsInImage = .init(
+                layout: layout,
+                offset: offset
+            )
+            return isSwapped ? ret.swapped : ret
         }
     }
 
@@ -54,7 +60,9 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             return UnsafeBufferPointer(
                 start: ptr.assumingMemoryBound(to: UInt32.self),
                 count: numericCast(startsInImage.seg_count)
-            ).map { numericCast($0) }
+            )
+            .map { isSwapped ? $0.byteSwapped : $0 }
+            .map { numericCast($0) }
         }
 
         return data.withUnsafeBytes {
@@ -66,7 +74,11 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
                     .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
                     .pointee
                 let offset: Int = startsInImage.offset + $0
-                return .init(layout: layout, offset: offset)
+                let ret: DyldChainedStartsInSegment = .init(
+                    layout: layout,
+                    offset: offset
+                )
+                return isSwapped ? ret.swapped : ret
             }
         }
     }
@@ -89,7 +101,11 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
                 count: numericCast(
                     startsInSegment.page_count
                 )
-            ).map { .init(offset: $0) }
+            )
+            .map {
+                isSwapped ? $0.byteSwapped : $0
+            }
+            .map { .init(offset: $0) }
         }
     }
 
@@ -111,21 +127,27 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
                     start: ptr
                         .assumingMemoryBound(to: DyldChainedImportGeneral.self),
                     count: count
-                ).map { .general($0) }
+                )
+                .map { isSwapped ? $0.swapped : $0 }
+                .map { .general($0) }
 
             case .addend:
                 return UnsafeBufferPointer(
                     start: ptr
                         .assumingMemoryBound(to: DyldChainedImportAddend.self),
                     count: count
-                ).map { .addend($0) }
+                )
+                .map { isSwapped ? $0.swapped : $0 }
+                .map { .addend($0) }
 
             case .addend64:
                 return UnsafeBufferPointer(
                     start: ptr
                         .assumingMemoryBound(to: DyldChainedImportAddend64.self),
                     count: count
-                ).map { .addend64($0) }
+                )
+                .map { isSwapped ? $0.swapped : $0 }
+                .map { .addend64($0) }
             }
         }
     }
