@@ -10,7 +10,7 @@ import Foundation
 
 public struct BindingSymbol {
     public let type: BindType
-    public let libraryOrdinal: UInt
+    public let libraryOrdinal: Int
     public let segmentIndex: UInt
     public let segmentOffset: UInt
     public let addend: Int
@@ -18,15 +18,21 @@ public struct BindingSymbol {
 }
 
 extension BindingSymbol {
+    public var bindSpecial: BindSpecial? {
+        .init(rawValue: BindSpecial.RawValue(libraryOrdinal))
+    }
     public func library(in machO: MachOImage) -> Dylib? {
-        if libraryOrdinal == 0 {
-            return Array(
-                machO
-                    .loadCommands
-                    .infos(of: LoadCommand.idDylib)
-            )
-            .first?
-            .dylib(cmdsStart: machO.cmdsStartPtr)
+        if let bindSpecial {
+            if bindSpecial == .dylib_self {
+                return Array(
+                    machO
+                        .loadCommands
+                        .infos(of: LoadCommand.idDylib)
+                )
+                .first?
+                .dylib(cmdsStart: machO.cmdsStartPtr)
+            }
+            return nil
         }
 
         let index = Int(libraryOrdinal - 1)
@@ -37,14 +43,16 @@ extension BindingSymbol {
     }
 
     public func library(in machO: MachOFile) -> Dylib? {
-        if libraryOrdinal == 0 {
-            return Array(
-                machO
-                    .loadCommands
-                    .infos(of: LoadCommand.idDylib)
-            )
-            .first?
-            .dylib(in: machO)
+        if let bindSpecial {
+            if bindSpecial == .dylib_self {
+                return Array(
+                    machO
+                        .loadCommands
+                        .infos(of: LoadCommand.idDylib)
+                )
+                .first?
+                .dylib(in: machO)
+            }
         }
 
         let index = Int(libraryOrdinal - 1)

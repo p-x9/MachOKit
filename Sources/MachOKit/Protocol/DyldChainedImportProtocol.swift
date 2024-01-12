@@ -15,7 +15,9 @@ public protocol DyldChainedImportProtocol: LayoutWrapper {
 }
 
 extension DyldChainedImportProtocol {
-    public var libraryOrdinalType: LibraryOrdinalType? {
+    // https://opensource.apple.com/source/cctools/cctools-877.5/otool/dyld_bind_info.c.auto.html
+    // `ordinalName`
+    public var libraryOrdinalType: BindSpecial? {
         .init(rawValue: numericCast(libraryOrdinal))
     }
 }

@@ -28,7 +28,7 @@ public struct DyldChainedImportGeneral: DyldChainedImportProtocol {
     public var layout: Layout
 
     public var libraryOrdinal: Int {
-        numericCast(layout.lib_ordinal)
+        numericCast(Int8(bitPattern: UInt8(layout.lib_ordinal)))
     }
 
     public var isWeakImport: Bool {
@@ -45,7 +45,7 @@ public struct DyldChainedImportAddend: DyldChainedImportProtocol {
     public var layout: Layout
 
     public var libraryOrdinal: Int {
-        numericCast(layout.lib_ordinal)
+        numericCast(Int8(bitPattern: UInt8(layout.lib_ordinal)))
     }
 
     public var isWeakImport: Bool {
@@ -62,7 +62,7 @@ public struct DyldChainedImportAddend64: DyldChainedImportProtocol {
     public var layout: Layout
 
     public var libraryOrdinal: Int {
-        numericCast(layout.lib_ordinal)
+        numericCast(Int16(bitPattern: UInt16(layout.lib_ordinal)))
     }
 
     public var isWeakImport: Bool {
