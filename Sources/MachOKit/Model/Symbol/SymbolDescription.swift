@@ -26,7 +26,7 @@ public struct SymbolDescription: OptionSet {
         (rawValue >> 8) & 0xff
     }
 
-    public var libraryOrdinalType: LibraryOrdinalType? {
+    public var libraryOrdinalType: SymbolLibraryOrdinalType? {
         .init(rawValue: libraryOrdinal)
     }
 
