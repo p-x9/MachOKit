@@ -18,3 +18,9 @@ public protocol SymbolProtocol {
     /// Nlist or Nlist64
     var nlist: any NlistProtocol { get }
 }
+
+extension SymbolProtocol {
+    public var demangledName: String {
+        stdlib_demangleName(name)
+    }
+}
