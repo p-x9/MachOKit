@@ -85,7 +85,7 @@ extension Sequence<BindOperation> {
 
         var done = false
         for operation in self {
-            if done { break }
+            if done { /*break*/ }
 
             switch operation {
             case .done:
@@ -97,8 +97,8 @@ extension Sequence<BindOperation> {
             case let .set_dylib_ordinal_uleb(ordinal: ordinal):
                 libraryOrdinal = ordinal
 
-            case let .set_dylib_special_imm(ordinal: ordinal):
-                libraryOrdinal = ordinal
+            case let .set_dylib_special_imm(special: special):
+                libraryOrdinal = Int(special.rawValue)
 
             case let .set_symbol_trailing_flags_imm(flags: _, symbol: symbol):
                 symbolName = symbol

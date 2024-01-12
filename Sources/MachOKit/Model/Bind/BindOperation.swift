@@ -16,7 +16,7 @@ public enum BindOperation {
     /// BIND_OPCODE_SET_DYLIB_ORDINAL_ULEB
     case set_dylib_ordinal_uleb(ordinal: Int)
     /// BIND_OPCODE_SET_DYLIB_SPECIAL_IMM
-    case set_dylib_special_imm(ordinal: Int)
+    case set_dylib_special_imm(special: BindSpecial)
     /// BIND_OPCODE_SET_SYMBOL_TRAILING_FLAGS_IMM
     case set_symbol_trailing_flags_imm(flags: UInt, symbol: String)
     /// BIND_OPCODE_SET_TYPE_IMM
@@ -69,8 +69,8 @@ extension BindOperation: CustomStringConvertible {
             "\(opcode) ordinal: \(ordinal)"
         case .set_dylib_ordinal_uleb(let ordinal):
             "\(opcode) ordinal: \(ordinal)"
-        case .set_dylib_special_imm(let ordinal):
-            "\(opcode) ordinal: \(ordinal)"
+        case .set_dylib_special_imm(let special):
+            "\(opcode) special: \(special)"
         case .set_symbol_trailing_flags_imm(let flags, let symbol):
             "\(opcode) flags: \(flags), symbol: \(symbol)"
         case .set_type_imm(let type):
@@ -152,12 +152,13 @@ extension BindOperation {
             return .set_dylib_ordinal_uleb(ordinal: Int(bitPattern: value))
 
         case .set_dylib_special_imm:
-            let libraryOrdinal: Int
+            let libraryOrdinal: Int32
             if imm == 0 { libraryOrdinal = 0 } else {
                 let signExtended = BIND_OPCODE_MASK | imm
-                libraryOrdinal = Int(signExtended)
+                libraryOrdinal = signExtended
             }
-            return .set_dylib_special_imm(ordinal: libraryOrdinal)
+            let special = BindSpecial(rawValue: libraryOrdinal)!
+            return .set_dylib_special_imm(special: special)
 
         case .set_symbol_trailing_flags_imm:
             let (string, stringSize) = basePointer
