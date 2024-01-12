@@ -299,7 +299,7 @@ extension MachOFilePrintTests {
                 "0x" + String(address, radix: 16).uppercased(),
                 binding.type,
                 binding.addend,
-                binding.library(in: machO)?.name ?? "unknown",
+                binding.library(in: machO)?.name ?? "\(binding.bindSpecial!)",
                 binding.symbolName
             )
         }
