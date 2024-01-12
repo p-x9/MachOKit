@@ -43,14 +43,16 @@ extension BindingSymbol {
     }
 
     public func library(in machO: MachOFile) -> Dylib? {
-        if libraryOrdinal == 0 {
-            return Array(
-                machO
-                    .loadCommands
-                    .infos(of: LoadCommand.idDylib)
-            )
-            .first?
-            .dylib(in: machO)
+        if let bindSpecial {
+            if bindSpecial == .dylib_self {
+                return Array(
+                    machO
+                        .loadCommands
+                        .infos(of: LoadCommand.idDylib)
+                )
+                .first?
+                .dylib(in: machO)
+            }
         }
 
         let index = Int(libraryOrdinal - 1)
