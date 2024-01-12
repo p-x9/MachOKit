@@ -447,7 +447,7 @@ extension MachOFilePrintTests {
         }
         print("found", symbol2.name)
         XCTAssert(
-            demangledName == stdlib_demangleName(symbol2.name)
+            demangledName == symbol2.demangledName
         )
     }
 }

@@ -25,6 +25,10 @@ extension MachOImage.Symbol {
     public var name: String {
         .init(cString: nameC)
     }
+
+    public var demangledName: String {
+        .init(cString: stdlib_demangleName(nameC))
+    }
 }
 
 // https://stackoverflow.com/questions/20481058/find-pathname-from-dlopen-handle-on-osx
