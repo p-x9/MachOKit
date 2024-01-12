@@ -72,7 +72,7 @@ extension Sequence<BindOperation> {
         is64Bit: Bool
     ) -> [BindingSymbol] {
         var symbolName = "??"
-        var libraryOrdinal: UInt = 0
+        var libraryOrdinal: Int = 0
         var bindType: BindType = .pointer
         var addend: Int = 0
 
@@ -97,11 +97,8 @@ extension Sequence<BindOperation> {
             case let .set_dylib_ordinal_uleb(ordinal: ordinal):
                 libraryOrdinal = ordinal
 
-            case let .set_dylib_special_imm(special: special):
-                if special.rawValue == 0 { libraryOrdinal = 0 } else {
-                    let signExtended = BIND_OPCODE_MASK | special.rawValue
-                    libraryOrdinal = UInt(signExtended)
-                }
+            case let .set_dylib_special_imm(ordinal: ordinal):
+                libraryOrdinal = ordinal
 
             case let .set_symbol_trailing_flags_imm(flags: _, symbol: symbol):
                 symbolName = symbol
