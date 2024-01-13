@@ -30,7 +30,10 @@ public protocol SectionProtocol: LayoutWrapper {
     ) -> MachOImage.Strings?
 
     /// returns nil except when type is `cstring_literals
-    func strings(in machO: MachOFile) -> MachOFile.Strings?
+    func strings(
+        in segment: any SegmentCommandProtocol,
+        of machO: MachOFile
+    ) -> MachOFile.Strings?
 
     /// relocation informations.
     /// (contains only in object file (.o))
@@ -176,34 +179,21 @@ extension SectionProtocol {
         )
     }
 
-    fileprivate func _strings(
-        in machO: MachOFile,
-        sectionOffset: UInt32,
-        sectionSize: UInt64
+    public func strings(
+        in segment: any SegmentCommandProtocol,
+        of machO: MachOFile
     ) -> MachOFile.Strings? {
         guard flags.type == .cstring_literals else {
             return nil
         }
-        let startOffset = machO.headerStartOffset + numericCast(sectionOffset)
-        let tableSize = Int(sectionSize)
+        let startOffset = machO.headerStartOffset + segment.fileOffset  + numericCast(offset)
+        let tableSize = size
 
         return MachOFile.Strings(
             machO: machO,
             offset: startOffset,
             size: tableSize
         )
-    }
-}
-
-extension Section {
-    public func strings(in machO: MachOFile) -> MachOFile.Strings? {
-        _strings(in: machO, sectionOffset: layout.offset, sectionSize: UInt64(layout.size))
-    }
-}
-
-extension Section64 {
-    public func strings(in machO: MachOFile) -> MachOFile.Strings? {
-        _strings(in: machO, sectionOffset: layout.offset, sectionSize: UInt64(layout.size))
     }
 }
 
