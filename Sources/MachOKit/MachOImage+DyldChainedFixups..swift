@@ -22,9 +22,9 @@ extension MachOImage.DyldChainedFixups {
         text: SegmentCommand64,
         vmaddrSlide: Int
     ) {
-        var linkeditStart = vmaddrSlide
-        linkeditStart += numericCast(linkedit.layout.vmaddr - linkedit.layout.fileoff)
-        guard let linkeditStartPtr = UnsafeRawPointer(bitPattern: linkeditStart) else {
+        guard let linkeditStartPtr = linkedit.startPtr(
+            vmaddrSlide: vmaddrSlide
+        ) else {
             return nil
         }
 
@@ -45,9 +45,9 @@ extension MachOImage.DyldChainedFixups {
         text: SegmentCommand,
         vmaddrSlide: Int
     ) {
-        var linkeditStart = vmaddrSlide
-        linkeditStart += numericCast(linkedit.layout.vmaddr - linkedit.layout.fileoff)
-        guard let linkeditStartPtr = UnsafeRawPointer(bitPattern: linkeditStart) else {
+        guard let linkeditStartPtr = linkedit.startPtr(
+            vmaddrSlide: vmaddrSlide
+        ) else {
             return nil
         }
 

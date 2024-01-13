@@ -11,12 +11,22 @@ import Foundation
 public protocol SegmentCommandProtocol: LoadCommandWrapper {
     associatedtype SectionType: LayoutWrapper
     var segmentName: String { get }
+    var virtualMemoryAddress: Int { get }
+    var fileOffset: Int { get }
     var maxProtection: VMProtection { get }
     var initialProtection: VMProtection { get }
     var flags: SegmentCommandFlags { get }
 
+    func startPtr(vmaddrSlide: Int) -> UnsafeRawPointer?
     func sections(cmdsStart: UnsafeRawPointer) -> MemorySequence<SectionType>
     func sections(in machO: MachOFile) -> DataSequence<SectionType>
+}
+
+extension SegmentCommandProtocol {
+    public func startPtr(vmaddrSlide: Int) -> UnsafeRawPointer? {
+        let address = vmaddrSlide + virtualMemoryAddress - fileOffset
+        return UnsafeRawPointer(bitPattern: address)
+    }
 }
 
 public struct SegmentCommand: SegmentCommandProtocol {
@@ -28,6 +38,14 @@ public struct SegmentCommand: SegmentCommandProtocol {
 
     public var segmentName: String {
         .init(tuple: layout.segname)
+    }
+
+    public var virtualMemoryAddress: Int {
+        numericCast(layout.vmaddr)
+    }
+
+    public var fileOffset: Int {
+        numericCast(layout.fileoff)
     }
 
     public var maxProtection: VMProtection {
@@ -57,6 +75,14 @@ public struct SegmentCommand64: SegmentCommandProtocol {
 
     public var segmentName: String {
         .init(tuple: layout.segname)
+    }
+
+    public var virtualMemoryAddress: Int {
+        numericCast(layout.vmaddr)
+    }
+
+    public var fileOffset: Int {
+        numericCast(layout.fileoff)
     }
 
     public var maxProtection: VMProtection {
