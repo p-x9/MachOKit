@@ -175,33 +175,34 @@ extension MachOFile {
                 $0.sectionName == "__cstring"
             }.first
             guard let cstrings else { return nil }
-            return cstrings.strings(in: text, of: self)
+            return cstrings.strings(in: self)
         } else if let text = loadCommands.text {
             let cstrings = text.sections(in: self).filter {
                 $0.sectionName == "__cstring"
             }.first
             guard let cstrings else { return nil }
-            return cstrings.strings(in: text, of: self)
+            return cstrings.strings(in: self)
         }
         return nil
     }
 
     public var allCStringTables: [Strings] {
+        let sections: [any SectionProtocol]
         if is64Bit {
             let segments = loadCommands.infos(of: LoadCommand.segment64)
-            return segments.flatMap { segment in
-                segment.sections(in: self)
-                    .compactMap { section in
-                        section.strings(in: segment, of: self)
-                    }
+            sections = segments.flatMap {
+                $0.sections(in: self)
             }
         } else {
             let segments = loadCommands.infos(of: LoadCommand.segment)
-            return segments.flatMap { segment in
-                segment.sections(in: self)
-                    .compactMap { section in
-                        section.strings(in: segment, of: self)
-                    }
+            sections = segments.flatMap {
+                $0.sections(in: self)
+            }
+        }
+
+        return sections.reduce(into: []) { partialResult, section in
+            if let strings = section.strings(in: self) {
+                partialResult += [strings]
             }
         }
     }
