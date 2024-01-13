@@ -217,39 +217,40 @@ extension MachOImage {
 extension MachOImage {
     /// Strings in `__TEXT, __cstring` section
     public var cStrings: Strings? {
+        guard let vmaddrSlide else { return nil }
         if is64Bit, let text = loadCommands.text64 {
             let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
                 $0.sectionName == "__cstring"
             }.first
             guard let cstrings else { return nil }
-            return cstrings.strings(ptr: ptr)
+            return cstrings.strings(in: text, vmaddrSlide: vmaddrSlide)
         } else if let text = loadCommands.text {
             let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
                 $0.sectionName == "__cstring"
             }.first
             guard let cstrings else { return nil }
-            return cstrings.strings(ptr: ptr)
+            return cstrings.strings(in: text, vmaddrSlide: vmaddrSlide)
         }
         return nil
     }
 
     public var allCStringTables: [Strings] {
-        let sections: [any SectionProtocol]
+        guard let vmaddrSlide else { return [] }
         if is64Bit {
             let segments = loadCommands.infos(of: LoadCommand.segment64)
-            sections = segments.flatMap {
-                $0.sections(cmdsStart: cmdsStartPtr)
+            return segments.flatMap { segment in
+                segment.sections(cmdsStart: cmdsStartPtr)
+                    .compactMap { section in
+                        section.strings(in: segment, vmaddrSlide: vmaddrSlide)
+                    }
             }
         } else {
             let segments = loadCommands.infos(of: LoadCommand.segment)
-            sections = segments.flatMap {
-                $0.sections(cmdsStart: cmdsStartPtr)
-            }
-        }
-
-        return sections.reduce(into: []) { partialResult, section in
-            if let strings = section.strings(ptr: ptr) {
-                partialResult += [strings]
+            return segments.flatMap { segment in
+                segment.sections(cmdsStart: cmdsStartPtr)
+                    .compactMap { section in
+                        section.strings(in: segment, vmaddrSlide: vmaddrSlide)
+                    }
             }
         }
     }
@@ -487,9 +488,9 @@ extension MachOImage {
             return nil
         }
 
-        var linkeditStart = vmaddrSlide
-        linkeditStart += numericCast(linkedit.layout.vmaddr - linkedit.layout.fileoff)
-        guard let linkeditStartPtr = UnsafeRawPointer(bitPattern: linkeditStart) else {
+        guard let linkeditStartPtr = linkedit.startPtr(
+            vmaddrSlide: vmaddrSlide
+        ) else {
             return nil
         }
 
