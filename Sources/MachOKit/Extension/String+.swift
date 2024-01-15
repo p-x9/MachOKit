@@ -16,3 +16,12 @@ extension String {
         self = withUnsafePointer(to: &buffer.0) { String(cString: $0) }
     }
 }
+
+extension String {
+    typealias CCharTuple32 = (CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar)
+
+    init(tuple: CCharTuple32) {
+        var buffer = tuple
+        self = withUnsafePointer(to: &buffer.0) { String(cString: $0) }
+    }
+}
