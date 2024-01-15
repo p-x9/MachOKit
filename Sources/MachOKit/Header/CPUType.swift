@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum CPUType {
+public enum CPUType: CaseIterable {
     /// CPU_TYPE_ANY
     case any
     /// CPU_TYPE_VAX
@@ -111,5 +111,15 @@ extension CPUType: CustomStringConvertible {
         case .powerpc: "CPU_TYPE_POWERPC"
         case .powerpc64: "CPU_TYPE_POWERPC64"
         }
+    }
+}
+
+extension CPUType {
+    public var is64Bit: Bool {
+        rawValue & CPU_ARCH_ABI64 != 0
+    }
+
+    public var is64BitHardwareWith32BitType: Bool {
+        rawValue & CPU_ARCH_ABI64_32 != 0
     }
 }
