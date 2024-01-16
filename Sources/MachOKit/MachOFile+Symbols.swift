@@ -27,13 +27,12 @@ extension MachOFile {
         public let symbolsData: Data
 
         public let numberOfSymbols: Int
-        public let symtab: LoadCommandInfo<symtab_command>
 
         public func makeIterator() -> Iterator {
             .init(
                 stringData: stringData,
                 symbolsData: symbolsData,
-                numberOfSymbols: Int(symtab.nsyms)
+                numberOfSymbols: numberOfSymbols
             )
         }
     }
@@ -73,8 +72,7 @@ extension MachOFile.Symbols64 {
         self.init(
             stringData: stringData,
             symbolsData: symbolsData,
-            numberOfSymbols: numericCast(symtab.nsyms),
-            symtab: symtab
+            numberOfSymbols: numericCast(symtab.nsyms)
         )
     }
 }
@@ -148,13 +146,12 @@ extension MachOFile {
         public let symbolsData: Data
 
         public let numberOfSymbols: Int
-        public let symtab: LoadCommandInfo<symtab_command>
 
         public func makeIterator() -> Iterator {
             .init(
                 stringData: stringData,
                 symbolsData: symbolsData,
-                numberOfSymbols: Int(symtab.nsyms)
+                numberOfSymbols: numberOfSymbols
             )
         }
     }
@@ -195,8 +192,7 @@ extension MachOFile.Symbols {
         self.init(
             stringData: stringData,
             symbolsData: symbolsData,
-            numberOfSymbols: numericCast(symtab.nsyms),
-            symtab: symtab
+            numberOfSymbols: numericCast(symtab.nsyms)
         )
     }
 }

@@ -101,6 +101,20 @@ extension DyldCache {
         }
     }
 
+    public var localSymbolsInfo: DyldCacheLocalSymbolsInfo? {
+        guard header.localSymbolsSize > 0 else { return nil }
+        fileHandle.seek(toFileOffset: header.localSymbolsOffset)
+        let data = fileHandle.readData(
+            ofLength: numericCast(header.localSymbolsSize)
+        )
+        return data.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else { return nil }
+            let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                .assumingMemoryBound(to: DyldCacheLocalSymbolsInfo.self)
+            return ptr.pointee
+        }
+    }
+
     public var subCaches: SubCaches? {
         guard let subCacheEntryType else { return nil }
         fileHandle.seek(toFileOffset: numericCast(header.subCacheArrayOffset))
