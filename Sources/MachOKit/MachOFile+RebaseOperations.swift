@@ -10,23 +10,35 @@ import Foundation
 
 extension MachOFile {
     public struct RebaseOperations: Sequence {
-        let machO: MachOFile
+        public let data: Data
         public let rebaseOffset: Int
         public let rebaseSize: Int
 
         public func makeIterator() -> Iterator {
-            let offset = machO.headerStartOffset + rebaseOffset
-            machO.fileHandle.seek(
-                toFileOffset: UInt64(offset)
-            )
-            let data = machO.fileHandle.readData(ofLength: rebaseSize)
-
-            return .init(data: data)
+            .init(data: data)
         }
     }
 }
 
 extension MachOFile.RebaseOperations {
+    init(
+        machO: MachOFile,
+        rebaseOffset: Int,
+        rebaseSize: Int
+    ) {
+        let offset = machO.headerStartOffset + rebaseOffset
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(offset)
+        )
+        let data = machO.fileHandle.readData(ofLength: rebaseSize)
+
+        self.init(
+            data: data,
+            rebaseOffset: rebaseOffset,
+            rebaseSize: rebaseSize
+        )
+    }
+
     init(
         machO: MachOFile,
         info: dyld_info_command

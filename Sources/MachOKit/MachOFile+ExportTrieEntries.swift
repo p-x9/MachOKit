@@ -10,19 +10,12 @@ import Foundation
 
 extension MachOFile {
     public struct ExportTrieEntries: Sequence {
-        let machO: MachOFile
+        public let data: Data
         public let exportOffset: Int
         public let exportSize: Int
 
         public func makeIterator() -> Iterator {
-            let offset = machO.headerStartOffset + exportOffset
-            machO.fileHandle.seek(
-                toFileOffset: UInt64(offset)
-            )
-
-            let data = machO.fileHandle.readData(ofLength: exportSize)
-
-            return .init(data: data)
+            .init(data: data)
         }
     }
 }
@@ -30,12 +23,30 @@ extension MachOFile {
 extension MachOFile.ExportTrieEntries {
     init(
         machO: MachOFile,
+        exportOffset: Int,
+        exportSize: Int
+    ) {
+        let offset = machO.headerStartOffset + exportOffset
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(offset)
+        )
+        let data = machO.fileHandle.readData(ofLength: exportSize)
+
+        self.init(
+            data: data,
+            exportOffset: exportOffset,
+            exportSize: exportSize
+        )
+    }
+
+    init(
+        machO: MachOFile,
         info: dyld_info_command
     ) {
         self.init(
             machO: machO,
-            exportOffset: Int(info.export_off),
-            exportSize: Int(info.export_size)
+            exportOffset: numericCast(info.export_off),
+            exportSize: numericCast(info.export_size)
         )
     }
 
@@ -45,8 +56,8 @@ extension MachOFile.ExportTrieEntries {
     ) {
         self.init(
             machO: machO,
-            exportOffset: Int(export.dataoff),
-            exportSize: Int(export.datasize)
+            exportOffset: numericCast(export.dataoff),
+            exportSize: numericCast(export.datasize)
         )
     }
 }

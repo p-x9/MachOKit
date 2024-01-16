@@ -10,20 +10,13 @@ import Foundation
 
 extension MachOFile {
     public struct FunctionStarts: Sequence {
-        let machO: MachOFile
+        public let data: Data
         public let functionStartsOffset: Int
         public let functionStartsSize: Int
         public let functionStartBase: UInt
 
         public func makeIterator() -> Iterator {
-            let offset = machO.headerStartOffset + functionStartsOffset
-            machO.fileHandle.seek(
-                toFileOffset: UInt64(offset)
-            )
-
-            let data = machO.fileHandle.readData(ofLength: functionStartsSize)
-
-            return .init(
+            .init(
                 data: data,
                 functionStartBase: functionStartBase
             )
@@ -32,6 +25,27 @@ extension MachOFile {
 }
 
 extension MachOFile.FunctionStarts {
+    init(
+        machO: MachOFile,
+        functionStartsOffset: Int,
+        functionStartsSize: Int,
+        functionStartBase: UInt
+    ) {
+        let offset = machO.headerStartOffset + functionStartsOffset
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(offset)
+        )
+
+        let data = machO.fileHandle.readData(ofLength: functionStartsSize)
+
+        self.init(
+            data: data,
+            functionStartsOffset: functionStartsOffset,
+            functionStartsSize: functionStartsSize,
+            functionStartBase: functionStartBase
+        )
+    }
+
     init(
         machO: MachOFile,
         functionStarts: linkedit_data_command,
