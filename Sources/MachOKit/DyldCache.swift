@@ -130,6 +130,32 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    public func machOFiles() -> AnySequence<MachOFile> {
+        guard let imageInfos = imageInfos else {
+            return AnySequence([])
+        }
+        let machOFiles = imageInfos
+            .lazy
+            .compactMap { info in
+                guard let fileOffset = self.fileOffset(of: info.address),
+                      let imagePath = info.path(in: self) else {
+                    return nil
+                }
+                return (imagePath, fileOffset)
+            }
+            .compactMap { (imagePath: String, fileOffset: UInt64) -> MachOFile? in
+                return try? MachOFile(
+                    url: self.url,
+                    imagePath: imagePath,
+                    headerStartOffsetInCache: numericCast(fileOffset)
+                )
+            }
+
+        return AnySequence(machOFiles)
+    }
+}
+
+extension DyldCache {
     private func readDataSequence<Element: LayoutWrapper>(
         offset: UInt64,
         count: Int
@@ -145,4 +171,48 @@ extension DyldCache {
             numberOfElements: count
         )
     }
+
+    private func fileOffset(of address: UInt64) -> UInt64? {
+        guard let mappings = self.mappingInfos else { return nil }
+        for mapping in mappings {
+            if mapping.address <= address,
+               address < mapping.address + mapping.size {
+                return address - mapping.address + mapping.fileOffset
+            }
+        }
+        return nil
+    }
 }
+
+
+
+struct ConditionalSequence<Base: Sequence>: Sequence {
+    let base: Base
+    let condition: (Base.Element) -> Bool
+
+    init(_ base: Base, condition: @escaping (Base.Element) -> Bool) {
+        self.base = base
+        self.condition = condition
+    }
+
+    func makeIterator() -> Iterator {
+        .init(base: base.makeIterator(), condition: condition)
+    }
+}
+
+extension ConditionalSequence {
+    struct Iterator: IteratorProtocol {
+        var base: Base.Iterator
+        let condition: (Base.Element) -> Bool
+
+        mutating func next() -> Base.Element? {
+            while let nextElement = base.next() {
+                if condition(nextElement) {
+                    return nextElement
+                }
+            }
+            return nil
+        }
+    }
+}
+

@@ -9,7 +9,14 @@
 import Foundation
 
 public class MachOFile: MachORepresentable {
+    /// URL of the file actually loaded
     public let url: URL
+
+    /// Path of machO.
+    ///
+    /// If read from dyld cache, may not match ``url`` value.
+    public let imagePath: String
+
     let fileHandle: FileHandle
 
     /// A Boolean value that indicates whether the byte is swapped or not.
@@ -26,9 +33,13 @@ public class MachOFile: MachORepresentable {
 
     /// File offset of header start
     public let headerStartOffset: Int
+
+    /// File offset of header start (dyld cache file)
+    public let headerStartOffsetInCache: Int
+
     /// File offset of load commands list start
     public var cmdsStartOffset: Int {
-        headerStartOffset + headerSize
+        headerStartOffset + headerStartOffsetInCache + headerSize
     }
 
     public var loadCommands: LoadCommands {
@@ -42,13 +53,47 @@ public class MachOFile: MachORepresentable {
         )
     }
 
-    public init(url: URL, headerStartOffset: Int = 0) throws {
+    public convenience init(
+        url: URL,
+        headerStartOffset: Int = 0
+    ) throws {
+        try self.init(
+            url: url,
+            imagePath: url.path,
+            headerStartOffset: headerStartOffset,
+            headerStartOffsetInCache: 0
+        )
+    }
+
+    public convenience init(
+        url: URL,
+        imagePath: String,
+        headerStartOffsetInCache: Int
+    ) throws {
+        try self.init(
+            url: url,
+            imagePath: imagePath,
+            headerStartOffset: 0,
+            headerStartOffsetInCache: headerStartOffsetInCache
+        )
+    }
+
+    private init(
+        url: URL,
+        imagePath: String,
+        headerStartOffset: Int,
+        headerStartOffsetInCache: Int
+    ) throws {
         self.url = url
+        self.imagePath = imagePath
         let fileHandle = try FileHandle(forReadingFrom: url)
         self.fileHandle = fileHandle
 
         self.headerStartOffset = headerStartOffset
-        fileHandle.seek(toFileOffset: UInt64(headerStartOffset))
+        self.headerStartOffsetInCache = headerStartOffsetInCache
+        fileHandle.seek(
+            toFileOffset: UInt64(headerStartOffset + headerStartOffsetInCache)
+        )
 
         var header = fileHandle.readData(ofLength: MemoryLayout<MachHeader>.size).withUnsafeBytes {
             $0.load(as: MachHeader.self)
