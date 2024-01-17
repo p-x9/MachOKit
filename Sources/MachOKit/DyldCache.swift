@@ -183,36 +183,3 @@ extension DyldCache {
         return nil
     }
 }
-
-
-
-struct ConditionalSequence<Base: Sequence>: Sequence {
-    let base: Base
-    let condition: (Base.Element) -> Bool
-
-    init(_ base: Base, condition: @escaping (Base.Element) -> Bool) {
-        self.base = base
-        self.condition = condition
-    }
-
-    func makeIterator() -> Iterator {
-        .init(base: base.makeIterator(), condition: condition)
-    }
-}
-
-extension ConditionalSequence {
-    struct Iterator: IteratorProtocol {
-        var base: Base.Iterator
-        let condition: (Base.Element) -> Bool
-
-        mutating func next() -> Base.Element? {
-            while let nextElement = base.next() {
-                if condition(nextElement) {
-                    return nextElement
-                }
-            }
-            return nil
-        }
-    }
-}
-
