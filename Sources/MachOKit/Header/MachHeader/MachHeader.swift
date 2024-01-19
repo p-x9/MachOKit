@@ -39,3 +39,10 @@ public struct MachHeader: LayoutWrapper {
         .init(rawValue: numericCast(layout.flags))
     }
 }
+
+extension MachHeader {
+    /// A boolean value that indicates whether this MachO exists in the dyld cache or not.
+    public var isInDyldCache: Bool {
+        flags.contains(.dylib_in_cache)
+    }
+}
