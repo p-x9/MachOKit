@@ -7,3 +7,4 @@
 //
 
 @_exported import MachO
+@_exported import MachOKitC

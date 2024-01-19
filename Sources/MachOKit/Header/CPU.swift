@@ -33,3 +33,13 @@ extension CPU: CustomStringConvertible {
         return "\(type)(\(subtype))"
     }
 }
+
+extension CPU {
+    public var is64Bit: Bool {
+        typeRawValue & CPU_ARCH_ABI64 != 0
+    }
+
+    public var is64BitHardwareWith32BitType: Bool {
+        typeRawValue & CPU_ARCH_ABI64_32 != 0
+    }
+}

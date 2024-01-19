@@ -10,18 +10,12 @@ import Foundation
 
 extension MachOFile {
     public struct BindOperations: Sequence {
-        let machO: MachOFile
+        public let data: Data
         public let bindOffset: Int
         public let bindSize: Int
 
         public func makeIterator() -> Iterator {
-            let offset = machO.headerStartOffset + bindOffset
-            machO.fileHandle.seek(
-                toFileOffset: UInt64(offset)
-            )
-            let data = machO.fileHandle.readData(ofLength: bindSize)
-
-            return .init(data: data)
+            .init(data: data)
         }
     }
 }
@@ -32,11 +26,14 @@ extension MachOFile.BindOperations {
         info: dyld_info_command,
         kind: BindOperationsKind = .normal
     ) {
-        self.init(
-            machO: machO,
-            bindOffset: Int(kind.bindOffset(of: info)),
-            bindSize: Int(kind.bindSize(of: info))
+        let bindOffset = Int(kind.bindOffset(of: info))
+        let bindSize = Int(kind.bindSize(of: info))
+        let offset = machO.headerStartOffset + bindOffset
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(offset)
         )
+        let data = machO.fileHandle.readData(ofLength: bindSize)
+        self.init(data: data, bindOffset: bindOffset, bindSize: bindSize)
     }
 }
 

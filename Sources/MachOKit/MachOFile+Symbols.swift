@@ -23,44 +23,57 @@ extension MachOFile {
 
 extension MachOFile {
     public struct Symbols64: Sequence {
-        let machO: MachOFile
-        public let symtab: LoadCommandInfo<symtab_command>
+        public let stringData: Data
+        public let symbolsData: Data
+
+        public let numberOfSymbols: Int
 
         public func makeIterator() -> Iterator {
-            machO.fileHandle.seek(
-                toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff)
-            )
-            let stringData = machO.fileHandle.readData(
-                ofLength: Int(symtab.strsize)
-            )
-
-            machO.fileHandle.seek(
-                toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff)
-            )
-            let symbolsData = machO.fileHandle.readData(
-                ofLength: Int(symtab.nsyms) * MemoryLayout<nlist_64>.size
-            )
-
-            if machO.isSwapped {
-                symbolsData.withUnsafeBytes {
-                    guard let baseAddress = $0.baseAddress else { return }
-                    let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
-                        .assumingMemoryBound(to: nlist_64.self)
-                    swap_nlist_64(
-                        ptr,
-                        symtab.nsyms,
-                        NXHostByteOrder()
-                    )
-                }
-            }
-
-            return .init(
-                headerStartOffset: machO.headerStartOffset,
+            .init(
                 stringData: stringData,
                 symbolsData: symbolsData,
-                numberOfSymbols: Int(symtab.nsyms)
+                numberOfSymbols: numberOfSymbols
             )
         }
+    }
+}
+
+extension MachOFile.Symbols64 {
+    init(
+        machO: MachOFile,
+        symtab: LoadCommandInfo<symtab_command>
+    ) {
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff)
+        )
+        let stringData = machO.fileHandle.readData(
+            ofLength: Int(symtab.strsize)
+        )
+
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff)
+        )
+        let symbolsData = machO.fileHandle.readData(
+            ofLength: Int(symtab.nsyms) * MemoryLayout<nlist_64>.size
+        )
+
+        if machO.isSwapped {
+            symbolsData.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else { return }
+                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                    .assumingMemoryBound(to: nlist_64.self)
+                swap_nlist_64(
+                    ptr,
+                    symtab.nsyms,
+                    NXHostByteOrder()
+                )
+            }
+        }
+        self.init(
+            stringData: stringData,
+            symbolsData: symbolsData,
+            numberOfSymbols: numericCast(symtab.nsyms)
+        )
     }
 }
 
@@ -68,7 +81,6 @@ extension MachOFile.Symbols64 {
     public struct Iterator: IteratorProtocol {
         public typealias Element = MachOFile.Symbol
 
-        let headerStartOffset: Int
         let stringData: Data
         let symbolsData: Data
 
@@ -77,12 +89,10 @@ extension MachOFile.Symbols64 {
         private var nextIndex: Int = 0
 
         init(
-            headerStartOffset: Int,
             stringData: Data,
             symbolsData: Data,
             numberOfSymbols: Int
         ) {
-            self.headerStartOffset = headerStartOffset
             self.stringData = stringData
             self.symbolsData = symbolsData
             self.numberOfSymbols = numberOfSymbols
@@ -132,44 +142,58 @@ extension MachOFile.Symbols64 {
 
 extension MachOFile {
     public struct Symbols: Sequence {
-        let machO: MachOFile
-        public let symtab: LoadCommandInfo<symtab_command>
+        public let stringData: Data
+        public let symbolsData: Data
+
+        public let numberOfSymbols: Int
 
         public func makeIterator() -> Iterator {
-            machO.fileHandle.seek(
-                toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff)
-            )
-            let stringData = machO.fileHandle.readData(
-                ofLength: Int(symtab.strsize)
-            )
-
-            machO.fileHandle.seek(
-                toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff)
-            )
-            let symbolsData = machO.fileHandle.readData(
-                ofLength: Int(symtab.nsyms) * MemoryLayout<nlist_64>.size
-            )
-
-            if machO.isSwapped {
-                symbolsData.withUnsafeBytes {
-                    guard let baseAddress = $0.baseAddress else { return }
-                    let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
-                        .assumingMemoryBound(to: nlist.self)
-                    swap_nlist(
-                        ptr,
-                        symtab.nsyms,
-                        NXHostByteOrder()
-                    )
-                }
-            }
-
-            return .init(
-                headerStartOffset: machO.headerStartOffset,
+            .init(
                 stringData: stringData,
                 symbolsData: symbolsData,
-                numberOfSymbols: Int(symtab.nsyms)
+                numberOfSymbols: numberOfSymbols
             )
         }
+    }
+}
+
+extension MachOFile.Symbols {
+    init(
+        machO: MachOFile,
+        symtab: LoadCommandInfo<symtab_command>
+    ) {
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff)
+        )
+        let stringData = machO.fileHandle.readData(
+            ofLength: Int(symtab.strsize)
+        )
+
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff)
+        )
+        let symbolsData = machO.fileHandle.readData(
+            ofLength: Int(symtab.nsyms) * MemoryLayout<nlist_64>.size
+        )
+
+        if machO.isSwapped {
+            symbolsData.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else { return }
+                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                    .assumingMemoryBound(to: nlist.self)
+                swap_nlist(
+                    ptr,
+                    symtab.nsyms,
+                    NXHostByteOrder()
+                )
+            }
+        }
+
+        self.init(
+            stringData: stringData,
+            symbolsData: symbolsData,
+            numberOfSymbols: numericCast(symtab.nsyms)
+        )
     }
 }
 
@@ -177,7 +201,6 @@ extension MachOFile.Symbols {
     public struct Iterator: IteratorProtocol {
         public typealias Element = MachOFile.Symbol
 
-        let headerStartOffset: Int
         let stringData: Data
         let symbolsData: Data
 
@@ -186,12 +209,10 @@ extension MachOFile.Symbols {
         private var nextIndex: Int = 0
 
         init(
-            headerStartOffset: Int,
             stringData: Data,
             symbolsData: Data,
             numberOfSymbols: Int
         ) {
-            self.headerStartOffset = headerStartOffset
             self.stringData = stringData
             self.symbolsData = symbolsData
             self.numberOfSymbols = numberOfSymbols

@@ -10,7 +10,7 @@ import Foundation
 
 extension MachOFile {
     public struct Strings: Sequence {
-        let machO: MachOFile
+        public let data: Data
 
         /// file offset of string table start
         public let offset: Int
@@ -19,17 +19,24 @@ extension MachOFile {
         public let size: Int
 
         public func makeIterator() -> Iterator {
-            machO.fileHandle.seek(
-                toFileOffset: UInt64(offset)
-            )
-            let data = machO.fileHandle.readData(
-                ofLength: size
-            )
-
-            return Iterator(
-                data: data
-            )
+            .init(data: data)
         }
+    }
+}
+
+extension MachOFile.Strings {
+    init(machO: MachOFile, offset: Int, size: Int) {
+        machO.fileHandle.seek(
+            toFileOffset: UInt64(offset)
+        )
+        let data = machO.fileHandle.readData(
+            ofLength: size
+        )
+        self.init(
+            data: data,
+            offset: offset,
+            size: size
+        )
     }
 }
 
