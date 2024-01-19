@@ -70,6 +70,38 @@ The available methods are defined in the following file as the `MachORepresentab
 
 [MachORepresentable](./Sources/MachOKit/Protocol/MachORepresentable.swift)
 
+
+### Dyld Cache
+
+loading of `dyld_shared_cache` is also supported.
+
+```swift
+let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_x86_64h"
+let url = URL(fileURLWithPath: path)
+
+let cache = try! DyldCache(url: url)
+```
+
+It is also possible to extract machO information contained in `dyld _shared _cache`.
+The machO extracted is of type `MachOFile`.
+As with reading from a single MachO file, various analyses are possible.
+
+```swift
+let machOs = cache.machOFiles()
+for machO in machOs {
+    print(
+        String(machO.headerStartOffsetInCache, radix: 16),
+        machO.imagePath,
+        machO.header.ncmds
+    )
+}
+
+// 5c000 /usr/lib/libobjc.A.dylib 22
+// 98000 /usr/lib/dyld 15
+// 131000 /usr/lib/system/libsystem_blocks.dylib 24
+// ...
+```
+
 ### Example Codes
 
 There are a variety of uses, but most show a basic example that prints output to the Test directory.
@@ -83,6 +115,11 @@ The following file contains sample code.
 
 The following file contains sample code.
 [MachOFilePrintTests](./Tests/MachOKitTests/MachOFilePrintTests.swift)
+
+#### Dyld Cache
+
+The following file contains sample code.
+[DyldCachePrintTests](./Tests/MachOKitTests/DyldCachePrintTests.swift)
 
 ## License
 
