@@ -73,3 +73,61 @@ extension DyldCacheLocalSymbolsInfo {
         }
     }
 }
+
+extension DyldCacheLocalSymbolsInfo {
+    public func entries64(
+        in cache: DyldCache
+    ) -> DataSequence<DyldCacheLocalSymbolsEntry64>? {
+        guard cache.cpu.is64Bit else { return nil }
+
+        cache.fileHandle.seek(
+            toFileOffset: cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
+        )
+        let data = cache.fileHandle.readData(
+            ofLength: numericCast(layout.entriesCount) * DyldCacheLocalSymbolsEntry64.layoutSize
+        )
+
+        return .init(
+            data: data,
+            numberOfElements: numericCast(layout.entriesCount)
+        )
+    }
+
+    public func entries32(
+        in cache: DyldCache
+    ) -> DataSequence<DyldCacheLocalSymbolsEntry>? {
+        guard !cache.cpu.is64Bit else { return nil }
+
+        cache.fileHandle.seek(
+            toFileOffset: cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
+        )
+        let data = cache.fileHandle.readData(
+            ofLength: numericCast(layout.entriesCount) * DyldCacheLocalSymbolsEntry.layoutSize
+        )
+
+        return .init(
+            data: data,
+            numberOfElements: numericCast(layout.entriesCount)
+        )
+    }
+
+    public func entries(
+        in cache: DyldCache
+    ) -> AnySequence<DyldCacheLocalSymbolsEntryProtocol> {
+        if let entries = entries64(in: cache) {
+            return AnySequence(
+                entries
+                    .lazy
+                    .map { $0 as DyldCacheLocalSymbolsEntryProtocol }
+            )
+        } else if let entries = entries32(in: cache) {
+            return AnySequence(
+                entries
+                    .lazy
+                    .map { $0 as DyldCacheLocalSymbolsEntryProtocol }
+            )
+        } else {
+            return AnySequence([])
+        }
+    }
+}

@@ -13,3 +13,37 @@ public struct DyldCacheLocalSymbolsEntry: LayoutWrapper {
 
     public var layout: Layout
 }
+
+extension DyldCacheLocalSymbolsEntry: DyldCacheLocalSymbolsEntryProtocol {
+    public var dylibOffset: Int {
+        numericCast(layout.dylibOffset)
+    }
+    
+    public var nlistStartIndex: Int {
+        numericCast(layout.nlistStartIndex)
+    }
+    
+    public var nlistCount: Int {
+        numericCast(layout.nlistCount)
+    }
+}
+
+public struct DyldCacheLocalSymbolsEntry64: LayoutWrapper {
+    public typealias Layout = dyld_cache_local_symbols_entry_64
+
+    public var layout: Layout
+}
+
+extension DyldCacheLocalSymbolsEntry64: DyldCacheLocalSymbolsEntryProtocol {
+    public var dylibOffset: Int {
+        numericCast(layout.dylibOffset)
+    }
+
+    public var nlistStartIndex: Int {
+        numericCast(layout.nlistStartIndex)
+    }
+
+    public var nlistCount: Int {
+        numericCast(layout.nlistCount)
+    }
+}
