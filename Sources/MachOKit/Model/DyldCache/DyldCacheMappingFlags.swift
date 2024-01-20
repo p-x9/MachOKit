@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldCacheMappingFlags: OptionSet {
+public struct DyldCacheMappingFlags: BitFlags {
     public typealias RawValue = UInt64
 
     public var rawValue: RawValue
@@ -53,16 +53,6 @@ extension DyldCacheMappingFlags {
         case textStubs
         /// DYLD_CACHE_DYNAMIC_CONFIG_DATA
         case configData
-    }
-}
-
-extension DyldCacheMappingFlags {
-    public var bits: [Bit] {
-        DyldCacheMappingFlags.Bit.allCases
-            .lazy
-            .filter {
-                contains(.init(rawValue: $0.rawValue))
-            }
     }
 }
 

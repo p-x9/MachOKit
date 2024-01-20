@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SectionAttributes: OptionSet {
+public struct SectionAttributes: BitFlags {
     public typealias RawValue = UInt32
 
     public var rawValue: RawValue
@@ -62,16 +62,6 @@ extension SectionAttributes {
     public static let loc_reloc = SectionAttributes(
         rawValue: Bit.loc_reloc.rawValue
     )
-}
-
-extension SectionAttributes {
-    public var bits: [Bit] {
-        SectionAttributes.Bit.allCases
-            .lazy
-            .filter {
-                contains(.init(rawValue: $0.rawValue))
-            }
-    }
 }
 
 extension SectionAttributes {

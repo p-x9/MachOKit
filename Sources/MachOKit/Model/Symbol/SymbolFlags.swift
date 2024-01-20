@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SymbolFlags: OptionSet {
+public struct SymbolFlags: BitFlags {
     public typealias RawValue = Int32
 
     public let rawValue: RawValue
@@ -37,16 +37,6 @@ extension SymbolFlags {
     public static let ext = SymbolFlags(
         rawValue: Bit.ext.rawValue
     )
-}
-
-extension SymbolFlags {
-    public var bits: [Bit] {
-        SymbolFlags.Bit.allCases
-            .lazy
-            .filter {
-                contains(.init(rawValue: $0.rawValue))
-            }
-    }
 }
 
 extension SymbolFlags {

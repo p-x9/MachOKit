@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ExportSymbolFlags: OptionSet {
+public struct ExportSymbolFlags: BitFlags {
     public typealias RawValue = Int32
 
     public var rawValue: RawValue
@@ -84,15 +84,5 @@ extension ExportSymbolFlags.Bit: CustomStringConvertible {
         case .stub_and_resolver: "EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER"
         case .static_resolver: "EXPORT_SYMBOL_FLAGS_STATIC_RESOLVER"
         }
-    }
-}
-
-extension ExportSymbolFlags {
-    public var bits: [Bit] {
-        ExportSymbolFlags.Bit.allCases
-            .lazy
-            .filter {
-                contains(.init(rawValue: $0.rawValue))
-            }
     }
 }
