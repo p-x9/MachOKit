@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct VMProtection: OptionSet {
+public struct VMProtection: BitFlags {
     public typealias RawValue = vm_prot_t
 
     public var rawValue: RawValue
@@ -61,16 +61,6 @@ extension VMProtection {
     public static let execute_only = VMProtection(
         [.execute, .strip_read]
     )
-}
-
-extension VMProtection {
-    public var bits: [Bit] {
-        VMProtection.Bit.allCases
-            .lazy
-            .filter {
-                contains(.init(rawValue: $0.rawValue))
-            }
-    }
 }
 
 extension VMProtection {

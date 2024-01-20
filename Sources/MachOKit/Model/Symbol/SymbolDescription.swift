@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SymbolDescription: OptionSet {
+public struct SymbolDescription: BitFlags {
     public typealias RawValue = Int32
 
     public let rawValue: RawValue
@@ -76,16 +76,6 @@ extension SymbolDescription {
     public static let cold_func = SymbolDescription(
         rawValue: Bit.cold_func.rawValue
     )
-}
-
-extension SymbolDescription {
-    public var bits: [Bit] {
-        SymbolDescription.Bit.allCases
-            .lazy
-            .filter {
-                contains(.init(rawValue: $0.rawValue))
-            }
-    }
 }
 
 extension SymbolDescription {

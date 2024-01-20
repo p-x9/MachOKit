@@ -9,7 +9,7 @@
 import Foundation
 
 extension MachHeader {
-    public struct Flags: OptionSet {
+    public struct Flags: BitFlags {
         public typealias RawValue = UInt32
 
         public var rawValue: RawValue
@@ -137,14 +137,4 @@ extension MachHeader.Flags {
     public static let dylib_in_cache = MachHeader.Flags(
         rawValue: Bit.dylib_in_cache.rawValue
     )
-}
-
-extension MachHeader.Flags {
-    public var bits: [Bit] {
-        MachHeader.Flags.Bit.allCases
-            .lazy
-            .filter {
-                contains(.init(rawValue: $0.rawValue))
-            }
-    }
 }

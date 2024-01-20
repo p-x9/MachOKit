@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SegmentCommandFlags: OptionSet {
+public struct SegmentCommandFlags: BitFlags {
     public typealias RawValue = UInt32
 
     public var rawValue: RawValue
@@ -39,16 +39,6 @@ extension SegmentCommandFlags {
     public static let read_only = SegmentCommandFlags(
         rawValue: Bit.read_only.rawValue
     )
-}
-
-extension SegmentCommandFlags {
-    public var bits: [Bit] {
-        SegmentCommandFlags.Bit.allCases
-            .lazy
-            .filter {
-                contains(.init(rawValue: $0.rawValue))
-            }
-    }
 }
 
 extension SegmentCommandFlags {
