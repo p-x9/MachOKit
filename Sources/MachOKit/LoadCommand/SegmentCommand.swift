@@ -139,24 +139,22 @@ extension SegmentCommandProtocol {
     func _sections(
         in machO: MachOFile,
         numberOfElements: Int,
-        swapHandler: (UnsafeMutablePointer<SectionType.Layout>, UInt32, NXByteOrder) -> Void
+        swapHandler: @escaping (UnsafeMutablePointer<SectionType.Layout>, UInt32, NXByteOrder) -> Void
     ) -> DataSequence<SectionType> {
         let offset = machO.cmdsStartOffset + offset + layoutSize
-        machO.fileHandle.seek(toFileOffset: UInt64(offset))
-        let data = machO.fileHandle.readData(
-            ofLength: numberOfElements * MemoryLayout<SectionType>.size
-        )
-        if machO.isSwapped {
-            data.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else { return }
-                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
-                    .assumingMemoryBound(to: SectionType.Layout.self)
-                swapHandler(ptr, UInt32(numberOfElements), NXHostByteOrder())
+
+        return machO.fileHandle.readDataSequence(
+            offset: numericCast(offset),
+            numberOfElements: numberOfElements,
+            swapHandler: { data in
+                guard machO.isSwapped else { return }
+                data.withUnsafeBytes {
+                    guard let baseAddress = $0.baseAddress else { return }
+                    let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                        .assumingMemoryBound(to: SectionType.Layout.self)
+                    swapHandler(ptr, UInt32(numberOfElements), NXHostByteOrder())
+                }
             }
-        }
-        return .init(
-            data: data,
-            numberOfElements: numberOfElements
         )
     }
 }

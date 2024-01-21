@@ -79,16 +79,10 @@ extension DyldCacheLocalSymbolsInfo {
         in cache: DyldCache
     ) -> DataSequence<DyldCacheLocalSymbolsEntry64>? {
         guard cache.cpu.is64Bit else { return nil }
-
-        cache.fileHandle.seek(
-            toFileOffset: cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
-        )
-        let data = cache.fileHandle.readData(
-            ofLength: numericCast(layout.entriesCount) * DyldCacheLocalSymbolsEntry64.layoutSize
-        )
-
-        return .init(
-            data: data,
+        let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
+        
+        return cache.fileHandle.readDataSequence(
+            offset: offset,
             numberOfElements: numericCast(layout.entriesCount)
         )
     }
@@ -98,15 +92,10 @@ extension DyldCacheLocalSymbolsInfo {
     ) -> DataSequence<DyldCacheLocalSymbolsEntry>? {
         guard !cache.cpu.is64Bit else { return nil }
 
-        cache.fileHandle.seek(
-            toFileOffset: cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
-        )
-        let data = cache.fileHandle.readData(
-            ofLength: numericCast(layout.entriesCount) * DyldCacheLocalSymbolsEntry.layoutSize
-        )
+        let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
-        return .init(
-            data: data,
+        return cache.fileHandle.readDataSequence(
+            offset: offset,
             numberOfElements: numericCast(layout.entriesCount)
         )
     }

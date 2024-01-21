@@ -50,30 +50,34 @@ public class DyldCache {
 
 extension DyldCache {
     public var mappingInfos: DataSequence<DyldCacheMappingInfo>? {
-        readDataSequence(
+        guard header.mappingCount > 0 else { return nil }
+        return fileHandle.readDataSequence(
             offset: numericCast(header.mappingOffset),
-            count: numericCast(header.mappingCount)
+            numberOfElements: numericCast(header.mappingCount)
         )
     }
 
     public var mappingAndSlideInfos: DataSequence<DyldCacheMappingAndSlideInfo>? {
-        readDataSequence(
+        guard header.mappingWithSlideCount > 0 else { return nil }
+        return fileHandle.readDataSequence(
             offset: numericCast(header.mappingWithSlideOffset),
-            count: numericCast(header.mappingWithSlideCount)
+            numberOfElements: numericCast(header.mappingWithSlideCount)
         )
     }
 
     public var imageInfos: DataSequence<DyldCacheImageInfo>? {
-        readDataSequence(
+        guard header.imagesCount > 0 else { return nil }
+        return fileHandle.readDataSequence(
             offset: numericCast(header.imagesOffset),
-            count: numericCast(header.imagesCount)
+            numberOfElements: numericCast(header.imagesCount)
         )
     }
 
     public var imageTextInfos: DataSequence<DyldCacheImageTextInfo>? {
-        readDataSequence(
+        guard header.imagesTextCount > 0 else { return nil }
+        return fileHandle.readDataSequence(
             offset: numericCast(header.imagesTextOffset),
-            count: numericCast(header.imagesTextCount)
+            numberOfElements: numericCast(header.imagesTextCount)
         )
     }
 
@@ -156,22 +160,6 @@ extension DyldCache {
 }
 
 extension DyldCache {
-    private func readDataSequence<Element: LayoutWrapper>(
-        offset: UInt64,
-        count: Int
-    ) -> DataSequence<Element>? {
-        guard count > 0 else { return nil }
-
-        fileHandle.seek(toFileOffset: offset)
-        let data = fileHandle.readData(
-            ofLength: count * Element.layoutSize
-        )
-        return .init(
-            data: data,
-            numberOfElements: count
-        )
-    }
-
     private func fileOffset(of address: UInt64) -> UInt64? {
         guard let mappings = self.mappingInfos else { return nil }
         for mapping in mappings {
