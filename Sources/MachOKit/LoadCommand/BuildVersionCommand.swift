@@ -55,22 +55,19 @@ extension BuildVersionCommand {
         in machO: MachOFile
     ) -> DataSequence<BuildToolVersion> {
         let offset = machO.cmdsStartOffset + offset + layoutSize
-        machO.fileHandle.seek(toFileOffset: UInt64(offset))
-        let data = machO.fileHandle.readData(
-            ofLength: Int(layout.ntools) * MemoryLayout<BuildToolVersion>.size
-        )
-        if machO.isSwapped {
-            data.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else { return }
-                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
-                    .assumingMemoryBound(to: build_tool_version.self)
-                swap_build_tool_version(ptr, layout.ntools, NXHostByteOrder())
-            }
-        }
 
-        return .init(
-            data: data,
-            numberOfElements: Int(layout.ntools)
+        return machO.fileHandle.readDataSequence(
+            offset: numericCast(offset),
+            numberOfElements: numericCast(layout.ntools),
+            swapHandler: { data in
+                guard machO.isSwapped else { return }
+                data.withUnsafeBytes {
+                    guard let baseAddress = $0.baseAddress else { return }
+                    let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                        .assumingMemoryBound(to: build_tool_version.self)
+                    swap_build_tool_version(ptr, layout.ntools, NXHostByteOrder())
+                }
+            }
         )
     }
 }

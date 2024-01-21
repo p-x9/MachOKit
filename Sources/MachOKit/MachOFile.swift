@@ -183,18 +183,12 @@ extension MachOFile {
     public typealias IndirectSymbols = DataSequence<IndirectSymbol>
     public var indirectSymbols: IndirectSymbols? {
         guard let dysymtab = loadCommands.dysymtab else { return nil }
-        fileHandle.seek(
-            toFileOffset: numericCast(headerStartOffset) + numericCast(dysymtab.indirectsymoff)
-        )
-        let data = fileHandle.readData(
-            ofLength: numericCast(dysymtab.nindirectsyms) * MemoryLayout<UInt32>.size
-        )
 
-        return .init(
-            data: data,
-            numberOfElements: numericCast(
-                dysymtab.nindirectsyms
-            )
+        let offset: UInt64 = numericCast(headerStartOffset) + numericCast(dysymtab.indirectsymoff)
+
+        return fileHandle.readDataSequence(
+            offset: offset,
+            numberOfElements: numericCast(dysymtab.nindirectsyms)
         )
     }
 }
@@ -348,30 +342,23 @@ extension MachOFile {
             return nil
         }
 
-        fileHandle.seek(
-            toFileOffset: numericCast(headerStartOffset) + numericCast(dataInCode.dataoff)
-        )
-        let data = fileHandle.readData(
-            ofLength: numericCast(dataInCode.datasize)
-        )
-
-        var entries = Array(
-            DataSequence<DataInCodeEntry>(
-                data: data,
-                numberOfElements: data.count / MemoryLayout<DataInCodeEntry>.size
-            )
+        let entries: DataSequence<DataInCodeEntry> = fileHandle.readDataSequence(
+            offset: numericCast(headerStartOffset) + numericCast(dataInCode.dataoff),
+            numberOfElements: numericCast(dataInCode.datasize) / DataInCodeEntry.layoutSize
         )
 
         if isSwapped {
-            entries = entries.map {
-                .init(
-                    layout: .init(
-                        offset: $0.offset.byteSwapped,
-                        length: $0.length.byteSwapped,
-                        kind: $0.layout.kind.byteSwapped
+            return AnySequence(
+                entries.lazy.map {
+                    DataInCodeEntry(
+                        layout: .init(
+                            offset: $0.offset.byteSwapped,
+                            length: $0.length.byteSwapped,
+                            kind: $0.layout.kind.byteSwapped
+                        )
                     )
-                )
-            }
+                }
+            )
         }
 
         return AnySequence(entries)
