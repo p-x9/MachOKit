@@ -185,10 +185,19 @@ extension MachOFile {
         guard let dysymtab = loadCommands.dysymtab else { return nil }
 
         let offset: UInt64 = numericCast(headerStartOffset) + numericCast(dysymtab.indirectsymoff)
+        let numberOfElements: Int = numericCast(dysymtab.nindirectsyms)
 
         return fileHandle.readDataSequence(
             offset: offset,
-            numberOfElements: numericCast(dysymtab.nindirectsyms)
+            numberOfElements: numberOfElements,
+            swapHandler: { data in
+                data.withUnsafeMutableBytes {
+                    let buffer = $0.assumingMemoryBound(to: UInt32.self)
+                    for i in 0 ..< numberOfElements {
+                        buffer[i] = buffer[i].byteSwapped
+                    }
+                }
+            }
         )
     }
 }
