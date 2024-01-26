@@ -191,6 +191,7 @@ extension MachOFile {
             offset: offset,
             numberOfElements: numberOfElements,
             swapHandler: { data in
+                guard self.isSwapped else { return }
                 data.withUnsafeMutableBytes {
                     let buffer = $0.assumingMemoryBound(to: UInt32.self)
                     for i in 0 ..< numberOfElements {
