@@ -37,7 +37,7 @@ public protocol MachORepresentable {
     /// List of runpaths
     var rpaths: [String] { get }
     /// List of depended dynamic libraries
-    var dependencies: [Dylib] { get }
+    var dependencies: [DependedDylib] { get }
 
     /// List of segments
     var segments: [any SegmentCommandProtocol] { get }

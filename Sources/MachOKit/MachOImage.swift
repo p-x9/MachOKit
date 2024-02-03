@@ -107,15 +107,25 @@ extension MachOImage {
 }
 
 extension MachOImage {
-    public var dependencies: [Dylib] {
-        var dependencies = [Dylib]()
+    public var dependencies: [DependedDylib] {
+        var dependencies = [DependedDylib]()
         for cmd in loadCommands {
             switch cmd {
-            case let .loadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
-            case let .loadWeakDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
-            case let .reexportDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
-            case let .loadUpwardDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
-            case let .lazyLoadDylib(cmd): dependencies.append(cmd.dylib(cmdsStart: cmdsStartPtr))
+            case let .loadDylib(cmd): 
+                let lib = cmd.dylib(cmdsStart: cmdsStartPtr)
+                dependencies.append(.init(dylib: lib, type: .load))
+            case let .loadWeakDylib(cmd):
+                let lib = cmd.dylib(cmdsStart: cmdsStartPtr)
+                dependencies.append(.init(dylib: lib, type: .weakLoad))
+            case let .reexportDylib(cmd):
+                let lib = cmd.dylib(cmdsStart: cmdsStartPtr)
+                dependencies.append(.init(dylib: lib, type: .reexport))
+            case let .loadUpwardDylib(cmd):
+                let lib = cmd.dylib(cmdsStart: cmdsStartPtr)
+                dependencies.append(.init(dylib: lib, type: .upwardLoad))
+            case let .lazyLoadDylib(cmd):
+                let lib = cmd.dylib(cmdsStart: cmdsStartPtr)
+                dependencies.append(.init(dylib: lib, type: .lazyLoad))
             default: continue
             }
         }

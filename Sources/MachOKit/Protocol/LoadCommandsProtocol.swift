@@ -90,4 +90,10 @@ extension LoadCommandsProtocol {
             if case let .dyldChainedFixups(info) = $0 { info } else { nil }
         }.first
     }
+
+    var idDylib: DylibCommand? {
+        compactMap {
+            if case let .idDylib(info) = $0 { info } else { nil }
+        }.first
+    }
 }
