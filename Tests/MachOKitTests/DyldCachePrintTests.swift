@@ -105,7 +105,7 @@ final class DyldCachePrintTests: XCTestCase {
                 print("File Suffix:", fileSuffix)
                 print(
                     "Path:",
-                    cache.url.path() + fileSuffix
+                    cache.url.path + fileSuffix
                 )
             }
         }

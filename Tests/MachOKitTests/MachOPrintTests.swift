@@ -75,6 +75,7 @@ final class MachOPrintTests: XCTestCase {
 
     func testDependencies() throws {
         for dependency in machO.dependencies {
+            let dependency = dependency.dylib
             print("----")
             print("Name:", dependency.name)
             print("CurrentVersion:", dependency.currentVersion)
@@ -112,7 +113,7 @@ final class MachOPrintTests: XCTestCase {
                    let info = Array(machO.loadCommands.infos(of: LoadCommand.idDylib)).first {
                     print("LibraryOrdinal:", info.dylib(cmdsStart: machO.cmdsStartPtr).name)
                 } else if machO.dependencies.indices.contains(libraryOrdinal) {
-                    print("LibraryOrdinal:", machO.dependencies[libraryOrdinal].name)
+                    print("LibraryOrdinal:", machO.dependencies[libraryOrdinal].dylib.name)
                 }
             }
         }
@@ -475,7 +476,7 @@ extension MachOPrintTests {
             if let libraryOrdinalType = info.libraryOrdinalType {
                 print("Library:", libraryOrdinalType)
             } else if libraries.indices.contains(info.libraryOrdinal - 1) {
-                print("Library:", libraries[info.libraryOrdinal - 1].name)
+                print("Library:", libraries[info.libraryOrdinal - 1].dylib.name)
             }
             let name = chainedFixups.symbolName(
                 for: info.nameOffset

@@ -24,13 +24,8 @@ extension BindingSymbol {
     public func library(in machO: MachOImage) -> Dylib? {
         if let bindSpecial {
             if bindSpecial == .dylib_self {
-                return Array(
-                    machO
-                        .loadCommands
-                        .infos(of: LoadCommand.idDylib)
-                )
-                .first?
-                .dylib(cmdsStart: machO.cmdsStartPtr)
+                let idDylib = machO.loadCommands.idDylib
+                return idDylib?.dylib(cmdsStart: machO.cmdsStartPtr)
             }
             return nil
         }
@@ -39,19 +34,14 @@ extension BindingSymbol {
         guard machO.dependencies.indices.contains(index) else {
             return nil
         }
-        return machO.dependencies[index]
+        return machO.dependencies[index].dylib
     }
 
     public func library(in machO: MachOFile) -> Dylib? {
         if let bindSpecial {
             if bindSpecial == .dylib_self {
-                return Array(
-                    machO
-                        .loadCommands
-                        .infos(of: LoadCommand.idDylib)
-                )
-                .first?
-                .dylib(in: machO)
+                let idDylib = machO.loadCommands.idDylib
+                return idDylib?.dylib(in: machO)
             }
         }
 
@@ -59,7 +49,7 @@ extension BindingSymbol {
         guard machO.dependencies.indices.contains(index) else {
             return nil
         }
-        return machO.dependencies[index]
+        return machO.dependencies[index].dylib
     }
 }
 
