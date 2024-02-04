@@ -34,7 +34,6 @@ extension RpathCommand {
 extension RpathCommand {
     public func path(in machO: MachOFile) -> String {
         let offset = machO.cmdsStartOffset + offset + Int(layout.path.offset)
-        machO.fileHandle.seek(toFileOffset: UInt64(offset))
         return machO.fileHandle.readString(
             offset: numericCast(offset),
             size: Int(layout.cmdsize) - layoutSize
