@@ -7,8 +7,7 @@ public enum File {
 
 public func loadFromFile(url: URL) throws -> File {
     let fileHandle = try FileHandle(forReadingFrom: url)
-    let magicData = fileHandle.readData(ofLength: 4)
-    let magicRaw = magicData.withUnsafeBytes { $0.load(as: UInt32.self) }
+    let magicRaw: UInt32 = fileHandle.read(offset: 0)
 
     guard let magic = Magic(rawValue: magicRaw) else {
         throw NSError() // FIXME: error

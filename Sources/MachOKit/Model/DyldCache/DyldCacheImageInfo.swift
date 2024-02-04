@@ -16,16 +16,9 @@ public struct DyldCacheImageInfo: LayoutWrapper {
 
 extension DyldCacheImageInfo {
     public func path(in cache: DyldCache) -> String? {
-        cache.fileHandle.seek(
-            toFileOffset: numericCast(layout.pathFileOffset)
+        cache.fileHandle.readString(
+            offset: numericCast(layout.pathFileOffset),
+            size: 1000 // FIXME
         )
-        let data = cache.fileHandle.readData(
-            ofLength: 1000 // FIXME
-        )
-        return data.withUnsafeBytes {
-            guard let base = $0.baseAddress else { return nil }
-            let ptr = base.assumingMemoryBound(to: CChar.self)
-            return .init(cString: ptr)
-        }
     }
 }

@@ -25,12 +25,9 @@ public class DyldCache {
         self.fileHandle = fileHandle
 
         // read header
-        let header = fileHandle.readData(
-            ofLength: MemoryLayout<DyldCacheHeader>.size
-        ).withUnsafeBytes {
-            $0.load(as: DyldCacheHeader.self)
-        }
-        self.header = header
+        self.header = fileHandle.read(
+            offset: 0
+        )
 
         // check magic of header
         guard let cpuType = header._cpuType,
@@ -87,16 +84,9 @@ extension DyldCache {
             return nil
         }
 
-        fileHandle.seek(toFileOffset: numericCast(header.subCacheArrayOffset))
-        let subCache: DyldSubCacheEntryGeneral? = fileHandle.readData(
-            ofLength: DyldSubCacheEntryGeneral.layoutSize
-        ).withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else { return nil }
-            let ptr = baseAddress.assumingMemoryBound(to: DyldSubCacheEntryGeneral.Layout.self)
-            return .init(layout: ptr.pointee)
-        }
-
-        guard let subCache else { return nil }
+        let subCache: DyldSubCacheEntryGeneral = fileHandle.read(
+            offset: numericCast(header.subCacheArrayOffset)
+        )
 
         if subCache.fileSuffix.starts(with: ".") {
             return .general
@@ -107,16 +97,9 @@ extension DyldCache {
 
     public var localSymbolsInfo: DyldCacheLocalSymbolsInfo? {
         guard header.localSymbolsSize > 0 else { return nil }
-        fileHandle.seek(toFileOffset: header.localSymbolsOffset)
-        let data = fileHandle.readData(
-            ofLength: numericCast(header.localSymbolsSize)
+        return fileHandle.read(
+            offset: header.localSymbolsOffset
         )
-        return data.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else { return nil }
-            let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
-                .assumingMemoryBound(to: DyldCacheLocalSymbolsInfo.self)
-            return ptr.pointee
-        }
     }
 
     public var subCaches: SubCaches? {

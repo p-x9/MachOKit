@@ -39,9 +39,9 @@ public class FatFile {
         self.url = url
         self.fileHandle = try FileHandle(forReadingFrom: url)
 
-        var header = fileHandle.readData(ofLength: MemoryLayout<FatHeader>.size).withUnsafeBytes {
-            $0.load(as: FatHeader.self)
-        }
+        var header: FatHeader = fileHandle.read(
+            offset: 0
+        )
 
         let isSwapped = header.magic.isSwapped
         if isSwapped {

@@ -91,13 +91,10 @@ public class MachOFile: MachORepresentable {
 
         self.headerStartOffset = headerStartOffset
         self.headerStartOffsetInCache = headerStartOffsetInCache
-        fileHandle.seek(
-            toFileOffset: UInt64(headerStartOffset + headerStartOffsetInCache)
-        )
 
-        var header = fileHandle.readData(ofLength: MemoryLayout<MachHeader>.size).withUnsafeBytes {
-            $0.load(as: MachHeader.self)
-        }
+        var header: MachHeader = fileHandle.read(
+            offset: UInt64(headerStartOffset + headerStartOffsetInCache)
+        )
 
         let isSwapped = header.magic.isSwapped
         if isSwapped {
