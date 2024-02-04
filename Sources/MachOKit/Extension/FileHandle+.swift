@@ -78,10 +78,20 @@ extension FileHandle {
         offset: UInt64,
         size: Int
     ) -> String? {
-        seek(toFileOffset: offset)
         let data = readData(
-            ofLength: size
+            offset: offset,
+            size: size
         )
         return String(cString: data)
+    }
+
+    func readData(
+        offset: UInt64,
+        size: Int
+    ) -> Data {
+        seek(toFileOffset: offset)
+        return readData(
+            ofLength: size
+        )
     }
 }

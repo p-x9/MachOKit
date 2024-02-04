@@ -27,10 +27,10 @@ extension MachOFile.RebaseOperations {
         rebaseSize: Int
     ) {
         let offset = machO.headerStartOffset + rebaseOffset
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(offset)
+        let data = machO.fileHandle.readData(
+            offset: numericCast(offset),
+            size: rebaseSize
         )
-        let data = machO.fileHandle.readData(ofLength: rebaseSize)
 
         self.init(
             data: data,

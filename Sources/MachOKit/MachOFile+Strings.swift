@@ -26,11 +26,9 @@ extension MachOFile {
 
 extension MachOFile.Strings {
     init(machO: MachOFile, offset: Int, size: Int) {
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(offset)
-        )
         let data = machO.fileHandle.readData(
-            ofLength: size
+            offset: numericCast(offset),
+            size: size
         )
         self.init(
             data: data,

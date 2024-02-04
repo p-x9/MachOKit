@@ -18,18 +18,14 @@ extension DyldCacheLocalSymbolsInfo {
     public func symbols64(in cache: DyldCache) -> MachOFile.Symbols64? {
         guard cache.cpu.is64Bit else { return nil }
 
-        cache.fileHandle.seek(
-            toFileOffset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset)
-        )
         let stringData = cache.fileHandle.readData(
-            ofLength: numericCast(layout.stringsSize)
+            offset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset),
+            size: numericCast(layout.stringsSize)
         )
 
-        cache.fileHandle.seek(
-            toFileOffset: cache.header.localSymbolsOffset + numericCast(layout.nlistOffset)
-        )
         let symbolData = cache.fileHandle.readData(
-            ofLength: numericCast(Nlist64.layoutSize) * numericCast(layout.nlistCount)
+            offset: cache.header.localSymbolsOffset + numericCast(layout.nlistOffset),
+            size: numericCast(Nlist64.layoutSize) * numericCast(layout.nlistCount)
         )
 
         return MachOFile.Symbols64(
@@ -42,18 +38,14 @@ extension DyldCacheLocalSymbolsInfo {
     public func symbols32(in cache: DyldCache) -> MachOFile.Symbols? {
         guard !cache.cpu.is64Bit else { return nil }
 
-        cache.fileHandle.seek(
-            toFileOffset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset)
-        )
         let stringData = cache.fileHandle.readData(
-            ofLength: numericCast(layout.stringsSize)
+            offset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset),
+            size: numericCast(layout.stringsSize)
         )
 
-        cache.fileHandle.seek(
-            toFileOffset: cache.header.localSymbolsOffset + numericCast(layout.nlistOffset)
-        )
         let symbolData = cache.fileHandle.readData(
-            ofLength: numericCast(Nlist.layoutSize) * numericCast(layout.nlistCount)
+            offset: cache.header.localSymbolsOffset + numericCast(layout.nlistOffset),
+            size: numericCast(Nlist.layoutSize) * numericCast(layout.nlistCount)
         )
 
         return MachOFile.Symbols(

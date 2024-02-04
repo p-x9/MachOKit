@@ -43,8 +43,10 @@ public class MachOFile: MachORepresentable {
     }
 
     public var loadCommands: LoadCommands {
-        fileHandle.seek(toFileOffset: UInt64(cmdsStartOffset))
-        let data = fileHandle.readData(ofLength: Int(header.sizeofcmds))
+        let data = fileHandle.readData(
+            offset: UInt64(cmdsStartOffset),
+            size: Int(header.sizeofcmds)
+        )
 
         return .init(
             data: data,
@@ -387,8 +389,10 @@ extension MachOFile {
         guard let info = loadCommands.dyldChainedFixups else {
             return nil
         }
-        fileHandle.seek(toFileOffset: UInt64(headerStartOffset) + numericCast(info.dataoff))
-        let data = fileHandle.readData(ofLength: numericCast(info.datasize))
+        let data = fileHandle.readData(
+            offset: UInt64(headerStartOffset) + numericCast(info.dataoff),
+            size: numericCast(info.datasize)
+        )
 
         return .init(
             data: data,
