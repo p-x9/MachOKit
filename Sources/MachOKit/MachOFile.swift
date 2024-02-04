@@ -43,8 +43,10 @@ public class MachOFile: MachORepresentable {
     }
 
     public var loadCommands: LoadCommands {
-        fileHandle.seek(toFileOffset: UInt64(cmdsStartOffset))
-        let data = fileHandle.readData(ofLength: Int(header.sizeofcmds))
+        let data = fileHandle.readData(
+            offset: UInt64(cmdsStartOffset),
+            size: Int(header.sizeofcmds)
+        )
 
         return .init(
             data: data,
@@ -91,13 +93,10 @@ public class MachOFile: MachORepresentable {
 
         self.headerStartOffset = headerStartOffset
         self.headerStartOffsetInCache = headerStartOffsetInCache
-        fileHandle.seek(
-            toFileOffset: UInt64(headerStartOffset + headerStartOffsetInCache)
-        )
 
-        var header = fileHandle.readData(ofLength: MemoryLayout<MachHeader>.size).withUnsafeBytes {
-            $0.load(as: MachHeader.self)
-        }
+        var header: MachHeader = fileHandle.read(
+            offset: UInt64(headerStartOffset + headerStartOffsetInCache)
+        )
 
         let isSwapped = header.magic.isSwapped
         if isSwapped {
@@ -390,8 +389,10 @@ extension MachOFile {
         guard let info = loadCommands.dyldChainedFixups else {
             return nil
         }
-        fileHandle.seek(toFileOffset: UInt64(headerStartOffset) + numericCast(info.dataoff))
-        let data = fileHandle.readData(ofLength: numericCast(info.datasize))
+        let data = fileHandle.readData(
+            offset: UInt64(headerStartOffset) + numericCast(info.dataoff),
+            size: numericCast(info.datasize)
+        )
 
         return .init(
             data: data,

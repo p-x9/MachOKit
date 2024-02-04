@@ -27,10 +27,10 @@ extension MachOFile.ExportTrieEntries {
         exportSize: Int
     ) {
         let offset = machO.headerStartOffset + exportOffset
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(offset)
+        let data = machO.fileHandle.readData(
+            offset: numericCast(offset),
+            size: exportSize
         )
-        let data = machO.fileHandle.readData(ofLength: exportSize)
 
         self.init(
             data: data,

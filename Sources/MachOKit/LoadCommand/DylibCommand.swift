@@ -39,17 +39,11 @@ extension DylibCommand {
 extension DylibCommand {
     public func dylib(in machO: MachOFile) -> Dylib {
         let offset = machO.cmdsStartOffset + offset + Int(layout.dylib.name.offset)
-        machO.fileHandle.seek(toFileOffset: UInt64(offset))
-        let data = machO.fileHandle.readData(
-            ofLength: Int(layout.cmdsize) - layoutSize
-        )
         // swap is not needed
-        let string: String = data.withUnsafeBytes {
-            if let baseAddress = $0.baseAddress {
-                return String(cString: baseAddress.assumingMemoryBound(to: CChar.self))
-            }
-            return ""
-        }
+        let string = machO.fileHandle.readString(
+            offset: numericCast(offset),
+            size: Int(layout.cmdsize) - layoutSize
+        ) ?? ""
 
         return .init(
             name: string,

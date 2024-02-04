@@ -28,9 +28,9 @@ public class FatFile {
     }
 
     public var arches: [FatArch] {
-        fileHandle.seek(toFileOffset: UInt64(archesStartOffset))
         let data = fileHandle.readData(
-            ofLength: archesSize
+            offset: UInt64(archesStartOffset),
+            size: archesSize
         )
         return header.arches(data: data, isSwapped: isSwapped)
     }
@@ -39,9 +39,9 @@ public class FatFile {
         self.url = url
         self.fileHandle = try FileHandle(forReadingFrom: url)
 
-        var header = fileHandle.readData(ofLength: MemoryLayout<FatHeader>.size).withUnsafeBytes {
-            $0.load(as: FatHeader.self)
-        }
+        var header: FatHeader = fileHandle.read(
+            offset: 0
+        )
 
         let isSwapped = header.magic.isSwapped
         if isSwapped {

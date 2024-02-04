@@ -43,18 +43,14 @@ extension MachOFile.Symbols64 {
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff)
-        )
         let stringData = machO.fileHandle.readData(
-            ofLength: Int(symtab.strsize)
+            offset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff),
+            size: Int(symtab.strsize)
         )
 
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff)
-        )
         let symbolsData = machO.fileHandle.readData(
-            ofLength: Int(symtab.nsyms) * MemoryLayout<nlist_64>.size
+            offset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff),
+            size: Int(symtab.nsyms) * MemoryLayout<nlist_64>.size
         )
 
         if machO.isSwapped {
@@ -162,18 +158,14 @@ extension MachOFile.Symbols {
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff)
-        )
         let stringData = machO.fileHandle.readData(
-            ofLength: Int(symtab.strsize)
+            offset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff),
+            size: Int(symtab.strsize)
         )
 
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff)
-        )
         let symbolsData = machO.fileHandle.readData(
-            ofLength: Int(symtab.nsyms) * MemoryLayout<nlist_64>.size
+            offset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff),
+            size: Int(symtab.nsyms) * MemoryLayout<nlist>.size
         )
 
         if machO.isSwapped {

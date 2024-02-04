@@ -213,25 +213,18 @@ extension SectionProtocol {
         reloff: UInt32,
         nreloc: UInt32
     ) -> DataSequence<Relocation> {
-        machO.fileHandle.seek(
-            toFileOffset: numericCast(reloff)
-        )
-        var data = machO.fileHandle.readData(
-            ofLength: numericCast(nreloc) * MemoryLayout<relocation_info>.size
-        )
-
-        if machO.isSwapped {
-            data.withUnsafeMutableBytes {
-                guard let baseAddress = $0.baseAddress else { return }
-                let ptr = baseAddress
-                    .assumingMemoryBound(to: relocation_info.self)
-                swap_relocation_info(ptr, nreloc, NXHostByteOrder())
+        machO.fileHandle.readDataSequence(
+            offset: numericCast(reloff),
+            numberOfElements: numericCast(nreloc),
+            swapHandler: { data in
+                guard machO.isSwapped else { return }
+                data.withUnsafeMutableBytes {
+                    guard let baseAddress = $0.baseAddress else { return }
+                    let ptr = baseAddress
+                        .assumingMemoryBound(to: relocation_info.self)
+                    swap_relocation_info(ptr, nreloc, NXHostByteOrder())
+                }
             }
-        }
-
-        return DataSequence<Relocation>(
-            data: data,
-            numberOfElements: numericCast(nreloc)
         )
     }
 }

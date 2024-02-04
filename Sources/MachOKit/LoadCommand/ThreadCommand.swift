@@ -69,26 +69,24 @@ extension ThreadCommand {
         guard Int(layout.cmdsize) >= layoutSize + MemoryLayout<UInt32>.size else {
             return nil
         }
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(machO.cmdsStartOffset + offset + layoutSize)
+        let offset = machO.cmdsStartOffset + offset + layoutSize
+        var flavor: UInt32 =  machO.fileHandle.read(
+            offset: numericCast(offset)
         )
-        let data = machO.fileHandle.readData(ofLength: MemoryLayout<UInt32>.size)
-        return data.withUnsafeBytes {
-            $0.load(as: UInt32.self)
-        }
+        if machO.isSwapped { flavor = flavor.byteSwapped }
+        return flavor
     }
 
     public func count(in machO: MachOFile) -> UInt32? {
         guard Int(layout.cmdsize) >= layoutSize + 2 * MemoryLayout<UInt32>.size else {
             return nil
         }
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(machO.cmdsStartOffset + offset + layoutSize + MemoryLayout<UInt32>.size)
+        let offset = machO.cmdsStartOffset + offset + layoutSize + MemoryLayout<UInt32>.size
+        var count: UInt32 =  machO.fileHandle.read(
+            offset: numericCast(offset)
         )
-        let data = machO.fileHandle.readData(ofLength: MemoryLayout<UInt32>.size)
-        return data.withUnsafeBytes {
-            $0.load(as: UInt32.self)
-        }
+        if machO.isSwapped { count = count.byteSwapped }
+        return count
     }
 
     public func state(in machO: MachOFile) -> Data? {
@@ -98,11 +96,12 @@ extension ThreadCommand {
         let stateSizeExpected = Int(count) * MemoryLayout<UInt32>.size
         let stateSize = Int(layout.cmdsize) - layoutSize - 2 * MemoryLayout<UInt32>.size
         guard stateSizeExpected == stateSize else { return nil }
-        machO.fileHandle.seek(
-            toFileOffset: UInt64(machO.cmdsStartOffset + offset + layoutSize + 2 * MemoryLayout<UInt32>.size)
-        )
+        let offset = machO.cmdsStartOffset + offset + layoutSize + 2 * MemoryLayout<UInt32>.size
 
-        return machO.fileHandle.readData(ofLength: stateSizeExpected)
+        return machO.fileHandle.readData(
+            offset: numericCast(offset),
+            size: stateSizeExpected
+        )
     }
 }
 
