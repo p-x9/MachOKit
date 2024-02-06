@@ -485,3 +485,30 @@ extension MachOPrintTests {
         }
     }
 }
+
+extension MachOPrintTests {
+    func testStaticSymbolSearch() {
+        let f: @convention(c) (Int) -> String = { "\($0)" }
+        let ptr = unsafeBitCast(f, to: UnsafeRawPointer.self)
+        guard let (machO, symbol) = MachOImage.symbol(for: ptr) else {
+             return
+        }
+        if let path = machO.path {
+            print(path)
+        }
+        print(symbol.demangledName)
+    }
+
+    func testStaticClosestSymbolSearch() {
+        let f: @convention(c) (Int) -> String = { "\($0)" }
+        var ptr = unsafeBitCast(f, to: UnsafeRawPointer.self)
+        ptr = ptr.advanced(by: 1)
+        guard let (machO, symbol) = MachOImage.closestSymbol(at: ptr) else {
+            return
+        }
+        if let path = machO.path {
+            print(path)
+        }
+        print(symbol.demangledName)
+    }
+}
