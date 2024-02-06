@@ -511,4 +511,14 @@ extension MachOPrintTests {
         }
         print(symbol.demangledName)
     }
+
+    func testStaticSymbolSearchByName() {
+        let name = "$ss17_assertionFailure__4file4line5flagss5NeverOs12StaticStringV_A2HSus6UInt32VtF"
+        let symbols = MachOImage.symbols(named: name, mangled: true)
+        for (image, symbol) in symbols {
+            if let path = image.path {
+                print(path, symbol.nlist.sectionNumber?.description ?? "NO_SECT")
+            }
+        }
+    }
 }
