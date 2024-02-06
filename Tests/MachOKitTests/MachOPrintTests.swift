@@ -103,6 +103,10 @@ final class MachOPrintTests: XCTestCase {
                     print("Stab:", stab)
                 }
             }
+            if let sectionNumber = symbol.nlist.sectionNumber {
+                let section = machO.sections[sectionNumber - 1]
+                print("Section:", "\(section.segmentName).\(section.sectionName)")
+            }
             if let description = symbol.nlist.symbolDescription {
                 print("SymbolDescription:", description.bits)
                 if let referenceFlag = description.referenceFlag {
