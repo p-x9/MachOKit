@@ -454,7 +454,7 @@ extension MachOImage {
     /// Find symbols matching the specified address.
     /// - Parameter address: Address to find matching symbol.
     /// - Returns: Matched symbol
-    func symbol(for address: UnsafeRawPointer) -> Symbol? {
+    public func symbol(for address: UnsafeRawPointer) -> Symbol? {
         let offset = Int(bitPattern: address) - Int(bitPattern: ptr)
         return symbol(for: offset)
     }

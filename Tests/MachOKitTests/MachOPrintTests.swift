@@ -485,3 +485,40 @@ extension MachOPrintTests {
         }
     }
 }
+
+extension MachOPrintTests {
+    func testStaticSymbolSearch() {
+        let f: @convention(c) (Int) -> String = { "\($0)" }
+        let ptr = unsafeBitCast(f, to: UnsafeRawPointer.self)
+        guard let (machO, symbol) = MachOImage.symbol(for: ptr) else {
+             return
+        }
+        if let path = machO.path {
+            print(path)
+        }
+        print(symbol.demangledName)
+    }
+
+    func testStaticClosestSymbolSearch() {
+        let f: @convention(c) (Int) -> String = { "\($0)" }
+        var ptr = unsafeBitCast(f, to: UnsafeRawPointer.self)
+        ptr = ptr.advanced(by: 1)
+        guard let (machO, symbol) = MachOImage.closestSymbol(at: ptr) else {
+            return
+        }
+        if let path = machO.path {
+            print(path)
+        }
+        print(symbol.demangledName)
+    }
+
+    func testStaticSymbolSearchByName() {
+        let name = "$ss17_assertionFailure__4file4line5flagss5NeverOs12StaticStringV_A2HSus6UInt32VtF"
+        let symbols = MachOImage.symbols(named: name, mangled: true)
+        for (image, symbol) in symbols {
+            if let path = image.path {
+                print(path, symbol.nlist.sectionNumber?.description ?? "NO_SECT")
+            }
+        }
+    }
+}
