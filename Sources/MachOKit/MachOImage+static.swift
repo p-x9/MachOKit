@@ -82,13 +82,17 @@ extension MachOImage {
     public static func symbols(
         named name: String,
         mangled: Bool = true
-    ) -> [(MachOImage, Symbol)] {
-        images.compactMap {
-            guard let symbol = $0.symbol(named: name, mangled: mangled) else {
-                return nil
-            }
-            return ($0, symbol)
-        }
+    ) -> AnySequence<(MachOImage, Symbol)> {
+        AnySequence(
+            images
+                .lazy
+                .compactMap {
+                    guard let symbol = $0.symbol(named: name, mangled: mangled) else {
+                        return nil
+                    }
+                    return ($0, symbol)
+                }
+        )
     }
 }
 
