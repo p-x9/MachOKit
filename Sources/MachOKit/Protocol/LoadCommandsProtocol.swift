@@ -34,66 +34,60 @@ extension LoadCommandsProtocol {
 
 extension LoadCommandsProtocol {
     var text: SegmentCommand? {
-        compactMap {
-            if case let .segment(info) = $0,
-               info.segmentName == SEG_TEXT { info } else { nil }
-        }.first
+        infos(of: LoadCommand.segment)
+            .first {
+                 $0.segname == SEG_TEXT
+            }
     }
 
     var text64: SegmentCommand64? {
-        compactMap {
-            if case let .segment64(info) = $0,
-               info.segmentName == SEG_TEXT { info } else { nil }
-        }.first
+        infos(of: LoadCommand.segment64)
+            .first {
+                $0.segname == SEG_TEXT
+            }
     }
 
     var linkedit: SegmentCommand? {
-        compactMap {
-            if case let .segment(info) = $0,
-               info.segmentName == SEG_LINKEDIT { info } else { nil }
-        }.first
+        infos(of: LoadCommand.segment)
+            .first {
+                $0.segname == SEG_LINKEDIT
+            }
     }
 
     var linkedit64: SegmentCommand64? {
-        compactMap {
-            if case let .segment64(info) = $0,
-               info.segmentName == SEG_LINKEDIT { info } else { nil }
-        }.first
+        infos(of: LoadCommand.segment64)
+            .first {
+                $0.segname == SEG_LINKEDIT
+            }
     }
 
     var symtab: LoadCommandInfo<symtab_command>? {
-        compactMap {
-            if case let .symtab(info) = $0 { info } else { nil }
-        }.first
+        infos(of: LoadCommand.symtab)
+            .first { _ in true }
     }
 
     var dysymtab: LoadCommandInfo<dysymtab_command>? {
-        compactMap {
-            if case let .dysymtab(info) = $0 { info } else { nil }
-        }.first
+        infos(of: LoadCommand.dysymtab)
+            .first { _ in true }
     }
 
     var functionStarts: LoadCommandInfo<linkedit_data_command>? {
-        compactMap {
-            if case let .functionStarts(info) = $0 { info } else { nil }
-        }.first
+        infos(of: LoadCommand.functionStarts)
+            .first { _ in true }
     }
 
     var dataInCode: LoadCommandInfo<linkedit_data_command>? {
-        compactMap {
-            if case let .dataInCode(info) = $0 { info } else { nil }
-        }.first
+        infos(of: LoadCommand.dataInCode)
+            .first { _ in true }
     }
 
     var dyldChainedFixups: LoadCommandInfo<linkedit_data_command>? {
-        compactMap {
-            if case let .dyldChainedFixups(info) = $0 { info } else { nil }
-        }.first
+        infos(of: LoadCommand.dyldChainedFixups)
+            .first { _ in true }
     }
 
     var idDylib: DylibCommand? {
-        compactMap {
-            if case let .idDylib(info) = $0 { info } else { nil }
-        }.first
+        infos(of: LoadCommand.idDylib)
+            .first { _ in true }
     }
 }
