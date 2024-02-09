@@ -41,3 +41,23 @@ extension String {
         }
     }
 }
+
+extension String {
+    @inline(__always)
+    func isEqual(to tuple: CCharTuple16) -> Bool {
+        var buffer = tuple
+        return withUnsafePointer(to: &buffer.0) { tuple in
+            withCString { str in
+                strcmp(str, tuple) == 0
+            }
+        }
+    }
+}
+
+func ==(string: String, tuple: String.CCharTuple16) -> Bool {
+    string.isEqual(to: tuple)
+}
+
+func ==(tuple: String.CCharTuple16, string: String) -> Bool {
+    string.isEqual(to: tuple)
+}
