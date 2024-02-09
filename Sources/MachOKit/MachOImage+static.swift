@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2024/02/06.
-//  
+//
 //
 
 import Foundation
@@ -99,10 +99,11 @@ extension MachOImage {
 fileprivate extension MachOImage {
     var addressRange: ClosedRange<Int>? {
         guard let slide = vmaddrSlide,
-              let start = segments.first?.startPtr(vmaddrSlide: slide),
-              let end = segments.last?.endPtr(vmaddrSlide: slide) else {
+              let text: any SegmentCommandProtocol = loadCommands.text64 ?? loadCommands.text,
+              let start = text.startPtr(vmaddrSlide: slide) else {
             return nil
         }
+        let end = start.advanced(by: text.fileSize)
         return Int(bitPattern: start) ... Int(bitPattern: end)
     }
 
