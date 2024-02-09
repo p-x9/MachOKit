@@ -81,19 +81,15 @@ extension MachOImage {
         return String(cString: info.dli_fname)
     }
 
+    // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/mach_o/Header.cpp#L1354
     public var vmaddrSlide: Int? {
-        guard self.path != nil else { return nil }
-
-        let indices = 0..<_dyld_image_count()
-        let index = indices.first { index in
-            guard let pathC = _dyld_get_image_name(index) else {
-                return false
-            }
-            let path = String(cString: pathC)
-            return path == self.path
+        let ptr = Int(bitPattern: ptr)
+        if let text = loadCommands.text64 {
+            return ptr - numericCast(text.vmaddr)
+        } else if let text = loadCommands.text {
+            return ptr - numericCast(text.vmaddr)
         }
-
-        return _dyld_get_image_vmaddr_slide(index ?? 0)
+        return nil
     }
 }
 
