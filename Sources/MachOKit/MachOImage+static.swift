@@ -26,30 +26,52 @@ extension MachOImage {
     public static func closestSymbol(
         at address: UnsafeRawPointer
     ) -> (MachOImage, Symbol)? {
-        var symbols = [(Int, (MachOImage, Symbol))]()
-        for image in images {
-
+        for image in images where image.contains(address) {
             if let symbol = image.closestSymbol(at: address) {
-                let actual = image.ptr.advanced(by: symbol.offset)
-                if actual == address || image.contains(address) {
-                    print(image.contains(address))
-                    return (image, symbol)
-                }
-                let diff = Int(bitPattern: actual) - Int(bitPattern: address)
-                symbols.append((diff, (image, symbol)))
+                return (image, symbol)
             }
         }
-        return symbols.min(
-            by: { lhs, rhs in
-                lhs.0 < rhs.0
+
+        var closestImage: MachOImage?
+        var leastDistance: Int?
+        for image in images {
+            let address = Int(bitPattern: address)
+            guard let distance = leastDistance else {
+                if let range = image.addressRange {
+                    closestImage = image
+                    leastDistance = min(
+                        abs(range.lowerBound - address),
+                        abs(range.upperBound - address)
+                    )
+                }
+                continue
             }
-        )?.1
+
+            guard let range = image.addressRange else {
+                continue
+            }
+
+            let newDistance = min(
+                abs(range.lowerBound - address),
+                abs(range.upperBound - address)
+            )
+            if newDistance < distance {
+                leastDistance = newDistance
+                closestImage = image
+            }
+        }
+
+        guard let closestImage,
+              let symbol = closestImage.closestSymbol(at: address) else {
+            return nil
+        }
+        return (closestImage, symbol)
     }
 
     public static func symbol(
         for address: UnsafeRawPointer
     ) -> (MachOImage, Symbol)? {
-        for image in images {
+        for image in images where image.contains(address) {
             if let symbol = image.symbol(for: address) {
                 return (image, symbol)
             }
@@ -60,13 +82,17 @@ extension MachOImage {
     public static func symbols(
         named name: String,
         mangled: Bool = true
-    ) -> [(MachOImage, Symbol)] {
-        images.compactMap {
-            guard let symbol = $0.symbol(named: name, mangled: mangled) else {
-                return nil
-            }
-            return ($0, symbol)
-        }
+    ) -> AnySequence<(MachOImage, Symbol)> {
+        AnySequence(
+            images
+                .lazy
+                .compactMap {
+                    guard let symbol = $0.symbol(named: name, mangled: mangled) else {
+                        return nil
+                    }
+                    return ($0, symbol)
+                }
+        )
     }
 }
 
