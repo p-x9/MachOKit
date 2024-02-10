@@ -103,13 +103,20 @@ public protocol MachORepresentable {
     /// - Parameters:
     ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
     ///   - sectionNumber: Section number to be searched.
+    ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Closest symbol.
-    func closestSymbol(at offset: Int, inSection sectionNumber: Int) -> Symbol?
+    func closestSymbol(
+        at offset: Int,
+        inSection sectionNumber: Int,
+        isGlobalOnly: Bool
+    ) -> Symbol?
 
     /// Find symbols matching the specified offset.
-    /// - Parameter offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    /// - Parameters:
+    ///   -  offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
-    func symbol(for offset: Int) -> Symbol?
+    func symbol(for offset: Int, isGlobalOnly: Bool) -> Symbol?
 
     /// Find the symbol matching the given name.
     /// - Parameters:
@@ -199,7 +206,8 @@ extension MachORepresentable {
 extension MachORepresentable {
     public func closestSymbol(
         at offset: Int,
-        inSection sectionNumber: Int = 0
+        inSection sectionNumber: Int = 0,
+        isGlobalOnly: Bool = false
     ) -> Symbol? {
         let symbols = Array(self.symbols)
         var bestSymbol: Symbol?
@@ -221,6 +229,7 @@ extension MachORepresentable {
                 }
                 bestSymbol = symbol
             }
+            if isGlobalOnly { return bestSymbol }
 
             // find closest match in locals
             let localStart: Int = numericCast(dysym.ilocalsym)
@@ -247,6 +256,7 @@ extension MachORepresentable {
                 guard nlist.flags?.type == .sect,
                       nlist.flags?.stab == nil,
                       symbol.offset <= offset,
+                      !isGlobalOnly || nlist.flags?.contains(.ext) ?? false,
                       sectionNumber == 0 || symbolSectionNumber == sectionNumber,
                       bestSymbol == nil || bestSymbol!.offset < symbol.offset else {
                     continue
@@ -260,8 +270,14 @@ extension MachORepresentable {
 }
 
 extension MachORepresentable {
-    public func symbol(for offset: Int) -> Symbol? {
-        let best = closestSymbol(at: offset)
+    public func symbol(
+        for offset: Int,
+        isGlobalOnly: Bool = false
+    ) -> Symbol? {
+        let best = closestSymbol(
+            at: offset,
+            isGlobalOnly: isGlobalOnly
+        )
         return best?.offset == offset ? best : nil
     }
 }
