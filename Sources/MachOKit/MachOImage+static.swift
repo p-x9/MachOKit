@@ -24,10 +24,14 @@ extension MachOImage {
 
 extension MachOImage {
     public static func closestSymbol(
-        at address: UnsafeRawPointer
+        at address: UnsafeRawPointer,
+        isGlobalOnly: Bool = false
     ) -> (MachOImage, Symbol)? {
         for image in images where image.contains(address) {
-            if let symbol = image.closestSymbol(at: address) {
+            if let symbol = image.closestSymbol(
+                at: address,
+                isGlobalOnly: isGlobalOnly
+            ) {
                 return (image, symbol)
             }
         }
@@ -62,17 +66,24 @@ extension MachOImage {
         }
 
         guard let closestImage,
-              let symbol = closestImage.closestSymbol(at: address) else {
+              let symbol = closestImage.closestSymbol(
+                at: address,
+                isGlobalOnly: isGlobalOnly
+              ) else {
             return nil
         }
         return (closestImage, symbol)
     }
 
     public static func symbol(
-        for address: UnsafeRawPointer
+        for address: UnsafeRawPointer,
+        isGlobalOnly: Bool = false
     ) -> (MachOImage, Symbol)? {
         for image in images where image.contains(address) {
-            if let symbol = image.symbol(for: address) {
+            if let symbol = image.symbol(
+                for: address,
+                isGlobalOnly: isGlobalOnly
+            ) {
                 return (image, symbol)
             }
         }

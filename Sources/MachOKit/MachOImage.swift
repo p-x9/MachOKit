@@ -435,24 +435,32 @@ extension MachOImage {
     /// - Parameters:
     ///   - address: Address to find closest symbol.
     ///   - sectionNumber: Section number to be searched.
+    ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Closest symbol.
     public func closestSymbol(
         at address: UnsafeRawPointer,
-        inSection sectionNumber: Int = 0
+        inSection sectionNumber: Int = 0,
+        isGlobalOnly: Bool = false
     ) -> Symbol? {
         let offset = Int(bitPattern: address) - Int(bitPattern: ptr)
         return closestSymbol(
             at: offset,
-            inSection: sectionNumber
+            inSection: sectionNumber,
+            isGlobalOnly: isGlobalOnly
         )
     }
 
     /// Find symbols matching the specified address.
-    /// - Parameter address: Address to find matching symbol.
+    /// - Parameters:
+    ///   -  address: Address to find matching symbol.
+    ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
-    public func symbol(for address: UnsafeRawPointer) -> Symbol? {
+    public func symbol(
+        for address: UnsafeRawPointer,
+        isGlobalOnly: Bool = false
+    ) -> Symbol? {
         let offset = Int(bitPattern: address) - Int(bitPattern: ptr)
-        return symbol(for: offset)
+        return symbol(for: offset, isGlobalOnly: isGlobalOnly)
     }
 }
 
