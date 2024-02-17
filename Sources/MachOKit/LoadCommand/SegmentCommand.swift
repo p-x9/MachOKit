@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2023/11/28.
-//  
+//
 //
 
 import Foundation
@@ -12,6 +12,7 @@ public protocol SegmentCommandProtocol: LoadCommandWrapper {
     associatedtype SectionType: LayoutWrapper
     var segmentName: String { get }
     var virtualMemoryAddress: Int { get }
+    var virtualMemorySize: Int { get }
     var fileOffset: Int { get }
     var fileSize: Int { get }
     var maxProtection: VMProtection { get }
@@ -26,7 +27,7 @@ public protocol SegmentCommandProtocol: LoadCommandWrapper {
 
 extension SegmentCommandProtocol {
     public func startPtr(vmaddrSlide: Int) -> UnsafeRawPointer? {
-        let address = vmaddrSlide + virtualMemoryAddress - fileOffset
+        let address = vmaddrSlide + virtualMemoryAddress
         return UnsafeRawPointer(bitPattern: address)
     }
 
@@ -34,7 +35,7 @@ extension SegmentCommandProtocol {
         guard let start = startPtr(vmaddrSlide: vmaddrSlide) else {
             return nil
         }
-        return start + fileSize
+        return start + virtualMemorySize
     }
 }
 
@@ -51,6 +52,10 @@ public struct SegmentCommand: SegmentCommandProtocol {
 
     public var virtualMemoryAddress: Int {
         numericCast(layout.vmaddr)
+    }
+
+    public var virtualMemorySize: Int {
+        numericCast(layout.vmsize)
     }
 
     public var fileOffset: Int {
@@ -92,6 +97,10 @@ public struct SegmentCommand64: SegmentCommandProtocol {
 
     public var virtualMemoryAddress: Int {
         numericCast(layout.vmaddr)
+    }
+
+    public var virtualMemorySize: Int {
+        numericCast(layout.vmsize)
     }
 
     public var fileOffset: Int {

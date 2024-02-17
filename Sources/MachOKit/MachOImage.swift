@@ -509,6 +509,7 @@ extension MachOImage {
         }
 
         let start = linkeditStartPtr
+            .advanced(by: -numericCast(linkedit.fileoff))
             .advanced(by: numericCast(dataInCode.dataoff))
             .assumingMemoryBound(to: DataInCodeEntry.self)
         let size: Int = numericCast(dataInCode.datasize) / MemoryLayout<DataInCodeEntry>.size
