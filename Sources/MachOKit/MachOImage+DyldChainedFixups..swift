@@ -125,7 +125,7 @@ extension MachOImage.DyldChainedFixups: DyldChainedFixupsProtocol {
             count: numericCast(
                 startsInSegment.page_count
             )
-        ).map { .init(offset: $0) }
+        ).enumerated().map { .init(offset: $1, index: $0) }
     }
 
     public var imports: [DyldChainedImport] {

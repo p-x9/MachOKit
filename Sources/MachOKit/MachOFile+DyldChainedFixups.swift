@@ -105,7 +105,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             .map {
                 isSwapped ? $0.byteSwapped : $0
             }
-            .map { .init(offset: $0) }
+            .enumerated().map { .init(offset: $1, index: $0) }
         }
     }
 
