@@ -29,6 +29,7 @@ extension MachOImage.DyldChainedFixups {
         }
 
         let start = linkeditStartPtr
+            .advanced(by: -numericCast(linkedit.fileoff))
             .advanced(by: numericCast(dyldChainedFixups.dataoff))
             .assumingMemoryBound(to: UInt8.self)
         let size: Int = numericCast(dyldChainedFixups.datasize)
@@ -52,6 +53,7 @@ extension MachOImage.DyldChainedFixups {
         }
 
         let start = linkeditStartPtr
+            .advanced(by: -numericCast(linkedit.fileoff))
             .advanced(by: numericCast(dyldChainedFixups.dataoff))
             .assumingMemoryBound(to: UInt8.self)
         let size: Int = numericCast(dyldChainedFixups.datasize)

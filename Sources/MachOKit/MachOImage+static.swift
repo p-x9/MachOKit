@@ -109,12 +109,12 @@ extension MachOImage {
 
 fileprivate extension MachOImage {
     var addressRange: ClosedRange<Int>? {
+        let segments = self.segments
         guard let slide = vmaddrSlide,
-              let text: any SegmentCommandProtocol = loadCommands.text64 ?? loadCommands.text,
-              let start = text.startPtr(vmaddrSlide: slide) else {
+              let start = segments.first?.startPtr(vmaddrSlide: slide),
+              let end = segments.last?.endPtr(vmaddrSlide: slide) else {
             return nil
         }
-        let end = start.advanced(by: text.fileSize)
         return Int(bitPattern: start) ... Int(bitPattern: end)
     }
 
