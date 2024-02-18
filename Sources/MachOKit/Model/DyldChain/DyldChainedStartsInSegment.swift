@@ -14,6 +14,7 @@ public struct DyldChainedStartsInSegment: LayoutWrapper {
 
     public var layout: Layout
     public let offset: Int
+    public let segmentIndex: Int
 
     public var pointerFormat: DyldChainedPointerFormat? {
         .init(rawValue: layout.pointer_format)
@@ -30,6 +31,6 @@ extension DyldChainedStartsInSegment {
         layout.max_valid_pointer = layout.max_valid_pointer.byteSwapped
         layout.page_count = layout.page_count.byteSwapped
         layout.page_start = layout.page_start.byteSwapped
-        return .init(layout: layout, offset: offset)
+        return .init(layout: layout, offset: offset, segmentIndex: segmentIndex)
     }
 }

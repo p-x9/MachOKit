@@ -69,14 +69,15 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             guard let basePtr = $0.baseAddress else { return [] }
             let ptr = UnsafeRawPointer(basePtr)
                 .advanced(by: startsInImage.offset)
-            return offsets.map {
-                let layout = ptr.advanced(by: $0)
+            return offsets.enumerated().map { index, offset in
+                let layout = ptr.advanced(by: offset)
                     .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
                     .pointee
-                let offset: Int = startsInImage.offset + $0
+                let offset: Int = startsInImage.offset + offset
                 let ret: DyldChainedStartsInSegment = .init(
                     layout: layout,
-                    offset: offset
+                    offset: offset, 
+                    segmentIndex: index
                 )
                 return isSwapped ? ret.swapped : ret
             }

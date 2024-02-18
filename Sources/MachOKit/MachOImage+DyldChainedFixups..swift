@@ -102,12 +102,16 @@ extension MachOImage.DyldChainedFixups: DyldChainedFixupsProtocol {
 
         let ptr = UnsafeRawPointer(basePointer)
             .advanced(by: startsInImage.offset)
-        return offsets.map {
-            let layout = ptr.advanced(by: $0)
+        return offsets.enumerated().map { index, offset in
+            let layout = ptr.advanced(by: offset)
                 .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
                 .pointee
-            let offset: Int = startsInImage.offset + $0
-            return .init(layout: layout, offset: offset)
+            let offset: Int = startsInImage.offset + offset
+            return .init(
+                layout: layout,
+                offset: offset,
+                segmentIndex: index
+            )
         }
     }
 
