@@ -1,5 +1,5 @@
 //
-//  DyldChainedFixupPointer.swift
+//  DyldChainedFixupPointerInfo.swift
 //
 //
 //  Created by p-x9 on 2024/02/17.
@@ -10,7 +10,7 @@ import Foundation
 
 // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/common/MachOLayout.cpp#L2094
 
-public enum DyldChainedFixupPointer {
+public enum DyldChainedFixupPointerInfo {
     /// DYLD_CHAINED_PTR_ARM64E
     case arm64e(ARM64E)
     /// DYLD_CHAINED_PTR_64
@@ -37,7 +37,7 @@ public enum DyldChainedFixupPointer {
     case arm64e_userland24(ARM64E)
 }
 
-extension DyldChainedFixupPointer {
+extension DyldChainedFixupPointerInfo {
     public var pointerFormat: DyldChainedPointerFormat {
         switch self {
         case .arm64e: .arm64e
@@ -56,7 +56,7 @@ extension DyldChainedFixupPointer {
     }
 }
 
-extension DyldChainedFixupPointer {
+extension DyldChainedFixupPointerInfo {
     public enum ContentType {
         case bind
         case rebase
@@ -64,7 +64,7 @@ extension DyldChainedFixupPointer {
 }
 
 public protocol DyldChainedFixupPointerContent {
-    var type: DyldChainedFixupPointer.ContentType { get }
+    var type: DyldChainedFixupPointerInfo.ContentType { get }
     var next: Int { get }
 }
 
@@ -73,7 +73,7 @@ extension DyldChainedFixupPointerContent {
     public var isRebase: Bool { type == .rebase }
 }
 
-extension DyldChainedFixupPointer {
+extension DyldChainedFixupPointerInfo {
     public enum ARM64E: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtrArm64eRebase)
         case bind(DyldChainedPtrArm64eBind)
@@ -89,7 +89,7 @@ extension DyldChainedFixupPointer {
             }
         }
 
-        public var type: DyldChainedFixupPointer.ContentType {
+        public var type: DyldChainedFixupPointerInfo.ContentType {
             switch self {
             case .rebase: .rebase
             case .bind: .bind
@@ -123,7 +123,7 @@ extension DyldChainedFixupPointer {
             }
         }
 
-        public var type: DyldChainedFixupPointer.ContentType {
+        public var type: DyldChainedFixupPointerInfo.ContentType {
             switch self {
             case .rebase: .rebase
             case .bind: .bind
@@ -151,7 +151,7 @@ extension DyldChainedFixupPointer {
             }
         }
 
-        public var type: DyldChainedFixupPointer.ContentType {
+        public var type: DyldChainedFixupPointerInfo.ContentType {
             switch self {
             case .rebase: .rebase
             }
@@ -173,7 +173,7 @@ extension DyldChainedFixupPointer {
             }
         }
 
-        public var type: DyldChainedFixupPointer.ContentType {
+        public var type: DyldChainedFixupPointerInfo.ContentType {
             switch self {
             case .rebase: .rebase
             case .bind: .bind
@@ -201,7 +201,7 @@ extension DyldChainedFixupPointer {
             }
         }
 
-        public var type: DyldChainedFixupPointer.ContentType {
+        public var type: DyldChainedFixupPointerInfo.ContentType {
             switch self {
             case .rebase: .rebase
             }
@@ -221,7 +221,7 @@ extension DyldChainedFixupPointer {
             }
         }
 
-        public var type: DyldChainedFixupPointer.ContentType {
+        public var type: DyldChainedFixupPointerInfo.ContentType {
             switch self {
             case .rebase: .rebase
             }
