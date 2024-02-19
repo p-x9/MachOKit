@@ -82,10 +82,10 @@ extension DyldChainedFixupPointer {
 
         public var next: Int {
             switch self {
-            case let .rebase(info): numericCast(info.layout.next)
-            case let .bind(info): numericCast(info.layout.next)
-            case let .authRebase(info): numericCast(info.layout.next)
-            case let .authBind(info): numericCast(info.layout.next)
+            case let .rebase(info): info.next
+            case let .bind(info): info.next
+            case let .authRebase(info): info.next
+            case let .authBind(info): info.next
             }
         }
 
@@ -118,8 +118,8 @@ extension DyldChainedFixupPointer {
 
         public var next: Int {
             switch self {
-            case let .rebase(info): numericCast(info.layout.next)
-            case let .bind(info): numericCast(info.layout.next)
+            case let .rebase(info): info.next
+            case let .bind(info): info.next
             }
         }
 
@@ -147,7 +147,7 @@ extension DyldChainedFixupPointer {
 
         public var next: Int {
             switch self {
-            case let .rebase(info): numericCast(info.layout.next)
+            case let .rebase(info): info.next
             }
         }
 
@@ -168,8 +168,8 @@ extension DyldChainedFixupPointer {
 
         public var next: Int {
             switch self {
-            case let .rebase(info): numericCast(info.layout.next)
-            case let .bind(info): numericCast(info.layout.next)
+            case let .rebase(info): info.next
+            case let .bind(info): info.next
             }
         }
 
@@ -197,7 +197,7 @@ extension DyldChainedFixupPointer {
 
         public var next: Int {
             switch self {
-            case let .rebase(info): numericCast(info.layout.next)
+            case let .rebase(info): info.next
             }
         }
 
@@ -217,7 +217,7 @@ extension DyldChainedFixupPointer {
 
         public var next: Int {
             switch self {
-            case let .rebase(info): numericCast(info.layout.next)
+            case let .rebase(info): info.next
             }
         }
 
@@ -233,69 +233,167 @@ extension DyldChainedFixupPointer {
     }
 }
 
-public struct DyldChainedPtrArm64eRebase: LayoutWrapper {
+public protocol DyldChainedPointerContentRebase: LayoutWrapper {
+    var target: Int { get }
+    var next: Int { get }
+}
+
+public protocol DyldChainedPointerContentBind: LayoutWrapper {
+    var ordinal: Int { get }
+    var next: Int { get }
+}
+
+public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_rebase
     public var layout: Layout
+
+    public var target: Int {
+        numericCast(layout.target)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
 }
 
-public struct DyldChainedPtrArm64eBind: LayoutWrapper {
+public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_bind
     public var layout: Layout
+
+    public var ordinal: Int {
+        numericCast(layout.ordinal)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
 }
 
-public struct DyldChainedPtrArm64eAuthRebase: LayoutWrapper {
+public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_rebase
     public var layout: Layout
 
+    public var target: Int {
+        numericCast(layout.target)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
+
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
     }
 }
 
-public struct DyldChainedPtrArm64eAuthBind: LayoutWrapper {
+public struct DyldChainedPtrArm64eAuthBind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_bind
     public var layout: Layout
 
+    public var ordinal: Int {
+        numericCast(layout.ordinal)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
+
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
     }
 }
 
-public struct DyldChainedPtr64Rebase: LayoutWrapper {
+public struct DyldChainedPtr64Rebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_64_rebase
     public var layout: Layout
+
+    public var target: Int {
+        numericCast(layout.target)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
 }
 
-public struct DyldChainedPtr64Bind: LayoutWrapper {
+public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_64_bind
     public var layout: Layout
+
+    public var ordinal: Int {
+        numericCast(layout.ordinal)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
 }
 
-public struct DyldChainedPtr64KernelCacheRebase: LayoutWrapper {
+public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_64_kernel_cache_rebase
     public var layout: Layout
 
+    public var target: Int {
+        numericCast(layout.target)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
+
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
     }
 }
 
-public struct DyldChainedPtr32Rebase: LayoutWrapper {
+public struct DyldChainedPtr32Rebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_32_rebase
     public var layout: Layout
+
+    public var target: Int {
+        numericCast(layout.target)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
 }
 
-public struct DyldChainedPtr32Bind: LayoutWrapper {
+public struct DyldChainedPtr32Bind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_32_bind
     public var layout: Layout
+
+    public var ordinal: Int {
+        numericCast(layout.ordinal)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
 }
 
-public struct DyldChainedPtr32CacheRebase: LayoutWrapper {
+public struct DyldChainedPtr32CacheRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_32_cache_rebase
     public var layout: Layout
+
+    public var target: Int {
+        numericCast(layout.target)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
 }
 
-public struct DyldChainedPtr32FirmwareRebase: LayoutWrapper {
+public struct DyldChainedPtr32FirmwareRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_32_firmware_rebase
     public var layout: Layout
+
+    public var target: Int {
+        numericCast(layout.target)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
 }
