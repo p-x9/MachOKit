@@ -57,18 +57,44 @@ extension DyldChainedFixupPointer {
 }
 
 extension DyldChainedFixupPointer {
-    public enum ARM64E {
+    public enum ContentType {
+        case bind
+        case rebase
+    }
+}
+
+public protocol DyldChainedFixupPointerContent {
+    var type: DyldChainedFixupPointer.ContentType { get }
+    var next: Int { get }
+}
+
+extension DyldChainedFixupPointerContent {
+    public var isBind: Bool { type == .bind }
+    public var isRebase: Bool { type == .rebase }
+}
+
+extension DyldChainedFixupPointer {
+    public enum ARM64E: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtrArm64eRebase)
         case bind(DyldChainedPtrArm64eBind)
         case authRebase(DyldChainedPtrArm64eAuthRebase)
         case authBind(DyldChainedPtrArm64eAuthBind)
 
-        var next: Int {
+        public var next: Int {
             switch self {
             case let .rebase(info): numericCast(info.layout.next)
             case let .bind(info): numericCast(info.layout.next)
             case let .authRebase(info): numericCast(info.layout.next)
             case let .authBind(info): numericCast(info.layout.next)
+            }
+        }
+
+        public var type: DyldChainedFixupPointer.ContentType {
+            switch self {
+            case .rebase: .rebase
+            case .bind: .bind
+            case .authRebase: .rebase
+            case .authBind: .bind
             }
         }
 
@@ -86,14 +112,21 @@ extension DyldChainedFixupPointer {
         }
     }
 
-    public enum General64 {
+    public enum General64: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr64Rebase)
         case bind(DyldChainedPtr64Bind)
 
-        var next: Int {
+        public var next: Int {
             switch self {
             case let .rebase(info): numericCast(info.layout.next)
             case let .bind(info): numericCast(info.layout.next)
+            }
+        }
+
+        public var type: DyldChainedFixupPointer.ContentType {
+            switch self {
+            case .rebase: .rebase
+            case .bind: .bind
             }
         }
 
@@ -109,12 +142,18 @@ extension DyldChainedFixupPointer {
         }
     }
 
-    public enum General64Cache {
+    public enum General64Cache: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr64KernelCacheRebase)
 
-        var next: Int {
+        public var next: Int {
             switch self {
             case let .rebase(info): numericCast(info.layout.next)
+            }
+        }
+
+        public var type: DyldChainedFixupPointer.ContentType {
+            switch self {
+            case .rebase: .rebase
             }
         }
 
@@ -123,14 +162,21 @@ extension DyldChainedFixupPointer {
         }
     }
 
-    public enum General32 {
+    public enum General32: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr32Rebase)
         case bind(DyldChainedPtr32Bind)
 
-        var next: Int {
+        public var next: Int {
             switch self {
             case let .rebase(info): numericCast(info.layout.next)
             case let .bind(info): numericCast(info.layout.next)
+            }
+        }
+
+        public var type: DyldChainedFixupPointer.ContentType {
+            switch self {
+            case .rebase: .rebase
+            case .bind: .bind
             }
         }
 
@@ -146,12 +192,18 @@ extension DyldChainedFixupPointer {
         }
     }
 
-    public enum General32Cache {
+    public enum General32Cache: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr32CacheRebase)
 
-        var next: Int {
+        public var next: Int {
             switch self {
             case let .rebase(info): numericCast(info.layout.next)
+            }
+        }
+
+        public var type: DyldChainedFixupPointer.ContentType {
+            switch self {
+            case .rebase: .rebase
             }
         }
 
@@ -160,12 +212,18 @@ extension DyldChainedFixupPointer {
         }
     }
 
-    public enum General32Firmware {
+    public enum General32Firmware: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr32FirmwareRebase)
 
-        var next: Int {
+        public var next: Int {
             switch self {
             case let .rebase(info): numericCast(info.layout.next)
+            }
+        }
+
+        public var type: DyldChainedFixupPointer.ContentType {
+            switch self {
+            case .rebase: .rebase
             }
         }
 
