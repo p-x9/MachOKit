@@ -57,6 +57,42 @@ extension DyldChainedFixupPointerInfo {
 }
 
 extension DyldChainedFixupPointerInfo {
+    public var next: Int {
+        switch self {
+        case let .arm64e(info): info.next
+        case let ._64(info): info.next
+        case let ._32(info): info.next
+        case let ._32_cache(info): info.next
+        case let ._32_firmware(info): info.next
+        case let ._64_offset(info): info.next
+        case let .arm64e_kernel(info): info.next
+        case let ._64_kernel_cache(info): info.next
+        case let .arm64e_userland(info): info.next
+        case let .arm64e_firmware(info): info.next
+        case let .x86_64_kernel_cache(info): info.next
+        case let .arm64e_userland24(info): info.next
+        }
+    }
+
+    public var type: ContentType {
+        switch self {
+        case let .arm64e(info): info.type
+        case let ._64(info): info.type
+        case let ._32(info): info.type
+        case let ._32_cache(info): info.type
+        case let ._32_firmware(info): info.type
+        case let ._64_offset(info): info.type
+        case let .arm64e_kernel(info): info.type
+        case let ._64_kernel_cache(info): info.type
+        case let .arm64e_userland(info): info.type
+        case let .arm64e_firmware(info): info.type
+        case let .x86_64_kernel_cache(info): info.type
+        case let .arm64e_userland24(info): info.type
+        }
+    }
+}
+
+extension DyldChainedFixupPointerInfo {
     public enum ContentType {
         case bind
         case rebase
