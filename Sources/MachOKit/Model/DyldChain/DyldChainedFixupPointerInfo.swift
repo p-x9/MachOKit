@@ -90,6 +90,40 @@ extension DyldChainedFixupPointerInfo {
         case let .arm64e_userland24(info): info.type
         }
     }
+
+    public var rebase: (any DyldChainedPointerContentRebase)? {
+        switch self {
+        case let .arm64e(info): info.rebase
+        case let ._64(info): info.rebase
+        case let ._32(info): info.rebase
+        case let ._32_cache(info): info.rebase
+        case let ._32_firmware(info): info.rebase
+        case let ._64_offset(info): info.rebase
+        case let .arm64e_kernel(info): info.rebase
+        case let ._64_kernel_cache(info): info.rebase
+        case let .arm64e_userland(info): info.rebase
+        case let .arm64e_firmware(info): info.rebase
+        case let .x86_64_kernel_cache(info): info.rebase
+        case let .arm64e_userland24(info): info.rebase
+        }
+    }
+
+    public var bind: (any DyldChainedPointerContentBind)? {
+        switch self {
+        case let .arm64e(info): info.bind
+        case let ._64(info): info.bind
+        case let ._32(info): info.bind
+        case let ._32_cache(info): info.bind
+        case let ._32_firmware(info): info.bind
+        case let ._64_offset(info): info.bind
+        case let .arm64e_kernel(info): info.bind
+        case let ._64_kernel_cache(info): info.bind
+        case let .arm64e_userland(info): info.bind
+        case let .arm64e_firmware(info): info.bind
+        case let .x86_64_kernel_cache(info): info.bind
+        case let .arm64e_userland24(info): info.bind
+        }
+    }
 }
 
 extension DyldChainedFixupPointerInfo {
@@ -102,6 +136,9 @@ extension DyldChainedFixupPointerInfo {
 public protocol DyldChainedFixupPointerContent {
     var type: DyldChainedFixupPointerInfo.ContentType { get }
     var next: Int { get }
+
+    var rebase: (any DyldChainedPointerContentRebase)? { get }
+    var bind: (any DyldChainedPointerContentBind)? { get }
 }
 
 extension DyldChainedFixupPointerContent {
@@ -131,6 +168,22 @@ extension DyldChainedFixupPointerInfo {
             case .bind: .bind
             case .authRebase: .rebase
             case .authBind: .bind
+            }
+        }
+
+        public var rebase: (any DyldChainedPointerContentRebase)? {
+            switch self {
+            case let .rebase(info): info
+            case let .authRebase(info): info
+            default: nil
+            }
+        }
+
+        public var bind: (any DyldChainedPointerContentBind)? {
+            switch self {
+            case let .bind(info): info
+            case let .authBind(info): info
+            default: nil
             }
         }
 
@@ -166,6 +219,20 @@ extension DyldChainedFixupPointerInfo {
             }
         }
 
+        public var rebase: (any DyldChainedPointerContentRebase)? {
+            switch self {
+            case let .rebase(info): info
+            default: nil
+            }
+        }
+
+        public var bind: (any DyldChainedPointerContentBind)? {
+            switch self {
+            case let .bind(info): info
+            default: nil
+            }
+        }
+
         init(rawValue: UInt64) {
             let tmp = DyldChainedPtr64Rebase(layout: autoBitCast(rawValue))
             let isBind = tmp.layout.bind == 1
@@ -193,6 +260,14 @@ extension DyldChainedFixupPointerInfo {
             }
         }
 
+        public var rebase: (any DyldChainedPointerContentRebase)? {
+            switch self {
+            case let .rebase(info): info
+            }
+        }
+
+        public var bind: (any DyldChainedPointerContentBind)? { nil }
+
         init(rawValue: UInt64) {
             self = .rebase(autoBitCast(rawValue))
         }
@@ -213,6 +288,20 @@ extension DyldChainedFixupPointerInfo {
             switch self {
             case .rebase: .rebase
             case .bind: .bind
+            }
+        }
+
+        public var rebase: (any DyldChainedPointerContentRebase)? {
+            switch self {
+            case let .rebase(info): info
+            default: nil
+            }
+        }
+
+        public var bind: (any DyldChainedPointerContentBind)? {
+            switch self {
+            case let .bind(info): info
+            default: nil
             }
         }
 
@@ -243,6 +332,14 @@ extension DyldChainedFixupPointerInfo {
             }
         }
 
+        public var rebase: (any DyldChainedPointerContentRebase)? {
+            switch self {
+            case let .rebase(info): info
+            }
+        }
+
+        public var bind: (any DyldChainedPointerContentBind)? { nil }
+
         init(rawValue: UInt32) {
             self = .rebase(autoBitCast(rawValue))
         }
@@ -262,6 +359,14 @@ extension DyldChainedFixupPointerInfo {
             case .rebase: .rebase
             }
         }
+
+        public var rebase: (any DyldChainedPointerContentRebase)? {
+            switch self {
+            case let .rebase(info): info
+            }
+        }
+
+        public var bind: (any DyldChainedPointerContentBind)? { nil }
 
         init(rawValue: UInt32) {
             self = .rebase(autoBitCast(rawValue))
