@@ -1,5 +1,5 @@
 //
-//  DyldChainedPointerFormat.swift
+//  DyldChainedFixupPointerFormat.swift
 //
 //
 //  Created by p-x9 on 2024/01/11.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum DyldChainedPointerFormat {
+public enum DyldChainedFixupPointerFormat {
     /// DYLD_CHAINED_PTR_ARM64E
     case arm64e
     /// DYLD_CHAINED_PTR_64
@@ -37,7 +37,7 @@ public enum DyldChainedPointerFormat {
     case arm64e_userland24
 }
 
-extension DyldChainedPointerFormat: CustomStringConvertible {
+extension DyldChainedFixupPointerFormat: CustomStringConvertible {
     public var description: String {
         switch self {
         case .arm64e: "DYLD_CHAINED_PTR_ARM64E"
@@ -57,7 +57,7 @@ extension DyldChainedPointerFormat: CustomStringConvertible {
     }
 }
 
-extension DyldChainedPointerFormat: RawRepresentable {
+extension DyldChainedFixupPointerFormat: RawRepresentable {
     public typealias RawValue = UInt16
 
     public init?(rawValue: RawValue) {
@@ -98,7 +98,7 @@ extension DyldChainedPointerFormat: RawRepresentable {
     }
 }
 
-extension DyldChainedPointerFormat {
+extension DyldChainedFixupPointerFormat {
     // byte
     var is64Bit: Bool {
         switch self {
@@ -113,7 +113,7 @@ extension DyldChainedPointerFormat {
     }
 }
 
-extension DyldChainedPointerFormat {
+extension DyldChainedFixupPointerFormat {
     // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/common/MachOLayout.cpp#L2145
     var stride: Int {
         switch self {

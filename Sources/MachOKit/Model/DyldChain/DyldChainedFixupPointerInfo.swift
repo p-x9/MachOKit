@@ -38,7 +38,7 @@ public enum DyldChainedFixupPointerInfo {
 }
 
 extension DyldChainedFixupPointerInfo {
-    public var pointerFormat: DyldChainedPointerFormat {
+    public var pointerFormat: DyldChainedFixupPointerFormat {
         switch self {
         case .arm64e: .arm64e
         case ._64: ._64

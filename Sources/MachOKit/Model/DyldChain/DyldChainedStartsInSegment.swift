@@ -16,7 +16,7 @@ public struct DyldChainedStartsInSegment: LayoutWrapper {
     public let offset: Int
     public let segmentIndex: Int
 
-    public var pointerFormat: DyldChainedPointerFormat? {
+    public var pointerFormat: DyldChainedFixupPointerFormat? {
         .init(rawValue: layout.pointer_format)
     }
 }
