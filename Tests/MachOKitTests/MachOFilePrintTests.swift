@@ -533,4 +533,37 @@ extension MachOFilePrintTests {
             if let name { print("Name:", name) }
         }
     }
+
+    func testChainedFixUpPointers() {
+        guard let chainedFixups = machO.dyldChainedFixups,
+            let startsInImage = chainedFixups.startsInImage else {
+            return
+        }
+        let segments = machO.segments
+
+        let startsInSegments = chainedFixups.startsInSegments(of: startsInImage)
+        for (i, startsInSegment) in startsInSegments.enumerated() {
+            print("----")
+            let segment = segments[i]
+            print(segment.segmentName)
+
+            let pointers = chainedFixups.pointers(of: startsInSegment, in: machO)
+            let imports = chainedFixups.imports
+
+            for pointer in pointers {
+                let fixupInfo = pointer.fixupInfo
+                let offset = String(pointer.offset, radix: 16)
+
+                if let rebase = fixupInfo.rebase {
+                    print(offset, "rebase:", String(rebase.target, radix: 16))
+                }
+                if let bind = fixupInfo.bind {
+                    print(offset, "bind  :", terminator: " ")
+                    print(
+                        chainedFixups.demangledSymbolName(for: imports[bind.ordinal].info.nameOffset) ?? ""
+                    )
+                }
+            }
+        }
+    }
 }
