@@ -555,11 +555,17 @@ extension MachOFilePrintTests {
                 let fixupInfo = pointer.fixupInfo
                 let offset = String(pointer.offset, radix: 16)
 
+                let section = segment.section(
+                    at: UInt(pointer.offset - segment.fileOffset),
+                    in: machO
+                )
+                let sectionName = section?.sectionName ?? "unknown"
+
                 if let rebase = fixupInfo.rebase {
-                    print(offset, "rebase:", String(rebase.target, radix: 16))
+                    print(sectionName, offset, "rebase:", String(rebase.target, radix: 16))
                 }
                 if let bind = fixupInfo.bind {
-                    print(offset, "bind  :", terminator: " ")
+                    print(sectionName, offset, "bind:", terminator: " ")
                     print(
                         chainedFixups.demangledSymbolName(for: imports[bind.ordinal].info.nameOffset) ?? ""
                     )
