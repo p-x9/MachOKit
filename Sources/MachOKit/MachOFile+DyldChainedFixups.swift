@@ -84,6 +84,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
         }
     }
 
+    // xcrun dyld_info -fixup_chains "Path to Binary"
     public func pages(
         of startsInSegment: DyldChainedStartsInSegment?
     ) -> [DyldChainedPage] {
@@ -170,6 +171,8 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
 
 extension MachOFile.DyldChainedFixups {
     // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/common/MachOLoaded.cpp#L884
+    // xcrun dyld_info -fixup_chain_details "Path to Binary"
+    // xcrun dyld_info -fixups "Path to Binary"
     public func pointers(
         of startsInSegment: DyldChainedStartsInSegment,
         in machO: MachOFile

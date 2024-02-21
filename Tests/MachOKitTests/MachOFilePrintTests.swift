@@ -534,6 +534,7 @@ extension MachOFilePrintTests {
         }
     }
 
+    // xcrun dyld_info -fixups /System/Applications/Freeform.app/Contents/MacOS/Freeform
     func testChainedFixUpPointers() {
         guard let chainedFixups = machO.dyldChainedFixups,
             let startsInImage = chainedFixups.startsInImage else {
