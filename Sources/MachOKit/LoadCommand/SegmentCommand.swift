@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol SegmentCommandProtocol: LoadCommandWrapper {
-    associatedtype SectionType: LayoutWrapper
+    associatedtype SectionType: SectionProtocol
     var segmentName: String { get }
     var virtualMemoryAddress: Int { get }
     var virtualMemorySize: Int { get }
@@ -23,6 +23,8 @@ public protocol SegmentCommandProtocol: LoadCommandWrapper {
     func endPtr(vmaddrSlide: Int) -> UnsafeRawPointer?
     func sections(cmdsStart: UnsafeRawPointer) -> MemorySequence<SectionType>
     func sections(in machO: MachOFile) -> DataSequence<SectionType>
+    func section(at offset: UInt, cmdsStart: UnsafeRawPointer) -> SectionType?
+    func section(at offset: UInt, in machO: MachOFile) -> SectionType?
 }
 
 extension SegmentCommandProtocol {
@@ -205,6 +207,112 @@ extension SegmentCommand64 {
             in: machO,
             numberOfElements: Int(layout.nsects),
             swapHandler: swap_section_64
+        )
+    }
+}
+
+extension SegmentCommand {
+    private func _section(
+        at offset: UInt,
+        segmentStart: UInt,
+        sections: any Sequence<Section>
+    ) -> Section? {
+        sections.first(where: { section in
+            let sectionStart = UInt(section.layout.offset)
+            let size = UInt(section.layout.size)
+            if sectionStart <= segmentStart + offset &&
+                segmentStart + offset < sectionStart + size {
+                return true
+            } else {
+                return false
+            }
+        })
+    }
+
+    /// Section at the specified offset
+    /// - Parameters:
+    ///   - offset: offset from start of segment
+    ///   - cmdsStart: pointer at load commands start
+    /// - Returns: located section
+    public func section(
+        at offset: UInt,
+        cmdsStart: UnsafeRawPointer
+    ) -> Section? {
+        let sections = sections(cmdsStart: cmdsStart)
+        return _section(
+            at: offset,
+            segmentStart: UInt(layout.vmaddr),
+            sections: sections
+        )
+    }
+
+    /// Section at the specified offset
+    /// - Parameters:
+    ///   - offset: offset from start of segment
+    ///   - machO: machO file
+    /// - Returns: located section
+    public func section(
+        at offset: UInt,
+        in machO: MachOFile
+    ) -> Section? {
+        let sections = sections(in: machO)
+        return _section(
+            at: offset,
+            segmentStart: UInt(layout.fileoff),
+            sections: sections
+        )
+    }
+}
+
+extension SegmentCommand64 {
+    private func _section(
+        at offset: UInt,
+        segmentStart: UInt,
+        sections: any Sequence<Section64>
+    ) -> Section64? {
+        sections.first(where: { section in
+            let sectionStart = UInt(section.layout.offset)
+            let size = UInt(section.layout.size)
+            if sectionStart <= segmentStart + offset &&
+                segmentStart + offset < sectionStart + size {
+                return true
+            } else {
+                return false
+            }
+        })
+    }
+    
+    /// Section at the specified offset
+    /// - Parameters:
+    ///   - offset: offset from start of segment
+    ///   - cmdsStart: pointer at load commands start
+    /// - Returns: located section
+    public func section(
+        at offset: UInt,
+        cmdsStart: UnsafeRawPointer
+    ) -> Section64? {
+        let sections = sections(cmdsStart: cmdsStart)
+        return _section(
+            at: offset,
+            segmentStart: UInt(layout.vmaddr),
+            sections: sections
+        )
+    }
+
+    /// Section at the specified offset
+    /// - Parameters:
+    ///   - offset: offset from start of segment
+    ///   - machO: machO file
+    /// - Returns: located section
+    public func section(
+        at offset: UInt,
+        in machO: MachOFile
+    ) -> Section64? {
+        let sections = sections(in: machO)
+        return _section(
+            at: offset,
+            segmentStart: UInt(layout.fileoff),
+            sections: sections
         )
     }
 }

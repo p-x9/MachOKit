@@ -86,70 +86,28 @@ extension BindingSymbol {
 extension  BindingSymbol {
     public func section64(in machO: MachOImage) -> Section64? {
         guard let segment = segment64(in: machO) else { return nil  }
-        let sections = segment.sections(cmdsStart: machO.cmdsStartPtr)
-
-        let segmentStart = UInt(segment.vmaddr)
-        return sections.first(where: { section in
-            let offset = UInt(section.layout.offset)
-            let size = UInt(section.layout.size)
-            if offset <= segmentStart + segmentOffset &&
-                segmentStart + segmentOffset < offset + size {
-                return true
-            } else {
-                return false
-            }
-        })
+        return segment.section(
+            at: segmentOffset,
+            cmdsStart: machO.cmdsStartPtr
+        )
     }
 
     public func section32(in machO: MachOImage) -> Section? {
         guard let segment = segment32(in: machO) else { return nil  }
-        let sections = segment.sections(cmdsStart: machO.cmdsStartPtr)
-
-        let segmentStart = UInt(segment.vmaddr)
-        return sections.first(where: { section in
-            let offset = UInt(section.layout.offset)
-            let size = UInt(section.layout.size)
-            if offset <= segmentStart + segmentOffset &&
-                segmentStart + segmentOffset < offset + size {
-                return true
-            } else {
-                return false
-            }
-        })
+        return segment.section(
+            at: segmentOffset,
+            cmdsStart: machO.cmdsStartPtr
+        )
     }
 
     public func section64(in machO: MachOFile) -> Section64? {
         guard let segment = segment64(in: machO) else { return nil }
-        let sections = segment.sections(in: machO)
-
-        let segmentStart = UInt(segment.fileoff)
-        return sections.first(where: { section in
-            let offset = UInt(section.layout.offset)
-            let size = UInt(section.layout.size)
-            if offset <= segmentStart + segmentOffset &&
-                segmentStart + segmentOffset < offset + size {
-                return true
-            } else {
-                return false
-            }
-        })
+        return segment.section(at: segmentOffset, in: machO)
     }
 
     public func section32(in machO: MachOFile) -> Section? {
         guard let segment = segment32(in: machO) else { return nil  }
-        let sections = segment.sections(in: machO)
-
-        let segmentStart = UInt(segment.fileoff)
-        return sections.first(where: { section in
-            let offset = UInt(section.layout.offset)
-            let size = UInt(section.layout.size)
-            if offset <= segmentStart + segmentOffset &&
-                segmentStart + segmentOffset < offset + size {
-                return true
-            } else {
-                return false
-            }
-        })
+        return segment.section(at: segmentOffset, in: machO)
     }
 }
 

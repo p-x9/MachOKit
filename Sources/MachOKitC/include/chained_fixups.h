@@ -51,12 +51,34 @@ struct dyld_chained_starts_in_segment
     // the last of which has the high bit set
 };
 
+enum {
+    DYLD_CHAINED_PTR_START_NONE   = 0xFFFF, // used in page_start[] to denote a page with no fixups
+    DYLD_CHAINED_PTR_START_MULTI  = 0x8000, // used in page_start[] to denote a page which has multiple starts
+    DYLD_CHAINED_PTR_START_LAST   = 0x8000, // used in chain_starts[] to denote last start in list for page
+};
+
 // This struct is embedded in __TEXT,__chain_starts section in firmware
 struct dyld_chained_starts_offsets
 {
     uint32_t    pointer_format;     // DYLD_CHAINED_PTR_32_FIRMWARE
     uint32_t    starts_count;       // number of starts in array
     uint32_t    chain_starts[1];    // array chain start offsets
+};
+
+enum {
+    DYLD_CHAINED_PTR_ARM64E                 =  1,    // stride 8, unauth target is vmaddr
+    DYLD_CHAINED_PTR_64                     =  2,    // target is vmaddr
+    DYLD_CHAINED_PTR_32                     =  3,
+    DYLD_CHAINED_PTR_32_CACHE               =  4,
+    DYLD_CHAINED_PTR_32_FIRMWARE            =  5,
+    DYLD_CHAINED_PTR_64_OFFSET              =  6,    // target is vm offset
+    DYLD_CHAINED_PTR_ARM64E_OFFSET          =  7,    // old name
+    DYLD_CHAINED_PTR_ARM64E_KERNEL          =  7,    // stride 4, unauth target is vm offset
+    DYLD_CHAINED_PTR_64_KERNEL_CACHE        =  8,
+    DYLD_CHAINED_PTR_ARM64E_USERLAND        =  9,    // stride 8, unauth target is vm offset
+    DYLD_CHAINED_PTR_ARM64E_FIRMWARE        = 10,    // stride 4, unauth target is vmaddr
+    DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE    = 11,    // stride 1, x86_64 kernel caches
+    DYLD_CHAINED_PTR_ARM64E_USERLAND24      = 12,    // stride 8, unauth target is vm offset, 24-bit bind
 };
 
 // DYLD_CHAINED_PTR_ARM64E

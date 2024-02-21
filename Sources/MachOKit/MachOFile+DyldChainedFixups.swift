@@ -69,20 +69,22 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             guard let basePtr = $0.baseAddress else { return [] }
             let ptr = UnsafeRawPointer(basePtr)
                 .advanced(by: startsInImage.offset)
-            return offsets.map {
-                let layout = ptr.advanced(by: $0)
+            return offsets.enumerated().map { index, offset in
+                let layout = ptr.advanced(by: offset)
                     .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
                     .pointee
-                let offset: Int = startsInImage.offset + $0
+                let offset: Int = startsInImage.offset + offset
                 let ret: DyldChainedStartsInSegment = .init(
                     layout: layout,
-                    offset: offset
+                    offset: offset, 
+                    segmentIndex: index
                 )
                 return isSwapped ? ret.swapped : ret
             }
         }
     }
 
+    // xcrun dyld_info -fixup_chains "Path to Binary"
     public func pages(
         of startsInSegment: DyldChainedStartsInSegment?
     ) -> [DyldChainedPage] {
@@ -105,7 +107,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             .map {
                 isSwapped ? $0.byteSwapped : $0
             }
-            .map { .init(offset: $0) }
+            .enumerated().map { .init(offset: $1, index: $0) }
         }
     }
 
@@ -163,6 +165,150 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
                 .advanced(by: nameOffset)
                 .assumingMemoryBound(to: CChar.self)
             return String(cString: ptr)
+        }
+    }
+}
+
+extension MachOFile.DyldChainedFixups {
+    // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/common/MachOLoaded.cpp#L884
+    // xcrun dyld_info -fixup_chain_details "Path to Binary"
+    // xcrun dyld_info -fixups "Path to Binary"
+    public func pointers(
+        of startsInSegment: DyldChainedStartsInSegment,
+        in machO: MachOFile
+    ) -> [DyldChainedFixupPointer] {
+        let pages = pages(of: startsInSegment)
+
+        let pagesData = machO.fileHandle.readData(
+            offset: numericCast(machO.headerStartOffset) + startsInSegment.segment_offset,
+            size: pages.count * numericCast(startsInSegment.page_size)
+        )
+
+        var pointers: [DyldChainedFixupPointer] = []
+
+        for (index, page) in pages.enumerated() {
+            var offsetInPage = page.offset
+
+            if page.isNone { continue }
+            if page.isMulti {
+                var overflowIndex = Int(offsetInPage & ~UInt16(DYLD_CHAINED_PTR_START_MULTI))
+                var chainEnd = false
+                while !chainEnd {
+                    chainEnd = pages[overflowIndex].offset & UInt16(DYLD_CHAINED_PTR_START_LAST) != 0
+                    offsetInPage = pages[overflowIndex].offset & ~UInt16(DYLD_CHAINED_PTR_START_LAST)
+                    let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
+                    let chainOffset = pageContentStart + numericCast(offsetInPage)
+                    walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, in: machO, pointers: &pointers)
+                    overflowIndex += 1
+                }
+            } else {
+                let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
+                let chainOffset = pageContentStart + numericCast(offsetInPage)
+                walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, in: machO, pointers: &pointers)
+            }
+        }
+
+        return pointers
+    }
+
+    private func walkChain(
+        offset: Int,
+        data: Data,
+        of startsInSegment: DyldChainedStartsInSegment,
+        in machO: MachOFile,
+        pointers: inout [DyldChainedFixupPointer]
+    ) {
+        guard let pointerFormat = startsInSegment.pointerFormat else {
+            return
+        }
+        var offset = offset
+
+        let stride = pointerFormat.stride
+        var stop = false
+        var chainEnd = false
+
+        while !stop && !chainEnd {
+            data.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else { return }
+                let ptr = baseAddress.advanced(by: offset)
+
+                var fixupInfo: DyldChainedFixupPointerInfo?
+
+                if pointerFormat.is64Bit {
+                    let rawValue = ptr.load(as: UInt64.self)
+                    switch pointerFormat {
+                    case .arm64e, .arm64e_kernel, .arm64e_userland, .arm64e_firmware, .arm64e_userland24:
+                        let content = DyldChainedFixupPointerInfo.ARM64E(rawValue: rawValue)
+                        switch pointerFormat {
+                        case .arm64e:
+                            fixupInfo = .arm64e(content)
+                        case .arm64e_kernel:
+                            fixupInfo = .arm64e_kernel(content)
+                        case .arm64e_userland:
+                            fixupInfo = .arm64e_userland(content)
+                        case .arm64e_firmware:
+                            fixupInfo = .arm64e_firmware(content)
+                        case .arm64e_userland24:
+                            fixupInfo = .arm64e_userland24(content)
+                        default: break
+                        }
+
+                    case ._64, ._64_offset:
+                        let content = DyldChainedFixupPointerInfo.General64(rawValue: rawValue)
+                        switch pointerFormat {
+                        case ._64: fixupInfo = ._64(content)
+                        case ._64_offset: fixupInfo = ._64_offset(content)
+                        default: break
+                        }
+
+                    case ._64_kernel_cache, .x86_64_kernel_cache:
+                        let content = DyldChainedFixupPointerInfo.General64Cache(rawValue: rawValue)
+                        switch pointerFormat {
+                        case ._64_kernel_cache:
+                            fixupInfo = ._64_kernel_cache(content)
+                        case .x86_64_kernel_cache:
+                            fixupInfo = .x86_64_kernel_cache(content)
+                        default: break
+                        }
+
+                    default:
+                        // unknown format
+                        stop = true
+                    }
+
+
+                } else {
+                    let rawValue = ptr.load(as: UInt32.self)
+                    switch pointerFormat {
+                    case ._32:
+                        let content = DyldChainedFixupPointerInfo.General32(rawValue: rawValue)
+                        fixupInfo = ._32(content)
+                    case ._32_cache:
+                        let content = DyldChainedFixupPointerInfo.General32Cache(rawValue: rawValue)
+                        fixupInfo = ._32_cache(content)
+                    case ._32_firmware:
+                        let content = DyldChainedFixupPointerInfo.General32Firmware(rawValue: rawValue)
+                        fixupInfo = ._32_firmware(content)
+                    default:
+                        // unknown format
+                        stop = true
+                    }
+                }
+
+                if let fixupInfo {
+                    let pointerOffset = numericCast(startsInSegment.segment_offset) + offset
+
+                    pointers.append(
+                        DyldChainedFixupPointer(
+                            offset: pointerOffset,
+                            fixupInfo: fixupInfo
+                        )
+                    )
+
+                    if fixupInfo.next == 0 { chainEnd = true }
+                    else { offset += stride * fixupInfo.next }
+                }
+            }
         }
     }
 }

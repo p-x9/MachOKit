@@ -22,4 +22,14 @@ public protocol DyldChainedFixupsProtocol {
     ) -> [DyldChainedPage]
 
     func symbolName(for nameOffset: Int) -> String?
+    func demangledSymbolName(for nameOffset: Int) -> String?
+}
+
+extension DyldChainedFixupsProtocol {
+    public func demangledSymbolName(for nameOffset: Int) -> String? {
+        guard let symbolName = symbolName(for: nameOffset) else {
+            return nil
+        }
+        return stdlib_demangleName(symbolName)
+    }
 }
