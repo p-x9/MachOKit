@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol SegmentCommandProtocol: LoadCommandWrapper {
-    associatedtype SectionType: LayoutWrapper
+    associatedtype SectionType: SectionProtocol
     var segmentName: String { get }
     var virtualMemoryAddress: Int { get }
     var virtualMemorySize: Int { get }
@@ -23,6 +23,8 @@ public protocol SegmentCommandProtocol: LoadCommandWrapper {
     func endPtr(vmaddrSlide: Int) -> UnsafeRawPointer?
     func sections(cmdsStart: UnsafeRawPointer) -> MemorySequence<SectionType>
     func sections(in machO: MachOFile) -> DataSequence<SectionType>
+    func section(at offset: UInt, cmdsStart: UnsafeRawPointer) -> SectionType?
+    func section(at offset: UInt, in machO: MachOFile) -> SectionType?
 }
 
 extension SegmentCommandProtocol {
