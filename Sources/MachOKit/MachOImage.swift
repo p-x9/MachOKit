@@ -60,9 +60,6 @@ extension MachOImage {
                 .last?
                 .components(separatedBy: ".")
                 .first
-            if imageName == name {
-                print(path)
-            }
             return imageName == name
         }
 
