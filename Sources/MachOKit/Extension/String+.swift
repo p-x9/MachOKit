@@ -72,7 +72,6 @@ func ==(tuple: String.CCharTuple16, string: String) -> Bool {
     string.isEqual(to: tuple)
 }
 
-
 func ==(string: String, tuple: String.CCharTuple32) -> Bool {
     string.isEqual(to: tuple)
 }

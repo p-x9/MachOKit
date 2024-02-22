@@ -76,7 +76,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
                 let offset: Int = startsInImage.offset + offset
                 let ret: DyldChainedStartsInSegment = .init(
                     layout: layout,
-                    offset: offset, 
+                    offset: offset,
                     segmentIndex: index
                 )
                 return isSwapped ? ret.swapped : ret
@@ -276,7 +276,6 @@ extension MachOFile.DyldChainedFixups {
                         stop = true
                     }
 
-
                 } else {
                     let rawValue = ptr.load(as: UInt32.self)
                     switch pointerFormat {
@@ -305,8 +304,11 @@ extension MachOFile.DyldChainedFixups {
                         )
                     )
 
-                    if fixupInfo.next == 0 { chainEnd = true }
-                    else { offset += stride * fixupInfo.next }
+                    if fixupInfo.next == 0 {
+                        chainEnd = true
+                    } else {
+                        offset += stride * fixupInfo.next
+                    }
                 }
             }
         }

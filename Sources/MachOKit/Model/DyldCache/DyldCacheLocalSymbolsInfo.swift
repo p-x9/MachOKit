@@ -72,7 +72,7 @@ extension DyldCacheLocalSymbolsInfo {
     ) -> DataSequence<DyldCacheLocalSymbolsEntry64>? {
         guard cache.cpu.is64Bit else { return nil }
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
-        
+
         return cache.fileHandle.readDataSequence(
             offset: offset,
             numberOfElements: numericCast(layout.entriesCount)

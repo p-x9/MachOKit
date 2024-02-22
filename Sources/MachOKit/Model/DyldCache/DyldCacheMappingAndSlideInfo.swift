@@ -18,7 +18,7 @@ extension DyldCacheMappingAndSlideInfo {
     public var flags: DyldCacheMappingFlags {
         .init(rawValue: layout.flags)
     }
-    
+
     public var maxProtection: VMProtection {
         .init(rawValue: VMProtection.RawValue(bitPattern: layout.maxProt))
     }

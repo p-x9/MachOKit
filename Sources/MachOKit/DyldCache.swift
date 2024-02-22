@@ -131,7 +131,7 @@ extension DyldCache {
                 return (imagePath, fileOffset)
             }
             .compactMap { (imagePath: String, fileOffset: UInt64) -> MachOFile? in
-                return try? MachOFile(
+                try? MachOFile(
                     url: self.url,
                     imagePath: imagePath,
                     headerStartOffsetInCache: numericCast(fileOffset)
