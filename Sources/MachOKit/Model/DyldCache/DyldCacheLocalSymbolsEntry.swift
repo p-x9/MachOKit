@@ -18,11 +18,11 @@ extension DyldCacheLocalSymbolsEntry: DyldCacheLocalSymbolsEntryProtocol {
     public var dylibOffset: Int {
         numericCast(layout.dylibOffset)
     }
-    
+
     public var nlistStartIndex: Int {
         numericCast(layout.nlistStartIndex)
     }
-    
+
     public var nlistCount: Int {
         numericCast(layout.nlistCount)
     }

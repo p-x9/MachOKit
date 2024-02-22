@@ -281,7 +281,7 @@ extension SegmentCommand64 {
             }
         })
     }
-    
+
     /// Section at the specified offset
     /// - Parameters:
     ///   - offset: offset from start of segment

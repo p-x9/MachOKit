@@ -104,7 +104,7 @@ extension MachOImage {
         var dependencies = [DependedDylib]()
         for cmd in loadCommands {
             switch cmd {
-            case let .loadDylib(cmd): 
+            case let .loadDylib(cmd):
                 let lib = cmd.dylib(cmdsStart: cmdsStartPtr)
                 dependencies.append(.init(dylib: lib, type: .load))
             case let .loadWeakDylib(cmd):
