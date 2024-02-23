@@ -121,6 +121,17 @@ The following file contains sample code.
 The following file contains sample code.
 [DyldCachePrintTests](./Tests/MachOKitTests/DyldCachePrintTests.swift)
 
+## Related Projects
+
+- [MachOKitSPM](https://github.com/p-x9/MachOKit-SPM)
+    Pre-built version of MachOKit
+- [SwiftHook](https://github.com/p-x9/swift-hook)
+    ⚓️ A Swift Library for hooking swift methods and functions.
+- [FishHook](https://github.com/p-x9/swift-fishhook)
+    Re-implementation of [facebook/fishhook](https://github.com/facebook/fishhook) with Swift using MachOKit
+- [AntiFishHook](https://github.com/p-x9/swift-anti-fishhook)
+    A Swift library to deactivate fishhook. (Anti-FishHook)
+
 ## License
 
 MachOKit is released under the MIT License. See [LICENSE](./LICENSE)
