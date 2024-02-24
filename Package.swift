@@ -8,6 +8,10 @@ let package = Package(
         .library(
             name: "MachOKit",
             targets: ["MachOKit"]
+        ),
+        .library(
+            name: "MachOKitC",
+            targets: ["MachOKitC"]
         )
     ],
     targets: [
