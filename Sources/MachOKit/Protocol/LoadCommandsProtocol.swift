@@ -90,4 +90,14 @@ extension LoadCommandsProtocol {
         infos(of: LoadCommand.idDylib)
             .first { _ in true }
     }
+
+    var encryptionInfo: EncryptionInfoCommand? {
+        infos(of: LoadCommand.encryptionInfo)
+            .first { _ in true }
+    }
+
+    var encryptionInfo64: EncryptionInfoCommand64? {
+        infos(of: LoadCommand.encryptionInfo64)
+            .first { _ in true }
+    }
 }

@@ -75,7 +75,7 @@ public enum LoadCommand {
     /// LC_LAZY_LOAD_DYLIB
     case lazyLoadDylib(DylibCommand)
     /// LC_ENCRYPTION_INFO
-    case encryptionInfo(LoadCommandInfo<encryption_info_command>)
+    case encryptionInfo(EncryptionInfoCommand)
     /// LC_DYLD_INFO
     case dyldInfo(LoadCommandInfo<dyld_info_command>)
     /// LC_DYLD_INFO_ONLY
@@ -99,7 +99,7 @@ public enum LoadCommand {
     /// LC_DYLIB_CODE_SIGN_DRS
     case dylibCodeSignDrs(LoadCommandInfo<linkedit_data_command>)
     /// LC_ENCRYPTION_INFO_64
-    case encryptionInfo64(LoadCommandInfo<encryption_info_command_64>)
+    case encryptionInfo64(EncryptionInfoCommand64)
     /// LC_LINKER_OPTION
     case linkerOption(LinkerOptionCommand)
     /// LC_LINKER_OPTIMIZATION_HINT
