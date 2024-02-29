@@ -400,3 +400,15 @@ extension MachOFile {
         )
     }
 }
+
+extension MachOFile {
+    public var isEncrypted: Bool {
+        if let encryptionInfo = loadCommands.encryptionInfo {
+            return encryptionInfo.cryptid != 0
+        }
+        if let encryptionInfo = loadCommands.encryptionInfo64 {
+            return encryptionInfo.cryptid != 0
+        }
+        return false
+    }
+}
