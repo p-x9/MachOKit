@@ -100,11 +100,35 @@ archive_project() {
 
 create_xcframework() {
     local SCHEME=$1
-    xcodebuild -create-xcframework \
-                -framework "$OUTPUT/macOS/$SCHEME.framework" \
-                -framework "$OUTPUT/iOS Simulator/$SCHEME.framework" \
-                -framework "$OUTPUT/iOS/$SCHEME.framework" \
-                -output "$OUTPUT/$SCHEME.xcframework"
+    local PLATFORMS=(
+        "macOS"
+        "iOS"
+        "iOS Simulator"
+        "watchOS"
+        "watchOS Simulator"
+        "tvOS"
+        "tvOS Simulator"
+        "visionOS"
+        "visionOS Simulator"
+    )
+    local ARGS=(
+        -create-xcframework
+    )
+
+    for platfrom in "${PLATFORMS[@]}"; do
+        local path=$OUTPUT/"$platfrom"/$SCHEME.framework
+        if [ -e "$path" ]; then
+            ARGS+=(
+                -framework \"$path\"
+            )
+        fi
+    done
+
+    ARGS+=(
+        -output \"$OUTPUT/"$SCHEME".xcframework\"
+    )
+
+    eval xcodebuild "${ARGS[@]}"
 }
 
 zip_xcframework() {
@@ -131,6 +155,12 @@ machokit() {
     archive_project "MachOKit" "iOS" "$LINK_FLAGS"
     archive_project "MachOKit" "iOS Simulator" "$LINK_FLAGS"
     archive_project "MachOKit" "macOS" "$LINK_FLAGS"
+    archive_project "MachOKit" "watchOS" "$LINK_FLAGS"
+    archive_project "MachOKit" "watchOS Simulator" "$LINK_FLAGS"
+    archive_project "MachOKit" "tvOS" "$LINK_FLAGS"
+    archive_project "MachOKit" "tvOS Simulator" "$LINK_FLAGS"
+    archive_project "MachOKit" "visionOS" "$LINK_FLAGS"
+    archive_project "MachOKit" "visionOS Simulator" "$LINK_FLAGS"
 
     create_xcframework "MachOKit"
     zip_xcframework "MachOKit"
@@ -140,6 +170,12 @@ machokitc() {
     archive_project "MachOKitC" "iOS"
     archive_project "MachOKitC" "iOS Simulator"
     archive_project "MachOKitC" "macOS"
+    archive_project "MachOKitC" "watchOS"
+    archive_project "MachOKitC" "watchOS Simulator"
+    archive_project "MachOKitC" "tvOS"
+    archive_project "MachOKitC" "tvOS Simulator"
+    archive_project "MachOKitC" "visionOS"
+    archive_project "MachOKitC" "visionOS Simulator"
 
     create_xcframework "MachOKitC"
     zip_xcframework "MachOKitC"

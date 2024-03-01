@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+  workflow_dispatch:
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_15.2.app
+
+jobs:
+  build:
+    name: Release
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15
+        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+
+      - name: Build
+        run: bash scripts/xcframework.sh
+
+      - name: Check Sum
+        run: |
+          machokit="$(swift package compute-checksum XCFrameworks/MachOKit.xcframework.zip)"
+          machokitc="$(swift package compute-checksum XCFrameworks/MachOKitC.xcframework.zip)"
+          echo "machokit_checksum=$machokit" >> $GITHUB_ENV
+          echo "machokitc_checksum=$machokitc" >> $GITHUB_ENV
+          echo "MachOKit $machokit"
+          echo "MachOKitC $machokitc"
+
+      - name: Get tag version
+        id: get_tag_version
+        run: |
+          echo "$(git tag --sort=creatordate | tail -n 1)" > CURRENT_TAG
+          echo "current_tag=$(cat CURRENT_TAG)" >> $GITHUB_OUTPUT
+          echo "previous_tag=$(\
+          curl -H 'Accept: application/vnd.github.v3+json' \
+               -H 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' \
+               https://api.github.com/repos/${{ github.repository }}/releases/latest \
+          | jq -r .tag_name)\
+          " >> $GITHUB_OUTPUT
+
+      - name: Generate release note
+        id: release_note
+        run: |
+          echo -e "$(\
+          curl -X POST \
+               -H 'Accept: application/vnd.github.v3+json' \
+               -H 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' \
+               https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
+               -d '{"tag_name":"${{ steps.get_tag_version.outputs.current_tag }}", "previous_tag_name":"${{ steps.get_tag_version.outputs.previous_tag }}"}' \
+          | jq .body| sed 's/"//g'\
+          )" > release_body.txt
+          echo -e "\n" >> release_body.txt
+          echo -e "MachOKit\n$machokit_checksum\n" >> release_body.txt
+          echo -e "MachOKitC\n$machokitc_checksum" >> release_body.txt
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: "./release_body.txt"
+          files: |
+            ./XCFrameworks/MachOKit.xcframework.zip
+            ./XCFrameworks/MachOKitC.xcframework.zip
