@@ -100,11 +100,35 @@ archive_project() {
 
 create_xcframework() {
     local SCHEME=$1
-    xcodebuild -create-xcframework \
-                -framework "$OUTPUT/macOS/$SCHEME.framework" \
-                -framework "$OUTPUT/iOS Simulator/$SCHEME.framework" \
-                -framework "$OUTPUT/iOS/$SCHEME.framework" \
-                -output "$OUTPUT/$SCHEME.xcframework"
+    local PLATFORMS=(
+        "macOS"
+        "iOS"
+        "iOS Simulator"
+        "watchOS"
+        "watchOS Simulator"
+        "tvOS"
+        "tvOS Simulator"
+        "visionOS"
+        "visionOS Simulator"
+    )
+    local ARGS=(
+        -create-xcframework
+    )
+
+    for platfrom in "${PLATFORMS[@]}"; do
+        local path=$OUTPUT/"$platfrom"/$SCHEME.framework
+        if [ -e "$path" ]; then
+            ARGS+=(
+                -framework \"$path\"
+            )
+        fi
+    done
+
+    ARGS+=(
+        -output \"$OUTPUT/"$SCHEME".xcframework\"
+    )
+
+    eval xcodebuild "${ARGS[@]}"
 }
 
 zip_xcframework() {
