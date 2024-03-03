@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public enum CodeSignMagic: UInt32 {
+public enum CodeSignMagic {
     /// CSMAGIC_REQUIREMENT
     case requirement
     /// CSMAGIC_REQUIREMENTS
@@ -30,6 +30,40 @@ public enum CodeSignMagic: UInt32 {
     case blobwrapper
     /// CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT
     case embedded_launch_constraint
+}
+
+extension CodeSignMagic: RawRepresentable {
+    public typealias RawValue = UInt32
+
+    public init?(rawValue: RawValue) {
+        switch rawValue {
+        case RawValue(CSMAGIC_REQUIREMENT): self = .requirement
+        case RawValue(CSMAGIC_REQUIREMENTS): self = .requirements
+        case RawValue(CSMAGIC_CODEDIRECTORY): self = .codedirectory
+        case RawValue(CSMAGIC_EMBEDDED_SIGNATURE): self = .embedded_signature
+        case RawValue(CSMAGIC_EMBEDDED_SIGNATURE_OLD): self = .embedded_signature_old
+        case RawValue(CSMAGIC_EMBEDDED_ENTITLEMENTS): self = .embedded_entitlements
+        case RawValue(CSMAGIC_EMBEDDED_DER_ENTITLEMENTS): self = .embedded_der_entitlements
+        case RawValue(CSMAGIC_DETACHED_SIGNATURE): self = .detached_signature
+        case RawValue(CSMAGIC_BLOBWRAPPER): self = .blobwrapper
+        case RawValue(CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT): self = .embedded_launch_constraint
+        default: return nil
+        }
+    }
+    public var rawValue: RawValue {
+        switch self {
+        case .requirement: RawValue(CSMAGIC_REQUIREMENT)
+        case .requirements: RawValue(CSMAGIC_REQUIREMENTS)
+        case .codedirectory: RawValue(CSMAGIC_CODEDIRECTORY)
+        case .embedded_signature: RawValue(CSMAGIC_EMBEDDED_SIGNATURE)
+        case .embedded_signature_old: RawValue(CSMAGIC_EMBEDDED_SIGNATURE_OLD)
+        case .embedded_entitlements: RawValue(CSMAGIC_EMBEDDED_ENTITLEMENTS)
+        case .embedded_der_entitlements: RawValue(CSMAGIC_EMBEDDED_DER_ENTITLEMENTS)
+        case .detached_signature: RawValue(CSMAGIC_DETACHED_SIGNATURE)
+        case .blobwrapper: RawValue(CSMAGIC_BLOBWRAPPER)
+        case .embedded_launch_constraint: RawValue(CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT)
+        }
+    }
 }
 
 extension CodeSignMagic: CustomStringConvertible {
