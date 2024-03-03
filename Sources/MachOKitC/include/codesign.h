@@ -8,8 +8,6 @@
 
 // ref: https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/kern/cs_blobs.h
 
-#import <CommonCrypto/CommonCrypto.h>
-
 #ifndef _KERN_CODESIGN_H_
 #define _KERN_CODESIGN_H_
 

@@ -64,4 +64,44 @@ extension MachOFile.CodeSign {
                 }
         }
     }
+
+    public var embeddedEntitlements: Dictionary<String, Any>? {
+        data.withUnsafeBytes { bufferPointer in
+            guard let baseAddress = bufferPointer.baseAddress else {
+                return nil
+            }
+            return blobIndices
+                .lazy
+                .compactMap { index in
+                    let ptr = baseAddress.advanced(by: numericCast(index.offset))
+                    var _magic = ptr
+                        .assumingMemoryBound(to: UInt32.self)
+                        .pointee
+                    var length = ptr
+                        .advanced(by: 4)
+                        .assumingMemoryBound(to: UInt32.self)
+                        .pointee
+                    if isSwapped { 
+                        _magic = _magic.byteSwapped
+                        length = length.byteSwapped
+                    }
+                    guard let magic = CodeSignMagic(rawValue: _magic),
+                          magic == .embedded_entitlements else {
+                        return nil
+                    }
+                    let entitlementsData = Data(
+                        bytes: ptr.advanced(by: 8),
+                        count: Int(length) - 8
+                    )
+                    guard let entitlements = try? PropertyListSerialization.propertyList(
+                        from: entitlementsData,
+                        format: nil
+                    ) else {
+                        return nil
+                    }
+                    return entitlements as? Dictionary<String, Any>
+                }
+                .first
+        }
+    }
 }
