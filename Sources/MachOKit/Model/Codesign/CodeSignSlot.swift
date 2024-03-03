@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2024/03/03.
-//  
+//
 //
 
 import Foundation
@@ -116,4 +116,4 @@ extension CodeSignSlot: CustomStringConvertible {
         case .ticketslot: "CSSLOT_TICKETSLOT"
         }
     }
-    }
+}
