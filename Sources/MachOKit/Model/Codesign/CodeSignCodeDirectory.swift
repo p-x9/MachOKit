@@ -19,6 +19,10 @@ extension CodeSignCodeDirectory {
     public var magic: CodeSignMagic! {
         .init(rawValue: layout.magic)
     }
+
+    public var hashType: CodeSignHashType! {
+        .init(rawValue: UInt32(layout.hashType))
+    }
 }
 
 extension CS_CodeDirectory {
