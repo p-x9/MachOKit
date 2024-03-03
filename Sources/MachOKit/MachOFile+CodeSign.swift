@@ -47,12 +47,11 @@ extension MachOFile.CodeSign {
             return blobIndices
                 .compactMap {
                     let ptr = baseAddress.advanced(by: numericCast($0.offset))
-                    var _magic = ptr
-                        .assumingMemoryBound(to: UInt32.self)
-                        .pointee
-                    if isSwapped { _magic = _magic.byteSwapped }
-                    guard let magic = CodeSignMagic(rawValue: _magic),
-                          magic == .codedirectory else {
+                    let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
+                    let blob = CodeSignGenericBlob(
+                        layout: isSwapped ? _blob.swapped : _blob
+                    )
+                    guard blob.magic == .codedirectory else {
                         return nil
                     }
                     return ptr
@@ -74,24 +73,16 @@ extension MachOFile.CodeSign {
                 .lazy
                 .compactMap { index in
                     let ptr = baseAddress.advanced(by: numericCast(index.offset))
-                    var _magic = ptr
-                        .assumingMemoryBound(to: UInt32.self)
-                        .pointee
-                    var length = ptr
-                        .advanced(by: 4)
-                        .assumingMemoryBound(to: UInt32.self)
-                        .pointee
-                    if isSwapped { 
-                        _magic = _magic.byteSwapped
-                        length = length.byteSwapped
-                    }
-                    guard let magic = CodeSignMagic(rawValue: _magic),
-                          magic == .embedded_entitlements else {
+                    let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
+                    let blob = CodeSignGenericBlob(
+                        layout: isSwapped ? _blob.swapped : _blob
+                    )
+                    guard blob.magic == .embedded_entitlements else {
                         return nil
                     }
                     let entitlementsData = Data(
-                        bytes: ptr.advanced(by: 8),
-                        count: Int(length) - 8
+                        bytes: ptr.advanced(by: blob.layoutSize), // 8 = magic & length field
+                        count: numericCast(blob.length) - blob.layoutSize
                     )
                     guard let entitlements = try? PropertyListSerialization.propertyList(
                         from: entitlementsData,
