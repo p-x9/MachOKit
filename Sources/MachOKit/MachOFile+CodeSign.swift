@@ -95,4 +95,29 @@ extension MachOFile.CodeSign {
                 .first
         }
     }
+
+    public var embeddedDEREntitlementsData: Data? {
+        data.withUnsafeBytes { bufferPointer in
+            guard let baseAddress = bufferPointer.baseAddress else {
+                return nil
+            }
+            return blobIndices
+                .lazy
+                .compactMap { index in
+                    let ptr = baseAddress.advanced(by: numericCast(index.offset))
+                    let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
+                    let blob = CodeSignGenericBlob(
+                        layout: isSwapped ? _blob.swapped : _blob
+                    )
+                    guard blob.magic == .embedded_der_entitlements else {
+                        return nil
+                    }
+                    return Data(
+                        bytes: ptr.advanced(by: blob.layoutSize), // 8 = magic & length field
+                        count: numericCast(blob.length) - blob.layoutSize
+                    )
+                }
+                .first
+        }
+    }
 }
