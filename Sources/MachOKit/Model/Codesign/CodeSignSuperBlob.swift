@@ -30,11 +30,11 @@ extension CodeSignSuperBlob {
 }
 
 extension CS_SuperBlob {
-    fileprivate var isSwapped: Bool {
+    var isSwapped: Bool {
         magic < 0xfade0000
     }
 
-    fileprivate var swapped: CS_SuperBlob {
+    var swapped: CS_SuperBlob {
         var swapped = CS_SuperBlob()
         swapped.magic = magic.byteSwapped
         swapped.length = length.byteSwapped

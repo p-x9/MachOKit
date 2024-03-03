@@ -9,53 +9,27 @@
 import Foundation
 import MachOKitC
 
-public enum CodeSignMagic {
+public enum CodeSignMagic: UInt32 {
+    /// CSMAGIC_REQUIREMENT
     case requirement
+    /// CSMAGIC_REQUIREMENTS
     case requirements
-    case codeDirectory
-    case embeddedSignature
-    case embeddedSignatureOld
-    case embeddedEntitlements
-    case derEntitlements
-    case detachedSignature
-    case blobWrapper
-    case embeddedLaunchConstraint
-}
-
-extension CodeSignMagic: RawRepresentable {
-    public typealias RawValue = UInt32
-
-    public init?(rawValue: UInt32) {
-        switch rawValue {
-        case CSMAGIC_REQUIREMENT: self = .requirement
-        case CSMAGIC_REQUIREMENTS: self = .requirements
-        case CSMAGIC_CODEDIRECTORY: self = .codeDirectory
-        case CSMAGIC_EMBEDDED_SIGNATURE: self = .embeddedSignature
-        case CSMAGIC_EMBEDDED_SIGNATURE_OLD: self = .embeddedSignatureOld
-        case CSMAGIC_EMBEDDED_ENTITLEMENTS: self = .embeddedEntitlements
-        case CSMAGIC_EMBEDDED_DER_ENTITLEMENTS: self = .derEntitlements
-        case CSMAGIC_DETACHED_SIGNATURE: self = .detachedSignature
-        case CSMAGIC_BLOBWRAPPER: self = .blobWrapper
-        case CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT: self = .embeddedLaunchConstraint
-        default:
-            return nil
-        }
-    }
-
-    public var rawValue: UInt32 {
-        switch self {
-        case .requirement: CSMAGIC_REQUIREMENT
-        case .requirements: CSMAGIC_REQUIREMENTS
-        case .codeDirectory: CSMAGIC_CODEDIRECTORY
-        case .embeddedSignature: CSMAGIC_EMBEDDED_SIGNATURE
-        case .embeddedSignatureOld: CSMAGIC_EMBEDDED_SIGNATURE_OLD
-        case .embeddedEntitlements: CSMAGIC_EMBEDDED_ENTITLEMENTS
-        case .derEntitlements: CSMAGIC_EMBEDDED_DER_ENTITLEMENTS
-        case .detachedSignature: CSMAGIC_DETACHED_SIGNATURE
-        case .blobWrapper: CSMAGIC_BLOBWRAPPER
-        case .embeddedLaunchConstraint: CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT
-        }
-    }
+    /// CSMAGIC_CODEDIRECTORY
+    case codedirectory
+    /// CSMAGIC_EMBEDDED_SIGNATURE
+    case embedded_signature
+    /// CSMAGIC_EMBEDDED_SIGNATURE_OLD
+    case embedded_signature_old
+    /// CSMAGIC_EMBEDDED_ENTITLEMENTS
+    case embedded_entitlements
+    /// CSMAGIC_EMBEDDED_DER_ENTITLEMENTS
+    case embedded_der_entitlements
+    /// CSMAGIC_DETACHED_SIGNATURE
+    case detached_signature
+    /// CSMAGIC_BLOBWRAPPER
+    case blobwrapper
+    /// CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT
+    case embedded_launch_constraint
 }
 
 extension CodeSignMagic: CustomStringConvertible {
@@ -63,14 +37,14 @@ extension CodeSignMagic: CustomStringConvertible {
         switch self {
         case .requirement: "CSMAGIC_REQUIREMENT"
         case .requirements: "CSMAGIC_REQUIREMENTS"
-        case .codeDirectory: "CSMAGIC_CODEDIRECTORY"
-        case .embeddedSignature: "CSMAGIC_EMBEDDED_SIGNATURE"
-        case .embeddedSignatureOld: "CSMAGIC_EMBEDDED_SIGNATURE_OLD"
-        case .embeddedEntitlements: "CSMAGIC_EMBEDDED_ENTITLEMENTS"
-        case .derEntitlements: "CSMAGIC_EMBEDDED_DER_ENTITLEMENTS"
-        case .detachedSignature: "CSMAGIC_DETACHED_SIGNATURE"
-        case .blobWrapper: "CSMAGIC_BLOBWRAPPER"
-        case .embeddedLaunchConstraint: "CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT"
+        case .codedirectory: "CSMAGIC_CODEDIRECTORY"
+        case .embedded_signature: "CSMAGIC_EMBEDDED_SIGNATURE"
+        case .embedded_signature_old: "CSMAGIC_EMBEDDED_SIGNATURE_OLD"
+        case .embedded_entitlements: "CSMAGIC_EMBEDDED_ENTITLEMENTS"
+        case .embedded_der_entitlements: "CSMAGIC_EMBEDDED_DER_ENTITLEMENTS"
+        case .detached_signature: "CSMAGIC_DETACHED_SIGNATURE"
+        case .blobwrapper: "CSMAGIC_BLOBWRAPPER"
+        case .embedded_launch_constraint: "CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT"
         }
     }
 }
