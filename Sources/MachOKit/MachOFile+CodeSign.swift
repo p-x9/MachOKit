@@ -46,7 +46,8 @@ extension MachOFile.CodeSign {
             }
             return blobIndices
                 .compactMap {
-                    let ptr = baseAddress.advanced(by: numericCast($0.offset))
+                    let offset: Int = numericCast($0.offset)
+                    let ptr = baseAddress.advanced(by: offset)
                     let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
                     let blob = CodeSignGenericBlob(
                         layout: isSwapped ? _blob.swapped : _blob
@@ -54,12 +55,14 @@ extension MachOFile.CodeSign {
                     guard blob.magic == .codedirectory else {
                         return nil
                     }
-                    return ptr
-                        .assumingMemoryBound(to: CS_CodeDirectory.self)
-                        .pointee
+                    return (
+                        ptr.assumingMemoryBound(to: CS_CodeDirectory.self).pointee,
+                        offset
+                    )
                 }
                 .map {
-                    isSwapped ? .init(layout: $0.swapped) : .init(layout: $0)
+                    isSwapped ? .init(layout: $0.swapped, offset: $1)
+                    : .init(layout: $0, offset: $1)
                 }
         }
     }

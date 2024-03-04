@@ -13,6 +13,7 @@ public struct CodeSignCodeDirectory: LayoutWrapper {
     public typealias Layout = CS_CodeDirectory
 
     public var layout: Layout
+    public let offset: Int // offset from start of linkedit_data
 }
 
 extension CodeSignCodeDirectory {
@@ -22,6 +23,21 @@ extension CodeSignCodeDirectory {
 
     public var hashType: CodeSignHashType! {
         .init(rawValue: UInt32(layout.hashType))
+    }
+
+    public func identifier(in signature: MachOFile.CodeSign) -> String {
+        signature.data.withUnsafeBytes {
+            bufferPointer in
+            guard let baseAddress = bufferPointer.baseAddress else {
+                return ""
+            }
+            return String(
+                cString: baseAddress
+                    .advanced(by: offset)
+                    .advanced(by: numericCast(layout.identOffset))
+                    .assumingMemoryBound(to: CChar.self)
+            )
+        }
     }
 }
 
