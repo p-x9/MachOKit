@@ -8,6 +8,7 @@
 
 import Foundation
 import MachOKitC
+import CommonCrypto
 
 public struct CodeSignCodeDirectory: LayoutWrapper {
     public typealias Layout = CS_CodeDirectory
@@ -37,6 +38,35 @@ extension CodeSignCodeDirectory {
                     .advanced(by: numericCast(layout.identOffset))
                     .assumingMemoryBound(to: CChar.self)
             )
+        }
+    }
+
+    public func hash(
+        in signature: MachOFile.CodeSign
+    ) -> Data? {
+        let data = signature.data[offset ..< offset + numericCast(layout.length)]
+        let length: CC_LONG = numericCast(layout.length)
+
+        return data.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                return nil
+            }
+            switch hashType {
+            case .sha1:
+                var digest = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
+                CC_SHA1(baseAddress, length, &digest)
+                return Data(digest)
+            case .sha256, .sha256_truncated:
+                var digest = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+                CC_SHA256(baseAddress, length, &digest)
+                return Data(digest)
+            case .sha384:
+                var digest = [UInt8](repeating: 0, count: Int(CC_SHA384_DIGEST_LENGTH))
+                CC_SHA384(baseAddress, length, &digest)
+                return Data(digest)
+            case .none:
+                return nil
+            }
         }
     }
 
