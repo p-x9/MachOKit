@@ -91,6 +91,32 @@ extension CodeSignCodeDirectory {
     }
 }
 
+extension CodeSignCodeDirectory {
+    public var isSupportsScatter: Bool {
+        layout.version >= CS_SUPPORTSSCATTER
+    }
+
+    public var isSupportsTeamID: Bool {
+        layout.version >= CS_SUPPORTSTEAMID
+    }
+
+    public var isSupportsCodeLimit64: Bool {
+        layout.version >= CS_SUPPORTSCODELIMIT64
+    }
+
+    public var isSupportsExecSegment: Bool {
+        layout.version >= CS_SUPPORTSEXECSEG
+    }
+
+    public var isSupportsRuntime: Bool {
+        layout.version >= CS_SUPPORTSRUNTIME
+    }
+
+    public var isSupportsLinkage: Bool {
+        layout.version >= CS_SUPPORTSLINKAGE
+    }
+}
+
 extension CS_CodeDirectory {
     var isSwapped: Bool {
         magic < 0xfade0000
