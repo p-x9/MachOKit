@@ -39,6 +39,26 @@ extension CodeSignCodeDirectory {
             )
         }
     }
+
+    public func hash(
+        forSlot index: Int,
+        in signature: MachOFile.CodeSign
+    ) -> Data? {
+        guard -Int(layout.nSpecialSlots) <= index,
+               index < Int(layout.nCodeSlots) else {
+            return nil
+        }
+        let size: Int = numericCast(layout.hashSize)
+        let offset = offset + numericCast(layout.hashOffset) + index * size
+        return signature.data[offset ..< offset + size]
+    }
+
+    public func hash(
+        for specialSlot: CodeSignSpecialSlotType,
+        in signature: MachOFile.CodeSign
+    ) -> Data? {
+        hash(forSlot: -specialSlot.rawValue, in: signature)
+    }
 }
 
 extension CS_CodeDirectory {
