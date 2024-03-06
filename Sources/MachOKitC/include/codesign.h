@@ -308,4 +308,10 @@ typedef struct __CodeDirectory_TeamID {
 } CS_CodeDirectory_TeamID
 __attribute__ ((aligned(1)));
 
+typedef struct __CodeDirectory_CodeLimit64 {
+    uint32_t spare3;                                /* unused (must be zero) */
+    uint64_t codeLimit64;                   /* limit to main image signature range, 64 bits */
+} CS_CodeDirectory_CodeLimit64
+__attribute__ ((aligned(1)));
+
 #endif /* _KERN_CODESIGN_H */

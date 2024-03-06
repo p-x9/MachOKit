@@ -129,6 +129,12 @@ extension CodeSignCodeDirectory {
 
         public var layout: Layout
     }
+
+    public struct CodeLimit64: LayoutWrapper {
+        public typealias Layout = CS_CodeDirectory_CodeLimit64
+
+        public var layout: Layout
+    }
 }
 
 extension CodeSignCodeDirectory {
@@ -192,6 +198,30 @@ extension CodeSignCodeDirectory {
     }
 }
 
+extension CodeSignCodeDirectory {
+    public func codeLimit64(in signature: MachOFile.CodeSign) -> CodeLimit64? {
+        guard isSupportsCodeLimit64 else {
+            return nil
+        }
+        let layout: CS_CodeDirectory_CodeLimit64? = signature.data.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                return nil
+            }
+            return baseAddress
+                .advanced(by: offset)
+                .advanced(by: layoutSize)
+                .advanced(by: ScatterOffset.layoutSize)
+                .advanced(by: TeamIdOffset.layoutSize)
+                .assumingMemoryBound(to: CS_CodeDirectory_CodeLimit64.self)
+                .pointee
+        }
+        guard let layout else { return nil }
+        return .init(
+            layout: signature.isSwapped ? layout.swapped : layout
+        )
+    }
+}
+
 extension CS_CodeDirectory {
     var isSwapped: Bool {
         magic < 0xfade0000
@@ -232,6 +262,15 @@ extension CS_CodeDirectory_TeamID {
         .init(
             teamOffset: teamOffset.byteSwapped,
             end_withTeam: end_withTeam
+        )
+    }
+}
+
+extension CS_CodeDirectory_CodeLimit64 {
+    var swapped: CS_CodeDirectory_CodeLimit64 {
+        .init(
+            spare3: spare3.byteSwapped,
+            codeLimit64: codeLimit64.byteSwapped
         )
     }
 }
