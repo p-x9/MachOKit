@@ -299,19 +299,20 @@ typedef struct launch_constraint_data* launch_constraint_data_t;
 typedef struct __CodeDirectory_Scatter {
     uint32_t scatterOffset;                 /* offset of optional scatter vector */
     char end_withScatter[0];
-} CS_CodeDirectory_Scatter
-__attribute__ ((aligned(1)));
+} __attribute__((packed))
+CS_CodeDirectory_Scatter;
 
 typedef struct __CodeDirectory_TeamID {
     uint32_t teamOffset;                    /* offset of optional team identifier */
     char end_withTeam[0];
-} CS_CodeDirectory_TeamID
-__attribute__ ((aligned(1)));
+} __attribute__((packed))
+CS_CodeDirectory_TeamID;
+
 
 typedef struct __CodeDirectory_CodeLimit64 {
     uint32_t spare3;                                /* unused (must be zero) */
     uint64_t codeLimit64;                   /* limit to main image signature range, 64 bits */
-} CS_CodeDirectory_CodeLimit64
-__attribute__ ((aligned(1)));
+} __attribute__((packed)) 
+CS_CodeDirectory_CodeLimit64;
 
 #endif /* _KERN_CODESIGN_H */
