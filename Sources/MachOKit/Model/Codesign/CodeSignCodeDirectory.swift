@@ -135,6 +135,26 @@ extension CodeSignCodeDirectory {
 
         public var layout: Layout
     }
+
+    public struct ExecutableSegment: LayoutWrapper {
+        public typealias Layout = CS_CodeDirectory_ExecSeg
+
+        public var layout: Layout
+
+        public var flags: CodeSignExecSegmentFlags {
+            .init(rawValue: layout.execSegFlags)
+        }
+    }
+
+    public struct Runtime: LayoutWrapper {
+        public typealias Layout = CS_CodeDirectory_Runtime
+
+        public var layout: Layout
+
+        public var runtime: Version {
+            .init(layout.runtime)
+        }
+    }
 }
 
 extension CodeSignCodeDirectory {
@@ -222,6 +242,74 @@ extension CodeSignCodeDirectory {
     }
 }
 
+extension CodeSignCodeDirectory {
+    public func executableSegment(in signature: MachOFile.CodeSign) -> ExecutableSegment? {
+        guard isSupportsExecSegment else {
+            return nil
+        }
+        let layout: CS_CodeDirectory_ExecSeg? = signature.data.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                return nil
+            }
+            return baseAddress
+                .advanced(by: offset)
+                .advanced(by: layoutSize)
+                .advanced(by: ScatterOffset.layoutSize)
+                .advanced(by: TeamIdOffset.layoutSize)
+                .advanced(by: CodeLimit64.layoutSize)
+                .assumingMemoryBound(to: CS_CodeDirectory_ExecSeg.self)
+                .pointee
+        }
+        guard let layout else { return nil }
+        return .init(
+            layout: signature.isSwapped ? layout.swapped : layout
+        )
+    }
+}
+
+extension CodeSignCodeDirectory {
+    public func runtime(in signature: MachOFile.CodeSign) -> Runtime? {
+        guard isSupportsRuntime else {
+            return nil
+        }
+        let layout: CS_CodeDirectory_Runtime? = signature.data.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                return nil
+            }
+            return baseAddress
+                .advanced(by: offset)
+                .advanced(by: layoutSize)
+                .advanced(by: ScatterOffset.layoutSize)
+                .advanced(by: TeamIdOffset.layoutSize)
+                .advanced(by: CodeLimit64.layoutSize)
+                .advanced(by: ExecutableSegment.layoutSize)
+                .assumingMemoryBound(to: CS_CodeDirectory_Runtime.self)
+                .pointee
+        }
+        guard let layout else { return nil }
+        return .init(
+            layout: signature.isSwapped ? layout.swapped : layout
+        )
+    }
+
+    public func preEncryptHash(
+        forSlot index: Int,
+        in signature: MachOFile.CodeSign
+    ) -> Data? {
+        guard  0 <= index,
+               index < Int(layout.nCodeSlots),
+               let runtime = runtime(in: signature),
+               runtime.preEncryptOffset != 0 else {
+            return nil
+        }
+        let size: Int = numericCast(layout.hashSize)
+        let offset = offset
+        + numericCast(runtime.preEncryptOffset)
+        + index * size
+        return signature.data[offset ..< offset + size]
+    }
+}
+
 extension CS_CodeDirectory {
     var isSwapped: Bool {
         magic < 0xfade0000
@@ -275,6 +363,26 @@ extension CS_CodeDirectory_CodeLimit64 {
     }
 }
 
+extension CS_CodeDirectory_ExecSeg {
+    var swapped: CS_CodeDirectory_ExecSeg {
+        .init(
+            execSegBase: execSegBase.byteSwapped,
+            execSegLimit: execSegLimit.byteSwapped,
+            execSegFlags: execSegFlags.byteSwapped,
+            end_withExecSeg: end_withExecSeg
+        )
+    }
+}
+
+extension CS_CodeDirectory_Runtime {
+    var swapped: CS_CodeDirectory_Runtime {
+        .init(
+            runtime: runtime.byteSwapped,
+            preEncryptOffset: preEncryptOffset.byteSwapped,
+            end_withPreEncryptOffset: end_withPreEncryptOffset
+        )
+    }
+}
 
 // TODO: scatter vector
 // So far I have not been able to find a binary where the scatter exists.

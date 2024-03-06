@@ -308,11 +308,25 @@ typedef struct __CodeDirectory_TeamID {
 } __attribute__((packed))
 CS_CodeDirectory_TeamID;
 
-
 typedef struct __CodeDirectory_CodeLimit64 {
     uint32_t spare3;                                /* unused (must be zero) */
     uint64_t codeLimit64;                   /* limit to main image signature range, 64 bits */
 } __attribute__((packed)) 
 CS_CodeDirectory_CodeLimit64;
+
+typedef struct __CodeDirectory_ExecSeg {
+    uint64_t execSegBase;                   /* offset of executable segment */
+    uint64_t execSegLimit;                  /* limit of executable segment */
+    uint64_t execSegFlags;                  /* executable segment flags */
+    char end_withExecSeg[0];
+} __attribute__((packed))
+CS_CodeDirectory_ExecSeg;
+
+typedef struct __CodeDirectory_Runtime {
+    uint32_t runtime;
+    uint32_t preEncryptOffset;
+    char end_withPreEncryptOffset[0];
+} __attribute__((packed))
+CS_CodeDirectory_Runtime;
 
 #endif /* _KERN_CODESIGN_H */
