@@ -16,16 +16,29 @@ public struct CodeSignSuperBlob: LayoutWrapper {
 }
 
 extension CodeSignSuperBlob {
-    public var isSwapped: Bool {
-        layout.isSwapped
-    }
-
     public var magic: CodeSignMagic {
-        .init(rawValue: isSwapped ? layout.magic.byteSwapped : layout.magic)!
+        .init(rawValue: layout.magic)!
     }
 
     public var count: Int {
-        numericCast(isSwapped ? layout.count.byteSwapped : layout.count)
+        numericCast(layout.count)
+    }
+}
+
+extension CodeSignSuperBlob {
+    public func blobIndices(
+        in signature: MachOFile.CodeSign
+    ) -> AnySequence<CodeSignBlobIndex> {
+        let offset = layoutSize
+
+        return AnySequence(
+            DataSequence<CS_BlobIndex>(
+                data: signature.data.advanced(by: offset),
+                numberOfElements: count
+            ).lazy.map {
+                .init(layout: signature.isSwapped ? $0.swapped : $0)
+            }
+        )
     }
 }
 

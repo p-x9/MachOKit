@@ -387,3 +387,5 @@ extension CS_CodeDirectory_Runtime {
 // TODO: scatter vector
 // So far I have not been able to find a binary where the scatter exists.
 // https://github.com/apple-oss-distributions/libsecurity_codesigning/blob/f2cc42c7b45d1c0d69f1551bd5b84adccf5fa821/lib/codedirectory.h#L223C2-L228C4
+
+// TODO: Version 0x20600 (Linkage)

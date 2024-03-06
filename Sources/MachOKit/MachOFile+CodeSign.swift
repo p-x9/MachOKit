@@ -25,25 +25,13 @@ extension MachOFile.CodeSign {
         }
     }
 
-    public var blobIndices: AnySequence<CodeSignBlobIndex> {
-        guard let superBlob else { return AnySequence([]) }
-        let offset = superBlob.layoutSize
-
-        return AnySequence(
-            DataSequence<CS_BlobIndex>(
-                data: data.advanced(by: offset),
-                numberOfElements: superBlob.count
-            ).lazy.map {
-                .init(layout: isSwapped ? $0.swapped : $0)
-            }
-        )
-    }
-
     public var codeDirectories: [CodeSignCodeDirectory] {
         data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress else {
+            guard let baseAddress = bufferPointer.baseAddress,
+                  let superBlob else {
                 return []
             }
+            let blobIndices = superBlob.blobIndices(in: self)
             return blobIndices
                 .compactMap {
                     let offset: Int = numericCast($0.offset)
@@ -69,9 +57,11 @@ extension MachOFile.CodeSign {
 
     public var embeddedEntitlements: Dictionary<String, Any>? {
         data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress else {
+            guard let baseAddress = bufferPointer.baseAddress,
+                  let superBlob else {
                 return nil
             }
+            let blobIndices = superBlob.blobIndices(in: self)
             return blobIndices
                 .lazy
                 .compactMap { index in
@@ -101,9 +91,11 @@ extension MachOFile.CodeSign {
 
     public var embeddedDEREntitlementsData: Data? {
         data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress else {
+            guard let baseAddress = bufferPointer.baseAddress,
+                  let superBlob else {
                 return nil
             }
+            let blobIndices = superBlob.blobIndices(in: self)
             return blobIndices
                 .lazy
                 .compactMap { index in
