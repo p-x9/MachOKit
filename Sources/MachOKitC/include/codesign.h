@@ -207,7 +207,7 @@ typedef struct __CodeDirectory {
     uint8_t pageSize;                               /* log2(page size in bytes); 0 => infinite */
     uint32_t spare2;                                /* unused (must be zero) */
 
-//    char end_earliest[0];
+    char end_earliest[0];
 //
 //    /* Version 0x20100 */
 //    uint32_t scatterOffset;                 /* offset of optional scatter vector */
@@ -295,5 +295,17 @@ struct launch_constraint_data {
     cs_launch_type_t launch_type;
 };
 typedef struct launch_constraint_data* launch_constraint_data_t;
+
+typedef struct __CodeDirectory_Scatter {
+    uint32_t scatterOffset;                 /* offset of optional scatter vector */
+    char end_withScatter[0];
+} CS_CodeDirectory_Scatter
+__attribute__ ((aligned(1)));
+
+typedef struct __CodeDirectory_TeamID {
+    uint32_t teamOffset;                    /* offset of optional team identifier */
+    char end_withTeam[0];
+} CS_CodeDirectory_TeamID
+__attribute__ ((aligned(1)));
 
 #endif /* _KERN_CODESIGN_H */
