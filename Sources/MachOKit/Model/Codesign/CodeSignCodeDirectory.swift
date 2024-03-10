@@ -314,7 +314,7 @@ extension CS_CodeDirectory {
     var isSwapped: Bool {
         magic < 0xfade0000
     }
-    
+
     var swapped: CS_CodeDirectory {
         .init(
             magic: magic.byteSwapped,
@@ -330,7 +330,7 @@ extension CS_CodeDirectory {
             hashType: hashType.byteSwapped,
             platform: platform.byteSwapped,
             pageSize: pageSize.byteSwapped,
-            spare2: spare2.byteSwapped, 
+            spare2: spare2.byteSwapped,
             end_earliest: end_earliest
         )
     }

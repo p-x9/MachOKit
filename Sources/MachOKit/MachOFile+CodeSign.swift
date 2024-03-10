@@ -55,64 +55,69 @@ extension MachOFile.CodeSign {
         }
     }
 
-    public var embeddedEntitlements: Dictionary<String, Any>? {
-        data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress,
-                  let superBlob else {
+    public var embeddedEntitlementsData: Data? {
+        guard let superBlob else {
+            return nil
+        }
+        let blobIndices = superBlob.blobIndices(in: self)
+        guard let index = blobIndices.first(
+            where: { $0.type == .entitlements }
+        ) else {
+            return nil
+        }
+        return data.withUnsafeBytes { bufferPointer in
+            guard let baseAddress = bufferPointer.baseAddress else {
                 return nil
             }
-            let blobIndices = superBlob.blobIndices(in: self)
-            return blobIndices
-                .lazy
-                .compactMap { index in
-                    let ptr = baseAddress.advanced(by: numericCast(index.offset))
-                    let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
-                    let blob = CodeSignGenericBlob(
-                        layout: isSwapped ? _blob.swapped : _blob
-                    )
-                    guard blob.magic == .embedded_entitlements else {
-                        return nil
-                    }
-                    let entitlementsData = Data(
-                        bytes: ptr.advanced(by: blob.layoutSize), // 8 = magic & length field
-                        count: numericCast(blob.length) - blob.layoutSize
-                    )
-                    guard let entitlements = try? PropertyListSerialization.propertyList(
-                        from: entitlementsData,
-                        format: nil
-                    ) else {
-                        return nil
-                    }
-                    return entitlements as? Dictionary<String, Any>
-                }
-                .first
+            let ptr = baseAddress.advanced(by: numericCast(index.offset))
+            let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
+            let blob = CodeSignGenericBlob(
+                layout: isSwapped ? _blob.swapped : _blob
+            )
+
+            return Data(
+                bytes: ptr.advanced(by: blob.layoutSize), // 8 = magic & length field
+                count: numericCast(blob.length) - blob.layoutSize
+            )
         }
     }
 
+    public var embeddedEntitlements: [String: Any]? {
+        guard let embeddedEntitlementsData else {
+            return nil
+        }
+        guard let entitlements = try? PropertyListSerialization.propertyList(
+            from: embeddedEntitlementsData,
+            format: nil
+        ) else {
+            return nil
+        }
+        return entitlements as? [String: Any]
+    }
+
     public var embeddedDEREntitlementsData: Data? {
-        data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress,
-                  let superBlob else {
+        guard let superBlob else {
+            return nil
+        }
+        let blobIndices = superBlob.blobIndices(in: self)
+        guard let index = blobIndices.first(
+            where: { $0.type == .der_entitlements }
+        ) else {
+            return nil
+        }
+        return data.withUnsafeBytes { bufferPointer in
+            guard let baseAddress = bufferPointer.baseAddress else {
                 return nil
             }
-            let blobIndices = superBlob.blobIndices(in: self)
-            return blobIndices
-                .lazy
-                .compactMap { index in
-                    let ptr = baseAddress.advanced(by: numericCast(index.offset))
-                    let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
-                    let blob = CodeSignGenericBlob(
-                        layout: isSwapped ? _blob.swapped : _blob
-                    )
-                    guard blob.magic == .embedded_der_entitlements else {
-                        return nil
-                    }
-                    return Data(
-                        bytes: ptr.advanced(by: blob.layoutSize), // 8 = magic & length field
-                        count: numericCast(blob.length) - blob.layoutSize
-                    )
-                }
-                .first
+            let ptr = baseAddress.advanced(by: numericCast(index.offset))
+            let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
+            let blob = CodeSignGenericBlob(
+                layout: isSwapped ? _blob.swapped : _blob
+            )
+            return Data(
+                bytes: ptr.advanced(by: blob.layoutSize),
+                count: numericCast(blob.length) - blob.layoutSize
+            )
         }
     }
 
