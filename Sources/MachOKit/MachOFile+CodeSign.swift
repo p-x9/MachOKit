@@ -69,21 +69,11 @@ extension MachOFile.CodeSign {
         ) else {
             return nil
         }
-        return data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress else {
-                return nil
-            }
-            let ptr = baseAddress.advanced(by: numericCast(index.offset))
-            let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
-            let blob = CodeSignGenericBlob(
-                layout: isSwapped ? _blob.swapped : _blob
-            )
-
-            return Data(
-                bytes: ptr.advanced(by: blob.layoutSize), // 8 = magic & length field
-                count: numericCast(blob.length) - blob.layoutSize
-            )
-        }
+        return blobData(
+            in: superBlob,
+            at: index,
+            includesGenericInfo: false
+        )
     }
 
     public var embeddedEntitlements: [String: Any]? {
@@ -109,20 +99,11 @@ extension MachOFile.CodeSign {
         ) else {
             return nil
         }
-        return data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress else {
-                return nil
-            }
-            let ptr = baseAddress.advanced(by: numericCast(index.offset))
-            let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
-            let blob = CodeSignGenericBlob(
-                layout: isSwapped ? _blob.swapped : _blob
-            )
-            return Data(
-                bytes: ptr.advanced(by: blob.layoutSize),
-                count: numericCast(blob.length) - blob.layoutSize
-            )
-        }
+        return blobData(
+            in: superBlob,
+            at: index,
+            includesGenericInfo: false
+        )
     }
 
     public var signatureData: Data? {
@@ -185,29 +166,35 @@ extension MachOFile.CodeSign {
     /// - Parameters:
     ///   - superBlob: SuperBlob to which index belongs
     ///   - index: Index of the blob to be gotten
+    ///   - includesGenericInfo: A boolean value that indicates whether the data defined in the ``CodeSignGenericBlob``, such as magic and length, are included or not.
     /// - Returns: Data of blob
     ///
-    /// Blob data contains information defined in the ``CodeSignGenericBlob`` such as magic and length.
     /// Note that when converting from this data to other blob models, byte swapping must be performed appropriately for the ``MachOFile.CodeSign.isSwapped`` parameter.
     public func blobData(
         in superBlob: CodeSignSuperBlob,
-        at index: CodeSignBlobIndex
+        at index: CodeSignBlobIndex,
+        includesGenericInfo: Bool = true
     ) -> Data? {
-        return data.withUnsafeBytes { bufferPointer in
+        data.withUnsafeBytes { bufferPointer in
             guard let baseAddress = bufferPointer.baseAddress else {
                 return nil
             }
             let offset: Int = numericCast(superBlob.offset) + numericCast(index.offset)
             let ptr = baseAddress.advanced(by: offset)
             var _blob = ptr
-                .assumingMemoryBound(to: CS_SuperBlob.self)
+                .assumingMemoryBound(to: CS_GenericBlob.self)
                 .pointee
             if isSwapped { _blob = _blob.swapped }
 
-            return Data(
+            let data = Data(
                 bytes: ptr,
                 count: numericCast(_blob.length)
             )
+            if includesGenericInfo {
+                return data
+            } else {
+                return data.advanced(by: CodeSignGenericBlob.layoutSize)
+            }
         }
     }
 }
