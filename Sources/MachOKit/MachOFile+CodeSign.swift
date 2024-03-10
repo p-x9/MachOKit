@@ -187,8 +187,8 @@ extension MachOFile.CodeSign {
     ///   - index: Index of the blob to be gotten
     /// - Returns: Data of blob
     ///
-    /// Blob data contains information defined in the `CodeSignGenericBlob` such as magic and length.
-    /// Note that when converting from this data to other blob models, byte swapping must be performed appropriately for the `isSwapped` parameter.
+    /// Blob data contains information defined in the ``CodeSignGenericBlob`` such as magic and length.
+    /// Note that when converting from this data to other blob models, byte swapping must be performed appropriately for the ``MachOFile.CodeSign.isSwapped`` parameter.
     public func blobData(
         in superBlob: CodeSignSuperBlob,
         at index: CodeSignBlobIndex
