@@ -13,6 +13,7 @@ public struct CodeSignSuperBlob: LayoutWrapper {
     public typealias Layout = CS_SuperBlob
 
     public var layout: Layout
+    public let offset: Int // offset from start of linkedit_data
 }
 
 extension CodeSignSuperBlob {
@@ -29,7 +30,7 @@ extension CodeSignSuperBlob {
     public func blobIndices(
         in signature: MachOFile.CodeSign
     ) -> AnySequence<CodeSignBlobIndex> {
-        let offset = layoutSize
+        let offset = offset + layoutSize
 
         return AnySequence(
             DataSequence<CS_BlobIndex>(

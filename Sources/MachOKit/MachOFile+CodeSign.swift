@@ -20,8 +20,12 @@ extension MachOFile.CodeSign {
     public var superBlob: CodeSignSuperBlob? {
         data.withUnsafeBytes {
             guard let basePtr = $0.baseAddress else { return nil }
-            let layout = basePtr.assumingMemoryBound(to: CS_SuperBlob.self).pointee
-            return isSwapped ? .init(layout: layout.swapped) : .init(layout: layout)
+            var layout = basePtr.assumingMemoryBound(to: CS_SuperBlob.self).pointee
+            if isSwapped { layout = layout.swapped }
+            return .init(
+                layout: layout,
+                offset: 0
+            )
         }
     }
 
@@ -143,6 +147,34 @@ extension MachOFile.CodeSign {
             return Data(
                 bytes: ptr.advanced(by: blob.layoutSize),
                 count: numericCast(blob.length) - blob.layoutSize
+            )
+        }
+    }
+
+    public var requirementsBlob: CodeSignSuperBlob? {
+        guard let superBlob else {
+            return nil
+        }
+        let blobIndices = superBlob.blobIndices(in: self)
+        guard let index = blobIndices.first(
+            where: { $0.type == .requirements }
+        ) else {
+            return nil
+        }
+        return data.withUnsafeBytes { bufferPointer in
+            guard let baseAddress = bufferPointer.baseAddress else {
+                return nil
+            }
+            let offset: Int = numericCast(index.offset)
+            let ptr = baseAddress.advanced(by: offset)
+            var _blob = ptr
+                .assumingMemoryBound(to: CS_SuperBlob.self)
+                .pointee
+            if isSwapped { _blob = _blob.swapped }
+
+            return .init(
+                layout: _blob,
+                offset: offset
             )
         }
     }
