@@ -172,10 +172,10 @@ extension MachOFile.CodeSign {
             }
             let offset: Int = numericCast(superBlob.offset) + numericCast(index.offset)
             let ptr = baseAddress.advanced(by: offset)
-            var _blob = ptr
-                .assumingMemoryBound(to: CS_GenericBlob.self)
-                .pointee
-            if isSwapped { _blob = _blob.swapped }
+            guard let _blob: CodeSignGenericBlob = .load(
+                from: ptr,
+                isSwapped: isSwapped
+            ) else { return nil }
 
             let data = Data(
                 bytes: ptr,

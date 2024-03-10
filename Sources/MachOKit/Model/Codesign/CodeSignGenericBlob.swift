@@ -29,6 +29,25 @@ extension CodeSignGenericBlob {
     }
 }
 
+extension CodeSignGenericBlob {
+    static func load(
+        from ptr: UnsafeRawPointer,
+        isSwapped: Bool
+    ) -> CodeSignGenericBlob? {
+        var _magic = ptr.assumingMemoryBound(to: UInt32.self).pointee
+        if isSwapped { _magic = _magic.byteSwapped }
+        guard CodeSignMagic(rawValue: _magic) != nil else {
+            return nil
+        }
+        let layout = ptr
+            .assumingMemoryBound(to: CS_GenericBlob.self)
+            .pointee
+        return .init(
+            layout: isSwapped ? layout.swapped : layout
+        )
+    }
+}
+
 extension CS_GenericBlob {
     var isSwapped: Bool {
         magic < 0xfade0000
