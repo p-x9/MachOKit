@@ -116,20 +116,11 @@ extension MachOFile.CodeSign {
         ) else {
             return nil
         }
-        return data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress else {
-                return nil
-            }
-            let ptr = baseAddress.advanced(by: numericCast(index.offset))
-            let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
-            let blob = CodeSignGenericBlob(
-                layout: isSwapped ? _blob.swapped : _blob
-            )
-            return Data(
-                bytes: ptr.advanced(by: blob.layoutSize),
-                count: numericCast(blob.length) - blob.layoutSize
-            )
-        }
+        return blobData(
+            in: superBlob,
+            at: index,
+            includesGenericInfo: false
+        )
     }
 
     public var requirementsBlob: CodeSignSuperBlob? {
