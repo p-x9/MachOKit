@@ -150,6 +150,20 @@ extension MachOFile.CodeSign {
             )
         }
     }
+
+    public var requirementsData: [Data] {
+        guard let requirementsBlob else {
+            return []
+        }
+        let indices = requirementsBlob.blobIndices(in: self)
+        return indices.compactMap {
+            blobData(
+                in: requirementsBlob,
+                at: $0,
+                includesGenericInfo: true
+            )
+        }
+    }
 }
 
 extension MachOFile.CodeSign {
