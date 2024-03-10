@@ -179,3 +179,35 @@ extension MachOFile.CodeSign {
         }
     }
 }
+
+extension MachOFile.CodeSign {
+    /// Get blob data as `Data`
+    /// - Parameters:
+    ///   - superBlob: SuperBlob to which index belongs
+    ///   - index: Index of the blob to be gotten
+    /// - Returns: Data of blob
+    ///
+    /// Blob data contains information defined in the `CodeSignGenericBlob` such as magic and length.
+    /// Note that when converting from this data to other blob models, byte swapping must be performed appropriately for the `isSwapped` parameter.
+    public func blobData(
+        in superBlob: CodeSignSuperBlob,
+        at index: CodeSignBlobIndex
+    ) -> Data? {
+        return data.withUnsafeBytes { bufferPointer in
+            guard let baseAddress = bufferPointer.baseAddress else {
+                return nil
+            }
+            let offset: Int = numericCast(superBlob.offset) + numericCast(index.offset)
+            let ptr = baseAddress.advanced(by: offset)
+            var _blob = ptr
+                .assumingMemoryBound(to: CS_SuperBlob.self)
+                .pointee
+            if isSwapped { _blob = _blob.swapped }
+
+            return Data(
+                bytes: ptr,
+                count: numericCast(_blob.length)
+            )
+        }
+    }
+}
