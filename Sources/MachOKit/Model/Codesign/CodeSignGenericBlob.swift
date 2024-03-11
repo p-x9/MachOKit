@@ -31,10 +31,14 @@ extension CodeSignGenericBlob {
 
 extension CodeSignGenericBlob {
     static func load(
-        from ptr: UnsafeRawPointer,
+        from baseAddress: UnsafeRawPointer,
+        offset: Int,
         isSwapped: Bool
     ) -> CodeSignGenericBlob? {
-        var _magic = ptr.assumingMemoryBound(to: UInt32.self).pointee
+        let ptr = baseAddress.advanced(by: offset)
+        var _magic = ptr
+            .assumingMemoryBound(to: UInt32.self)
+            .pointee
         if isSwapped { _magic = _magic.byteSwapped }
         guard CodeSignMagic(rawValue: _magic) != nil else {
             return nil

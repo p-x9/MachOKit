@@ -185,14 +185,14 @@ extension MachOFile.CodeSign {
                 return nil
             }
             let offset: Int = numericCast(superBlob.offset) + numericCast(index.offset)
-            let ptr = baseAddress.advanced(by: offset)
             guard let _blob: CodeSignGenericBlob = .load(
-                from: ptr,
+                from: baseAddress,
+                offset: offset,
                 isSwapped: isSwapped
             ) else { return nil }
 
             let data = Data(
-                bytes: ptr,
+                bytes: baseAddress.advanced(by: offset),
                 count: numericCast(_blob.length)
             )
             if includesGenericInfo {

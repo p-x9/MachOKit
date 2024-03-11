@@ -224,14 +224,14 @@ extension MachOImage.CodeSign {
         includesGenericInfo: Bool = true
     ) -> Data? {
         let offset: Int = numericCast(superBlob.offset) + numericCast(index.offset)
-        let ptr = basePointer.advanced(by: offset)
         guard let _blob: CodeSignGenericBlob = .load(
-            from: ptr,
+            from: basePointer,
+            offset: offset,
             isSwapped: isSwapped
         ) else { return nil }
 
         let data = Data(
-            bytes: ptr,
+            bytes: basePointer.advanced(by: offset),
             count: numericCast(_blob.length)
         )
         if includesGenericInfo {
