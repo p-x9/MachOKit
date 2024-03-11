@@ -106,70 +106,6 @@ extension MachOImage.CodeSign {
             }
     }
 
-    public var embeddedEntitlementsData: Data? {
-        guard let superBlob else {
-            return nil
-        }
-        let blobIndices = superBlob.blobIndices(in: self)
-        guard let index = blobIndices.first(
-            where: { $0.type == .entitlements }
-        ) else {
-            return nil
-        }
-        return blobData(
-            in: superBlob,
-            at: index,
-            includesGenericInfo: false
-        )
-    }
-
-    public var embeddedEntitlements: [String: Any]? {
-        guard let embeddedEntitlementsData else {
-            return nil
-        }
-        guard let entitlements = try? PropertyListSerialization.propertyList(
-            from: embeddedEntitlementsData,
-            format: nil
-        ) else {
-            return nil
-        }
-        return entitlements as? [String: Any]
-    }
-
-    public var embeddedDEREntitlementsData: Data? {
-        guard let superBlob else {
-            return nil
-        }
-        let blobIndices = superBlob.blobIndices(in: self)
-        guard let index = blobIndices.first(
-            where: { $0.type == .der_entitlements }
-        ) else {
-            return nil
-        }
-        return blobData(
-            in: superBlob,
-            at: index,
-            includesGenericInfo: false
-        )
-    }
-
-    public var signatureData: Data? {
-        guard let superBlob else {
-            return nil
-        }
-        let blobIndices = superBlob.blobIndices(in: self)
-        guard let index = blobIndices.first(
-            where: { $0.type == .signatureslot }
-        ) else {
-            return nil
-        }
-        return blobData(
-            in: superBlob,
-            at: index,
-            includesGenericInfo: false
-        )
-    }
-
     public var requirementsBlob: CodeSignSuperBlob? {
         guard let superBlob else {
             return nil
@@ -192,20 +128,6 @@ extension MachOImage.CodeSign {
             layout: _blob,
             offset: offset
         )
-    }
-
-    public var requirementsData: [Data] {
-        guard let requirementsBlob else {
-            return []
-        }
-        let indices = requirementsBlob.blobIndices(in: self)
-        return indices.compactMap {
-            blobData(
-                in: requirementsBlob,
-                at: $0,
-                includesGenericInfo: true
-            )
-        }
     }
 }
 
@@ -239,5 +161,11 @@ extension MachOImage.CodeSign {
         } else {
             return data.advanced(by: CodeSignGenericBlob.layoutSize)
         }
+    }
+
+    public func blobIndices(
+        of superBlob: CodeSignSuperBlob
+    ) -> AnySequence<CodeSignBlobIndex> {
+        superBlob.blobIndices(in: self)
     }
 }
