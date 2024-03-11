@@ -19,14 +19,18 @@ final class MachOFilePrintTests: XCTestCase {
 //        let path = "/System/Applications/Calculator.app/Contents/MacOS/Calculator"
         let path = "/System/Applications/Freeform.app/Contents/MacOS/Freeform"
         let url = URL(fileURLWithPath: path)
-        guard let file = try? MachOKit.loadFromFile(url: url),
-              case let .fat(fatFile) = file,
-              let machOs = try? fatFile.machOFiles() else {
+        guard let file = try? MachOKit.loadFromFile(url: url) else {
             XCTFail("Failed to load file")
             return
         }
-        self.fat = fatFile
-        self.machO = machOs[1]
+        switch file {
+        case let .fat(fatFile):
+            self.fat = fatFile
+            self.machO = try! fatFile.machOFiles()[0]
+        case let .machO(machO):
+            self.machO = machO
+        }
+
     }
 
     func testHeader() throws {
@@ -572,5 +576,106 @@ extension MachOFilePrintTests {
                 }
             }
         }
+    }
+}
+
+extension MachOFilePrintTests {
+    func testCodeSign() {
+        guard let codeSign = machO.codeSign else {
+            return
+        }
+        guard let superBlob = codeSign.superBlob else {
+            return
+        }
+        let indices = superBlob.blobIndices(in: codeSign)
+        print(
+            indices.compactMap(\.type)
+        )
+    }
+
+    func testCodeSignEntitlements() {
+        guard let codeSign = machO.codeSign else {
+            return
+        }
+        guard let entitlements = codeSign.embeddedEntitlements else {
+            return
+        }
+        print(entitlements)
+    }
+
+    func testCodeSignCodeDirectories() {
+        guard let codeSign = machO.codeSign else {
+            return
+        }
+        let directories = codeSign.codeDirectories
+
+        /* Identifier */
+        let identifiers = directories
+            .compactMap {
+                $0.identifier(in: codeSign)
+            }
+        print(
+            "identifier:",
+            identifiers
+        )
+
+        /* CD Hash */
+        let cdHashes = directories
+            .compactMap {
+                $0.hash(in: codeSign)
+            }.map {
+                $0.map { String(format: "%02x", $0) }.joined()
+            }
+        print(
+            "CDHash:",
+            cdHashes
+        )
+
+        /* Page Hashes*/
+        //        let pageHashes = directories
+        //            .map { directory in
+        //                (-Int(directory.nSpecialSlots)..<Int(directory.nCodeSlots))
+        //                    .map {
+        //                        if let hash = directory.hash(forSlot: $0, in: codeSign) {
+        //                            return "\($0) " + hash.map { String(format: "%02x", $0) }.joined()
+        //                        } else {
+        //                            return "\($0) unknown"
+        //                        }
+        //                    }
+        //            }
+        //        print(
+        //            "PageHashes:",
+        //            pageHashes
+        //        )
+
+        /* Team IDs */
+        let teamIDs = directories
+            .compactMap {
+                $0.teamId(in: codeSign)
+            }
+        print(
+            "TeamID:",
+            teamIDs
+        )
+
+        /* Exec Segment */
+        let execSeg = directories
+            .compactMap {
+                $0.executableSegment(in: codeSign)
+            }
+        print(
+            "ExecSeg:",
+            execSeg
+        )
+
+        /* Runtime */
+        let runtime = directories
+            .compactMap {
+                $0.runtime(in: codeSign)
+            }
+        print(
+            "Runtime:",
+            runtime
+        )
     }
 }
