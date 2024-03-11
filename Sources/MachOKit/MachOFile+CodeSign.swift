@@ -11,12 +11,12 @@ import MachOKitC
 
 extension MachOFile {
     public struct CodeSign {
-        let data: Data
-        let isSwapped: Bool // bigEndian => false
+        public let data: Data
+        public let isSwapped: Bool // bigEndian => false
     }
 }
 
-extension MachOFile.CodeSign {
+extension MachOFile.CodeSign: CodeSignProtocol {
     public var superBlob: CodeSignSuperBlob? {
         data.withUnsafeBytes {
             guard let basePtr = $0.baseAddress else { return nil }

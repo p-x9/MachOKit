@@ -41,10 +41,51 @@ extension CodeSignCodeDirectory {
         }
     }
 
+    public func identifier(in signature: MachOImage.CodeSign) -> String {
+        String(
+            cString: signature.basePointer
+                .advanced(by: offset)
+                .advanced(by: numericCast(layout.identOffset))
+                .assumingMemoryBound(to: CChar.self)
+        )
+    }
+
     public func hash(
         in signature: MachOFile.CodeSign
     ) -> Data? {
         let data = signature.data[offset ..< offset + numericCast(layout.length)]
+        let length: CC_LONG = numericCast(layout.length)
+
+        return data.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                return nil
+            }
+            switch hashType {
+            case .sha1:
+                var digest = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
+                CC_SHA1(baseAddress, length, &digest)
+                return Data(digest)
+            case .sha256, .sha256_truncated:
+                var digest = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+                CC_SHA256(baseAddress, length, &digest)
+                return Data(digest)
+            case .sha384:
+                var digest = [UInt8](repeating: 0, count: Int(CC_SHA384_DIGEST_LENGTH))
+                CC_SHA384(baseAddress, length, &digest)
+                return Data(digest)
+            case .none:
+                return nil
+            }
+        }
+    }
+
+    public func hash(
+        in signature: MachOImage.CodeSign
+    ) -> Data? {
+        let data = Data(
+            bytes: signature.basePointer.advanced(by: offset),
+            count: numericCast(layout.length)
+        )
         let length: CC_LONG = numericCast(layout.length)
 
         return data.withUnsafeBytes {
@@ -84,8 +125,31 @@ extension CodeSignCodeDirectory {
     }
 
     public func hash(
+        forSlot index: Int,
+        in signature: MachOImage.CodeSign
+    ) -> Data? {
+        guard -Int(layout.nSpecialSlots) <= index,
+               index < Int(layout.nCodeSlots) else {
+            return nil
+        }
+        let size: Int = numericCast(layout.hashSize)
+        let offset = offset + numericCast(layout.hashOffset) + index * size
+        return Data(
+            bytes: signature.basePointer.advanced(by: offset),
+            count: size
+        )
+    }
+
+    public func hash(
         for specialSlot: CodeSignSpecialSlotType,
         in signature: MachOFile.CodeSign
+    ) -> Data? {
+        hash(forSlot: -specialSlot.rawValue, in: signature)
+    }
+
+    public func hash(
+        for specialSlot: CodeSignSpecialSlotType,
+        in signature: MachOImage.CodeSign
     ) -> Data? {
         hash(forSlot: -specialSlot.rawValue, in: signature)
     }
@@ -178,6 +242,22 @@ extension CodeSignCodeDirectory {
             layout: signature.isSwapped ? layout.swapped : layout
         )
     }
+
+    public func scatterOffset(in signature: MachOImage.CodeSign) -> ScatterOffset? {
+        guard isSupportsScatter else {
+            return nil
+        }
+        let layout: CS_CodeDirectory_Scatter? = signature.basePointer
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_Scatter.self)
+            .pointee
+        guard let layout else { return nil }
+
+        return .init(
+            layout: signature.isSwapped ? layout.swapped : layout
+        )
+    }
 }
 
 extension CodeSignCodeDirectory {
@@ -202,6 +282,22 @@ extension CodeSignCodeDirectory {
         )
     }
 
+    public func teamIdOffset(in signature: MachOImage.CodeSign) -> TeamIdOffset? {
+        guard isSupportsScatter else {
+            return nil
+        }
+        let layout: CS_CodeDirectory_TeamID? = signature.basePointer
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .advanced(by: ScatterOffset.layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_TeamID.self)
+            .pointee
+        guard let layout else { return nil }
+        return .init(
+            layout: signature.isSwapped ? layout.swapped : layout
+        )
+    }
+
     public func teamId(in signature: MachOFile.CodeSign) -> String? {
         guard let teamIdOffset = teamIdOffset(in: signature),
               teamIdOffset.teamOffset != 0 else {
@@ -215,6 +311,18 @@ extension CodeSignCodeDirectory {
                 .assumingMemoryBound(to: CChar.self)
             return String(cString: ptr)
         }
+    }
+
+    public func teamId(in signature: MachOImage.CodeSign) -> String? {
+        guard let teamIdOffset = teamIdOffset(in: signature),
+              teamIdOffset.teamOffset != 0 else {
+            return nil
+        }
+        let ptr = signature.basePointer
+                .advanced(by: offset)
+                .advanced(by: Int(teamIdOffset.teamOffset))
+                .assumingMemoryBound(to: CChar.self)
+        return String(cString: ptr)
     }
 }
 
@@ -240,6 +348,23 @@ extension CodeSignCodeDirectory {
             layout: signature.isSwapped ? layout.swapped : layout
         )
     }
+
+    public func codeLimit64(in signature: MachOImage.CodeSign) -> CodeLimit64? {
+        guard isSupportsCodeLimit64 else {
+            return nil
+        }
+        let layout: CS_CodeDirectory_CodeLimit64? = signature.basePointer
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .advanced(by: ScatterOffset.layoutSize)
+            .advanced(by: TeamIdOffset.layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_CodeLimit64.self)
+            .pointee
+        guard let layout else { return nil }
+        return .init(
+            layout: signature.isSwapped ? layout.swapped : layout
+        )
+    }
 }
 
 extension CodeSignCodeDirectory {
@@ -260,6 +385,24 @@ extension CodeSignCodeDirectory {
                 .assumingMemoryBound(to: CS_CodeDirectory_ExecSeg.self)
                 .pointee
         }
+        guard let layout else { return nil }
+        return .init(
+            layout: signature.isSwapped ? layout.swapped : layout
+        )
+    }
+
+    public func executableSegment(in signature: MachOImage.CodeSign) -> ExecutableSegment? {
+        guard isSupportsExecSegment else {
+            return nil
+        }
+        let layout: CS_CodeDirectory_ExecSeg? = signature.basePointer
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .advanced(by: ScatterOffset.layoutSize)
+            .advanced(by: TeamIdOffset.layoutSize)
+            .advanced(by: CodeLimit64.layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_ExecSeg.self)
+            .pointee
         guard let layout else { return nil }
         return .init(
             layout: signature.isSwapped ? layout.swapped : layout
@@ -292,6 +435,25 @@ extension CodeSignCodeDirectory {
         )
     }
 
+    public func runtime(in signature: MachOImage.CodeSign) -> Runtime? {
+        guard isSupportsRuntime else {
+            return nil
+        }
+        let layout: CS_CodeDirectory_Runtime? = signature.basePointer
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .advanced(by: ScatterOffset.layoutSize)
+            .advanced(by: TeamIdOffset.layoutSize)
+            .advanced(by: CodeLimit64.layoutSize)
+            .advanced(by: ExecutableSegment.layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_Runtime.self)
+            .pointee
+        guard let layout else { return nil }
+        return .init(
+            layout: signature.isSwapped ? layout.swapped : layout
+        )
+    }
+
     public func preEncryptHash(
         forSlot index: Int,
         in signature: MachOFile.CodeSign
@@ -307,6 +469,26 @@ extension CodeSignCodeDirectory {
         + numericCast(runtime.preEncryptOffset)
         + index * size
         return signature.data[offset ..< offset + size]
+    }
+
+    public func preEncryptHash(
+        forSlot index: Int,
+        in signature: MachOImage.CodeSign
+    ) -> Data? {
+        guard  0 <= index,
+               index < Int(layout.nCodeSlots),
+               let runtime = runtime(in: signature),
+               runtime.preEncryptOffset != 0 else {
+            return nil
+        }
+        let size: Int = numericCast(layout.hashSize)
+        let offset = offset
+        + numericCast(runtime.preEncryptOffset)
+        + index * size
+        return Data(
+            bytes: signature.basePointer.advanced(by: offset),
+            count: size
+        )
     }
 }
 

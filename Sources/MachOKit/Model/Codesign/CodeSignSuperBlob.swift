@@ -41,6 +41,23 @@ extension CodeSignSuperBlob {
             }
         )
     }
+
+    public func blobIndices(
+        in signature: MachOImage.CodeSign
+    ) -> AnySequence<CodeSignBlobIndex> {
+        let offset = offset + layoutSize
+
+        return AnySequence(
+            MemorySequence<CS_BlobIndex>(
+                basePointer: signature.basePointer
+                    .advanced(by: offset)
+                    .assumingMemoryBound(to: CS_BlobIndex.self),
+                numberOfElements: count
+            ).lazy.map {
+                .init(layout: signature.isSwapped ? $0.swapped : $0)
+            }
+        )
+    }
 }
 
 extension CS_SuperBlob {
