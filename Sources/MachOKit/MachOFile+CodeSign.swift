@@ -16,6 +16,13 @@ extension MachOFile {
     }
 }
 
+extension MachOFile.CodeSign {
+    init(data: Data) {
+        self.data = data
+        self.isSwapped = CFByteOrderGetCurrent() != CFByteOrderBigEndian.rawValue
+    }
+}
+
 extension MachOFile.CodeSign: CodeSignProtocol {
     public var superBlob: CodeSignSuperBlob? {
         data.withUnsafeBytes {

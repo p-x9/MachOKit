@@ -21,6 +21,7 @@ public protocol MachORepresentable {
     associatedtype FunctionStarts: Sequence<FunctionStart>
     associatedtype DataInCode: Sequence<DataInCodeEntry>
     associatedtype DyldChainedFixups: DyldChainedFixupsProtocol
+    associatedtype CodeSign: CodeSignProtocol
 
     /// A boolean value that indicates whether MachO is a 64-bit architecture.
     var is64Bit: Bool { get }
@@ -95,6 +96,7 @@ public protocol MachORepresentable {
     var functionStarts: FunctionStarts? { get }
     var dataInCode: DataInCode? { get }
     var dyldChainedFixups: DyldChainedFixups? { get }
+    var codeSign: CodeSign? { get }
 
     /// Find the symbol closest to the address at the specified offset.
     ///
