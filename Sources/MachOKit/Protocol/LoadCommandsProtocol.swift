@@ -100,4 +100,9 @@ extension LoadCommandsProtocol {
         infos(of: LoadCommand.encryptionInfo64)
             .first { _ in true }
     }
+
+    var codeSignature: LoadCommandInfo<linkedit_data_command>? {
+        infos(of: LoadCommand.codeSignature)
+            .first { _ in true }
+    }
 }

@@ -543,3 +543,28 @@ extension MachOImage {
         return nil
     }
 }
+
+extension MachOImage {
+    public var codeSign: CodeSign? {
+        guard let vmaddrSlide,
+              let codeSignature = loadCommands.codeSignature,
+              codeSignature.datasize > 0 else {
+            return nil
+        }
+
+        if let linkedit = loadCommands.linkedit64 {
+            return .init(
+                codeSignature: codeSignature.layout,
+                linkedit: linkedit,
+                vmaddrSlide: vmaddrSlide
+            )
+        } else if let linkedit = loadCommands.linkedit {
+            return .init(
+                codeSignature: codeSignature.layout,
+                linkedit: linkedit,
+                vmaddrSlide: vmaddrSlide
+            )
+        }
+        return nil
+    }
+}

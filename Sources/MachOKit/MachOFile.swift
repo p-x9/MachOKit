@@ -412,3 +412,17 @@ extension MachOFile {
         return false
     }
 }
+
+extension MachOFile {
+    public var codeSign: CodeSign? {
+        guard let info = loadCommands.codeSignature else {
+            return nil
+        }
+        let data = fileHandle.readData(
+            offset: UInt64(headerStartOffset) + numericCast(info.dataoff),
+            size: numericCast(info.datasize)
+        )
+
+        return .init(data: data)
+    }
+}

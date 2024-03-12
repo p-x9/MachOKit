@@ -310,3 +310,17 @@ extension Sequence where Element == MachOImage.Symbol {
         return nil
     }
 }
+
+extension Sequence where Element == CodeSignCodeDirectory {
+    public var bestHashTyped: CodeSignCodeDirectory? {
+        let hashTypes: [CodeSignHashType] = [
+            .sha384,
+            .sha256,
+            .sha256_truncated,
+            .sha1
+        ]
+        return self.min(by: { lhs, rhs in
+            hashTypes.firstIndex(of: lhs.hashType)! < hashTypes.firstIndex(of: rhs.hashType)!
+        })
+    }
+}
