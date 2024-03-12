@@ -10,7 +10,10 @@ import Foundation
 
 public protocol CodeSignProtocol {
     var superBlob: CodeSignSuperBlob? { get }
+    /// Sequence of code directories
     var codeDirectories: [CodeSignCodeDirectory] { get }
+    /// Best hash type code directory
+    var codeDirectory: CodeSignCodeDirectory? { get }
     /// Entitlements embedded in the MachO binary
     var embeddedEntitlements: [String: Any]? { get }
     /// DER-encoded entitlements data embedded in MachO binary
@@ -40,6 +43,10 @@ public protocol CodeSignProtocol {
 }
 
 extension CodeSignProtocol {
+    public var codeDirectory: CodeSignCodeDirectory? {
+        codeDirectories.bestHashTyped
+    }
+
     /// Entitlements data embedded in the MachO binary
     public var embeddedEntitlementsData: Data? {
         guard let superBlob else {
