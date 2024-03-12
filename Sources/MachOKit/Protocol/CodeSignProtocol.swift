@@ -11,7 +11,9 @@ import Foundation
 public protocol CodeSignProtocol {
     var superBlob: CodeSignSuperBlob? { get }
     var codeDirectories: [CodeSignCodeDirectory] { get }
+    /// Entitlements embedded in the MachO binary
     var embeddedEntitlements: [String: Any]? { get }
+    /// DER-encoded entitlements data embedded in MachO binary
     var embeddedDEREntitlementsData: Data? { get }
     var signatureData: Data? { get }
     var requirementsBlob: CodeSignSuperBlob? { get }
