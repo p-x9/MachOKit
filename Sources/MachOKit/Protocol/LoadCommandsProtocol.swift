@@ -30,6 +30,13 @@ extension LoadCommandsProtocol {
             }
         )
     }
+
+    public func info<T>(
+        of type: @escaping (T) -> LoadCommand
+    ) -> T? {
+        infos(of: type)
+            .first(where: { _ in true })
+    }
 }
 
 extension LoadCommandsProtocol {
@@ -62,47 +69,38 @@ extension LoadCommandsProtocol {
     }
 
     var symtab: LoadCommandInfo<symtab_command>? {
-        infos(of: LoadCommand.symtab)
-            .first { _ in true }
+        info(of: LoadCommand.symtab)
     }
 
     var dysymtab: LoadCommandInfo<dysymtab_command>? {
-        infos(of: LoadCommand.dysymtab)
-            .first { _ in true }
+        info(of: LoadCommand.dysymtab)
     }
 
     var functionStarts: LoadCommandInfo<linkedit_data_command>? {
-        infos(of: LoadCommand.functionStarts)
-            .first { _ in true }
+        info(of: LoadCommand.functionStarts)
     }
 
     var dataInCode: LoadCommandInfo<linkedit_data_command>? {
-        infos(of: LoadCommand.dataInCode)
-            .first { _ in true }
+        info(of: LoadCommand.dataInCode)
     }
 
     var dyldChainedFixups: LoadCommandInfo<linkedit_data_command>? {
-        infos(of: LoadCommand.dyldChainedFixups)
-            .first { _ in true }
+        info(of: LoadCommand.dyldChainedFixups)
     }
 
     var idDylib: DylibCommand? {
-        infos(of: LoadCommand.idDylib)
-            .first { _ in true }
+        info(of: LoadCommand.idDylib)
     }
 
     var encryptionInfo: EncryptionInfoCommand? {
-        infos(of: LoadCommand.encryptionInfo)
-            .first { _ in true }
+        info(of: LoadCommand.encryptionInfo)
     }
 
     var encryptionInfo64: EncryptionInfoCommand64? {
-        infos(of: LoadCommand.encryptionInfo64)
-            .first { _ in true }
+        info(of: LoadCommand.encryptionInfo64)
     }
 
     var codeSignature: LoadCommandInfo<linkedit_data_command>? {
-        infos(of: LoadCommand.codeSignature)
-            .first { _ in true }
+        info(of: LoadCommand.codeSignature)
     }
 }
