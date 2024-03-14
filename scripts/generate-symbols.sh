@@ -35,7 +35,7 @@ generate_symbol_graphs() {
   if [ -d "./Sources/$scheme/include" ]; then
     local HEADERS=$(ls "./Sources/$scheme/include")
     while IFS= read -r header; do
-        xcrun --toolchain swift clang \
+        xcrun clang \
             -extract-api \
             --product-name=$scheme \
             -o "$SYMBOL_DIR/$scheme-$header.json" \

@@ -10,6 +10,5 @@
 @_exported 
 import MachO
 
-@_documentation(visibility: internal)
 @_exported 
 import MachOKitC
