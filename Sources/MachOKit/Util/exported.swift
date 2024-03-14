@@ -6,5 +6,10 @@
 //  
 //
 
-@_exported import MachO
-@_exported import MachOKitC
+@_documentation(visibility: internal) 
+@_exported 
+import MachO
+
+@_documentation(visibility: internal)
+@_exported 
+import MachOKitC
