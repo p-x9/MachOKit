@@ -81,21 +81,60 @@ public protocol MachORepresentable {
     /// Symbol strings is not included.
     var allCStrings: [String] { get }
 
+    /// Sequence of rebase operations
     var rebaseOperations: RebaseOperations? { get }
+
+    /// Sequence of bind operations
     var bindOperations: BindOperations? { get }
+
+    /// Sequence of weak bind operations
     var weakBindOperations: BindOperations? { get }
+    
+    /// Sequence of lazy bind operations
     var lazyBindOperations: BindOperations? { get }
+
+    /// Sequence of export tries
+    ///
+    /// If LC_DYLD_INFO(LC_DYLD_INFO_ONLY) does not exist, look for LC_DYLD_EXPORTS_TRIE
     var exportTrieEntries: ExportTrieEntries? { get }
 
+    /// List of export symbols
+    ///
+    /// It is obtained by parsing  ``exportTrieEntries``
     var exportedSymbols: [ExportedSymbol] { get }
+
+    /// List of binding symbols
+    ///
+    /// It is obtained by parsing  ``bindOperations``
+    /// When this sequence is empty, it may be retrieved from ``dyldChainedFixups``
     var bindingSymbols: [BindingSymbol] { get }
+
+    /// List of weak binding symbols
+    ///
+    /// It is obtained by parsing  ``weakBindOperations``
     var weakBindingSymbols: [BindingSymbol] { get }
+
+    /// List of lazy binding symbols
+    ///
+    /// It is obtained by parsing  ``lazyBindOperations``
     var lazyBindingSymbols: [BindingSymbol] { get }
+
+    /// List of rebases
+    ///
+    /// It is obtained by parsing  ``rebaseOperations``
+    /// When this sequence is empty, it may be retrieved from ``dyldChainedFixups``
     var rebases: [Rebase] { get }
 
+    /// Sequence of function starts
     var functionStarts: FunctionStarts? { get }
+
+    /// Sequence of data in codes
     var dataInCode: DataInCode? { get }
+
+    /// Chained fixup infos
     var dyldChainedFixups: DyldChainedFixups? { get }
+
+    /// Code sign infos
     var codeSign: CodeSign? { get }
 
     /// Find the symbol closest to the address at the specified offset.
