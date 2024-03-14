@@ -1,0 +1,36 @@
+name: DocC
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Generate DocC
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Select Xcode 15
+        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+
+      - name: Build DocC
+        run: |
+          make docc
+
+      - uses: actions/upload-pages-artifact@v2
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: macos-13
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
