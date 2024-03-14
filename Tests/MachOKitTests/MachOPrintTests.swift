@@ -114,7 +114,7 @@ final class MachOPrintTests: XCTestCase {
                 }
                 let libraryOrdinal = Int(description.libraryOrdinal) - 1
                 if libraryOrdinal == -1,
-                   let info = Array(machO.loadCommands.infos(of: LoadCommand.idDylib)).first {
+                   let info = machO.loadCommands.info(of: LoadCommand.idDylib) {
                     print("LibraryOrdinal:", info.dylib(cmdsStart: machO.cmdsStartPtr).name)
                 } else if machO.dependencies.indices.contains(libraryOrdinal) {
                     print("LibraryOrdinal:", machO.dependencies[libraryOrdinal].dylib.name)

@@ -266,7 +266,7 @@ extension MachOImage {
 
 extension MachOImage {
     public var rebaseOperations: RebaseOperations? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         guard let info else { return nil }
 
@@ -294,7 +294,7 @@ extension MachOImage {
 
 extension MachOImage {
     public var bindOperations: BindOperations? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         guard let info else { return nil }
 
@@ -320,7 +320,7 @@ extension MachOImage {
     }
 
     public var weakBindOperations: BindOperations? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         guard let info else { return nil }
 
@@ -348,7 +348,7 @@ extension MachOImage {
     }
 
     public var lazyBindOperations: BindOperations? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         guard let info else { return nil }
 
@@ -378,7 +378,7 @@ extension MachOImage {
 
 extension MachOImage {
     public var exportTrieEntries: ExportTrieEntries? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         if let info {
             if is64Bit,
@@ -401,7 +401,7 @@ extension MachOImage {
             }
         }
 
-        guard let export = Array(loadCommands.infos(of: LoadCommand.dyldExportsTrie)).first,
+        guard let export = loadCommands.info(of: LoadCommand.dyldExportsTrie),
               let vmaddrSlide else {
             return nil
         }

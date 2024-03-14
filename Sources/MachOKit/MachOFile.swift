@@ -273,7 +273,7 @@ extension MachOFile {
 
 extension MachOFile {
     public var rebaseOperations: RebaseOperations? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
         guard let info else { return nil }
         return .init(machO: self, info: info.layout)
     }
@@ -281,7 +281,7 @@ extension MachOFile {
 
 extension MachOFile {
     public var bindOperations: BindOperations? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
         guard let info else { return nil }
         return .init(
             machO: self,
@@ -291,7 +291,7 @@ extension MachOFile {
     }
 
     public var weakBindOperations: BindOperations? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
         guard let info else { return nil }
         return .init(
             machO: self,
@@ -301,7 +301,7 @@ extension MachOFile {
     }
 
     public var lazyBindOperations: BindOperations? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
         guard let info else { return nil }
         return .init(
             machO: self,
@@ -313,13 +313,13 @@ extension MachOFile {
 
 extension MachOFile {
     public var exportTrieEntries: ExportTrieEntries? {
-        let info = Array(loadCommands.infos(of: LoadCommand.dyldInfo)).first ?? Array(loadCommands.infos(of: LoadCommand.dyldInfoOnly)).first
+        let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         if let info {
             return .init(machO: self, info: info.layout)
         }
 
-        guard let export = Array(loadCommands.infos(of: LoadCommand.dyldExportsTrie)).first else {
+        guard let export = loadCommands.info(of: LoadCommand.dyldExportsTrie) else {
             return nil
         }
 
