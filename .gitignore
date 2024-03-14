@@ -8,3 +8,5 @@ DerivedData/
 .netrc
 
 XCFrameworks/
+docs/
+symbol-graphs/
