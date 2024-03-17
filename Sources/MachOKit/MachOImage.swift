@@ -8,12 +8,31 @@
 
 import Foundation
 
+/// Structure for `MachO` representation loaded from memory.
+///
+/// ## Example
+/// - Initialize with pointer
+/// ``` swift
+/// let mh = _dyld_get_image_header(0)!
+/// let machO = MachOImage(ptr: mh)
+/// ```
+/// - Initialize with name
+/// ``` swift
+/// let machO = MachOImage(name: "Foundation")!
+/// ```
+///
+/// ## SeeAlso
+/// For loading MachO files, use ``MachOFile``.
 public struct MachOImage: MachORepresentable {
     /// Address of MachO header start
     public let ptr: UnsafeRawPointer
 
+    /// A boolean value that indicates whether the target CPU architecture is 64-bit or not.
     public let is64Bit: Bool
 
+    /// Size of mach header.
+    ///
+    /// The size of either `mach_header` or `mach_header_64`
     public var headerSize: Int {
         is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
     }
@@ -32,7 +51,11 @@ public struct MachOImage: MachORepresentable {
     public var cmdsStartPtr: UnsafeRawPointer {
         ptr.advanced(by: headerSize)
     }
-
+    
+    /// Initialized with the start pointer of mach header.
+    /// - Parameter ptr: start pointer of mach header
+    ///
+    /// Using function named `_dyld_get_image_header`,  start pointer to the mach header can be obtained.
     public init(ptr: UnsafePointer<mach_header>) {
         self.ptr = .init(ptr)
 
@@ -48,6 +71,14 @@ public struct MachOImage: MachORepresentable {
 }
 
 extension MachOImage {
+    /// initialize with machO image name.
+    /// - Parameter name: name of machO image
+    ///
+    /// Example.
+    /// - /System/Library/Frameworks/Foundation.framework/Versions/C/Foundation
+    ///     → Foundation
+    /// - /usr/lib/swift/libswiftFoundation.dylib
+    ///     → libswiftFoundation
     public init?(name: String) {
         let indices = 0..<_dyld_image_count()
         let index = indices.first { index in
@@ -72,13 +103,20 @@ extension MachOImage {
 }
 
 extension MachOImage {
+    /// Path name of machO image.
+    ///
+    /// It is the same value that can be obtained by `Dl_info.dli_fname` or `_dyld_get_image_name`.
     public var path: String? {
         var info = Dl_info()
         dladdr(ptr, &info)
         return String(cString: info.dli_fname)
     }
 
-    // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/mach_o/Header.cpp#L1354
+    /// virtual memory address slide of machO image.
+    ///
+    /// It is the same value that can be obtained by `_dyld_get_image_vmaddr_slide`.
+    ///
+    /// [Reference of implementation]( https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/mach_o/Header.cpp#L1354)
     public var vmaddrSlide: Int? {
         let ptr = Int(bitPattern: ptr)
         if let text = loadCommands.text64 {

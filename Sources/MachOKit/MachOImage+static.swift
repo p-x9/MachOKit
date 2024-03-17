@@ -10,6 +10,7 @@ import Foundation
 import MachO
 
 extension MachOImage {
+    /// Sequence of loaded machO images.
     public static var images: AnySequence<MachOImage> {
         AnySequence(
             (0..<_dyld_image_count())
@@ -23,6 +24,13 @@ extension MachOImage {
 }
 
 extension MachOImage {
+    /// Obtains the symbol closest to the specified address.
+    ///
+    /// Finds the symbol closest to the specified address among all loaded machO images.
+    /// - Parameters:
+    ///   - address: Addresses to search
+    ///   - isGlobalOnly: A Boolean value that indicates whether to look for global symbols only (or to look for local symbols as well)
+    /// - Returns: The closest symbol and the machO image to which it belongs.
     public static func closestSymbol(
         at address: UnsafeRawPointer,
         isGlobalOnly: Bool = false
@@ -75,6 +83,13 @@ extension MachOImage {
         return (closestImage, symbol)
     }
 
+    /// Obtains the symbol that exist at the specified address.
+    ///
+    /// Finds the symbol that exist at the specified address among all loaded machO images.
+    /// - Parameters:
+    ///   - address: Addresses to search
+    ///   - isGlobalOnly: A Boolean value that indicates whether to look for global symbols only (or to look for local symbols as well)
+    /// - Returns: The matched symbol and the machO image to which it belongs.
     public static func symbol(
         for address: UnsafeRawPointer,
         isGlobalOnly: Bool = false
@@ -89,7 +104,12 @@ extension MachOImage {
         }
         return nil
     }
-
+    
+    /// Obtains symbols matching the specified name.
+    /// - Parameters:
+    ///   - name: symbol name to search
+    ///   - mangled: A boolean value that indicates whether the specified symbol name is mangled or not.
+    /// - Returns: Sequence of matched symbols and machO images.
     public static func symbols(
         named name: String,
         mangled: Bool = true
