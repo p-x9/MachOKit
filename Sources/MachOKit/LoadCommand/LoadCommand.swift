@@ -421,7 +421,7 @@ extension LoadCommand {
 }
 
 extension LoadCommand {
-    public var info: Any {
+    public var info: any LoadCommandWrapper {
         switch self {
         case let .segment(info): info
         case let .symtab(info): info
