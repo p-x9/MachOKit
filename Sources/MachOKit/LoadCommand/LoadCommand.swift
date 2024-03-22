@@ -483,6 +483,22 @@ extension LoadCommand {
 }
 
 extension LoadCommand {
+    /// Offset from mach header trailing
+    ///
+    /// Convenience accessor of `info.offset`.
+    public var offset: Int {
+        info.offset
+    }
+
+    /// Memory layout of load command
+    ///
+    /// Convenience accessor of `info.layout`.
+    public var layout: Any {
+        info.layout
+    }
+}
+
+extension LoadCommand {
     public func swapped() -> Self {
         switch self {
         case let .segment(info):
