@@ -421,7 +421,7 @@ extension LoadCommand {
 }
 
 extension LoadCommand {
-    public var info: Any {
+    public var info: any LoadCommandWrapper {
         switch self {
         case let .segment(info): info
         case let .symtab(info): info
@@ -479,6 +479,22 @@ extension LoadCommand {
         case let .filesetEntry(info): info
         case let .atomInfo(info): info
         }
+    }
+}
+
+extension LoadCommand {
+    /// Offset from mach header trailing
+    ///
+    /// Convenience accessor of `info.offset`.
+    public var offset: Int {
+        info.offset
+    }
+
+    /// Memory layout of load command
+    ///
+    /// Convenience accessor of `info.layout`.
+    public var layout: Any {
+        info.layout
     }
 }
 
