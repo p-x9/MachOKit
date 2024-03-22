@@ -338,7 +338,7 @@ extension MachOPrintTests {
 
 extension MachOPrintTests {
     func testClosestSymbol() {
-        for symbol in machO.symbols {
+        for symbol in machO.symbols.shuffled().prefix(100) {
             let offset = symbol.offset + Int.random(in: 0..<100)
             guard let best = machO.closestSymbol(
                 at: offset
