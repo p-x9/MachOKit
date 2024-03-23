@@ -11,8 +11,9 @@ import Foundation
 public protocol SectionProtocol: LayoutWrapper {
     var sectionName: String { get }
     var segmentName: String { get }
-    var offset: Int { get }
+    var address: Int { get }
     var size: Int { get }
+    var offset: Int { get }
     var flags: SectionFlags { get }
 
     var indirectSymbolIndex: Int? { get }
@@ -64,12 +65,16 @@ extension Section {
         .init(tuple: layout.segname)
     }
 
-    public var offset: Int {
-        numericCast(layout.offset)
+    public var address: Int {
+        numericCast(layout.addr)
     }
 
     public var size: Int {
         numericCast(layout.size)
+    }
+
+    public var offset: Int {
+        numericCast(layout.offset)
     }
 
     public var flags: SectionFlags {
@@ -118,12 +123,16 @@ extension Section64 {
         .init(tuple: layout.segname)
     }
 
-    public var offset: Int {
-        numericCast(layout.offset)
+    public var address: Int {
+        numericCast(layout.addr)
     }
 
     public var size: Int {
         numericCast(layout.size)
+    }
+
+    public var offset: Int {
+        numericCast(layout.offset)
     }
 
     public var flags: SectionFlags {

@@ -17,6 +17,7 @@ public protocol SegmentCommandProtocol: LoadCommandWrapper {
     var fileSize: Int { get }
     var maxProtection: VMProtection { get }
     var initialProtection: VMProtection { get }
+    var numberOfSections: Int { get }
     var flags: SegmentCommandFlags { get }
 
     func startPtr(vmaddrSlide: Int) -> UnsafeRawPointer?
@@ -76,6 +77,10 @@ public struct SegmentCommand: SegmentCommandProtocol {
         .init(rawValue: layout.initprot)
     }
 
+    public var numberOfSections: Int {
+        numericCast(layout.nsects)
+    }
+
     public var flags: SegmentCommandFlags {
         .init(rawValue: layout.flags)
     }
@@ -119,6 +124,10 @@ public struct SegmentCommand64: SegmentCommandProtocol {
 
     public var initialProtection: VMProtection {
         .init(rawValue: layout.initprot)
+    }
+
+    public var numberOfSections: Int {
+        numericCast(layout.nsects)
     }
 
     public var flags: SegmentCommandFlags {
