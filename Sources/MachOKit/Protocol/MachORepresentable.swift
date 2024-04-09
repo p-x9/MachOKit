@@ -11,8 +11,8 @@ import Foundation
 public protocol MachORepresentable {
     associatedtype LoadCommands: LoadCommandsProtocol
     associatedtype Symbol: SymbolProtocol
-    associatedtype Symbols64: Sequence<Symbol>
-    associatedtype Symbols: Sequence<Symbol>
+    associatedtype Symbols64: RandomAccessCollection<Symbol>
+    associatedtype Symbols: RandomAccessCollection<Symbol>
     associatedtype IndirectSymbols: Sequence<IndirectSymbol>
     associatedtype RebaseOperations: Sequence<RebaseOperation>
     associatedtype BindOperations: Sequence<BindOperation>
@@ -55,7 +55,7 @@ public protocol MachORepresentable {
     var sections32: [Section] { get }
 
     /// Sequence of symbols
-    var symbols: AnySequence<Symbol> { get }
+    var symbols: AnyRandomAccessCollection<Symbol> { get }
     /// Sequence of 64-bit architecture symbols
     var symbols64: Symbols64? { get }
     /// Sequence of 32-bit architecture symbols
@@ -196,13 +196,13 @@ extension MachORepresentable {
 }
 
 extension MachORepresentable {
-    public var symbols: AnySequence<Symbol> {
+    public var symbols: AnyRandomAccessCollection<Symbol> {
         if is64Bit, let symbols64 {
-            AnySequence(symbols64)
+            AnyRandomAccessCollection(symbols64)
         } else if let symbols32 {
-            AnySequence(symbols32)
+            AnyRandomAccessCollection(symbols32)
         } else {
-            AnySequence([])
+            AnyRandomAccessCollection([])
         }
     }
 }
