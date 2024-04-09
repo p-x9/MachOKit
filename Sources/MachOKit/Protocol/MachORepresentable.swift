@@ -13,7 +13,7 @@ public protocol MachORepresentable {
     associatedtype Symbol: SymbolProtocol
     associatedtype Symbols64: RandomAccessCollection<Symbol>
     associatedtype Symbols: RandomAccessCollection<Symbol>
-    associatedtype IndirectSymbols: Sequence<IndirectSymbol>
+    associatedtype IndirectSymbols: RandomAccessCollection<IndirectSymbol>
     associatedtype RebaseOperations: Sequence<RebaseOperation>
     associatedtype BindOperations: Sequence<BindOperation>
     associatedtype ExportTrieEntries: Sequence<ExportTrieEntry>

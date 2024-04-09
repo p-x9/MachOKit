@@ -64,3 +64,27 @@ extension DataSequence {
         }
     }
 }
+
+extension DataSequence: Collection {
+    public typealias Index = Int
+
+    public var startIndex: Index { 0 }
+    public var endIndex: Index { numberOfElements }
+
+    public func index(after i: Int) -> Int {
+        i + 1
+    }
+
+    public subscript(position: Int) -> Element {
+        precondition(position >= 0)
+        precondition(position < endIndex)
+        return data.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else { fatalError() }
+            return baseAddress
+                .advanced(by: position)
+                .load(as: Element.self)
+        }
+    }
+}
+
+extension DataSequence: RandomAccessCollection {}
