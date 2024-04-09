@@ -23,9 +23,10 @@ extension MachOFile {
 
 extension MachOFile {
     public struct Symbols64: Sequence {
+        public let symtab: LoadCommandInfo<symtab_command>?
+
         public let stringData: Data
         public let symbolsData: Data
-
         public let numberOfSymbols: Int
 
         public func makeIterator() -> Iterator {
@@ -66,6 +67,7 @@ extension MachOFile.Symbols64 {
             }
         }
         self.init(
+            symtab: symtab,
             stringData: stringData,
             symbolsData: symbolsData,
             numberOfSymbols: numericCast(symtab.nsyms)
@@ -138,9 +140,10 @@ extension MachOFile.Symbols64 {
 
 extension MachOFile {
     public struct Symbols: Sequence {
+        public let symtab: LoadCommandInfo<symtab_command>?
+
         public let stringData: Data
         public let symbolsData: Data
-
         public let numberOfSymbols: Int
 
         public func makeIterator() -> Iterator {
@@ -182,6 +185,7 @@ extension MachOFile.Symbols {
         }
 
         self.init(
+            symtab: symtab, 
             stringData: stringData,
             symbolsData: symbolsData,
             numberOfSymbols: numericCast(symtab.nsyms)
@@ -251,3 +255,89 @@ extension MachOFile.Symbols {
         }
     }
 }
+
+// MARK: - Collection
+extension MachOFile.Symbols64: Collection {
+    public typealias Index = Int
+
+    public var startIndex: Index { 0 }
+    public var endIndex: Index { numberOfSymbols }
+
+    public func index(after i: Int) -> Int {
+        i + 1
+    }
+
+    public subscript(position: Int) -> MachOFile.Symbol {
+        get {
+            let symbol: nlist_64 = symbolsData.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else {
+                    fatalError()
+                }
+                let ptr = baseAddress
+                    .assumingMemoryBound(to: nlist_64.self)
+                return ptr.advanced(by: position).pointee
+            }
+
+            let string: String = stringData.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else {
+                    fatalError()
+                }
+                let ptr = baseAddress
+                    .assumingMemoryBound(to: CChar.self)
+                    .advanced(by: Int(symbol.n_un.n_strx))
+                return String(cString: ptr)
+            }
+
+            return .init(
+                name: string,
+                offset: Int(symbol.n_value),
+                nlist: Nlist64(layout: symbol)
+            )
+        }
+    }
+}
+
+
+extension MachOFile.Symbols: Collection {
+    public typealias Index = Int
+
+    public var startIndex: Index { 0 }
+    public var endIndex: Index { numberOfSymbols }
+
+    public func index(after i: Int) -> Int {
+        i + 1
+    }
+
+    public subscript(position: Int) -> MachOFile.Symbol {
+        get {
+            let symbol: nlist = symbolsData.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else {
+                    fatalError()
+                }
+                let ptr = baseAddress
+                    .assumingMemoryBound(to: nlist.self)
+                return ptr.advanced(by: position).pointee
+            }
+
+            let string: String = stringData.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else {
+                    fatalError()
+                }
+                let ptr = baseAddress
+                    .assumingMemoryBound(to: CChar.self)
+                    .advanced(by: Int(symbol.n_un.n_strx))
+                return String(cString: ptr)
+            }
+
+            return .init(
+                name: string,
+                offset: Int(symbol.n_value),
+                nlist: Nlist(layout: symbol)
+            )
+        }
+    }
+}
+
+// MARK: - RandomAccessCollection
+extension MachOFile.Symbols64: RandomAccessCollection {}
+extension MachOFile.Symbols: RandomAccessCollection {}

@@ -29,6 +29,7 @@ extension DyldCacheLocalSymbolsInfo {
         )
 
         return MachOFile.Symbols64(
+            symtab: nil, 
             stringData: stringData,
             symbolsData: symbolData,
             numberOfSymbols: numericCast(layout.nlistCount)
@@ -49,6 +50,7 @@ extension DyldCacheLocalSymbolsInfo {
         )
 
         return MachOFile.Symbols(
+            symtab: nil,
             stringData: stringData,
             symbolsData: symbolData,
             numberOfSymbols: numericCast(layout.nlistCount)
