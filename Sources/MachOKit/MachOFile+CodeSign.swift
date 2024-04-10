@@ -134,7 +134,7 @@ extension MachOFile.CodeSign {
 
     public func blobIndices(
         of superBlob: CodeSignSuperBlob
-    ) -> AnySequence<CodeSignBlobIndex> {
+    ) -> AnyRandomAccessCollection<CodeSignBlobIndex> {
         superBlob.blobIndices(in: self)
     }
 }

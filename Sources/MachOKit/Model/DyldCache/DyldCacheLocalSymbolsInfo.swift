@@ -57,13 +57,13 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
-    public func symbols(in cache: DyldCache) -> AnySequence<MachOFile.Symbol> {
+    public func symbols(in cache: DyldCache) -> AnyRandomAccessCollection<MachOFile.Symbol> {
         if let symbols64 = symbols64(in: cache) {
-            return AnySequence(symbols64)
+            return AnyRandomAccessCollection(symbols64)
         } else if let symbols32 = symbols32(in: cache) {
-            return AnySequence(symbols32)
+            return AnyRandomAccessCollection(symbols32)
         } else {
-            return AnySequence([])
+            return AnyRandomAccessCollection([])
         }
     }
 }
@@ -96,21 +96,21 @@ extension DyldCacheLocalSymbolsInfo {
 
     public func entries(
         in cache: DyldCache
-    ) -> AnySequence<DyldCacheLocalSymbolsEntryProtocol> {
+    ) -> AnyRandomAccessCollection<DyldCacheLocalSymbolsEntryProtocol> {
         if let entries = entries64(in: cache) {
-            return AnySequence(
+            return AnyRandomAccessCollection(
                 entries
                     .lazy
                     .map { $0 as DyldCacheLocalSymbolsEntryProtocol }
             )
         } else if let entries = entries32(in: cache) {
-            return AnySequence(
+            return AnyRandomAccessCollection(
                 entries
                     .lazy
                     .map { $0 as DyldCacheLocalSymbolsEntryProtocol }
             )
         } else {
-            return AnySequence([])
+            return AnyRandomAccessCollection([])
         }
     }
 }
