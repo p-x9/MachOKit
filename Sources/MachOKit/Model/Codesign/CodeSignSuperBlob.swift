@@ -32,10 +32,10 @@ extension CodeSignSuperBlob {
     /// - Returns: indices of this superBlob
     public func blobIndices(
         in signature: MachOFile.CodeSign
-    ) -> AnySequence<CodeSignBlobIndex> {
+    ) -> AnyRandomAccessCollection<CodeSignBlobIndex> {
         let offset = offset + layoutSize
 
-        return AnySequence(
+        return AnyRandomAccessCollection(
             DataSequence<CS_BlobIndex>(
                 data: signature.data.advanced(by: offset),
                 numberOfElements: count
@@ -50,10 +50,10 @@ extension CodeSignSuperBlob {
     /// - Returns: indices of this superBlob
     public func blobIndices(
         in signature: MachOImage.CodeSign
-    ) -> AnySequence<CodeSignBlobIndex> {
+    ) -> AnyRandomAccessCollection<CodeSignBlobIndex> {
         let offset = offset + layoutSize
 
-        return AnySequence(
+        return AnyRandomAccessCollection(
             MemorySequence<CS_BlobIndex>(
                 basePointer: signature.basePointer
                     .advanced(by: offset)

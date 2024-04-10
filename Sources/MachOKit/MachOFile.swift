@@ -355,7 +355,7 @@ extension MachOFile {
 }
 
 extension MachOFile {
-    public var dataInCode: AnySequence<DataInCodeEntry>? {
+    public var dataInCode: AnyRandomAccessCollection<DataInCodeEntry>? {
         guard let dataInCode = loadCommands.dataInCode,
               dataInCode.datasize > 0 else {
             return nil
@@ -367,7 +367,7 @@ extension MachOFile {
         )
 
         if isSwapped {
-            return AnySequence(
+            return AnyRandomAccessCollection(
                 entries.lazy.map {
                     DataInCodeEntry(
                         layout: .init(
@@ -380,7 +380,7 @@ extension MachOFile {
             )
         }
 
-        return AnySequence(entries)
+        return AnyRandomAccessCollection(entries)
     }
 }
 

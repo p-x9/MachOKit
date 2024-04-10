@@ -19,7 +19,7 @@ public protocol MachORepresentable {
     associatedtype ExportTrieEntries: Sequence<ExportTrieEntry>
     associatedtype Strings: Sequence<StringTableEntry>
     associatedtype FunctionStarts: Sequence<FunctionStart>
-    associatedtype DataInCode: Sequence<DataInCodeEntry>
+    associatedtype DataInCode: RandomAccessCollection<DataInCodeEntry>
     associatedtype DyldChainedFixups: DyldChainedFixupsProtocol
     associatedtype CodeSign: CodeSignProtocol
 

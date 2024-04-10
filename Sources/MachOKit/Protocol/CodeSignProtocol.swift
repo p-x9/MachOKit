@@ -39,7 +39,7 @@ public protocol CodeSignProtocol {
     /// - Returns: indices of superBlob
     func blobIndices(
         of superBlob: CodeSignSuperBlob
-    ) -> AnySequence<CodeSignBlobIndex>
+    ) -> AnyRandomAccessCollection<CodeSignBlobIndex>
 }
 
 extension CodeSignProtocol {
