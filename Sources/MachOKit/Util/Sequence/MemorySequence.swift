@@ -56,3 +56,22 @@ extension MemorySequence {
         }
     }
 }
+
+extension MemorySequence: Collection {
+    public typealias Index = Int
+
+    public var startIndex: Index { 0 }
+    public var endIndex: Index { numberOfElements }
+
+    public func index(after i: Int) -> Int {
+        i + 1
+    }
+
+    public subscript(position: Int) -> Element {
+        precondition(position >= 0)
+        precondition(position < endIndex)
+        return basePointer.advanced(by: position).pointee
+    }
+}
+
+extension MemorySequence: RandomAccessCollection {}
