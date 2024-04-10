@@ -15,14 +15,17 @@ public struct DyldCacheMappingAndSlideInfo: LayoutWrapper {
 }
 
 extension DyldCacheMappingAndSlideInfo {
+    /// Flags of mapping
     public var flags: DyldCacheMappingFlags {
         .init(rawValue: layout.flags)
     }
 
+    /// Max vm protection of this mapping
     public var maxProtection: VMProtection {
         .init(rawValue: VMProtection.RawValue(bitPattern: layout.maxProt))
     }
 
+    /// Initial vm protection of this mapping
     public var initialProtection: VMProtection {
         .init(rawValue: VMProtection.RawValue(bitPattern: layout.maxProt))
     }

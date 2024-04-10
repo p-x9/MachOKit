@@ -15,10 +15,14 @@ public struct DyldCacheImageTextInfo: LayoutWrapper {
 }
 
 extension DyldCacheImageTextInfo {
+    /// UUID of this image text
     public var uuid: UUID {
         .init(uuid: layout.uuid)
     }
 
+    /// Path for image text
+    /// - Parameter cache: DyldCache to which this image belongs
+    /// - Returns: Path for image text
     public func path(in cache: DyldCache) -> String? {
         cache.fileHandle.readString(
             offset: numericCast(layout.pathOffset),
