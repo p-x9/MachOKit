@@ -33,6 +33,7 @@ public enum DyldSubCacheEntry {
         }
     }
 
+    /// UUID of sub cache
     public var uuid: UUID {
         switch self {
         case let .general(info): info.uuid
@@ -40,6 +41,7 @@ public enum DyldSubCacheEntry {
         }
     }
 
+    /// Offset of this subcache from the main cache base address
     public var cacheVMOffset: UInt64 {
         switch self {
         case let .general(info): info.cacheVMOffset
@@ -47,6 +49,9 @@ public enum DyldSubCacheEntry {
         }
     }
 
+    /// File name suffix of the subCache file
+    ///
+    /// e.g. ".25.data", ".03.development"
     public var fileSuffix: String? {
         switch self {
         case let .general(info): info.fileSuffix
@@ -62,6 +67,7 @@ public struct DyldSubCacheEntryV1: LayoutWrapper {
 }
 
 extension DyldSubCacheEntryV1 {
+    /// UUID of sub cache
     public var uuid: UUID {
         .init(uuid: layout.uuid)
     }
@@ -74,10 +80,14 @@ public struct DyldSubCacheEntryGeneral: LayoutWrapper {
 }
 
 extension DyldSubCacheEntryGeneral {
+    /// UUID of sub cache
     public var uuid: UUID {
         .init(uuid: layout.uuid)
     }
 
+    /// File name suffix of the subCache file
+    ///
+    /// e.g. ".25.data", ".03.development"
     public var fileSuffix: String {
         .init(tuple: layout.fileSuffix)
     }

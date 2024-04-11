@@ -15,43 +15,53 @@ public struct DyldCacheHeader: LayoutWrapper {
 }
 
 extension DyldCacheHeader {
+    /// dyld_cache magic number identifier
     public var magic: String {
         .init(tuple: layout.magic)
     }
 
+    /// Unique value for each shared cache file
     public var uuid: UUID {
         .init(uuid: layout.uuid)
     }
 
+    /// Type of dyld  cache.
     public var cacheType: DyldCacheType {
         .init(rawValue: layout.cacheType)!
     }
 
+    /// Sub type of dyld cache for a multi-cache, nil otherwise.
     public var cacheSubType: DyldCacheSubType? {
         guard cacheType == .multiCache else { return nil }
         return .init(rawValue: layout.cacheSubType)
     }
 
+    /// Target Platform
     public var platform: Platform {
         .init(rawValue: layout.platform) ?? .unknown
     }
 
+    /// A boolean value that indicates whether this cache targets simulator
     public var isSimulator: Bool {
         layout.simulator != 0
     }
 
+    /// Target OS version
     public var osVersion: Version {
         .init(layout.osVersion)
     }
 
+    /// Alternative target platform.
     public var altPlatform: Platform {
         .init(rawValue: layout.altPlatform) ?? .unknown
     }
 
+    /// Alternative target OS version
     public var altOsVersion: Version {
         .init(layout.altOsVersion)
     }
 
+    /// UUID of the associated symbol file.
     public var symbolFileUUID: UUID {
         .init(uuid: layout.symbolFileUUID)
     }

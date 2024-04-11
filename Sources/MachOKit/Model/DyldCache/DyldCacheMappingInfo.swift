@@ -15,10 +15,12 @@ public struct DyldCacheMappingInfo: LayoutWrapper {
 }
 
 extension DyldCacheMappingInfo {
+    /// Max vm protection of this mapping
     public var maxProtection: VMProtection {
         .init(rawValue: VMProtection.RawValue(bitPattern: layout.maxProt))
     }
 
+    /// Initial vm protection of this mapping
     public var initialProtection: VMProtection {
         .init(rawValue: VMProtection.RawValue(bitPattern: layout.maxProt))
     }

@@ -15,6 +15,9 @@ public struct DyldCacheLocalSymbolsInfo: LayoutWrapper {
 }
 
 extension DyldCacheLocalSymbolsInfo {
+    /// Sequence of 64-bit architecture symbols
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of symbols
     public func symbols64(in cache: DyldCache) -> MachOFile.Symbols64? {
         guard cache.cpu.is64Bit else { return nil }
 
@@ -36,6 +39,9 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
+    /// Sequence of 32-bit architecture symbols
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of symbols
     public func symbols32(in cache: DyldCache) -> MachOFile.Symbols? {
         guard !cache.cpu.is64Bit else { return nil }
 
@@ -57,6 +63,9 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
+    /// Sequence of symbols
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of symbols
     public func symbols(in cache: DyldCache) -> AnyRandomAccessCollection<MachOFile.Symbol> {
         if let symbols64 = symbols64(in: cache) {
             return AnyRandomAccessCollection(symbols64)
@@ -69,6 +78,9 @@ extension DyldCacheLocalSymbolsInfo {
 }
 
 extension DyldCacheLocalSymbolsInfo {
+    /// Sequence of 64-bit architecture symbols entries
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of  symbols entries
     public func entries64(
         in cache: DyldCache
     ) -> DataSequence<DyldCacheLocalSymbolsEntry64>? {
@@ -81,6 +93,9 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
+    /// Sequence of 32-bit architecture symbols entries
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of  symbols entries
     public func entries32(
         in cache: DyldCache
     ) -> DataSequence<DyldCacheLocalSymbolsEntry>? {
@@ -94,6 +109,9 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
+    /// Sequence of symbols entries
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of  symbols entries
     public func entries(
         in cache: DyldCache
     ) -> AnyRandomAccessCollection<DyldCacheLocalSymbolsEntryProtocol> {

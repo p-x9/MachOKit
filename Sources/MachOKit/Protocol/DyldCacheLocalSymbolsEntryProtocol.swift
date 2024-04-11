@@ -9,7 +9,12 @@
 import Foundation
 
 public protocol DyldCacheLocalSymbolsEntryProtocol {
+    /// Offset in cache file of start of dylib
     var dylibOffset: Int { get }
+
+    /// Start index of locals for this dylib
     var nlistStartIndex: Int { get }
+
+    /// Number of local symbols for this dylib
     var nlistCount: Int { get }
 }

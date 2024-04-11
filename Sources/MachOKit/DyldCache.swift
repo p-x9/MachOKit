@@ -9,6 +9,7 @@
 import Foundation
 
 public class DyldCache {
+    /// URL of loaded dyld cache file
     public let url: URL
     let fileHandle: FileHandle
 
@@ -16,7 +17,12 @@ public class DyldCache {
         DyldCacheHeader.layoutSize
     }
 
+    /// Header for dyld cache
     public let header: DyldCacheHeader
+
+    /// Target CPU info.
+    ///
+    /// It is obtained based on magic.
     public let cpu: CPU
 
     public init(url: URL) throws {
@@ -46,6 +52,7 @@ public class DyldCache {
 }
 
 extension DyldCache {
+    /// Sequence of mapping infos
     public var mappingInfos: DataSequence<DyldCacheMappingInfo>? {
         guard header.mappingCount > 0 else { return nil }
         return fileHandle.readDataSequence(
@@ -54,6 +61,7 @@ extension DyldCache {
         )
     }
 
+    /// Sequence of mapping and slide infos
     public var mappingAndSlideInfos: DataSequence<DyldCacheMappingAndSlideInfo>? {
         guard header.mappingWithSlideCount > 0 else { return nil }
         return fileHandle.readDataSequence(
@@ -62,6 +70,7 @@ extension DyldCache {
         )
     }
 
+    /// Sequence of image infos.
     public var imageInfos: DataSequence<DyldCacheImageInfo>? {
         guard header.imagesCount > 0 else { return nil }
         return fileHandle.readDataSequence(
@@ -70,6 +79,7 @@ extension DyldCache {
         )
     }
 
+    /// Sequence of image text infos.
     public var imageTextInfos: DataSequence<DyldCacheImageTextInfo>? {
         guard header.imagesTextCount > 0 else { return nil }
         return fileHandle.readDataSequence(
@@ -78,7 +88,9 @@ extension DyldCache {
         )
     }
 
-    /// check if entry type is `dyld_subcache_entry_v1` or `dyld_subcache_entry`
+    /// Sub cache type
+    ///
+    /// Check if entry type is `dyld_subcache_entry_v1` or `dyld_subcache_entry`
     public var subCacheEntryType: DyldSubCacheEntryType? {
         guard header.subCacheArrayCount > 0 else {
             return nil
@@ -95,6 +107,7 @@ extension DyldCache {
         }
     }
 
+    /// Local symbol info
     public var localSymbolsInfo: DyldCacheLocalSymbolsInfo? {
         guard header.localSymbolsSize > 0 else { return nil }
         return fileHandle.read(
@@ -102,6 +115,7 @@ extension DyldCache {
         )
     }
 
+    /// Sequence of sub caches
     public var subCaches: SubCaches? {
         guard let subCacheEntryType else { return nil }
         fileHandle.seek(toFileOffset: numericCast(header.subCacheArrayOffset))
@@ -117,6 +131,7 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    /// Sequence of MachO information contained in this cache
     public func machOFiles() -> AnySequence<MachOFile> {
         guard let imageInfos = imageInfos else {
             return AnySequence([])
