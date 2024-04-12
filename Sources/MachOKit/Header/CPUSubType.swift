@@ -1049,7 +1049,20 @@ extension CPUARM64_32SubType: CustomStringConvertible {
         case .arm64_32_v8: "CPU_SUBTYPE_ARM64_32_V8"
         }
     }
+}
 
+extension CPUSubType {
+    /// CPU subtype of host pc
+    static var current: CPUSubType? {
+        guard let cpuType: CPUType = .current else {
+            return nil
+        }
+        var subtype: cpu_type_t = 0
+        var size = MemoryLayout<cpu_type_t>.size
+        let ret = sysctlbyname("hw.cpusubtype", &subtype, &size, nil, 0)
+        guard ret != -1 else { return  nil }
+        return .init(rawValue: subtype, of: cpuType)
+    }
 }
 
 /*
