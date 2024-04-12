@@ -43,3 +43,17 @@ extension CPU {
         typeRawValue & CPU_ARCH_ABI64_32 != 0
     }
 }
+
+extension CPU {
+    /// CPU type and subtype of host pc
+    static var current: CPU? {
+        guard let type: CPUType = .current,
+              let subtype: CPUSubType = .current else {
+            return nil
+        }
+        return .init(
+            typeRawValue: type.rawValue,
+            subtypeRawValue: subtype.rawValue
+        )
+    }
+}
