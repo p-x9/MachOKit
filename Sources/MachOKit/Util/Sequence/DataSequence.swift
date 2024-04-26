@@ -81,8 +81,9 @@ extension DataSequence: Collection {
         return data.withUnsafeBytes {
             guard let baseAddress = $0.baseAddress else { fatalError() }
             return baseAddress
+                .assumingMemoryBound(to: Element.self)
                 .advanced(by: position)
-                .load(as: Element.self)
+                .pointee
         }
     }
 }
