@@ -15,8 +15,17 @@ extension FileHandle {
         swapHandler: ((inout Data) -> Void)? = nil
     ) -> DataSequence<Element> where Element: LayoutWrapper {
         seek(toFileOffset: offset)
+        let size = Element.layoutSize * numberOfElements
         var data = readData(
-            ofLength: Element.layoutSize * numberOfElements
+            ofLength: size
+        )
+        precondition(
+            Element.layoutSize == MemoryLayout<Element>.size,
+            "Invalid Layout Size"
+        )
+        precondition(
+            data.count >= size,
+            "Invalid Data Size"
         )
         if let swapHandler { swapHandler(&data) }
         return .init(
@@ -32,8 +41,13 @@ extension FileHandle {
         swapHandler: ((inout Data) -> Void)? = nil
     ) -> DataSequence<Element> {
         seek(toFileOffset: offset)
+        let size = MemoryLayout<Element>.size * numberOfElements
         var data = readData(
-            ofLength: MemoryLayout<Element>.size * numberOfElements
+            ofLength: size
+        )
+        precondition(
+            data.count >= size,
+            "Invalid Data Size"
         )
         if let swapHandler { swapHandler(&data) }
         return .init(
@@ -47,10 +61,58 @@ extension FileHandle {
     func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)? = nil
+    ) -> Optional<Element> where Element: LayoutWrapper {
+        seek(toFileOffset: offset)
+        var data = readData(
+            ofLength: Element.layoutSize
+        )
+        precondition(
+            Element.layoutSize == MemoryLayout<Element>.size,
+            "Invalid Layout Size"
+        )
+        precondition(
+            data.count >= Element.layoutSize,
+            "Invalid Data Size"
+        )
+        if let swapHandler { swapHandler(&data) }
+        return data.withUnsafeBytes {
+            $0.load(as: Element.self)
+        }
+    }
+
+    func read<Element>(
+        offset: UInt64,
+        swapHandler: ((inout Data) -> Void)? = nil
+    ) -> Optional<Element> {
+        seek(toFileOffset: offset)
+        var data = readData(
+            ofLength: MemoryLayout<Element>.size
+        )
+        precondition(
+            data.count >= MemoryLayout<Element>.size,
+            "Invalid Data Size"
+        )
+        if let swapHandler { swapHandler(&data) }
+        return data.withUnsafeBytes {
+            $0.load(as: Element.self)
+        }
+    }
+
+    func read<Element>(
+        offset: UInt64,
+        swapHandler: ((inout Data) -> Void)? = nil
     ) -> Element where Element: LayoutWrapper {
         seek(toFileOffset: offset)
         var data = readData(
             ofLength: Element.layoutSize
+        )
+        precondition(
+            Element.layoutSize == MemoryLayout<Element>.size,
+            "Invalid Layout Size"
+        )
+        precondition(
+            data.count >= Element.layoutSize,
+            "Invalid Data Size"
         )
         if let swapHandler { swapHandler(&data) }
         return data.withUnsafeBytes {
@@ -65,6 +127,10 @@ extension FileHandle {
         seek(toFileOffset: offset)
         var data = readData(
             ofLength: MemoryLayout<Element>.size
+        )
+        precondition(
+            data.count >= MemoryLayout<Element>.size,
+            "Invalid Data Size"
         )
         if let swapHandler { swapHandler(&data) }
         return data.withUnsafeBytes {
