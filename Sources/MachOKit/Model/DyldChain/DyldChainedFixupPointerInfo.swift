@@ -34,7 +34,9 @@ public enum DyldChainedFixupPointerInfo {
     /// DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE
     case x86_64_kernel_cache(General64Cache)
     /// DYLD_CHAINED_PTR_ARM64E_USERLAND24
-    case arm64e_userland24(ARM64E)
+    case arm64e_userland24(ARM64EUserland24)
+    /// DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE
+    case arm64e_shared_cache(ARM64ESharedCache)
 }
 
 extension DyldChainedFixupPointerInfo {
@@ -52,6 +54,7 @@ extension DyldChainedFixupPointerInfo {
         case .arm64e_firmware: .arm64e_firmware
         case .x86_64_kernel_cache: .x86_64_kernel_cache
         case .arm64e_userland24: .arm64e_userland24
+        case .arm64e_shared_cache: .arm64e_shared_cache
         }
     }
 }
@@ -71,6 +74,7 @@ extension DyldChainedFixupPointerInfo {
         case let .arm64e_firmware(info): info.next
         case let .x86_64_kernel_cache(info): info.next
         case let .arm64e_userland24(info): info.next
+        case let .arm64e_shared_cache(info): info.next
         }
     }
 
@@ -88,6 +92,7 @@ extension DyldChainedFixupPointerInfo {
         case let .arm64e_firmware(info): info.type
         case let .x86_64_kernel_cache(info): info.type
         case let .arm64e_userland24(info): info.type
+        case let .arm64e_shared_cache(info): info.type
         }
     }
 
@@ -105,6 +110,7 @@ extension DyldChainedFixupPointerInfo {
         case let .arm64e_firmware(info): info.rebase
         case let .x86_64_kernel_cache(info): info.rebase
         case let .arm64e_userland24(info): info.rebase
+        case let .arm64e_shared_cache(info): info.rebase
         }
     }
 
@@ -122,6 +128,7 @@ extension DyldChainedFixupPointerInfo {
         case let .arm64e_firmware(info): info.bind
         case let .x86_64_kernel_cache(info): info.bind
         case let .arm64e_userland24(info): info.bind
+        case let .arm64e_shared_cache(info): info.bind
         }
     }
 }

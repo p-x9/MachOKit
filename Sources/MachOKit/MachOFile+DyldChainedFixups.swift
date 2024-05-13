@@ -237,7 +237,7 @@ extension MachOFile.DyldChainedFixups {
                 if pointerFormat.is64Bit {
                     let rawValue = ptr.load(as: UInt64.self)
                     switch pointerFormat {
-                    case .arm64e, .arm64e_kernel, .arm64e_userland, .arm64e_firmware, .arm64e_userland24:
+                    case .arm64e, .arm64e_kernel, .arm64e_userland, .arm64e_firmware:
                         let content = DyldChainedFixupPointerInfo.ARM64E(rawValue: rawValue)
                         switch pointerFormat {
                         case .arm64e:
@@ -248,10 +248,12 @@ extension MachOFile.DyldChainedFixups {
                             fixupInfo = .arm64e_userland(content)
                         case .arm64e_firmware:
                             fixupInfo = .arm64e_firmware(content)
-                        case .arm64e_userland24:
-                            fixupInfo = .arm64e_userland24(content)
                         default: break
                         }
+
+                    case .arm64e_userland24:
+                        let content = DyldChainedFixupPointerInfo.ARM64EUserland24(rawValue: rawValue)
+                        fixupInfo = .arm64e_userland24(content)
 
                     case ._64, ._64_offset:
                         let content = DyldChainedFixupPointerInfo.General64(rawValue: rawValue)
@@ -270,6 +272,10 @@ extension MachOFile.DyldChainedFixups {
                             fixupInfo = .x86_64_kernel_cache(content)
                         default: break
                         }
+
+                    case .arm64e_shared_cache:
+                        let content = DyldChainedFixupPointerInfo.ARM64ESharedCache(rawValue: rawValue)
+                        fixupInfo = .arm64e_shared_cache(content)
 
                     default:
                         // unknown format
