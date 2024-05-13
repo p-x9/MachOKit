@@ -583,6 +583,28 @@ extension MachOImage {
 }
 
 extension MachOImage {
+    public var externalRelocations: MemorySequence<Relocation>? {
+        guard let dysymtab = loadCommands.dysymtab else { return nil }
+
+        let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
+
+        guard let linkedit,
+              let vmaddrSlide,
+              let start = linkedit.startPtr(vmaddrSlide: vmaddrSlide) else {
+            return nil
+        }
+
+        return .init(
+            basePointer: start
+                .advanced(by: -linkedit.fileOffset)
+                .advanced(by: numericCast(dysymtab.extreloff))
+                .assumingMemoryBound(to: Relocation.self),
+            numberOfElements: numericCast(dysymtab.nextrel)
+        )
+    }
+}
+
+extension MachOImage {
     public var codeSign: CodeSign? {
         guard let vmaddrSlide,
               let codeSignature = loadCommands.codeSignature,

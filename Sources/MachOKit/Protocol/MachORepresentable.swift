@@ -21,6 +21,7 @@ public protocol MachORepresentable {
     associatedtype FunctionStarts: Sequence<FunctionStart>
     associatedtype DataInCode: RandomAccessCollection<DataInCodeEntry>
     associatedtype DyldChainedFixups: DyldChainedFixupsProtocol
+    associatedtype ExternalRelocations: RandomAccessCollection<Relocation>
     associatedtype CodeSign: CodeSignProtocol
 
     /// A boolean value that indicates whether MachO is a 64-bit architecture.
@@ -133,6 +134,9 @@ public protocol MachORepresentable {
 
     /// Chained fixup infos
     var dyldChainedFixups: DyldChainedFixups? { get }
+    
+    /// Sequence of external relocation infos
+    var externalRelocations: ExternalRelocations? { get }
 
     /// Code sign infos
     var codeSign: CodeSign? { get }

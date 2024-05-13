@@ -402,6 +402,27 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    public var externalRelocations: DataSequence<Relocation>? {
+        guard let dysymtab = loadCommands.dysymtab else {
+            return nil
+        }
+        return fileHandle.readDataSequence(
+            offset: numericCast(dysymtab.extreloff),
+            numberOfElements: numericCast(dysymtab.nextrel),
+            swapHandler: { data in
+                guard self.isSwapped else { return }
+                data.withUnsafeMutableBytes {
+                    guard let baseAddress = $0.baseAddress else { return }
+                    let ptr = baseAddress
+                        .assumingMemoryBound(to: relocation_info.self)
+                    swap_relocation_info(ptr, dysymtab.nextrel, NXHostByteOrder())
+                }
+            }
+        )
+    }
+}
+
+extension MachOFile {
     public var isEncrypted: Bool {
         if let encryptionInfo = loadCommands.encryptionInfo {
             return encryptionInfo.cryptid != 0
