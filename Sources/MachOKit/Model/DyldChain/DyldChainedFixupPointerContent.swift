@@ -247,6 +247,101 @@ extension DyldChainedFixupPointerInfo {
             self = .rebase(autoBitCast(rawValue))
         }
     }
+
+    public enum ARM64EUserland24: DyldChainedFixupPointerContent {
+        case rebase(DyldChainedPtrArm64eRebase)
+        case bind(DyldChainedPtrArm64eBind24)
+        case authRebase(DyldChainedPtrArm64eAuthRebase)
+        case authBind(DyldChainedPtrArm64eAuthBind24)
+
+        public var next: Int {
+            switch self {
+            case let .rebase(info): info.next
+            case let .bind(info): info.next
+            case let .authRebase(info): info.next
+            case let .authBind(info): info.next
+            }
+        }
+
+        public var type: DyldChainedFixupPointerInfo.ContentType {
+            switch self {
+            case .rebase: .rebase
+            case .bind: .bind
+            case .authRebase: .rebase
+            case .authBind: .bind
+            }
+        }
+
+        public var rebase: (any DyldChainedPointerContentRebase)? {
+            switch self {
+            case let .rebase(info): info
+            case let .authRebase(info): info
+            default: nil
+            }
+        }
+
+        public var bind: (any DyldChainedPointerContentBind)? {
+            switch self {
+            case let .bind(info): info
+            case let .authBind(info): info
+            default: nil
+            }
+        }
+
+        init(rawValue: UInt64) {
+            let tmp = DyldChainedPtrArm64eRebase(layout: autoBitCast(rawValue))
+            let isBind = tmp.layout.bind == 1
+            let isAuth = tmp.layout.auth == 1
+
+            switch (isBind, isAuth) {
+            case (true, false): self = .bind(autoBitCast(rawValue))
+            case (false, false): self = .rebase(autoBitCast(rawValue))
+            case (true, true): self = .authBind(autoBitCast(rawValue))
+            case (false, true): self = .authRebase(autoBitCast(rawValue))
+            }
+        }
+    }
+
+    public enum ARM64ESharedCache: DyldChainedFixupPointerContent {
+        case rebase(DyldChainedPtrArm64eSharedCacheRebase)
+        case authRebase(DyldChainedPtrArm64eSharedCacheAuthRebase)
+
+        public var next: Int {
+            switch self {
+            case let .rebase(info): info.next
+            case let .authRebase(info): info.next
+            }
+        }
+
+        public var type: DyldChainedFixupPointerInfo.ContentType {
+            switch self {
+            case .rebase: .rebase
+            case .authRebase: .rebase
+            }
+        }
+
+        public var rebase: (any DyldChainedPointerContentRebase)? {
+            switch self {
+            case let .rebase(info): info
+            case let .authRebase(info): info
+            }
+        }
+
+        public var bind: (any DyldChainedPointerContentBind)? {
+            nil
+        }
+
+        init(rawValue: UInt64) {
+            let tmp = DyldChainedPtrArm64eSharedCacheRebase(layout: autoBitCast(rawValue))
+            let isAuth = tmp.layout.auth == 1
+
+            if isAuth {
+                self = .authRebase(autoBitCast(rawValue))
+            } else {
+                self = .rebase(tmp)
+            }
+        }
+    }
 }
 
 // MARK: - Rebase & Bind Layout
@@ -347,6 +442,36 @@ public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
     }
 }
 
+public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
+    public typealias Layout = dyld_chained_ptr_arm64e_bind24
+    public var layout: Layout
+
+    public var ordinal: Int {
+        numericCast(layout.ordinal)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
+}
+
+public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind {
+    public typealias Layout = dyld_chained_ptr_arm64e_auth_bind24
+    public var layout: Layout
+
+    public var ordinal: Int {
+        numericCast(layout.ordinal)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
+
+    public var keyName: String {
+        ["IA", "IB", "DA", "DB"][Int(layout.key)]
+    }
+}
+
 public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_64_kernel_cache_rebase
     public var layout: Layout
@@ -413,5 +538,35 @@ public struct DyldChainedPtr32FirmwareRebase: DyldChainedPointerContentRebase {
 
     public var next: Int {
         numericCast(layout.next)
+    }
+}
+
+public struct DyldChainedPtrArm64eSharedCacheRebase: DyldChainedPointerContentRebase {
+    public typealias Layout = dyld_chained_ptr_arm64e_shared_cache_rebase
+    public var layout: Layout
+
+    public var target: Int {
+        numericCast(layout.runtimeOffset)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
+}
+
+public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerContentRebase {
+    public typealias Layout = dyld_chained_ptr_arm64e_shared_cache_auth_rebase
+    public var layout: Layout
+
+    public var target: Int {
+        numericCast(layout.runtimeOffset)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
+
+    public var keyName: String {
+        ["IA", "IB", "DA", "DB"][Int(layout.keyIsData)]
     }
 }

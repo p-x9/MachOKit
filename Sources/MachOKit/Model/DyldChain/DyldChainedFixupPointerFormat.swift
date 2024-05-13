@@ -35,6 +35,8 @@ public enum DyldChainedFixupPointerFormat {
     case x86_64_kernel_cache
     /// DYLD_CHAINED_PTR_ARM64E_USERLAND24
     case arm64e_userland24
+    /// DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE
+    case arm64e_shared_cache
 }
 
 extension DyldChainedFixupPointerFormat: CustomStringConvertible {
@@ -53,6 +55,7 @@ extension DyldChainedFixupPointerFormat: CustomStringConvertible {
         case .arm64e_firmware: "DYLD_CHAINED_PTR_ARM64E_FIRMWARE"
         case .x86_64_kernel_cache: "DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE"
         case .arm64e_userland24: "DYLD_CHAINED_PTR_ARM64E_USERLAND24"
+        case .arm64e_shared_cache: "DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE"
         }
     }
 }
@@ -75,6 +78,7 @@ extension DyldChainedFixupPointerFormat: RawRepresentable {
         case UInt16(DYLD_CHAINED_PTR_ARM64E_FIRMWARE): self = .arm64e_firmware
         case UInt16(DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE): self = .x86_64_kernel_cache
         case UInt16(DYLD_CHAINED_PTR_ARM64E_USERLAND24): self = .arm64e_userland24
+        case UInt16(DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE): self = .arm64e_shared_cache
         default: return nil
         }
     }
@@ -94,6 +98,7 @@ extension DyldChainedFixupPointerFormat: RawRepresentable {
         case .arm64e_firmware: UInt16(DYLD_CHAINED_PTR_ARM64E_FIRMWARE)
         case .x86_64_kernel_cache: UInt16(DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE)
         case .arm64e_userland24: UInt16(DYLD_CHAINED_PTR_ARM64E_USERLAND24)
+        case .arm64e_shared_cache: UInt16(DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE)
         }
     }
 }
@@ -104,6 +109,7 @@ extension DyldChainedFixupPointerFormat {
         switch self {
         case .arm64e, .arm64e_userland, .arm64e_userland24,
                 .arm64e_kernel, .arm64e_firmware,
+                .arm64e_shared_cache,
                 ._64, ._64_offset, ._64_kernel_cache,
                 .x86_64_kernel_cache:
             return true
@@ -117,7 +123,7 @@ extension DyldChainedFixupPointerFormat {
     // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/common/MachOLayout.cpp#L2145
     var stride: Int {
         switch self {
-        case .arm64e, .arm64e_userland, .arm64e_userland24:
+        case .arm64e, .arm64e_userland, .arm64e_userland24, .arm64e_shared_cache:
             return 8
         case .arm64e_kernel, .arm64e_firmware,
                 ._32, ._32_firmware, ._32_cache,
