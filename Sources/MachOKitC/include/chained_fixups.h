@@ -1,17 +1,39 @@
-//
-//  chained_fixups.h
-//
-//
-//  Created by p-x9 on 2024/01/11.
-//  
-//
+/* -*- mode: C++; c-basic-offset: 4; tab-width: 4 -*-
+ *
+ * Copyright (c) 2018 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_LICENSE_HEADER_END@
+ */
 
-#ifndef chained_fixups_h
-#define chained_fixups_h
+// ref: https://github.com/apple-oss-distributions/xnu/blob/94d3b452840153a99b38a3a9659680b2a006908e/EXTERNAL_HEADERS/mach-o/fixup-chains.h
 
-// ref: https://github.com/apple-oss-distributions/xnu/blob/1031c584a5e37aff177559b9f69dbd3c8c3fd30a/EXTERNAL_HEADERS/mach-o/fixup-chains.h
+#ifndef __MACH_O_FIXUP_CHAINS__
+#define __MACH_O_FIXUP_CHAINS__ 6
+
 
 #include <stdint.h>
+
+
+//#define LC_DYLD_EXPORTS_TRIE   0x80000033 // used with linkedit_data_command
+//#define LC_DYLD_CHAINED_FIXUPS 0x80000034 // used with linkedit_data_command, payload is dyld_chained_fixups_header
+
 
 // header of the LC_DYLD_CHAINED_FIXUPS payload
 struct dyld_chained_fixups_header
@@ -44,11 +66,11 @@ struct dyld_chained_starts_in_segment
     uint32_t    max_valid_pointer;  // for 32-bit OS, any value beyond this is not a pointer
     uint16_t    page_count;         // how many pages are in array
     uint16_t    page_start[1];      // each entry is offset in each page of first element in chain
-    // or DYLD_CHAINED_PTR_START_NONE if no fixups on page
-    // uint16_t    chain_starts[1];    // some 32-bit formats may require multiple starts per page.
-    // for those, if high bit is set in page_starts[], then it
-    // is index into chain_starts[] which is a list of starts
-    // the last of which has the high bit set
+                                    // or DYLD_CHAINED_PTR_START_NONE if no fixups on page
+ // uint16_t    chain_starts[1];    // some 32-bit formats may require multiple starts per page.
+                                    // for those, if high bit is set in page_starts[], then it
+                                    // is index into chain_starts[] which is a list of starts
+                                    // the last of which has the high bit set
 };
 
 enum {
@@ -65,6 +87,8 @@ struct dyld_chained_starts_offsets
     uint32_t    chain_starts[1];    // array chain start offsets
 };
 
+
+// values for dyld_chained_starts_in_segment.pointer_format
 enum {
     DYLD_CHAINED_PTR_ARM64E                 =  1,    // stride 8, unauth target is vmaddr
     DYLD_CHAINED_PTR_64                     =  2,    // target is vmaddr
@@ -79,7 +103,9 @@ enum {
     DYLD_CHAINED_PTR_ARM64E_FIRMWARE        = 10,    // stride 4, unauth target is vmaddr
     DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE    = 11,    // stride 1, x86_64 kernel caches
     DYLD_CHAINED_PTR_ARM64E_USERLAND24      = 12,    // stride 8, unauth target is vm offset, 24-bit bind
+    DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE    = 13,    // stride 8, regular/auth targets both vm offsets.  Only A keys supported
 };
+
 
 // DYLD_CHAINED_PTR_ARM64E
 struct dyld_chained_ptr_arm64e_rebase
@@ -136,6 +162,32 @@ struct dyld_chained_ptr_64_rebase
                 next      : 12,    // 4-byte stride
                 bind      :  1;    // == 0
 };
+
+
+// DYLD_CHAINED_PTR_ARM64E_USERLAND24
+struct dyld_chained_ptr_arm64e_bind24
+{
+    uint64_t    ordinal   : 24,
+                zero      :  8,
+                addend    : 19,    // +/-256K
+                next      : 11,    // 8-byte stide
+                bind      :  1,    // == 1
+                auth      :  1;    // == 0
+};
+
+// DYLD_CHAINED_PTR_ARM64E_USERLAND24
+struct dyld_chained_ptr_arm64e_auth_bind24
+{
+    uint64_t    ordinal   : 24,
+                zero      :  8,
+                diversity : 16,
+                addrDiv   :  1,
+                key       :  2,
+                next      : 11,    // 8-byte stide
+                bind      :  1,    // == 1
+                auth      :  1;    // == 1
+};
+
 
 // DYLD_CHAINED_PTR_64
 struct dyld_chained_ptr_64_bind
@@ -195,12 +247,40 @@ struct dyld_chained_ptr_32_firmware_rebase
                 next     :  6;   // 4-byte stride
 };
 
-// IMPORT
+// DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE
+struct dyld_chained_ptr_arm64e_shared_cache_rebase
+{
+    uint64_t    runtimeOffset   : 34,   // offset from the start of the shared cache
+                high8           :  8,
+                unused          : 10,
+                next            : 11,   // 8-byte stide
+                auth            :  1;   // == 0
+};
+
+// DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE
+struct dyld_chained_ptr_arm64e_shared_cache_auth_rebase
+{
+    uint64_t    runtimeOffset   : 34,   // offset from the start of the shared cache
+                diversity       : 16,
+                addrDiv         :  1,
+                keyIsData       :  1,   // implicitly always the 'A' key.  0 -> IA.  1 -> DA
+                next            : 11,   // 8-byte stide
+                auth            :  1;   // == 1
+};
+
+
+
+// values for dyld_chained_fixups_header.imports_format
+enum {
+    DYLD_CHAINED_IMPORT          = 1,
+    DYLD_CHAINED_IMPORT_ADDEND   = 2,
+    DYLD_CHAINED_IMPORT_ADDEND64 = 3,
+};
 
 // DYLD_CHAINED_IMPORT
 struct dyld_chained_import
 {
-    uint32_t    lib_ordinal :  8,
+    uint32_t    lib_ordinal :  8,   // -15 .. 240 (0xF1 .. 0xF0)
                 weak_import :  1,
                 name_offset : 23;
 };
@@ -208,7 +288,7 @@ struct dyld_chained_import
 // DYLD_CHAINED_IMPORT_ADDEND
 struct dyld_chained_import_addend
 {
-    uint32_t    lib_ordinal :  8,
+    uint32_t    lib_ordinal :  8,   // -15 .. 240 (0xF1 .. 0xF0)
                 weak_import :  1,
                 name_offset : 23;
     int32_t     addend;
@@ -217,11 +297,11 @@ struct dyld_chained_import_addend
 // DYLD_CHAINED_IMPORT_ADDEND64
 struct dyld_chained_import_addend64
 {
-    uint64_t    lib_ordinal : 16,
+    uint64_t    lib_ordinal : 16,   // -15 .. 65520 (0xFFF1 .. 0xFFF0)
                 weak_import :  1,
                 reserved    : 15,
                 name_offset : 32;
     uint64_t    addend;
 };
 
-#endif /* chained_fixups_h */
+#endif // __MACH_O_FIXUP_CHAINS__
