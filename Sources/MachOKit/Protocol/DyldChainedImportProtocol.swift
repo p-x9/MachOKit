@@ -12,6 +12,7 @@ public protocol DyldChainedImportProtocol: LayoutWrapper {
     var libraryOrdinal: Int { get }
     var isWeakImport: Bool { get }
     var nameOffset: Int { get }
+    var addend: Int { get }
 }
 
 extension DyldChainedImportProtocol {
