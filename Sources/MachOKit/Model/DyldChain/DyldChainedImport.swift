@@ -38,6 +38,10 @@ public struct DyldChainedImportGeneral: DyldChainedImportProtocol {
     public var nameOffset: Int {
         numericCast(layout.name_offset)
     }
+
+    public var addend: Int {
+        0
+    }
 }
 
 public struct DyldChainedImportAddend: DyldChainedImportProtocol {
@@ -55,6 +59,10 @@ public struct DyldChainedImportAddend: DyldChainedImportProtocol {
     public var nameOffset: Int {
         numericCast(layout.name_offset)
     }
+
+    public var addend: Int {
+        numericCast(layout.addend)
+    }
 }
 
 public struct DyldChainedImportAddend64: DyldChainedImportProtocol {
@@ -71,6 +79,10 @@ public struct DyldChainedImportAddend64: DyldChainedImportProtocol {
 
     public var nameOffset: Int {
         numericCast(layout.name_offset)
+    }
+
+    public var addend: Int {
+        numericCast(layout.addend)
     }
 }
 
