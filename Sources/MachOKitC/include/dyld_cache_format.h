@@ -1,19 +1,37 @@
-//
-//  dyld_cache_format.h
-//  
-//
-//  Created by p-x9 on 2024/01/13.
-//  
-//
+/* -*- mode: C++; c-basic-offset: 4; tab-width: 4 -*-
+ *
+ * Copyright (c) 2006-2015 Apple Inc. All rights reserved.
+ *
+ * @APPLE_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPLE_LICENSE_HEADER_END@
+ */
 
-#ifndef dyld_cache_format_h
-#define dyld_cache_format_h
+// ref: https://github.com/apple-oss-distributions/dyld/blob/25174f1accc4d352d9e7e6294835f9e6e9b3c7bf/cache-builder/dyld_cache_format.h
 
-// ref: https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/cache-builder/dyld_cache_format.h
+#ifndef __DYLD_CACHE_FORMAT__
+#define __DYLD_CACHE_FORMAT__
 
 #include <stdint.h>
 #include <uuid/uuid.h>
 
+//#include <mach-o/fixup-chains.h>
+#include "fixup-chains.h"
 
 struct dyld_cache_header
 {
@@ -359,18 +377,18 @@ union dyld_cache_slide_pointer3
     uint64_t  raw;
     struct {
         uint64_t    pointerValue        : 51,
-        offsetToNextPointer : 11,
-        unused              :  2;
+                    offsetToNextPointer : 11,
+                    unused              :  2;
     }         plain;
 
     struct {
         uint64_t    offsetFromSharedCacheBase : 32,
-        diversityData             : 16,
-        hasAddressDiversity       :  1,
-        key                       :  2,
-        offsetToNextPointer       : 11,
-        unused                    :  1,
-        authenticated             :  1; // = 1;
+                    diversityData             : 16,
+                    hasAddressDiversity       :  1,
+                    key                       :  2,
+                    offsetToNextPointer       : 11,
+                    unused                    :  1,
+                    authenticated             :  1; // = 1;
     }         auth;
 };
 
@@ -462,6 +480,65 @@ struct dyld_cache_slide_info4
 #define DYLD_CACHE_SLIDE4_PAGE_EXTRA_END           0x8000  // last chain entry for page
 
 
+// The version 5 of the slide info uses a different compression scheme. Since
+// only interior pointers (pointers that point within the cache) are rebased
+// (slid), we know the possible range of the pointers and thus know there are
+// unused bits in each pointer.  We use those bits to form a linked list of
+// locations needing rebasing in each page.
+//
+// Definitions:
+//
+//  pageIndex = (pageAddress - startOfAllDataAddress)/info->page_size
+//  pageStarts[] = info + info->page_starts_offset
+//
+// There are two cases:
+//
+// 1) pageStarts[pageIndex] == DYLD_CACHE_SLIDE_V5_PAGE_ATTR_NO_REBASE
+//    The page contains no values that need rebasing.
+//
+// 2) otherwise...
+//    All rebase locations are in one linked list. The offset of the first
+//    rebase location in the page is pageStarts[pageIndex].
+//
+// A pointer is one of of the variants in dyld_cache_slide_pointer5
+//
+// The code for processing a linked list (chain) is:
+//
+//    uint32_t delta = pageStarts[pageIndex];
+//    dyld_cache_slide_pointer5* loc = pageStart;
+//    do {
+//        loc += delta;
+//        delta = loc->offsetToNextPointer;
+//        newValue = loc->regular.target + value_add + results->slide;
+//        if ( loc->auth.authenticated ) {
+//            newValue = sign_using_the_various_bits(newValue);
+//        }
+//        else {
+//            newValue = newValue | (loc->regular.high8 < 56);
+//        }
+//        loc->raw = newValue;
+//    } while (delta != 0);
+//
+//
+struct dyld_cache_slide_info5
+{
+    uint32_t    version;            // currently 5
+    uint32_t    page_size;          // currently 4096 (may also be 16384)
+    uint32_t    page_starts_count;
+    uint64_t    value_add;
+    uint16_t    page_starts[/* page_starts_count */];
+};
+
+#define DYLD_CACHE_SLIDE_V5_PAGE_ATTR_NO_REBASE    0xFFFF    // page has no rebasing
+
+union dyld_cache_slide_pointer5
+{
+    uint64_t  raw;
+    struct dyld_chained_ptr_arm64e_shared_cache_rebase      regular;
+    struct dyld_chained_ptr_arm64e_shared_cache_auth_rebase auth;
+};
+
+
 struct dyld_cache_local_symbols_info
 {
     uint32_t    nlistOffset;        // offset into this chunk of nlist entries
@@ -516,12 +593,14 @@ struct dyld_cache_dynamic_data_header
 
 #define IPHONE_DYLD_SHARED_CACHE_DIR       "/System/Library/Caches/com.apple.dyld/"
 
-#define DRIVERKIT_DYLD_SHARED_CACHE_DIR   "/System/DriverKit/System/Library/dyld/"
+#define DRIVERKIT_DYLD_SHARED_CACHE_DIR    "/System/DriverKit/System/Library/dyld/"
+
+#define EXCLAVEKIT_DYLD_SHARED_CACHE_DIR   "/System/ExclaveKit/System/Library/dyld/"
 
 #if !TARGET_OS_SIMULATOR
-#define DYLD_SHARED_CACHE_BASE_NAME        "dyld_shared_cache_"
+  #define DYLD_SHARED_CACHE_BASE_NAME        "dyld_shared_cache_"
 #else
-#define DYLD_SHARED_CACHE_BASE_NAME        "dyld_sim_shared_cache_"
+  #define DYLD_SHARED_CACHE_BASE_NAME        "dyld_sim_shared_cache_"
 #endif
 #define DYLD_SHARED_CACHE_DEVELOPMENT_EXT  ".development"
 
@@ -537,4 +616,9 @@ static const uint64_t kDyldSharedCacheTypeDevelopment = 0;
 static const uint64_t kDyldSharedCacheTypeProduction = 1;
 static const uint64_t kDyldSharedCacheTypeUniversal = 2;
 
-#endif /* dyld_cache_format_h */
+
+
+
+
+#endif // __DYLD_CACHE_FORMAT__
+
