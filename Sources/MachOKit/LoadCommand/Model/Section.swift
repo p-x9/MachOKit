@@ -46,6 +46,7 @@ public protocol SectionProtocol: LayoutWrapper {
 extension SectionProtocol {
     public func startPtr(in segment: any SegmentCommandProtocol, vmaddrSlide: Int) -> UnsafeRawPointer? {
         segment.startPtr(vmaddrSlide: vmaddrSlide)?
+            .advanced(by: -segment.fileOffset)
             .advanced(by: offset)
     }
 }
