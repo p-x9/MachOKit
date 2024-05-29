@@ -158,7 +158,20 @@ extension DyldCache {
 }
 
 extension DyldCache {
-    private func fileOffset(of address: UInt64) -> UInt64? {
+    public var objcOptimization: ObjCOptimization? {
+        let sharedRegionStart = header.sharedRegionStart
+        guard let offset = fileOffset(
+            of: sharedRegionStart + numericCast(header.objcOptsOffset)
+        ) else {
+            return nil
+        }
+        return fileHandle.read(offset: offset)
+    }
+}
+
+
+extension DyldCache {
+    public func fileOffset(of address: UInt64) -> UInt64? {
         guard let mappings = self.mappingInfos else { return nil }
         for mapping in mappings {
             if mapping.address <= address,

@@ -153,4 +153,16 @@ final class DyldCachePrintTests: XCTestCase {
             )
         }
     }
+
+    func testObjCOptimization() throws {
+        guard let objcOptimization = cache.objcOptimization else { return }
+        print("Version:", objcOptimization.version)
+        print("Flags:", objcOptimization.flags)
+        print("Header Info RO Cache Offset:", objcOptimization.headerInfoROCacheOffset)
+        print("Header Info RW Cache Offset:", objcOptimization.headerInfoRWCacheOffset)
+        print("Selector Hash Table Cache Offset:", objcOptimization.selectorHashTableCacheOffset)
+        print("Class Hash Table Cache Offset:", objcOptimization.classHashTableCacheOffset)
+        print("Protocol Hash Table Cache Offset:", objcOptimization.protocolHashTableCacheOffset)
+        print("Relative Method Selector Base  Address Offset:", objcOptimization.relativeMethodSelectorBaseAddressOffset)
+    }
 }
