@@ -9,7 +9,8 @@
 import Foundation
 
 extension FileHandle {
-    func readDataSequence<Element>(
+    @_spi(Support)
+    public func readDataSequence<Element>(
         offset: UInt64,
         numberOfElements: Int,
         swapHandler: ((inout Data) -> Void)? = nil
@@ -34,8 +35,9 @@ extension FileHandle {
         )
     }
 
+    @_spi(Support)
     @_disfavoredOverload
-    func readDataSequence<Element>(
+    public func readDataSequence<Element>(
         offset: UInt64,
         numberOfElements: Int,
         swapHandler: ((inout Data) -> Void)? = nil
@@ -58,7 +60,8 @@ extension FileHandle {
 }
 
 extension FileHandle {
-    func read<Element>(
+    @_spi(Support)
+    public func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)? = nil
     ) -> Optional<Element> where Element: LayoutWrapper {
@@ -80,7 +83,8 @@ extension FileHandle {
         }
     }
 
-    func read<Element>(
+    @_spi(Support)
+    public func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)? = nil
     ) -> Optional<Element> {
@@ -98,7 +102,8 @@ extension FileHandle {
         }
     }
 
-    func read<Element>(
+    @_spi(Support)
+    public func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)? = nil
     ) -> Element where Element: LayoutWrapper {
@@ -120,7 +125,8 @@ extension FileHandle {
         }
     }
 
-    func read<Element>(
+    @_spi(Support)
+    public func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)? = nil
     ) -> Element {
@@ -140,7 +146,8 @@ extension FileHandle {
 }
 
 extension FileHandle {
-    func readString(
+    @_spi(Support)
+    public func readString(
         offset: UInt64,
         size: Int
     ) -> String? {
@@ -151,7 +158,8 @@ extension FileHandle {
         return String(cString: data)
     }
 
-    func readData(
+    @_spi(Support)
+    public func readData(
         offset: UInt64,
         size: Int
     ) -> Data {
