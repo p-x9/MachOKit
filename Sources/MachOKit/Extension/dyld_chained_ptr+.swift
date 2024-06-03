@@ -1,9 +1,9 @@
 //
 //  dyld_chained_ptr+.swift
-//  
+//
 //
 //  Created by p-x9 on 2024/02/19.
-//  
+//
 //
 
 import Foundation
@@ -36,6 +36,18 @@ extension dyld_chained_ptr_arm64e_auth_bind: CustomStringConvertible {
 extension dyld_chained_ptr_64_rebase: CustomStringConvertible {
     public var description: String {
         "dyld_chained_ptr_64_rebase(target: \(target), high8: \(high8), reserved: \(reserved), next: \(next), bind: \(bind))"
+    }
+}
+
+extension dyld_chained_ptr_arm64e_bind24: CustomStringConvertible {
+    public var description: String {
+        "dyld_chained_ptr_arm64e_bind24(ordinal: \(ordinal), zero: \(zero), addend: \(addend), next: \(next), bind: \(bind), auth: \(auth))"
+    }
+}
+
+extension dyld_chained_ptr_arm64e_auth_bind24: CustomStringConvertible {
+    public var description: String {
+        "dyld_chained_ptr_arm64e_auth_bind24(ordinal: \(ordinal), zero: \(zero), diversity: \(diversity), addrDiv: \(addrDiv), key: \(key), next: \(next), bind: \(bind), auth: \(auth))"
     }
 }
 
@@ -72,5 +84,17 @@ extension dyld_chained_ptr_32_cache_rebase: CustomStringConvertible {
 extension dyld_chained_ptr_32_firmware_rebase: CustomStringConvertible {
     public var description: String {
         "dyld_chained_ptr_32_firmware_rebase(target: \(target), next: \(next))"
+    }
+}
+
+extension dyld_chained_ptr_arm64e_shared_cache_rebase: CustomStringConvertible {
+    public var description: String {
+        "dyld_chained_ptr_arm64e_shared_cache_rebase(runtimeOffset: \(runtimeOffset), high8: \(high8), unused: \(unused), next: \(next), auth: \(auth)"
+    }
+}
+
+extension dyld_chained_ptr_arm64e_shared_cache_auth_rebase: CustomStringConvertible {
+    public var description: String {
+        "dyld_chained_ptr_arm64e_shared_cache_auth_rebase(runtimeOffset: \(runtimeOffset), diversity: \(diversity), addrDiv: \(addrDiv), key: \(keyIsData), next: \(next), auth: \(auth))"
     }
 }
