@@ -14,7 +14,8 @@ public struct DataSequence<T>: Sequence {
     private let data: Data
     private let numberOfElements: Int
 
-    init(
+    @_spi(Support)
+    public init(
         data: Data,
         numberOfElements: Int
     ) {

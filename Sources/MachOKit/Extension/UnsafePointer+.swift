@@ -10,7 +10,8 @@ import Foundation
 
 extension UnsafePointer<UInt8> {
     /// (value, size)
-    func readULEB128() -> (UInt, Int) {
+    @_spi(Support)
+    public func readULEB128() -> (UInt, Int) {
         var value: UInt = 0
         var shift: UInt = 0
         var offset: Int = 0
@@ -29,7 +30,8 @@ extension UnsafePointer<UInt8> {
     }
 
     /// (value, size)
-    func readSLEB128() -> (Int, Int) {
+    @_spi(Support)
+    public func readSLEB128() -> (Int, Int) {
         var value: Int = 0
         var shift: UInt = 0
         var offset: Int = 0

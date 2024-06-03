@@ -14,7 +14,8 @@ public struct MemorySequence<T>: Sequence {
     private let basePointer: UnsafePointer<T>
     private let numberOfElements: Int
 
-    init(
+    @_spi(Support)
+    public init(
         basePointer: UnsafePointer<T>,
         numberOfElements: Int
     ) {
