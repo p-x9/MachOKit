@@ -567,6 +567,6 @@ public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerConte
     }
 
     public var keyName: String {
-        ["IA", "IB", "DA", "DB"][Int(layout.keyIsData)]
+        ["IA", "DA"][Int(layout.keyIsData)]
     }
 }
