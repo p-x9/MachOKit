@@ -72,9 +72,8 @@ extension MachOImage.Strings {
             if offset >= tableSize {
                 return nil
             }
-            let string = String(cString: nextPointer)
-            nextPointer = UnsafePointer(strchr(nextPointer, 0))
-                .advanced(by: 1)
+            let (string, nextOffset) = nextPointer.readString()
+            nextPointer = nextPointer.advanced(by: nextOffset)
 
             return .init(string: string, offset: offset)
         }
