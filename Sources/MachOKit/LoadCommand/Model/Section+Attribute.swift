@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SectionAttributes: BitFlags, @unchecked Sendable {
+public struct SectionAttributes: BitFlags {
     public typealias RawValue = UInt32
 
     public let rawValue: RawValue

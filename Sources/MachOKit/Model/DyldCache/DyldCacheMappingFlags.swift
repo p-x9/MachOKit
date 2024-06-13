@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldCacheMappingFlags: BitFlags, @unchecked Sendable {
+public struct DyldCacheMappingFlags: BitFlags {
     public typealias RawValue = UInt64
 
     public let rawValue: RawValue
