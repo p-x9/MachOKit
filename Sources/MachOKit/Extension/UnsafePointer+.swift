@@ -62,3 +62,12 @@ extension UnsafePointer<UInt8> {
         return (string, offset)
     }
 }
+
+extension UnsafePointer<CChar> {
+    func readString() -> (String, Int) {
+        let offset = Int(bitPattern: strchr(self, 0)) + 1 - Int(bitPattern: self)
+        let string = String(cString: self)
+
+        return (string, offset)
+    }
+}

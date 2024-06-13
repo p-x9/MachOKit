@@ -60,15 +60,12 @@ extension MachOFile.Strings {
 
                 let ptr = baseAddress
                     .advanced(by: nextOffset)
-                    .assumingMemoryBound(to: CChar.self)
-                let string = String(cString: ptr)
-
-                let nextPointer = UnsafePointer(strchr(ptr, 0))
-                    .advanced(by: 1)
+                    .assumingMemoryBound(to: UInt8.self)
+                let (string, offset) = ptr.readString()
 
                 let result = Element(string: string, offset: nextOffset)
 
-                nextOffset += Int(bitPattern: nextPointer) - Int(bitPattern: ptr)
+                nextOffset += offset
 
                 return  result
             }

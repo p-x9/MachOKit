@@ -25,8 +25,7 @@ extension DyldCacheImageTextInfo {
     /// - Returns: Path for image text
     public func path(in cache: DyldCache) -> String? {
         cache.fileHandle.readString(
-            offset: numericCast(layout.pathOffset),
-            size: 1000 // FIXME
+            offset: numericCast(layout.pathOffset)
         )
     }
 }
