@@ -8,10 +8,10 @@
 
 import Foundation
 
-public struct ExportSymbolFlags: BitFlags {
+public struct ExportSymbolFlags: BitFlags, @unchecked Sendable {
     public typealias RawValue = Int32
 
-    public var rawValue: RawValue
+    public let rawValue: RawValue
 
     public var kind: ExportSymbolKind? {
         .init(rawValue: rawValue & EXPORT_SYMBOL_FLAGS_KIND_MASK)

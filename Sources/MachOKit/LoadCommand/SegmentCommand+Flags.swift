@@ -8,10 +8,10 @@
 
 import Foundation
 
-public struct SegmentCommandFlags: BitFlags {
+public struct SegmentCommandFlags: BitFlags, @unchecked Sendable {
     public typealias RawValue = UInt32
 
-    public var rawValue: RawValue
+    public let rawValue: RawValue
 
     public init(rawValue: RawValue) {
         self.rawValue = rawValue

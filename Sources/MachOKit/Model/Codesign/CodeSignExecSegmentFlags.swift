@@ -9,10 +9,10 @@
 import Foundation
 import MachOKitC
 
-public struct CodeSignExecSegmentFlags: BitFlags {
+public struct CodeSignExecSegmentFlags: BitFlags, @unchecked Sendable {
     public typealias RawValue = UInt64
 
-    public var rawValue: RawValue
+    public let rawValue: RawValue
 
     public init(rawValue: RawValue) {
         self.rawValue = rawValue
