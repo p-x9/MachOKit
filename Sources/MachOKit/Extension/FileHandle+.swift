@@ -167,8 +167,9 @@ extension FileHandle {
         var offset = offset
         while true {
             let new = readData(offset: offset, size: Int(step))
-            if new.contains(0) || new.isEmpty { break }
+            if new.isEmpty { break }
             data.append(new)
+            if new.contains(0) { break }
             offset += UInt64(new.count)
         }
 
