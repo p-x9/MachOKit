@@ -114,18 +114,18 @@ extension DyldCacheLocalSymbolsInfo {
     /// - Returns: Sequence of  symbols entries
     public func entries(
         in cache: DyldCache
-    ) -> AnyRandomAccessCollection<DyldCacheLocalSymbolsEntryProtocol> {
+    ) -> AnyRandomAccessCollection<any DyldCacheLocalSymbolsEntryProtocol> {
         if let entries = entries64(in: cache) {
             return AnyRandomAccessCollection(
                 entries
                     .lazy
-                    .map { $0 as DyldCacheLocalSymbolsEntryProtocol }
+                    .map { $0 as (any DyldCacheLocalSymbolsEntryProtocol) }
             )
         } else if let entries = entries32(in: cache) {
             return AnyRandomAccessCollection(
                 entries
                     .lazy
-                    .map { $0 as DyldCacheLocalSymbolsEntryProtocol }
+                    .map { $0 as (any DyldCacheLocalSymbolsEntryProtocol) }
             )
         } else {
             return AnyRandomAccessCollection([])

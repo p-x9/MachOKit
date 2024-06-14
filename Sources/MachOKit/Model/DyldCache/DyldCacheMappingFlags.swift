@@ -11,7 +11,7 @@ import Foundation
 public struct DyldCacheMappingFlags: BitFlags {
     public typealias RawValue = UInt64
 
-    public var rawValue: RawValue
+    public let rawValue: RawValue
 
     public init(rawValue: RawValue) {
         self.rawValue = rawValue

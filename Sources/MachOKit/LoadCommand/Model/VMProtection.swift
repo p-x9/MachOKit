@@ -11,7 +11,7 @@ import Foundation
 public struct VMProtection: BitFlags {
     public typealias RawValue = vm_prot_t
 
-    public var rawValue: RawValue
+    public let rawValue: RawValue
 
     public init(rawValue: RawValue) {
         self.rawValue = rawValue
