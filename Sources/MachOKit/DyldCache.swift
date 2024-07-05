@@ -167,8 +167,17 @@ extension DyldCache {
         }
         return fileHandle.read(offset: offset)
     }
-}
 
+    public var swiftOptimization: SwiftOptimization? {
+        let sharedRegionStart = header.sharedRegionStart
+        guard let offset = fileOffset(
+            of: sharedRegionStart + numericCast(header.swiftOptsOffset)
+        ) else {
+            return nil
+        }
+        return fileHandle.read(offset: offset)
+    }
+}
 
 extension DyldCache {
     public func fileOffset(of address: UInt64) -> UInt64? {

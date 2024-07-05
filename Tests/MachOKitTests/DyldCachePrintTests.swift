@@ -165,4 +165,13 @@ final class DyldCachePrintTests: XCTestCase {
         print("Protocol Hash Table Cache Offset:", objcOptimization.protocolHashTableCacheOffset)
         print("Relative Method Selector Base  Address Offset:", objcOptimization.relativeMethodSelectorBaseAddressOffset)
     }
+
+    func testSwiftOptimization() throws {
+        guard let swiftOptimization = cache.swiftOptimization else { return }
+        print("Version:", swiftOptimization.version)
+        print("Padding:", swiftOptimization.padding)
+        print("Type Conformance Hash Table Cache Offset:", swiftOptimization.typeConformanceHashTableCacheOffset)
+        print("Metadata Conformance Hash Table Cache Offset:", swiftOptimization.metadataConformanceHashTableCacheOffset)
+        print("Foreign Type Conformance Hash Table Cache Offset:", swiftOptimization.foreignTypeConformanceHashTableCacheOffset)
+    }
 }
