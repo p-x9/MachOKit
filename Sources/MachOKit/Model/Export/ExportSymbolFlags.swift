@@ -49,7 +49,7 @@ extension ExportSymbolFlags {
         case reexport
         /// EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER
         case stub_and_resolver
-        ///
+        /// EXPORT_SYMBOL_FLAGS_STATIC_RESOLVER
         case static_resolver
     }
 }

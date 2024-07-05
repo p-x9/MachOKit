@@ -359,7 +359,32 @@ extension MachOFilePrintTests {
 
     func testExportedSymbols() throws {
         for symbol in machO.exportedSymbols {
+            print("----")
             print("0x" + String(symbol.offset, radix: 16), symbol.name)
+
+            print("Flags:", symbol.flags.bits)
+            if let kind = symbol.flags.kind {
+                print("Kind:", kind)
+            }
+
+            if let ordinal = symbol.ordinal {
+                let libraryOrdinal = Int(ordinal) - 1
+                if libraryOrdinal == -1,
+                   let info = machO.loadCommands.info(of: LoadCommand.idDylib) {
+                    print("LibraryOrdinal:", info.dylib(in: machO).name)
+                } else if machO.dependencies.indices.contains(libraryOrdinal) {
+                    print("LibraryOrdinal:", machO.dependencies[libraryOrdinal].dylib.name)
+                }
+            }
+
+            if let importedName = symbol.importedName {
+                print("Imported Name:", importedName)
+            }
+
+            if let stub = symbol.stub, let resolver = symbol.resolver {
+                print("Stub:", stub)
+                print("Resolver:", resolver)
+            }
         }
     }
 }

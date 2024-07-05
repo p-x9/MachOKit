@@ -10,18 +10,25 @@ import Foundation
 
 extension MachOFile {
     public struct ExportTrieEntries: Sequence {
-        public let data: Data
+        public typealias Iterator = DataTrieTree<ExportTrieNodeContent>.Iterator
+
         public let exportOffset: Int
         public let exportSize: Int
 
+        private let wrapped: DataTrieTree<ExportTrieNodeContent>
+
+        public var data: Data {
+            wrapped.data
+        }
+
         public func makeIterator() -> Iterator {
-            .init(data: data)
+            wrapped.makeIterator()
         }
     }
 }
 
 extension MachOFile.ExportTrieEntries {
-    init(
+    private init(
         machO: MachOFile,
         exportOffset: Int,
         exportSize: Int
@@ -33,9 +40,9 @@ extension MachOFile.ExportTrieEntries {
         )
 
         self.init(
-            data: data,
             exportOffset: exportOffset,
-            exportSize: exportSize
+            exportSize: exportSize,
+            wrapped: .init(data: data)
         )
     }
 
@@ -59,32 +66,5 @@ extension MachOFile.ExportTrieEntries {
             exportOffset: numericCast(export.dataoff),
             exportSize: numericCast(export.datasize)
         )
-    }
-}
-
-extension MachOFile.ExportTrieEntries {
-    public struct Iterator: IteratorProtocol {
-        public typealias Element = ExportTrieEntry
-
-        private let data: Data
-        private var nextOffset: Int = 0
-
-        init(data: Data) {
-            self.data = data
-        }
-
-        public mutating func next() -> ExportTrieEntry? {
-            guard nextOffset < data.count else { return nil }
-
-            return data.withUnsafeBytes {
-                guard let basePointer = $0.baseAddress else { return nil }
-
-                return .readNext(
-                    basePointer: basePointer.assumingMemoryBound(to: UInt8.self),
-                    exportSize: data.count,
-                    nextOffset: &nextOffset
-                )
-            }
-        }
     }
 }
