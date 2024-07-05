@@ -10,11 +10,23 @@ import Foundation
 
 extension MachOImage {
     public struct ExportTrieEntries: Sequence {
-        public let basePointer: UnsafePointer<UInt8>
-        public let exportSize: Int
+        public typealias Iterator = MemoryTrieTree<ExportTrieNodeContent>.Iterator
+
+        private let wrapped: MemoryTrieTree<ExportTrieNodeContent>
+
+        public var basePointer: UnsafeRawPointer {
+            wrapped.basePointer
+        }
+        public var exportSize: Int {
+            wrapped.size
+        }
+
+        init(wrapped: MemoryTrieTree<ExportTrieNodeContent>) {
+            self.wrapped = wrapped
+        }
 
         public func makeIterator() -> Iterator {
-            .init(basePointer: basePointer, exportSize: exportSize)
+            wrapped.makeIterator()
         }
     }
 }
@@ -32,7 +44,9 @@ extension MachOImage.ExportTrieEntries {
             .advanced(by: Int(fileSlide))
             .assumingMemoryBound(to: UInt8.self)
 
-        self.init(basePointer: ptr, exportSize: Int(info.export_size))
+        self.init(
+            wrapped: .init(basePointer: ptr, size: Int(info.export_size))
+        )
     }
 
     init(
@@ -47,7 +61,9 @@ extension MachOImage.ExportTrieEntries {
             .advanced(by: Int(fileSlide))
             .assumingMemoryBound(to: UInt8.self)
 
-        self.init(basePointer: ptr, exportSize: Int(info.export_size))
+        self.init(
+            wrapped: .init(basePointer: ptr, size: Int(info.export_size))
+        )
     }
 
     init(
@@ -61,7 +77,9 @@ extension MachOImage.ExportTrieEntries {
             .advanced(by: Int(export.dataoff))
             .assumingMemoryBound(to: UInt8.self)
 
-        self.init(basePointer: ptr, exportSize: Int(export.datasize))
+        self.init(
+            wrapped: .init(basePointer: ptr, size: Int(export.datasize))
+        )
     }
 
     init(
@@ -74,30 +92,8 @@ extension MachOImage.ExportTrieEntries {
             .advanced(by: Int(export.dataoff))
             .assumingMemoryBound(to: UInt8.self)
 
-        self.init(basePointer: ptr, exportSize: Int(export.datasize))
-    }
-}
-
-extension MachOImage.ExportTrieEntries {
-    public struct Iterator: IteratorProtocol {
-        public typealias Element = ExportTrieEntry
-
-        private let basePointer: UnsafePointer<UInt8>
-        private let exportSize: Int
-
-        private var nextOffset: Int = 0
-
-        init(basePointer: UnsafePointer<UInt8>, exportSize: Int) {
-            self.basePointer = basePointer
-            self.exportSize = exportSize
-        }
-
-        public mutating func next() -> ExportTrieEntry? {
-            .readNext(
-                basePointer: basePointer,
-                exportSize: exportSize,
-                nextOffset: &nextOffset
-            )
-        }
+        self.init(
+            wrapped: .init(basePointer: ptr, size: Int(export.datasize))
+        )
     }
 }

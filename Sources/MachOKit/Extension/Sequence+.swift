@@ -13,7 +13,7 @@ extension Sequence<ExportTrieEntry> {
         let entries = Array(self)
         guard !entries.isEmpty else { return [] }
 
-        let map: [Int: ExportTrieEntry] = Dictionary(
+        let map: [Int: Element] = Dictionary(
             uniqueKeysWithValues: entries.map {
                 ($0.offset, $0)
             }
@@ -30,8 +30,8 @@ extension Sequence<ExportTrieEntry> {
     func extractExportedSymbols(
         currentName: String,
         currentOffset: Int,
-        entry: ExportTrieEntry,
-        map: [Int: ExportTrieEntry]
+        entry: Element,
+        map: [Int: Element]
     ) -> [ExportedSymbol] {
         var currentOffset = currentOffset
         if let offset = entry.symbolOffset {
@@ -42,7 +42,12 @@ extension Sequence<ExportTrieEntry> {
             return [
                 ExportedSymbol(
                     name: currentName,
-                    offset: currentOffset
+                    offset: currentOffset,
+                    flags: entry.flags ?? [],
+                    ordinal: entry.ordinal,
+                    importedName: entry.importedName,
+                    stub: entry.stub,
+                    resolver: entry.resolver
                 )
             ]
         }
@@ -58,7 +63,12 @@ extension Sequence<ExportTrieEntry> {
                 return [
                     ExportedSymbol(
                         name: currentName + $0.label,
-                        offset: currentOffset
+                        offset: currentOffset,
+                        flags: entry.flags ?? [],
+                        ordinal: entry.ordinal,
+                        importedName: entry.importedName,
+                        stub: entry.stub,
+                        resolver: entry.resolver
                     )
                 ]
             }
