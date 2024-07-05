@@ -447,3 +447,10 @@ extension MachOFile {
         return .init(data: data)
     }
 }
+
+extension MachOFile {
+    /// A Boolean value that indicates whether this machO file was loaded from dyld cache
+    public var isLoadedFromDyldCache: Bool {
+        headerStartOffsetInCache > 0
+    }
+}
