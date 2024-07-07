@@ -14,11 +14,15 @@ let package = Package(
             targets: ["MachOKitC"]
         )
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "4.0.0")
+    ],
     targets: [
         .target(
             name: "MachOKit",
             dependencies: [
-                "MachOKitC"
+                "MachOKitC",
+                .product(name: "Crypto", package: "swift-crypto")
             ],
             swiftSettings: SwiftSetting.allCases
         ),

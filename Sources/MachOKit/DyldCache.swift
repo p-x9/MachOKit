@@ -36,10 +36,9 @@ public class DyldCache {
         )
 
         // check magic of header
-        guard let cpuType = header._cpuType,
-              let cpuSubType = header._cpuSubType else {
-            throw NSError() // FIXME: error
-        }
+        // FIXME: error instead of unwrap
+        let cpuType = header._cpuType!
+        let cpuSubType = header._cpuSubType!
         self.cpu = .init(
             typeRawValue: cpuType.rawValue,
             subtypeRawValue: cpuSubType.rawValue

@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Darwin
 
 public struct MachHeader: LayoutWrapper {
     public var layout: mach_header

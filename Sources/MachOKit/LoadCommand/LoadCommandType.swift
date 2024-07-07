@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import MachO
 
 public enum LoadCommandType {
     /// LC_SEGMENT

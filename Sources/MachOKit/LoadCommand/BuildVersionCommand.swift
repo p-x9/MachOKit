@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import MachO
 
 public struct BuildVersionCommand: LoadCommandWrapper {
     public typealias Layout = build_version_command
