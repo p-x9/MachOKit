@@ -160,6 +160,9 @@ extension DyldCache {
 extension DyldCache {
     public typealias DylibsTrieEntries = DataTrieTree<DylibsTrieNodeContent>
 
+    /// Dylibs trie is for searching by dylib name.
+    ///
+    /// The ``dylibIndices`` are retrieved from this trie tree．
     public var dylibsTrieEntries: DylibsTrieEntries? {
         guard let offset = fileOffset(of: header.dylibsTrieAddr) else {
             return nil
@@ -171,6 +174,15 @@ extension DyldCache {
         )
     }
 
+    /// Array of Dylib name-index pairs
+    ///
+    /// This index matches the index in the dylib image list that can be retrieved from imagesOffset.
+    ///
+    /// If an alias exists, there may be another element with an equal index.
+    /// ```
+    /// 0 /usr/lib/libobjc.A.dylib
+    /// 0 /usr/lib/libobjc.dylib
+    /// ```
     public var dylibIndices: [DylibIndex] {
         guard let dylibsTrieEntries else {
             return []
