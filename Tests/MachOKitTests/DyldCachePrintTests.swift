@@ -154,6 +154,16 @@ final class DyldCachePrintTests: XCTestCase {
         }
     }
 
+    func testDylibIndices() {
+        let indices = cache.dylibIndices
+            .sorted(by: { lhs, rhs in
+                lhs.index < rhs.index
+            })
+        for index in indices {
+            print(index.index, index.name)
+        }
+    }
+
     func testObjCOptimization() throws {
         guard let objcOptimization = cache.objcOptimization else { return }
         print("Version:", objcOptimization.version)
