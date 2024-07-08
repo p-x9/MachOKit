@@ -27,7 +27,7 @@ extension Sequence<ExportTrieEntry> {
     }
 
     /// https://opensource.apple.com/source/dyld/dyld-421.1/interlinked-dylibs/Trie.hpp.auto.html
-    func extractExportedSymbols(
+    private func extractExportedSymbols(
         currentName: String,
         currentOffset: Int,
         entry: Element,
@@ -332,5 +332,60 @@ extension Sequence where Element == CodeSignCodeDirectory {
         return self.min(by: { lhs, rhs in
             hashTypes.firstIndex(of: lhs.hashType)! < hashTypes.firstIndex(of: rhs.hashType)!
         })
+    }
+}
+
+extension Sequence<DylibsTrieEntry> {
+    public var dylibIndices: [DylibIndex] {
+        let entries = Array(self)
+        guard !entries.isEmpty else { return [] }
+
+        let map: [Int: Element] = Dictionary(
+            uniqueKeysWithValues: entries.map {
+                ($0.offset, $0)
+            }
+        )
+        return extractDylibIndices(
+            currentName: "",
+            currentOffset: 0,
+            entry: entries[0],
+            map: map
+        )
+    }
+
+    private func extractDylibIndices(
+        currentName: String,
+        currentOffset: Int,
+        entry: Element,
+        map: [Int: Element]
+    ) -> [DylibIndex] {
+        guard !entry.children.isEmpty else {
+            if let content = entry.content {
+                return [
+                    .init(name: currentName, index: content.index)
+                ]
+            }
+            return []
+        }
+        return entry.children.map {
+            if let entry = map[Int($0.offset)] {
+                return extractDylibIndices(
+                    currentName: currentName + $0.label,
+                    currentOffset: currentOffset,
+                    entry: entry,
+                    map: map
+                )
+            } else {
+                if let content = entry.content {
+                    return [
+                        .init(
+                            name: currentName + $0.label,
+                            index: content.index
+                        )
+                    ]
+                }
+                return []
+            }
+        }.flatMap { $0 }
     }
 }

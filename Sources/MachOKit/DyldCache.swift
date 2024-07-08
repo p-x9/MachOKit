@@ -158,6 +158,28 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    public typealias DylibsTrieEntries = DataTrieTree<DylibsTrieNodeContent>
+
+    public var dylibsTrieEntries: DylibsTrieEntries? {
+        guard let offset = fileOffset(of: header.dylibsTrieAddr) else {
+            return nil
+        }
+        let size = header.dylibsTrieSize
+
+        return DataTrieTree<DylibsTrieNodeContent>(
+            data: fileHandle.readData(offset: offset, size: Int(size))
+        )
+    }
+
+    public var dylibIndices: [DylibIndex] {
+        guard let dylibsTrieEntries else {
+            return []
+        }
+        return dylibsTrieEntries.dylibIndices
+    }
+}
+
+extension DyldCache {
     public var objcOptimization: ObjCOptimization? {
         let sharedRegionStart = header.sharedRegionStart
         guard let offset = fileOffset(
