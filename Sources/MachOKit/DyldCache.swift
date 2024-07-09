@@ -224,6 +224,21 @@ extension DyldCache {
         }
         return programsTrieEntries.programOffsets
     }
+
+    /// Get the prebuiltLoaderSet indicated by programOffset.
+    /// - Parameter programOffset: program name and offset pair
+    /// - Returns: prebuiltLoaderSet
+    public func prebuiltLoaderSet(for programOffset: ProgramOffset) -> PrebuiltLoaderSet? {
+        let cache1 = try! DyldCache(url: url.appendingPathExtension("01"))
+        let address: Int = numericCast(header.programsPBLSetPoolAddr) + numericCast(programOffset.offset)
+        guard let offset = cache1.fileOffset(
+            of: numericCast(address)
+        ) else { return nil }
+        let layout: prebuilt_loader_set = cache1.fileHandle.read(
+            offset: offset
+        )
+        return .init(layout: layout, address: address)
+    }
 }
 
 extension DyldCache {
