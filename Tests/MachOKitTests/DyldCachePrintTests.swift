@@ -164,6 +164,30 @@ final class DyldCachePrintTests: XCTestCase {
         }
     }
 
+    func testProgramOffsets() {
+        let programOffsets = cache.programOffsets
+        for programOffset in programOffsets {
+            print(programOffset.offset, programOffset.name)
+        }
+    }
+
+    func testProgramPreBuildLoaderSet() {
+        let programOffsets = cache.programOffsets
+        for programOffset in programOffsets {
+            guard !programOffset.name.starts(with: "/cdhash") else {
+                continue
+            }
+            guard let loaderSet = cache.prebuiltLoaderSet(for: programOffset) else {
+                continue
+            }
+            print("Name:", programOffset.name)
+            print("Loaders:")
+            for loader in loaderSet.loaders(in: cache1)! {
+                print("  \(loader.path(in: cache1) ?? "unknown")")
+            }
+        }
+    }
+
     func testObjCOptimization() throws {
         guard let objcOptimization = cache.objcOptimization else { return }
         print("Version:", objcOptimization.version)
