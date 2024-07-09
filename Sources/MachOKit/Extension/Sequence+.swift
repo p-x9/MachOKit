@@ -389,3 +389,58 @@ extension Sequence<DylibsTrieEntry> {
         }.flatMap { $0 }
     }
 }
+
+extension Sequence<ProgramsTrieEntry> {
+    public var programOffsets: [ProgramOffset] {
+        let entries = Array(self)
+        guard !entries.isEmpty else { return [] }
+
+        let map: [Int: Element] = Dictionary(
+            uniqueKeysWithValues: entries.map {
+                ($0.offset, $0)
+            }
+        )
+        return extractProgramOffsets(
+            currentName: "",
+            currentOffset: 0,
+            entry: entries[0],
+            map: map
+        )
+    }
+
+    private func extractProgramOffsets(
+        currentName: String,
+        currentOffset: Int,
+        entry: Element,
+        map: [Int: Element]
+    ) -> [ProgramOffset] {
+        guard !entry.children.isEmpty else {
+            if let content = entry.content {
+                return [
+                    .init(name: currentName, offset: content.offset)
+                ]
+            }
+            return []
+        }
+        return entry.children.map {
+            if let entry = map[Int($0.offset)] {
+                return extractProgramOffsets(
+                    currentName: currentName + $0.label,
+                    currentOffset: currentOffset,
+                    entry: entry,
+                    map: map
+                )
+            } else {
+                if let content = entry.content {
+                    return [
+                        .init(
+                            name: currentName + $0.label,
+                            offset: content.offset
+                        )
+                    ]
+                }
+                return []
+            }
+        }.flatMap { $0 }
+    }
+}
