@@ -198,14 +198,13 @@ extension DyldCache {
     ///
     /// The ``programOffsets`` are retrieved from this trie tree．
     public var programsTrieEntries: ProgramsTrieEntries? {
-        let cache1 = try! DyldCache(url: url.appendingPathExtension("01"))
-        guard let offset = cache1.fileOffset(of: header.programTrieAddr) else {
+        guard let offset = fileOffset(of: header.programTrieAddr) else {
             return nil
         }
         let size = header.programTrieSize
 
         return ProgramsTrieEntries(
-            data: cache1.fileHandle.readData(offset: offset, size: Int(size))
+            data: fileHandle.readData(offset: offset, size: Int(size))
         )
     }
 
@@ -229,12 +228,11 @@ extension DyldCache {
     /// - Parameter programOffset: program name and offset pair
     /// - Returns: prebuiltLoaderSet
     public func prebuiltLoaderSet(for programOffset: ProgramOffset) -> PrebuiltLoaderSet? {
-        let cache1 = try! DyldCache(url: url.appendingPathExtension("01"))
         let address: Int = numericCast(header.programsPBLSetPoolAddr) + numericCast(programOffset.offset)
-        guard let offset = cache1.fileOffset(
-            of: numericCast(address)
-        ) else { return nil }
-        let layout: prebuilt_loader_set = cache1.fileHandle.read(
+        guard let offset = fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        let layout: prebuilt_loader_set = fileHandle.read(
             offset: offset
         )
         return .init(layout: layout, address: address)
