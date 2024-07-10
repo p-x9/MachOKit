@@ -43,3 +43,16 @@ extension PrebuiltLoaderSet {
         }
     }
 }
+
+extension PrebuiltLoaderSet {
+    public func dyldCacheUUID(in cache: DyldCache) -> UUID? {
+        guard layout.dyldCacheUUIDOffset != 0,
+              let offset = cache.fileOffset(
+            of: numericCast(address) + numericCast(layout.dyldCacheUUIDOffset)
+        ) else {
+            return nil
+        }
+        let data: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) = cache.fileHandle.read(offset: offset)
+        return .init(uuid: data)
+    }
+}
