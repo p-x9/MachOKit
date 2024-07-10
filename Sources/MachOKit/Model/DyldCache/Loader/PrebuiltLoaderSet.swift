@@ -55,4 +55,22 @@ extension PrebuiltLoaderSet {
         let data: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) = cache.fileHandle.read(offset: offset)
         return .init(uuid: data)
     }
+
+    public func mustBeMissingPaths(in cache: DyldCache) -> [String]? {
+        guard layout.mustBeMissingPathsOffset != 0,
+              var offset = cache.fileOffset(
+                of: numericCast(address) + numericCast(layout.mustBeMissingPathsOffset)
+              ) else {
+            return nil
+        }
+        var strings: [String] = []
+        for _ in 0 ..< layout.mustBeMissingPathsCount {
+            guard let string = cache.fileHandle.readString(offset: offset) else {
+                break
+            }
+            strings.append(string)
+            offset += UInt64(string.utf8.count) + 1 // \0
+        }
+        return strings
+    }
 }
