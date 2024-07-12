@@ -182,8 +182,8 @@ final class DyldCachePrintTests: XCTestCase {
             }
             print("Name:", programOffset.name)
             print("Loaders:")
-            for loader in loaderSet.loaders(in: cache1)! {
-                print("  \(loader.path(in: cache1) ?? "unknown")")
+            for loader in loaderSet.loaders(in: cache)! {
+                print("  \(loader.path(in: cache) ?? "unknown")")
             }
         }
     }
