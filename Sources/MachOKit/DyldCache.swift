@@ -25,6 +25,20 @@ public class DyldCache {
     /// It is obtained based on magic.
     public let cpu: CPU
 
+    private var _mainCacheHeader: DyldCacheHeader?
+
+    /// Header for main dyld cache
+    /// When this dyld cache is a subcache, represent the header of the main cache
+    ///
+    /// Some properties are only set for the main cache header
+    /// https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/cache_builder/SubCache.cpp#L1353
+    public var mainCacheHeader: DyldCacheHeader {
+        _mainCacheHeader ?? header
+    }
+    
+    /// Load dyld cache.
+    /// - Parameter url: url for dyld cache
+    /// - Important: Use ``init(subcacheUrl:mainCacheHeader:)`` to load sub cache
     public init(url: URL) throws {
         self.url = url
         let fileHandle = try FileHandle(forReadingFrom: url)
@@ -44,6 +58,18 @@ public class DyldCache {
             typeRawValue: cpuType.rawValue,
             subtypeRawValue: cpuSubType.rawValue
         )
+    }
+
+    /// Load sub dyld cache
+    /// - Parameters:
+    ///   - subcacheUrl: url for dyld cache
+    ///   - mainCacheHeader: header of main dyld cache
+    public convenience init(
+        subcacheUrl: URL,
+        mainCacheHeader: DyldCacheHeader
+    ) throws {
+        try self.init(url: subcacheUrl)
+        self._mainCacheHeader = mainCacheHeader
     }
 
     deinit {
