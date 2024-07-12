@@ -192,6 +192,54 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    public typealias ProgramsTrieEntries = DataTrieTree<ProgramsTrieNodeContent>
+
+    /// Pair of program name/cdhash and offset to prebuiltLoaderSet
+    ///
+    /// The ``programOffsets`` are retrieved from this trie tree．
+    public var programsTrieEntries: ProgramsTrieEntries? {
+        guard let offset = fileOffset(of: header.programTrieAddr) else {
+            return nil
+        }
+        let size = header.programTrieSize
+
+        return ProgramsTrieEntries(
+            data: fileHandle.readData(offset: offset, size: Int(size))
+        )
+    }
+
+    /// Pair of program name/cdhash and offset to prebuiltLoaderSet
+    ///
+    /// Example:
+    /// ```
+    /// 0 /System/Applications/App Store.app/Contents/MacOS/App Store
+    /// 0 /cdhash/32caa391186c08b3b3cb7866995db1cb65b0376a
+    /// 131776 /System/Applications/Automator.app/Contents/MacOS/Automator
+    /// 131776 /cdhash/fed26a75645fed2a674b5c4d01001bfa69b9dbea
+    /// ```
+    public var programOffsets: [ProgramOffset] {
+        guard let programsTrieEntries else {
+            return []
+        }
+        return programsTrieEntries.programOffsets
+    }
+
+    /// Get the prebuiltLoaderSet indicated by programOffset.
+    /// - Parameter programOffset: program name and offset pair
+    /// - Returns: prebuiltLoaderSet
+    public func prebuiltLoaderSet(for programOffset: ProgramOffset) -> PrebuiltLoaderSet? {
+        let address: Int = numericCast(header.programsPBLSetPoolAddr) + numericCast(programOffset.offset)
+        guard let offset = fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        let layout: prebuilt_loader_set = fileHandle.read(
+            offset: offset
+        )
+        return .init(layout: layout, address: address)
+    }
+}
+
+extension DyldCache {
     public var objcOptimization: ObjCOptimization? {
         let sharedRegionStart = header.sharedRegionStart
         guard let offset = fileOffset(
