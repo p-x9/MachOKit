@@ -188,6 +188,16 @@ final class DyldCachePrintTests: XCTestCase {
         }
     }
 
+    func testDylibsPreBuildLoaderSet() {
+        guard let loaderSet = cache.dylibsPrebuiltLoaderSet else {
+            return
+        }
+        print("Loaders:")
+        for loader in loaderSet.loaders(in: cache)! {
+            print("  \(loader.path(in: cache) ?? "unknown")")
+        }
+    }
+
     func testObjCOptimization() throws {
         guard let objcOptimization = cache.objcOptimization else { return }
         print("Version:", objcOptimization.version)

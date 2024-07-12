@@ -240,6 +240,19 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    public var dylibsPrebuiltLoaderSet: PrebuiltLoaderSet? {
+        let address: Int = numericCast(header.dylibsPBLSetAddr)
+        guard let offset = fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        let layout: prebuilt_loader_set = fileHandle.read(
+            offset: offset
+        )
+        return .init(layout: layout, address: address)
+    }
+}
+
+extension DyldCache {
     public var objcOptimization: ObjCOptimization? {
         let sharedRegionStart = header.sharedRegionStart
         guard let offset = fileOffset(
