@@ -101,13 +101,11 @@ final class DyldCachePrintTests: XCTestCase {
             print("----")
             print("UUID:", subCache.uuid)
             print("VM Offset:", String(subCache.cacheVMOffset, radix: 16))
-            if let fileSuffix = subCache.fileSuffix {
-                print("File Suffix:", fileSuffix)
-                print(
-                    "Path:",
-                    cache.url.path + fileSuffix
-                )
-            }
+            print("File Suffix:", subCache.fileSuffix)
+            print(
+                "Path:",
+                cache.url.path + subCache.fileSuffix
+            )
         }
     }
 

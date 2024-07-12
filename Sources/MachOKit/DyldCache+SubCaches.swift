@@ -66,7 +66,7 @@ extension DyldCache.SubCaches {
                     let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
                         .advanced(by: nextOffset)
                         .assumingMemoryBound(to: DyldSubCacheEntryGeneral.Layout.self)
-                    return .general(.init(layout: ptr.pointee))
+                    return .general(.init(layout: ptr.pointee, index: nextIndex))
                 }
             case .v1:
                 return data.withUnsafeBytes {
@@ -75,7 +75,7 @@ extension DyldCache.SubCaches {
                     let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
                         .advanced(by: nextOffset)
                         .assumingMemoryBound(to: DyldSubCacheEntryV1.Layout.self)
-                    return .v1(.init(layout: ptr.pointee))
+                    return .v1(.init(layout: ptr.pointee, index: nextIndex))
                 }
             }
         }
