@@ -11,10 +11,11 @@ import XCTest
 
 final class DyldCachePrintTests: XCTestCase {
     private var cache: DyldCache!
+    private var cache1: DyldCache!
 
     override func setUp() {
         print("----------------------------------------------------")
-        let arch = "x86_64h"
+        let arch = "arm64e"
         let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_\(arch)"
 //        let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_\(arch).01"
 //        let path = "/System/Volumes/Preboot/Cryptexes/OS/System/DriverKit/System/Library/dyld/dyld_shared_cache_\(arch)"
@@ -22,6 +23,10 @@ final class DyldCachePrintTests: XCTestCase {
         let url = URL(fileURLWithPath: path)
 
         self.cache = try! DyldCache(url: url)
+        self.cache1 = try! DyldCache(
+            subcacheUrl: URL(fileURLWithPath: path + ".01"),
+            mainCacheHeader: cache.header
+        )
     }
 
     func testHeader() throws {
@@ -101,13 +106,11 @@ final class DyldCachePrintTests: XCTestCase {
             print("----")
             print("UUID:", subCache.uuid)
             print("VM Offset:", String(subCache.cacheVMOffset, radix: 16))
-            if let fileSuffix = subCache.fileSuffix {
-                print("File Suffix:", fileSuffix)
-                print(
-                    "Path:",
-                    cache.url.path + fileSuffix
-                )
-            }
+            print("File Suffix:", subCache.fileSuffix)
+            print(
+                "Path:",
+                cache.url.path + subCache.fileSuffix
+            )
         }
     }
 
@@ -155,6 +158,7 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testDylibIndices() {
+        let cache = self.cache1!
         let indices = cache.dylibIndices
             .sorted(by: { lhs, rhs in
                 lhs.index < rhs.index
@@ -165,6 +169,7 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testProgramOffsets() {
+        let cache = self.cache1!
         let programOffsets = cache.programOffsets
         for programOffset in programOffsets {
             print(programOffset.offset, programOffset.name)
@@ -172,6 +177,7 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testProgramPreBuildLoaderSet() {
+        let cache = self.cache1!
         let programOffsets = cache.programOffsets
         for programOffset in programOffsets {
             guard !programOffset.name.starts(with: "/cdhash") else {
@@ -189,6 +195,7 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testDylibsPreBuildLoaderSet() {
+        let cache = self.cache1!
         guard let loaderSet = cache.dylibsPrebuiltLoaderSet else {
             return
         }

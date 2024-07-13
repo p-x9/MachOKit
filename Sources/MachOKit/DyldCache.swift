@@ -25,6 +25,20 @@ public class DyldCache {
     /// It is obtained based on magic.
     public let cpu: CPU
 
+    private var _mainCacheHeader: DyldCacheHeader?
+
+    /// Header for main dyld cache
+    /// When this dyld cache is a subcache, represent the header of the main cache
+    ///
+    /// Some properties are only set for the main cache header
+    /// https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/cache_builder/SubCache.cpp#L1353
+    public var mainCacheHeader: DyldCacheHeader {
+        _mainCacheHeader ?? header
+    }
+    
+    /// Load dyld cache.
+    /// - Parameter url: url for dyld cache
+    /// - Important: Use ``init(subcacheUrl:mainCacheHeader:)`` to load sub cache
     public init(url: URL) throws {
         self.url = url
         let fileHandle = try FileHandle(forReadingFrom: url)
@@ -44,6 +58,18 @@ public class DyldCache {
             typeRawValue: cpuType.rawValue,
             subtypeRawValue: cpuSubType.rawValue
         )
+    }
+
+    /// Load sub dyld cache
+    /// - Parameters:
+    ///   - subcacheUrl: url for dyld cache
+    ///   - mainCacheHeader: header of main dyld cache
+    public convenience init(
+        subcacheUrl: URL,
+        mainCacheHeader: DyldCacheHeader
+    ) throws {
+        try self.init(url: subcacheUrl)
+        self._mainCacheHeader = mainCacheHeader
     }
 
     deinit {
@@ -96,9 +122,10 @@ extension DyldCache {
             return nil
         }
 
-        let subCache: DyldSubCacheEntryGeneral = fileHandle.read(
+        let layout: DyldSubCacheEntryGeneral.Layout = fileHandle.read(
             offset: numericCast(header.subCacheArrayOffset)
         )
+        let subCache = DyldSubCacheEntryGeneral(layout: layout, index: 0)
 
         if subCache.fileSuffix.starts(with: ".") {
             return .general
@@ -164,10 +191,10 @@ extension DyldCache {
     ///
     /// The ``dylibIndices`` are retrieved from this trie tree．
     public var dylibsTrieEntries: DylibsTrieEntries? {
-        guard let offset = fileOffset(of: header.dylibsTrieAddr) else {
+        guard let offset = fileOffset(of: mainCacheHeader.dylibsTrieAddr) else {
             return nil
         }
-        let size = header.dylibsTrieSize
+        let size = mainCacheHeader.dylibsTrieSize
 
         return DataTrieTree<DylibsTrieNodeContent>(
             data: fileHandle.readData(offset: offset, size: Int(size))
@@ -198,10 +225,10 @@ extension DyldCache {
     ///
     /// The ``programOffsets`` are retrieved from this trie tree．
     public var programsTrieEntries: ProgramsTrieEntries? {
-        guard let offset = fileOffset(of: header.programTrieAddr) else {
+        guard let offset = fileOffset(of: mainCacheHeader.programTrieAddr) else {
             return nil
         }
-        let size = header.programTrieSize
+        let size = mainCacheHeader.programTrieSize
 
         return ProgramsTrieEntries(
             data: fileHandle.readData(offset: offset, size: Int(size))
@@ -228,7 +255,7 @@ extension DyldCache {
     /// - Parameter programOffset: program name and offset pair
     /// - Returns: prebuiltLoaderSet
     public func prebuiltLoaderSet(for programOffset: ProgramOffset) -> PrebuiltLoaderSet? {
-        let address: Int = numericCast(header.programsPBLSetPoolAddr) + numericCast(programOffset.offset)
+        let address: Int = numericCast(mainCacheHeader.programsPBLSetPoolAddr) + numericCast(programOffset.offset)
         guard let offset = fileOffset(of: numericCast(address)) else {
             return nil
         }
@@ -241,7 +268,7 @@ extension DyldCache {
 
 extension DyldCache {
     public var dylibsPrebuiltLoaderSet: PrebuiltLoaderSet? {
-        let address: Int = numericCast(header.dylibsPBLSetAddr)
+        let address: Int = numericCast(mainCacheHeader.dylibsPBLSetAddr)
         guard let offset = fileOffset(of: numericCast(address)) else {
             return nil
         }
@@ -254,9 +281,9 @@ extension DyldCache {
 
 extension DyldCache {
     public var objcOptimization: ObjCOptimization? {
-        let sharedRegionStart = header.sharedRegionStart
+        let sharedRegionStart = mainCacheHeader.sharedRegionStart
         guard let offset = fileOffset(
-            of: sharedRegionStart + numericCast(header.objcOptsOffset)
+            of: sharedRegionStart + numericCast(mainCacheHeader.objcOptsOffset)
         ) else {
             return nil
         }
@@ -264,9 +291,9 @@ extension DyldCache {
     }
 
     public var swiftOptimization: SwiftOptimization? {
-        let sharedRegionStart = header.sharedRegionStart
+        let sharedRegionStart = mainCacheHeader.sharedRegionStart
         guard let offset = fileOffset(
-            of: sharedRegionStart + numericCast(header.swiftOptsOffset)
+            of: sharedRegionStart + numericCast(mainCacheHeader.swiftOptsOffset)
         ) else {
             return nil
         }
