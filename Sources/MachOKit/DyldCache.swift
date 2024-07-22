@@ -185,6 +185,16 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    public var codeSign: MachOFile.CodeSign? {
+        let data = fileHandle.readData(
+            offset: header.codeSignatureOffset,
+            size: numericCast(header.codeSignatureSize)
+        )
+        return .init(data: data)
+    }
+}
+
+extension DyldCache {
     public typealias DylibsTrieEntries = DataTrieTree<DylibsTrieNodeContent>
 
     /// Dylibs trie is for searching by dylib name.
