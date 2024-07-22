@@ -226,3 +226,94 @@ final class DyldCachePrintTests: XCTestCase {
         print("Foreign Type Conformance Hash Table Cache Offset:", swiftOptimization.foreignTypeConformanceHashTableCacheOffset)
     }
 }
+
+extension DyldCachePrintTests {
+    func testCodeSign() {
+        guard let codeSign = cache.codeSign else {
+            return
+        }
+        guard let superBlob = codeSign.superBlob else {
+            return
+        }
+        let indices = superBlob.blobIndices(in: codeSign)
+        print(
+            indices.compactMap(\.type)
+        )
+    }
+
+    func testCodeSignCodeDirectories() {
+        guard let codeSign = cache.codeSign else {
+            return
+        }
+        let directories = codeSign.codeDirectories
+
+        /* Identifier */
+        let identifiers = directories
+            .compactMap {
+                $0.identifier(in: codeSign)
+            }
+        print(
+            "identifier:",
+            identifiers
+        )
+
+        /* CD Hash */
+        let cdHashes = directories
+            .compactMap {
+                $0.hash(in: codeSign)
+            }.map {
+                $0.map { String(format: "%02x", $0) }.joined()
+            }
+        print(
+            "CDHash:",
+            cdHashes
+        )
+
+        /* Page Hashes*/
+        //        let pageHashes = directories
+        //            .map { directory in
+        //                (-Int(directory.nSpecialSlots)..<Int(directory.nCodeSlots))
+        //                    .map {
+        //                        if let hash = directory.hash(forSlot: $0, in: codeSign) {
+        //                            return "\($0) " + hash.map { String(format: "%02x", $0) }.joined()
+        //                        } else {
+        //                            return "\($0) unknown"
+        //                        }
+        //                    }
+        //            }
+        //        print(
+        //            "PageHashes:",
+        //            pageHashes
+        //        )
+
+        /* Team IDs */
+        let teamIDs = directories
+            .compactMap {
+                $0.teamId(in: codeSign)
+            }
+        print(
+            "TeamID:",
+            teamIDs
+        )
+
+        /* Exec Segment */
+        let execSeg = directories
+            .compactMap {
+                $0.executableSegment(in: codeSign)
+            }
+        print(
+            "ExecSeg:",
+            execSeg
+        )
+
+        /* Runtime */
+        let runtime = directories
+            .compactMap {
+                $0.runtime(in: codeSign)
+            }
+        print(
+            "Runtime:",
+            runtime
+        )
+    }
+}
