@@ -102,6 +102,12 @@ extension DyldCacheSlideInfo2 {
 
 // MARK: - function & proerty
 extension DyldCacheSlideInfo2 {
+    public var pageSize: Int {
+        numericCast(layout.page_size)
+    }
+}
+
+extension DyldCacheSlideInfo2 {
     public var numberOfPageStarts: Int {
         numericCast(layout.page_starts_count)
     }
