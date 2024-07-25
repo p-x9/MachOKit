@@ -110,6 +110,7 @@ create_xcframework() {
     local SCHEME=$1
     local PLATFORMS=(
         "macOS"
+        "macCatalyst"
         "iOS"
         "iOS Simulator"
         "watchOS"
@@ -163,6 +164,7 @@ machokit() {
     archive_project "MachOKit" "iOS" "$LINK_FLAGS"
     archive_project "MachOKit" "iOS Simulator" "$LINK_FLAGS"
     archive_project "MachOKit" "macOS" "$LINK_FLAGS"
+    archive_project "MachOKit" "macCatalyst" "$LINK_FLAGS"
     archive_project "MachOKit" "watchOS" "$LINK_FLAGS"
     archive_project "MachOKit" "watchOS Simulator" "$LINK_FLAGS"
     archive_project "MachOKit" "tvOS" "$LINK_FLAGS"
@@ -178,6 +180,7 @@ machokitc() {
     archive_project "MachOKitC" "iOS"
     archive_project "MachOKitC" "iOS Simulator"
     archive_project "MachOKitC" "macOS"
+    archive_project "MachOKitC" "macCatalyst"
     archive_project "MachOKitC" "watchOS"
     archive_project "MachOKitC" "watchOS Simulator"
     archive_project "MachOKitC" "tvOS"
