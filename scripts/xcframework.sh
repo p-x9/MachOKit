@@ -77,7 +77,7 @@ archive_project() {
                 OTHER_LDFLAGS="$OTHER_LDFLAGS"
 
     local BUILD_PRODUCTS_PATH=".build/Build/Intermediates.noindex/ArchiveIntermediates/$SCHEME/BuildProductsPath"
-    local SWIFT_MODULE_PATH="$BUILD_PRODUCTS_PATH/$CONFIGURATION$CONFIGURATION/$SCHEME.swiftmodule"
+    local SWIFT_MODULE_PATH="$BUILD_PRODUCTS_PATH/$CONFIGURATION$EFFECTIVE_PLATFORM/$SCHEME.swiftmodule"
 
     mkdir -p "$ARCHIVE_PATH.xcarchive/Products/usr/local/lib/$SCHEME.framework/Modules"
     if [ -d "$SWIFT_MODULE_PATH" ]; then
