@@ -71,6 +71,11 @@ final class DyldCachePrintTests: XCTestCase {
             print("Flags:", info.flags.bits)
             print("MaxProtection:", info.maxProtection.bits)
             print("InitProtection:", info.initialProtection.bits)
+            if let slideInfo = info.slideInfo(in: cache) {
+                print("SlideInfo")
+                print(" Version:", slideInfo.version.rawValue)
+                print(" Info:", slideInfo)
+            }
         }
     }
 
