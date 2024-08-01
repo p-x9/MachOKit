@@ -9,9 +9,11 @@
 import Foundation
 
 extension String {
-    typealias CCharTuple16 = (CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar)
+    @_spi(Support)
+    public typealias CCharTuple16 = (CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar)
 
-    init(tuple: CCharTuple16) {
+    @_spi(Support)
+    public init(tuple: CCharTuple16) {
         var buffer = tuple
         self = withUnsafePointer(to: &buffer.0) {
             let data = Data(bytes: $0, count: 16) + [0]
@@ -21,9 +23,11 @@ extension String {
 }
 
 extension String {
-    typealias CCharTuple32 = (CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar)
+    @_spi(Support)
+    public typealias CCharTuple32 = (CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar)
 
-    init(tuple: CCharTuple32) {
+    @_spi(Support)
+    public init(tuple: CCharTuple32) {
         var buffer = tuple
         self = withUnsafePointer(to: &buffer.0) {
             let data = Data(bytes: $0, count: 32) + [0]
@@ -33,7 +37,8 @@ extension String {
 }
 
 extension String {
-    init?(cString data: Data) {
+    @_spi(Support)
+    public init?(cString data: Data) {
         guard !data.isEmpty else { return nil }
         self = data.withUnsafeBytes {
             let ptr = $0.baseAddress!.assumingMemoryBound(to: CChar.self)
@@ -64,18 +69,22 @@ extension String {
     }
 }
 
-func ==(string: String, tuple: String.CCharTuple16) -> Bool {
+@_spi(Support)
+public func ==(string: String, tuple: String.CCharTuple16) -> Bool {
     string.isEqual(to: tuple)
 }
 
-func ==(tuple: String.CCharTuple16, string: String) -> Bool {
+@_spi(Support)
+public func ==(tuple: String.CCharTuple16, string: String) -> Bool {
     string.isEqual(to: tuple)
 }
 
-func ==(string: String, tuple: String.CCharTuple32) -> Bool {
+@_spi(Support)
+public func ==(string: String, tuple: String.CCharTuple32) -> Bool {
     string.isEqual(to: tuple)
 }
 
-func ==(tuple: String.CCharTuple32, string: String) -> Bool {
+@_spi(Support)
+public func ==(tuple: String.CCharTuple32, string: String) -> Bool {
     string.isEqual(to: tuple)
 }
