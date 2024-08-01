@@ -13,6 +13,7 @@ public struct DataTrieTree<Content: TrieNodeContent> {
 
     public var size: Int { data.count }
 
+    @_spi(Support)
     public init(data: Data) {
         self.data = data
     }
@@ -31,7 +32,8 @@ extension DataTrieTree {
         private let data: Data
         private var nextOffset: Int = 0
 
-        init(data: Data) {
+        @_spi(Support)
+        public init(data: Data) {
             self.data = data
         }
 

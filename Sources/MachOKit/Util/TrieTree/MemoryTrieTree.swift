@@ -12,6 +12,7 @@ public struct MemoryTrieTree<Content: TrieNodeContent> {
     public let basePointer: UnsafeRawPointer
     public let size: Int
 
+    @_spi(Support)
     public init(basePointer: UnsafeRawPointer, size: Int) {
         self.basePointer = basePointer
         self.size = size
@@ -33,7 +34,8 @@ extension MemoryTrieTree {
 
         private var nextOffset: Int = 0
 
-        init(basePointer: UnsafeRawPointer, size: Int) {
+        @_spi(Support)
+        public init(basePointer: UnsafeRawPointer, size: Int) {
             self.basePointer = basePointer
             self.size = size
         }
