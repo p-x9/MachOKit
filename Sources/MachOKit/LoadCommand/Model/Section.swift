@@ -14,6 +14,7 @@ public protocol SectionProtocol: LayoutWrapper {
     var address: Int { get }
     var size: Int { get }
     var offset: Int { get }
+    var align: Int { get }
     var flags: SectionFlags { get }
 
     var indirectSymbolIndex: Int? { get }
@@ -78,6 +79,10 @@ extension Section {
         numericCast(layout.offset)
     }
 
+    public var align: Int {
+        numericCast(layout.align)
+    }
+
     public var flags: SectionFlags {
         .init(rawValue: layout.flags)
     }
@@ -134,6 +139,10 @@ extension Section64 {
 
     public var offset: Int {
         numericCast(layout.offset)
+    }
+
+    public var align: Int {
+        numericCast(layout.align)
     }
 
     public var flags: SectionFlags {
