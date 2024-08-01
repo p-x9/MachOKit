@@ -22,6 +22,19 @@ public struct TrieNode<Content: TrieNodeContent> {
     public var content: Content?
 
     public var children: [Child]
+
+    @_spi(Support)
+    public init(
+        offset: Int,
+        terminalSize: UInt,
+        content: Content? = nil,
+        children: [Child]
+    ) {
+        self.offset = offset
+        self.terminalSize = terminalSize
+        self.content = content
+        self.children = children
+    }
 }
 
 extension TrieNode {
