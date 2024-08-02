@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import MachO
 
 public struct Dylib {
     /// library's path name

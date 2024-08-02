@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import MachO
 
 public struct RpathCommand: LoadCommandWrapper {
     public typealias Layout = rpath_command

@@ -8,10 +8,9 @@ public enum File {
 public func loadFromFile(url: URL) throws -> File {
     let fileHandle = try FileHandle(forReadingFrom: url)
     let magicRaw: UInt32 = fileHandle.read(offset: 0)
-
-    guard let magic = Magic(rawValue: magicRaw) else {
-        throw NSError() // FIXME: error
-    }
+    
+    // FIXME: error instead of unwrap
+    let magic = Magic(rawValue: magicRaw)!
 
     if magic.isFat {
         return .fat(try FatFile(url: url))

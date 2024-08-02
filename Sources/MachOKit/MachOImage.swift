@@ -80,6 +80,7 @@ extension MachOImage {
     /// - /usr/lib/swift/libswiftFoundation.dylib
     ///     → libswiftFoundation
     public init?(name: String) {
+        #if canImport(Darwin)
         let indices = 0..<_dyld_image_count()
         let index = indices.first { index in
             guard let pathC = _dyld_get_image_name(index) else {
@@ -99,6 +100,9 @@ extension MachOImage {
         } else {
             return nil
         }
+        #else
+        return nil
+        #endif
     }
 }
 
@@ -107,9 +111,13 @@ extension MachOImage {
     ///
     /// It is the same value that can be obtained by `Dl_info.dli_fname` or `_dyld_get_image_name`.
     public var path: String? {
+        #if canImport(Darwin)
         var info = Dl_info()
         dladdr(ptr, &info)
         return String(cString: info.dli_fname)
+        #else
+        return nil
+        #endif
     }
 
     /// virtual memory address slide of machO image.

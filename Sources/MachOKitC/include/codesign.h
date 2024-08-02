@@ -280,16 +280,23 @@ typedef struct __SC_Scatter {
 } SC_Scatter
 __attribute__ ((aligned(1)));
 
+#if __has_attribute(enum_extensibility)
+#define __enum_open __attribute__((__enum_extensibility__(open)))
+#define __enum_closed __attribute__((__enum_extensibility__(closed)))
+#else
+#define __enum_open
+#define __enum_closed
+#endif // __has_attribute(enum_extensibility)
 
 /*
  * Defined launch types
  */
-__enum_decl(cs_launch_type_t, uint8_t, {
+typedef enum : uint8_t {
     CS_LAUNCH_TYPE_NONE = 0,
     CS_LAUNCH_TYPE_SYSTEM_SERVICE = 1,
     CS_LAUNCH_TYPE_SYSDIAGNOSE = 2,
     CS_LAUNCH_TYPE_APPLICATION = 3,
-});
+} __enum_open cs_launch_type_t;
 
 struct launch_constraint_data {
     cs_launch_type_t launch_type;
