@@ -9,17 +9,34 @@
 import Foundation
 
 public protocol SectionProtocol: LayoutWrapper {
+    /// Name of this section
     var sectionName: String { get }
+    // Segment name this section goes in
     var segmentName: String { get }
+    /// Memory address
     var address: Int { get }
+    /// Size in bytes
     var size: Int { get }
+    /// FIle offset
     var offset: Int { get }
+    /// Section alignment (power of 2)
     var align: Int { get }
+    /// Section type and attributes
     var flags: SectionFlags { get }
 
+    /// Start of the index of the indirect symbol this section is responsible for.
+    /// Returns nil unless the section type is either .lazy_symbol_pointers, non_lazy_symbol_pointers, .lazy_dylib_symbol_pointers, or .symbol_stubs.
     var indirectSymbolIndex: Int? { get }
+
+    /// Number of the indirect symbols this section is responsible for.
+    /// Returns nil unless the section type is either .lazy_symbol_pointers, non_lazy_symbol_pointers, .lazy_dylib_symbol_pointers, or .symbol_stubs.
     var numberOfIndirectSymbols: Int? { get }
 
+    /// Get the pointer where this section starts
+    /// - Parameters:
+    ///   - segment: Segment to which this section belongs
+    ///   - vmaddrSlide: slide
+    /// - Returns: Pointer where this section starts
     func startPtr(
         in segment: any SegmentCommandProtocol,
         vmaddrSlide: Int
