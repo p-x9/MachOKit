@@ -349,11 +349,21 @@ extension DyldChainedFixupPointerInfo {
 public protocol DyldChainedPointerContentRebase: LayoutWrapper {
     var target: Int { get }
     var next: Int { get }
+    var isAuth: Bool { get }
+}
+
+extension DyldChainedPointerContentRebase {
+    public var isAuth: Bool { false }
 }
 
 public protocol DyldChainedPointerContentBind: LayoutWrapper {
     var ordinal: Int { get }
     var next: Int { get }
+    var isAuth: Bool { get }
+}
+
+extension DyldChainedPointerContentBind {
+    public var isAuth: Bool { false }
 }
 
 public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase {
@@ -394,6 +404,8 @@ public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase {
         numericCast(layout.next)
     }
 
+    public var isAuth: Bool { true }
+
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
     }
@@ -410,6 +422,8 @@ public struct DyldChainedPtrArm64eAuthBind: DyldChainedPointerContentBind {
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var isAuth: Bool { true }
 
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
@@ -467,6 +481,8 @@ public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind {
         numericCast(layout.next)
     }
 
+    public var isAuth: Bool { true }
+
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
     }
@@ -483,6 +499,8 @@ public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var isAuth: Bool { layout.isAuth != 0 }
 
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
@@ -565,6 +583,8 @@ public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerConte
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var isAuth: Bool { true }
 
     public var keyName: String {
         ["IA", "DA"][Int(layout.keyIsData)]
