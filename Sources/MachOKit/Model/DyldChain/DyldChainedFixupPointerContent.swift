@@ -350,10 +350,12 @@ public protocol DyldChainedPointerContentRebase: LayoutWrapper {
     var target: Int { get }
     var next: Int { get }
     var isAuth: Bool { get }
+    var unpackedTarget: UInt64 { get }
 }
 
 extension DyldChainedPointerContentRebase {
     public var isAuth: Bool { false }
+    public var unpackedTarget: UInt64 { numericCast(target) }
 }
 
 public protocol DyldChainedPointerContentBind: LayoutWrapper {
@@ -376,6 +378,10 @@ public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase {
 
     public var next: Int {
         numericCast(layout.next)
+    }
+
+    public var unpackedTarget: UInt64 {
+        (layout.high8 << 56) | layout.target
     }
 }
 
@@ -440,6 +446,10 @@ public struct DyldChainedPtr64Rebase: DyldChainedPointerContentRebase {
 
     public var next: Int {
         numericCast(layout.next)
+    }
+
+    public var unpackedTarget: UInt64 {
+        (layout.high8 << 56) | layout.target
     }
 }
 
@@ -569,6 +579,10 @@ public struct DyldChainedPtrArm64eSharedCacheRebase: DyldChainedPointerContentRe
 
     public var next: Int {
         numericCast(layout.next)
+    }
+
+    public var unpackedTarget: UInt64 {
+        (layout.high8 << 56) | layout.runtimeOffset
     }
 }
 
