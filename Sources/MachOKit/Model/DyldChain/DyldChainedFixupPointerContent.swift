@@ -361,10 +361,12 @@ extension DyldChainedPointerContentRebase {
 public protocol DyldChainedPointerContentBind: LayoutWrapper {
     var ordinal: Int { get }
     var next: Int { get }
+    var addend: UInt64 { get }
     var isAuth: Bool { get }
 }
 
 extension DyldChainedPointerContentBind {
+    public var addend: UInt64 { 0 }
     public var isAuth: Bool { false }
 }
 
@@ -395,6 +397,10 @@ public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind {
 
     public var next: Int {
         numericCast(layout.next)
+    }
+
+    public var addend: UInt64 {
+        numericCast(layout.addend)
     }
 }
 
@@ -464,6 +470,10 @@ public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var addend: UInt64 {
+        numericCast(layout.addend)
+    }
 }
 
 public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
@@ -476,6 +486,10 @@ public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
 
     public var next: Int {
         numericCast(layout.next)
+    }
+
+    public var addend: UInt64 {
+        numericCast(layout.addend)
     }
 }
 
@@ -540,6 +554,10 @@ public struct DyldChainedPtr32Bind: DyldChainedPointerContentBind {
 
     public var next: Int {
         numericCast(layout.next)
+    }
+
+    public var addend: UInt64 {
+        numericCast(layout.addend)
     }
 }
 
