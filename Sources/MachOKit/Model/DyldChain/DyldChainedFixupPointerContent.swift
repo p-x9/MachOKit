@@ -402,6 +402,15 @@ public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind {
     public var addend: UInt64 {
         numericCast(layout.addend)
     }
+
+    public var signExtendedAddend: UInt64 {
+        let addend19 = layout.addend
+        if (addend19 & 0x40000) != 0 {
+            return addend19 | 0xFFFFFFFFFFFC0000
+        } else {
+            return addend19
+        }
+    }
 }
 
 public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase {
@@ -474,6 +483,14 @@ public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
     public var addend: UInt64 {
         numericCast(layout.addend)
     }
+
+    public var signExtendedAddend: UInt64 {
+        let addend27 = layout.addend;
+        let top8Bits = addend27 & 0x00007F80000
+        let bottom19Bits = addend27 & 0x0000007FFFF
+        let newValue = (top8Bits << 13) | (((bottom19Bits << 37) >> 37) & 0x00FFFFFFFFFFFFFF)
+        return newValue
+    }
 }
 
 public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
@@ -490,6 +507,15 @@ public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
 
     public var addend: UInt64 {
         numericCast(layout.addend)
+    }
+
+    public var signExtendedAddend: UInt64 {
+        let addend19 = layout.addend
+        if (addend19 & 0x40000) != 0 {
+            return addend19 | 0xFFFFFFFFFFFC0000
+        } else {
+            return addend19
+        }
     }
 }
 
