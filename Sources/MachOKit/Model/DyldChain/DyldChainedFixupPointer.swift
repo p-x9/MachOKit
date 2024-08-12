@@ -64,3 +64,37 @@ extension DyldChainedFixupPointer {
         }
     }
 }
+
+extension DyldChainedFixupPointer {
+    // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MachOLayout.cpp#L2139
+    func bindOrdinalAndAddend(
+        for machO: MachOFile
+    ) -> (ordinal: Int, addend: UInt64)? {
+        guard let bind = fixupInfo.bind else {
+            return nil
+        }
+        let ordinal: Int = bind.ordinal
+        var addend: UInt64 = 0
+
+        let format = fixupInfo.pointerFormat
+        switch format {
+        case .arm64e: fallthrough
+        case .arm64e_userland: fallthrough
+        case .arm64e_userland24: fallthrough
+        case .arm64e_kernel: fallthrough
+        case .arm64e_firmware:
+            if !bind.isAuth {
+                addend = bind.signExtendedAddend
+            }
+        case ._64: fallthrough
+        case ._64_offset:
+            addend = bind.addend
+        case ._32:
+            addend = bind.addend
+        default:
+            return nil
+        }
+
+        return (ordinal, addend)
+    }
+}
