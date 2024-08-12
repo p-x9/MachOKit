@@ -362,11 +362,13 @@ public protocol DyldChainedPointerContentBind: LayoutWrapper {
     var ordinal: Int { get }
     var next: Int { get }
     var addend: UInt64 { get }
+    var signExtendedAddend: UInt64 { get }
     var isAuth: Bool { get }
 }
 
 extension DyldChainedPointerContentBind {
     public var addend: UInt64 { 0 }
+    public var signExtendedAddend: UInt64 { addend }
     public var isAuth: Bool { false }
 }
 
