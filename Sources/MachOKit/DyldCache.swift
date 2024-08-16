@@ -313,11 +313,31 @@ extension DyldCache {
 
 extension DyldCache {
     public func fileOffset(of address: UInt64) -> UInt64? {
+        guard let mapping = mappingInfo(for: address) else {
+            return nil
+        }
+        return address - mapping.address + mapping.fileOffset
+    }
+
+    public func mappingInfo(for address: UInt64) -> DyldCacheMappingInfo? {
         guard let mappings = self.mappingInfos else { return nil }
         for mapping in mappings {
             if mapping.address <= address,
                address < mapping.address + mapping.size {
-                return address - mapping.address + mapping.fileOffset
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    public func mappingAndSlideInfo(
+        for address: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = self.mappingAndSlideInfos else { return nil }
+        for mapping in mappings {
+            if mapping.address <= address,
+               address < mapping.address + mapping.size {
+                return mapping
             }
         }
         return nil
