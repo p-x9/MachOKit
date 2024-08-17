@@ -338,6 +338,19 @@ extension DyldCache {
         return nil
     }
 
+    public func mappingInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingInfo? {
+        guard let mappings = self.mappingInfos else { return nil }
+        for mapping in mappings {
+            if mapping.fileOffset <= offset,
+               offset < mapping.fileOffset + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
+
     public func mappingAndSlideInfo(
         for address: UInt64
     ) -> DyldCacheMappingAndSlideInfo? {
@@ -345,6 +358,19 @@ extension DyldCache {
         for mapping in mappings {
             if mapping.address <= address,
                address < mapping.address + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    public func mappingAndSlideInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = self.mappingAndSlideInfos else { return nil }
+        for mapping in mappings {
+            if mapping.fileOffset <= offset,
+               offset < mapping.fileOffset + mapping.size {
                 return mapping
             }
         }
