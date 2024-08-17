@@ -319,6 +319,14 @@ extension DyldCache {
         return address - mapping.address + mapping.fileOffset
     }
 
+    public func address(of fileOffset: UInt64) -> UInt64? {
+        guard let mapping = mappingInfo(forFileOffset: fileOffset) else {
+            return nil
+        }
+        return fileOffset - mapping.fileOffset + mapping.address
+    }
+
+
     public func mappingInfo(for address: UInt64) -> DyldCacheMappingInfo? {
         guard let mappings = self.mappingInfos else { return nil }
         for mapping in mappings {
