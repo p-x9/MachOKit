@@ -15,17 +15,10 @@ public struct DyldChainedFixupPointer {
 
 extension DyldChainedFixupPointer {
     // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MachOLayout.cpp#L2087
-    func rebaseTargetRuntimeOffset(for machO: MachOFile) -> UInt64? {
+    public func rebaseTargetRuntimeOffset(
+        preferedLoadAddress: UInt64
+    ) -> UInt64? {
         guard let rebase = fixupInfo.rebase else {
-            return nil
-        }
-
-        let preferedLoadAddress: UInt64
-        if let text64 = machO.loadCommands.text64 {
-            preferedLoadAddress = text64.vmaddr
-        } else if let text = machO.loadCommands.text {
-            preferedLoadAddress = numericCast(text.vmaddr)
-        } else {
             return nil
         }
 
@@ -63,11 +56,25 @@ extension DyldChainedFixupPointer {
             return nil
         }
     }
+
+    public func rebaseTargetRuntimeOffset(for machO: MachOFile) -> UInt64? {
+        let preferedLoadAddress: UInt64
+        if let text64 = machO.loadCommands.text64 {
+            preferedLoadAddress = text64.vmaddr
+        } else if let text = machO.loadCommands.text {
+            preferedLoadAddress = numericCast(text.vmaddr)
+        } else {
+            return nil
+        }
+        return rebaseTargetRuntimeOffset(
+            preferedLoadAddress: preferedLoadAddress
+        )
+    }
 }
 
 extension DyldChainedFixupPointer {
     // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MachOLayout.cpp#L2139
-    func bindOrdinalAndAddend(
+    public func bindOrdinalAndAddend(
         for machO: MachOFile
     ) -> (ordinal: Int, addend: UInt64)? {
         guard let bind = fixupInfo.bind else {

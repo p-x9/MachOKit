@@ -454,3 +454,33 @@ extension MachOFile {
         headerStartOffsetInCache > 0
     }
 }
+
+extension MachOFile {
+    func resolveRebase(at offset: UInt64) -> UInt64? {
+        if isLoadedFromDyldCache,
+           let cache = try? DyldCache(url: url) {
+            return cache.resolveRebase(at: offset)
+        }
+
+        guard let chainedFixup = dyldChainedFixups,
+              let startsInImage = chainedFixup.startsInImage else {
+            return nil
+        }
+        let startsInSegments = chainedFixup.startsInSegments(
+            of: startsInImage
+        )
+
+        for segment in startsInSegments {
+            let pointers = chainedFixup.pointers(of: segment, in: self)
+            guard let pointer = pointers.first(where: {
+                $0.offset == offset
+            }) else { continue }
+            guard pointer.fixupInfo.rebase != nil,
+                  let offset = pointer.rebaseTargetRuntimeOffset(for: self) else {
+                return nil
+            }
+            return offset
+        }
+        return nil
+    }
+}
