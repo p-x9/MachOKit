@@ -456,7 +456,7 @@ extension MachOFile {
 }
 
 extension MachOFile {
-    func resolveRebase(at offset: UInt64) -> UInt64? {
+    public func resolveRebase(at offset: UInt64) -> UInt64? {
         if isLoadedFromDyldCache,
            let cache = try? DyldCache(url: url) {
             return cache.resolveRebase(at: offset)

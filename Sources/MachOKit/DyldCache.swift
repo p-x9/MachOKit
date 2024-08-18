@@ -379,7 +379,7 @@ extension DyldCache {
 }
 
 extension DyldCache {
-    func resolveRebase(at offset: UInt64) -> UInt64? {
+    public func resolveRebase(at offset: UInt64) -> UInt64? {
         guard let mappingInfos,
               let unslidLoadAddress = mappingInfos.first?.address else {
             return nil
