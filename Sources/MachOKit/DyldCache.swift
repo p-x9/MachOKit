@@ -379,6 +379,7 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MetadataVisitor.cpp#L262
     public func resolveRebase(at offset: UInt64) -> UInt64? {
         guard let mappingInfos,
               let unslidLoadAddress = mappingInfos.first?.address else {

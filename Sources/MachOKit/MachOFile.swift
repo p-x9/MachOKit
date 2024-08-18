@@ -456,6 +456,7 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MetadataVisitor.cpp#L262
     public func resolveRebase(at offset: UInt64) -> UInt64? {
         if isLoadedFromDyldCache,
            let cache = try? DyldCache(url: url) {
