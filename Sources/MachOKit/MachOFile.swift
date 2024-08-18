@@ -484,4 +484,29 @@ extension MachOFile {
         }
         return nil
     }
+
+    public func resolveBind(
+        at offset: UInt64
+    ) -> (DyldChainedImport, addend: UInt64)? {
+        guard let chainedFixup = dyldChainedFixups,
+              let startsInImage = chainedFixup.startsInImage else {
+            return nil
+        }
+        let startsInSegments = chainedFixup.startsInSegments(
+            of: startsInImage
+        )
+
+        for segment in startsInSegments {
+            let pointers = chainedFixup.pointers(of: segment, in: self)
+            guard let pointer = pointers.first(where: {
+                $0.offset == offset
+            }) else { continue }
+            guard pointer.fixupInfo.bind != nil,
+                  let (ordinal, addend) = pointer.bindOrdinalAndAddend(for: self) else {
+                return nil
+            }
+            return (chainedFixup.imports[ordinal], addend)
+        }
+        return nil
+    }
 }
