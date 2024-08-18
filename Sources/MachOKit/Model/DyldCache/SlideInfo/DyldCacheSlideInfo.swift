@@ -19,6 +19,7 @@ public enum DyldCacheSlideInfo {
 
 extension DyldCacheSlideInfo {
     public enum Version: Int {
+        case none
         case v1 = 1, v2, v3, v4, v5
     }
 }

@@ -52,6 +52,8 @@ extension DyldCacheMappingAndSlideInfo {
 
         let offset = layout.slideInfoFileOffset
         switch version {
+        case .none:
+            return nil
         case .v1:
             let layout: DyldCacheSlideInfo1.Layout = cache.fileHandle.read(
                 offset: offset
