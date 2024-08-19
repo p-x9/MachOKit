@@ -11,10 +11,11 @@ import XCTest
 
 final class DyldCachePrintTests: XCTestCase {
     private var cache: DyldCache!
+    private var cache1: DyldCache!
 
     override func setUp() {
         print("----------------------------------------------------")
-        let arch = "x86_64h"
+        let arch = "arm64e"
         let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_\(arch)"
 //        let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_\(arch).01"
 //        let path = "/System/Volumes/Preboot/Cryptexes/OS/System/DriverKit/System/Library/dyld/dyld_shared_cache_\(arch)"
@@ -22,6 +23,10 @@ final class DyldCachePrintTests: XCTestCase {
         let url = URL(fileURLWithPath: path)
 
         self.cache = try! DyldCache(url: url)
+        self.cache1 = try! DyldCache(
+            subcacheUrl: URL(fileURLWithPath: path + ".01"),
+            mainCacheHeader: cache.header
+        )
     }
 
     func testHeader() throws {
@@ -66,6 +71,11 @@ final class DyldCachePrintTests: XCTestCase {
             print("Flags:", info.flags.bits)
             print("MaxProtection:", info.maxProtection.bits)
             print("InitProtection:", info.initialProtection.bits)
+            if let slideInfo = info.slideInfo(in: cache) {
+                print("SlideInfo")
+                print(" Version:", slideInfo.version.rawValue)
+                print(" Info:", slideInfo)
+            }
         }
     }
 
@@ -101,13 +111,11 @@ final class DyldCachePrintTests: XCTestCase {
             print("----")
             print("UUID:", subCache.uuid)
             print("VM Offset:", String(subCache.cacheVMOffset, radix: 16))
-            if let fileSuffix = subCache.fileSuffix {
-                print("File Suffix:", fileSuffix)
-                print(
-                    "Path:",
-                    cache.url.path + fileSuffix
-                )
-            }
+            print("File Suffix:", subCache.fileSuffix)
+            print(
+                "Path:",
+                cache.url.path + subCache.fileSuffix
+            )
         }
     }
 
@@ -154,6 +162,54 @@ final class DyldCachePrintTests: XCTestCase {
         }
     }
 
+    func testDylibIndices() {
+        let cache = self.cache1!
+        let indices = cache.dylibIndices
+            .sorted(by: { lhs, rhs in
+                lhs.index < rhs.index
+            })
+        for index in indices {
+            print(index.index, index.name)
+        }
+    }
+
+    func testProgramOffsets() {
+        let cache = self.cache1!
+        let programOffsets = cache.programOffsets
+        for programOffset in programOffsets {
+            print(programOffset.offset, programOffset.name)
+        }
+    }
+
+    func testProgramPreBuildLoaderSet() {
+        let cache = self.cache1!
+        let programOffsets = cache.programOffsets
+        for programOffset in programOffsets {
+            guard !programOffset.name.starts(with: "/cdhash") else {
+                continue
+            }
+            guard let loaderSet = cache.prebuiltLoaderSet(for: programOffset) else {
+                continue
+            }
+            print("Name:", programOffset.name)
+            print("Loaders:")
+            for loader in loaderSet.loaders(in: cache)! {
+                print("  \(loader.path(in: cache) ?? "unknown")")
+            }
+        }
+    }
+
+    func testDylibsPreBuildLoaderSet() {
+        let cache = self.cache1!
+        guard let loaderSet = cache.dylibsPrebuiltLoaderSet else {
+            return
+        }
+        print("Loaders:")
+        for loader in loaderSet.loaders(in: cache)! {
+            print("  \(loader.path(in: cache) ?? "unknown")")
+        }
+    }
+
     func testObjCOptimization() throws {
         guard let objcOptimization = cache.objcOptimization else { return }
         print("Version:", objcOptimization.version)
@@ -173,5 +229,96 @@ final class DyldCachePrintTests: XCTestCase {
         print("Type Conformance Hash Table Cache Offset:", swiftOptimization.typeConformanceHashTableCacheOffset)
         print("Metadata Conformance Hash Table Cache Offset:", swiftOptimization.metadataConformanceHashTableCacheOffset)
         print("Foreign Type Conformance Hash Table Cache Offset:", swiftOptimization.foreignTypeConformanceHashTableCacheOffset)
+    }
+}
+
+extension DyldCachePrintTests {
+    func testCodeSign() {
+        guard let codeSign = cache.codeSign else {
+            return
+        }
+        guard let superBlob = codeSign.superBlob else {
+            return
+        }
+        let indices = superBlob.blobIndices(in: codeSign)
+        print(
+            indices.compactMap(\.type)
+        )
+    }
+
+    func testCodeSignCodeDirectories() {
+        guard let codeSign = cache.codeSign else {
+            return
+        }
+        let directories = codeSign.codeDirectories
+
+        /* Identifier */
+        let identifiers = directories
+            .compactMap {
+                $0.identifier(in: codeSign)
+            }
+        print(
+            "identifier:",
+            identifiers
+        )
+
+        /* CD Hash */
+        let cdHashes = directories
+            .compactMap {
+                $0.hash(in: codeSign)
+            }.map {
+                $0.map { String(format: "%02x", $0) }.joined()
+            }
+        print(
+            "CDHash:",
+            cdHashes
+        )
+
+        /* Page Hashes*/
+        //        let pageHashes = directories
+        //            .map { directory in
+        //                (-Int(directory.nSpecialSlots)..<Int(directory.nCodeSlots))
+        //                    .map {
+        //                        if let hash = directory.hash(forSlot: $0, in: codeSign) {
+        //                            return "\($0) " + hash.map { String(format: "%02x", $0) }.joined()
+        //                        } else {
+        //                            return "\($0) unknown"
+        //                        }
+        //                    }
+        //            }
+        //        print(
+        //            "PageHashes:",
+        //            pageHashes
+        //        )
+
+        /* Team IDs */
+        let teamIDs = directories
+            .compactMap {
+                $0.teamId(in: codeSign)
+            }
+        print(
+            "TeamID:",
+            teamIDs
+        )
+
+        /* Exec Segment */
+        let execSeg = directories
+            .compactMap {
+                $0.executableSegment(in: codeSign)
+            }
+        print(
+            "ExecSeg:",
+            execSeg
+        )
+
+        /* Runtime */
+        let runtime = directories
+            .compactMap {
+                $0.runtime(in: codeSign)
+            }
+        print(
+            "Runtime:",
+            runtime
+        )
     }
 }

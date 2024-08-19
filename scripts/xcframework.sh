@@ -24,33 +24,41 @@ archive_project() {
     # https://github.com/realm/realm-swift/blob/aea16af78a0bbfb2c964801becaecb9cade9335f/build.sh#L208
     case $PLATFORM in
     "macOS")
-        DESTINATION="$CONFIGURATION"
+        EFFECTIVE_PLATFORM=""
+        ;;
+    "macCatalyst")
+        EFFECTIVE_PLATFORM="-maccatalyst"
         ;;
     "iOS")
-        DESTINATION="$CONFIGURATION-iphoneos"
+        EFFECTIVE_PLATFORM="-iphoneos"
         ;;
     "iOS Simulator")
-        DESTINATION="$CONFIGURATION-iphonesimulator"
+        EFFECTIVE_PLATFORM="-iphonesimulator"
         ;;
     "watchOS")
-        DESTINATION="$CONFIGURATION-watchos"
+        EFFECTIVE_PLATFORM="-watchos"
         ;;
     "watchOS Simulator")
-        DESTINATION="$CONFIGURATION-watchsimulator"
+        EFFECTIVE_PLATFORM="-watchsimulator"
         ;;
     "tvOS")
-        DESTINATION="$CONFIGURATION-appletvos"
+        EFFECTIVE_PLATFORM="-appletvos"
         ;;
     "tvOS Simulator")
-        DESTINATION="$CONFIGURATION-appletvsimulator"
+        EFFECTIVE_PLATFORM="-appletvsimulator"
         ;;
     "visionOS")
-        DESTINATION="$CONFIGURATION-xros"
+        EFFECTIVE_PLATFORM="-xros"
         ;;
     "visionOS Simulator")
-        DESTINATION="Release-xrsimulator"
+        EFFECTIVE_PLATFORM="-xrsimulator"
         ;;
     esac
+
+    local DESTINATION="generic/platform=$PLATFORM"
+    if [ "$PLATFORM" = "macCatalyst" ]; then
+        DESTINATION="generic/platform=macOS,variant=Mac Catalyst"
+    fi
 
     local ARCHIVE_PATH=".build/archives/$PLATFORM"
 
@@ -61,7 +69,7 @@ archive_project() {
 
     xcodebuild archive -workspace . -scheme "$SCHEME" \
                 -configuration "$CONFIGURATION" \
-                -destination "generic/platform=$PLATFORM" \
+                -destination "$DESTINATION" \
                 -archivePath "$ARCHIVE_PATH" \
                 -derivedDataPath "$DERIVED_DATA_PATH" \
                 SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES DEFINES_MODULE=YES \
@@ -69,7 +77,7 @@ archive_project() {
                 OTHER_LDFLAGS="$OTHER_LDFLAGS"
 
     local BUILD_PRODUCTS_PATH=".build/Build/Intermediates.noindex/ArchiveIntermediates/$SCHEME/BuildProductsPath"
-    local SWIFT_MODULE_PATH="$BUILD_PRODUCTS_PATH/$DESTINATION/$SCHEME.swiftmodule"
+    local SWIFT_MODULE_PATH="$BUILD_PRODUCTS_PATH/$CONFIGURATION$EFFECTIVE_PLATFORM/$SCHEME.swiftmodule"
 
     mkdir -p "$ARCHIVE_PATH.xcarchive/Products/usr/local/lib/$SCHEME.framework/Modules"
     if [ -d "$SWIFT_MODULE_PATH" ]; then
@@ -102,6 +110,7 @@ create_xcframework() {
     local SCHEME=$1
     local PLATFORMS=(
         "macOS"
+        "macCatalyst"
         "iOS"
         "iOS Simulator"
         "watchOS"
@@ -155,6 +164,7 @@ machokit() {
     archive_project "MachOKit" "iOS" "$LINK_FLAGS"
     archive_project "MachOKit" "iOS Simulator" "$LINK_FLAGS"
     archive_project "MachOKit" "macOS" "$LINK_FLAGS"
+    archive_project "MachOKit" "macCatalyst" "$LINK_FLAGS"
     archive_project "MachOKit" "watchOS" "$LINK_FLAGS"
     archive_project "MachOKit" "watchOS Simulator" "$LINK_FLAGS"
     archive_project "MachOKit" "tvOS" "$LINK_FLAGS"
@@ -170,6 +180,7 @@ machokitc() {
     archive_project "MachOKitC" "iOS"
     archive_project "MachOKitC" "iOS Simulator"
     archive_project "MachOKitC" "macOS"
+    archive_project "MachOKitC" "macCatalyst"
     archive_project "MachOKitC" "watchOS"
     archive_project "MachOKitC" "watchOS Simulator"
     archive_project "MachOKitC" "tvOS"

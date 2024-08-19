@@ -52,11 +52,19 @@ public enum DyldSubCacheEntry {
     /// File name suffix of the subCache file
     ///
     /// e.g. ".25.data", ".03.development"
-    public var fileSuffix: String? {
+    public var fileSuffix: String {
         switch self {
         case let .general(info): info.fileSuffix
-        case .v1: nil
+        case let .v1(info): info.fileSuffix
         }
+    }
+}
+
+// cache
+extension DyldSubCacheEntry {
+    func subcache(for cache: DyldCache) throws -> DyldCache? {
+        let url = URL(fileURLWithPath: cache.url.path + fileSuffix)
+        return try DyldCache(subcacheUrl: url, mainCacheHeader: cache.header)
     }
 }
 
@@ -64,6 +72,7 @@ public struct DyldSubCacheEntryV1: LayoutWrapper {
     public typealias Layout = dyld_subcache_entry_v1
 
     public var layout: Layout
+    public let index: Int
 }
 
 extension DyldSubCacheEntryV1 {
@@ -71,12 +80,20 @@ extension DyldSubCacheEntryV1 {
     public var uuid: UUID {
         .init(uuid: layout.uuid)
     }
+
+    /// File name suffix of the subCache file
+    ///
+    /// e.g. ".01", ".02"
+    public var fileSuffix: String {
+        "." + String(format: "%02d", index)
+    }
 }
 
 public struct DyldSubCacheEntryGeneral: LayoutWrapper {
     public typealias Layout = dyld_subcache_entry
 
     public var layout: Layout
+    public let index: Int
 }
 
 extension DyldSubCacheEntryGeneral {

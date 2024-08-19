@@ -349,11 +349,27 @@ extension DyldChainedFixupPointerInfo {
 public protocol DyldChainedPointerContentRebase: LayoutWrapper {
     var target: Int { get }
     var next: Int { get }
+    var isAuth: Bool { get }
+    var unpackedTarget: UInt64 { get }
+}
+
+extension DyldChainedPointerContentRebase {
+    public var isAuth: Bool { false }
+    public var unpackedTarget: UInt64 { numericCast(target) }
 }
 
 public protocol DyldChainedPointerContentBind: LayoutWrapper {
     var ordinal: Int { get }
     var next: Int { get }
+    var addend: UInt64 { get }
+    var signExtendedAddend: UInt64 { get }
+    var isAuth: Bool { get }
+}
+
+extension DyldChainedPointerContentBind {
+    public var addend: UInt64 { 0 }
+    public var signExtendedAddend: UInt64 { addend }
+    public var isAuth: Bool { false }
 }
 
 public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase {
@@ -366,6 +382,10 @@ public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase {
 
     public var next: Int {
         numericCast(layout.next)
+    }
+
+    public var unpackedTarget: UInt64 {
+        (layout.high8 << 56) | layout.target
     }
 }
 
@@ -380,6 +400,19 @@ public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind {
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var addend: UInt64 {
+        numericCast(layout.addend)
+    }
+
+    public var signExtendedAddend: UInt64 {
+        let addend19 = layout.addend
+        if (addend19 & 0x40000) != 0 {
+            return addend19 | 0xFFFFFFFFFFFC0000
+        } else {
+            return addend19
+        }
+    }
 }
 
 public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase {
@@ -393,6 +426,8 @@ public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase {
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var isAuth: Bool { true }
 
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
@@ -411,6 +446,8 @@ public struct DyldChainedPtrArm64eAuthBind: DyldChainedPointerContentBind {
         numericCast(layout.next)
     }
 
+    public var isAuth: Bool { true }
+
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
     }
@@ -427,6 +464,10 @@ public struct DyldChainedPtr64Rebase: DyldChainedPointerContentRebase {
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var unpackedTarget: UInt64 {
+        (layout.high8 << 56) | layout.target
+    }
 }
 
 public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
@@ -439,6 +480,18 @@ public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
 
     public var next: Int {
         numericCast(layout.next)
+    }
+
+    public var addend: UInt64 {
+        numericCast(layout.addend)
+    }
+
+    public var signExtendedAddend: UInt64 {
+        let addend27 = layout.addend;
+        let top8Bits = addend27 & 0x00007F80000
+        let bottom19Bits = addend27 & 0x0000007FFFF
+        let newValue = (top8Bits << 13) | (((bottom19Bits << 37) >> 37) & 0x00FFFFFFFFFFFFFF)
+        return newValue
     }
 }
 
@@ -453,6 +506,19 @@ public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var addend: UInt64 {
+        numericCast(layout.addend)
+    }
+
+    public var signExtendedAddend: UInt64 {
+        let addend19 = layout.addend
+        if (addend19 & 0x40000) != 0 {
+            return addend19 | 0xFFFFFFFFFFFC0000
+        } else {
+            return addend19
+        }
+    }
 }
 
 public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind {
@@ -466,6 +532,8 @@ public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind {
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var isAuth: Bool { true }
 
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
@@ -483,6 +551,8 @@ public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var isAuth: Bool { layout.isAuth != 0 }
 
     public var keyName: String {
         ["IA", "IB", "DA", "DB"][Int(layout.key)]
@@ -512,6 +582,10 @@ public struct DyldChainedPtr32Bind: DyldChainedPointerContentBind {
 
     public var next: Int {
         numericCast(layout.next)
+    }
+
+    public var addend: UInt64 {
+        numericCast(layout.addend)
     }
 }
 
@@ -552,6 +626,10 @@ public struct DyldChainedPtrArm64eSharedCacheRebase: DyldChainedPointerContentRe
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var unpackedTarget: UInt64 {
+        (layout.high8 << 56) | layout.runtimeOffset
+    }
 }
 
 public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerContentRebase {
@@ -565,6 +643,8 @@ public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerConte
     public var next: Int {
         numericCast(layout.next)
     }
+
+    public var isAuth: Bool { true }
 
     public var keyName: String {
         ["IA", "DA"][Int(layout.keyIsData)]
