@@ -9,6 +9,8 @@
 import XCTest
 @testable import MachOKit
 
+#if canImport(Darwin)
+
 final class MachOPrintTests: XCTestCase {
     private var machO: MachOImage!
 
@@ -705,3 +707,5 @@ extension MachOPrintTests {
         )
     }
 }
+
+#endif

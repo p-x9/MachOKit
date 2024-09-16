@@ -36,6 +36,8 @@
  *	@(#)runetype.h	8.1 (Berkeley) 6/2/93
  */
 
+#if !__has_include(<runetype.h>)
+
 #ifndef	_RUNETYPE_H_
 #define	_RUNETYPE_H_
 
@@ -138,3 +140,5 @@ extern _RuneLocale *_CurrentRuneLocale;
 __END_DECLS
 
 #endif	/* !_RUNETYPE_H_ */
+
+#endif

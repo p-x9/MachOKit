@@ -6,12 +6,12 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "mach-o/fat.h"
-#include "mach-o/loader.h"
-#include "mach-o/nlist.h"
-#include "mach-o/reloc.h"
-#include "mach-o/stab.h"
-#include "mach/vm_prot.h"
+#include "../mach-o/fat.h"
+#include "../mach-o/loader.h"
+#include "../mach-o/nlist.h"
+#include "../mach-o/reloc.h"
+#include "../mach-o/stab.h"
+#include "../mach/vm_prot.h"
 
 // Byte order stuff
 #ifndef OS_INLINE

@@ -32,13 +32,13 @@
  * <mach/machine.h> is needed here for the cpu_type_t and cpu_subtype_t types
  * and contains the constants for the possible values of these types.
  */
-#include <mach/machine.h>
+#include "../mach/machine.h"
 
 /*
  * <mach/vm_prot.h> is needed here for the vm_prot_t type and contains the 
  * constants that are or'ed together for the possible values of this type.
  */
-#include <mach/vm_prot.h>
+#include "../mach/vm_prot.h"
 
 /*
  * <machine/thread_status.h> is expected to define the flavors of the thread
