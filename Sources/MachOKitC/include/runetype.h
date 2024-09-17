@@ -41,7 +41,7 @@
 #ifndef	_RUNETYPE_H_
 #define	_RUNETYPE_H_
 
-#include <_types.h>
+#include "_types.h"
 #include <wchar.h>
 
 typedef wchar_t __darwin_rune_t;
