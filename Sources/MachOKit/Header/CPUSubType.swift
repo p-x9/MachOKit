@@ -1051,10 +1051,10 @@ extension CPUARM64_32SubType: CustomStringConvertible {
     }
 }
 
+#if canImport(Darwin)
 extension CPUSubType {
     /// CPU subtype of host pc
     static var current: CPUSubType? {
-#if canImport(Darwin)
         guard let cpuType: CPUType = .current else {
             return nil
         }
@@ -1063,11 +1063,9 @@ extension CPUSubType {
         let ret = sysctlbyname("hw.cpusubtype", &subtype, &size, nil, 0)
         guard ret != -1 else { return  nil }
         return .init(rawValue: subtype, of: cpuType)
-#else
-        return nil
-#endif        
     }
 }
+#endif 
 
 /*
  I386 series declarations cannot be used from swift

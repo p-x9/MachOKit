@@ -44,6 +44,7 @@ extension CPU {
     }
 }
 
+#if canImport(Darwin)
 extension CPU {
     /// CPU type and subtype of host pc
     static var current: CPU? {
@@ -57,3 +58,4 @@ extension CPU {
         )
     }
 }
+#endif
