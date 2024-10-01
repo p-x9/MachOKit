@@ -50,9 +50,14 @@ public class DyldCache {
         )
 
         // check magic of header
-        // FIXME: error instead of unwrap
-        let cpuType = header._cpuType!
-        let cpuSubType = header._cpuSubType!
+        guard header.magic.starts(with: "dyld_") else {
+            throw MachOKitError.invalidMagic
+        }
+
+        guard let cpuType = header._cpuType,
+              let cpuSubType = header._cpuSubType else {
+            throw MachOKitError.invalidCpuType
+        }
         self.cpu = .init(
             typeRawValue: cpuType.rawValue,
             subtypeRawValue: cpuSubType.rawValue
