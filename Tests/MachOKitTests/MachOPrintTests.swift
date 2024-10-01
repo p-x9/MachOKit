@@ -406,7 +406,6 @@ extension MachOPrintTests {
     }
 }
 
-#if canImport(Darwin)
 extension MachOPrintTests {
     func testClosestSymbol() {
         for symbol in machO.symbols.shuffled().prefix(100) {
@@ -445,7 +444,6 @@ extension MachOPrintTests {
         }
     }
 }
-#endif
 
 extension MachOPrintTests {
     func testFindSymbolByName() {
@@ -473,7 +471,6 @@ extension MachOPrintTests {
     }
 }
 
-#if canImport(Darwin)
 extension MachOPrintTests {
     func testFunctionStarts() {
         guard let functionStarts = machO.functionStarts else { return }
@@ -500,7 +497,6 @@ extension MachOPrintTests {
         }
     }
 }
-#endif
 
 extension MachOPrintTests {
     func testDataInCode() {

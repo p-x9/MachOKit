@@ -8,11 +8,10 @@
 
 import Foundation
 
-
+#if canImport(Darwin)
 extension MachOImage {
     /// Sequence of loaded machO images.
     public static var images: AnySequence<MachOImage> {
-        #if canImport(Darwin)
         AnySequence(
             (0..<_dyld_image_count())
                 .lazy
@@ -21,9 +20,6 @@ extension MachOImage {
                     MachOImage(ptr: $0)
                 }
         )
-        #else
-        AnySequence([])
-        #endif
     }
 }
 
@@ -148,3 +144,4 @@ fileprivate extension MachOImage {
         return addressRange.contains(address)
     }
 }
+#endif
