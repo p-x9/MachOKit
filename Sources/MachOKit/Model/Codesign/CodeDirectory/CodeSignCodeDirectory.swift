@@ -8,7 +8,7 @@
 
 import Foundation
 import MachOKitC
-import Crypto
+@_implementationOnly import Crypto
 
 public struct CodeSignCodeDirectory: LayoutWrapper {
     public typealias Layout = CS_CodeDirectory
