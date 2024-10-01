@@ -48,7 +48,7 @@ extension CPUType: RawRepresentable {
 
     public init?(rawValue: cpu_type_t) {
         switch rawValue {
-        case CPU_TYPE_ANY: self = .any
+        case RawValue(CPU_TYPE_ANY): self = .any
         case CPU_TYPE_VAX: self = .vax
         case CPU_TYPE_MC680x0: self = .mc680x0
         case CPU_TYPE_X86: self = .x86
@@ -71,7 +71,7 @@ extension CPUType: RawRepresentable {
 
     public var rawValue: cpu_type_t {
         switch self {
-        case .any: CPU_TYPE_ANY
+        case .any: RawValue(CPU_TYPE_ANY)
         case .vax: CPU_TYPE_VAX
         case .mc680x0: CPU_TYPE_MC680x0
         case .x86: CPU_TYPE_X86
@@ -127,6 +127,7 @@ extension CPUType {
 extension CPUType {
     /// CPU type of host pc
     static var current: CPUType? {
+#if canImport(Darwin)
         var type: cpu_type_t = 0
         var size = MemoryLayout<cpu_type_t>.size
         let ret = sysctlbyname("hw.cputype", &type, &size, nil, 0)
@@ -140,5 +141,8 @@ extension CPUType {
         }
 
         return .init(rawValue: type)
+#else
+        return nil
+#endif
     }
 }

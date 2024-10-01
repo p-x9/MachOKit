@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import MachO
 
 public protocol EncryptionInfoCommandProtocol: LoadCommandWrapper {
     var cryptId: Int { get }

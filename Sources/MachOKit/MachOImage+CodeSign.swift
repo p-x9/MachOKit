@@ -6,6 +6,7 @@
 //  
 //
 
+import CoreFoundation
 import Foundation
 
 extension MachOImage {
