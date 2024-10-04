@@ -51,4 +51,34 @@ struct objc_headeropt_rw_t_32 {
     struct header_info_rw_32 headers[0];  // sorted by mhdr address
 };
 
+// https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/OptimizerObjC.h#L734
+struct objc_header_info_ro_t_64 {
+    int32_t mhdr_offset;     // offset to mach_header or mach_header_64
+    int32_t info_offset;     // offset to objc_image_info *
+};
+
+struct objc_header_info_ro_t_32 {
+    int64_t mhdr_offset;     // offset to mach_header or mach_header_64
+    int64_t info_offset;     // offset to objc_image_info *
+};
+
+// https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/OptimizerObjC.h#L772
+struct objc_headeropt_ro_t_64 {
+    uint32_t count;
+    uint32_t entsize;
+    struct objc_header_info_ro_t_64 headers[0];  // sorted by mhdr address
+};
+
+struct objc_headeropt_ro_t_32 {
+    uint32_t count;
+    uint32_t entsize;
+    struct objc_header_info_ro_t_32 headers[0];  // sorted by mhdr address
+};
+
+// https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/OptimizerObjC.h#L36C1-L39C3
+struct objc_image_info {
+    int32_t version;
+    uint32_t flags;
+};
+
 #endif /* objc_h */
