@@ -76,6 +76,8 @@ struct objc_headeropt_ro_t_32 {
 };
 
 // https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/OptimizerObjC.h#L36C1-L39C3
+// https://github.com/apple-oss-distributions/objc4/blob/01edf1705fbc3ff78a423cd21e03dfc21eb4d780/runtime/objc-abi.h#L83
+
 struct objc_image_info {
     int32_t version;
     uint32_t flags;
