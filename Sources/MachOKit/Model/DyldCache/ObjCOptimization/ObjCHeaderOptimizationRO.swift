@@ -21,10 +21,15 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
     public let offset: Int
 
     public func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo> {
+        precondition(
+            layout.entsize >= HeaderInfo.layoutSize,
+            "entsize is smaller than HeaderInfo"
+        )
         let offset = offset + layoutSize
         return AnyRandomAccessCollection(
             cache.fileHandle.readDataSequence<HeaderInfo.Layout>(
                 offset: numericCast(offset),
+                entrySize: numericCast(layout.entsize),
                 numberOfElements: numericCast(layout.count),
                 swapHandler: { _ in }
             ).enumerated().map({
@@ -46,10 +51,15 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
     public let offset: Int
 
     public func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo> {
+        precondition(
+            layout.entsize >= HeaderInfo.layoutSize,
+            "entsize is smaller than HeaderInfo"
+        )
         let offset = offset + layoutSize
         return AnyRandomAccessCollection(
             cache.fileHandle.readDataSequence<HeaderInfo.Layout>(
                 offset: numericCast(offset),
+                entrySize: numericCast(layout.entsize),
                 numberOfElements: numericCast(layout.count),
                 swapHandler: { _ in }
             ).enumerated().map({

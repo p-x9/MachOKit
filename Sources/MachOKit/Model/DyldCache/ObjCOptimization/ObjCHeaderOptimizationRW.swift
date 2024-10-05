@@ -3,14 +3,14 @@
 //
 //
 //  Created by p-x9 on 2024/10/05
-//  
+//
 //
 
 import Foundation
 
 public protocol ObjCHeaderOptimizationRWProtocol {
     associatedtype HeaderInfo: LayoutWrapper
-    func headerInfos(in cache: DyldCache) -> DataSequence<HeaderInfo>
+    func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo>
 }
 
 public struct ObjCHeaderOptimizationRW64: LayoutWrapper, ObjCHeaderOptimizationRWProtocol {
@@ -20,11 +20,20 @@ public struct ObjCHeaderOptimizationRW64: LayoutWrapper, ObjCHeaderOptimizationR
     public var layout: Layout
     public var offset: Int
 
-    public func headerInfos(in cache: DyldCache) -> DataSequence<HeaderInfo> {
+    public func headerInfos(
+        in cache: DyldCache
+    ) -> AnyRandomAccessCollection<HeaderInfo> {
+        precondition(
+            layout.entsize >= HeaderInfo.layoutSize,
+            "entsize is smaller than HeaderInfo"
+        )
         let offset = offset + layoutSize
-        return cache.fileHandle.readDataSequence(
-            offset: numericCast(offset),
-            numberOfElements: numericCast(layout.count)
+        return AnyRandomAccessCollection(
+            cache.fileHandle.readDataSequence(
+                offset: numericCast(offset),
+                entrySize: numericCast(layout.entsize),
+                numberOfElements: numericCast(layout.count)
+            )
         )
     }
 }
@@ -36,11 +45,20 @@ public struct ObjCHeaderOptimizationRW32: LayoutWrapper, ObjCHeaderOptimizationR
     public var layout: Layout
     public var offset: Int
 
-    public func headerInfos(in cache: DyldCache) -> DataSequence<HeaderInfo> {
+    public func headerInfos(
+        in cache: DyldCache
+    ) -> AnyRandomAccessCollection<HeaderInfo> {
+        precondition(
+            layout.entsize >= HeaderInfo.layoutSize,
+            "entsize is smaller than HeaderInfo"
+        )
         let offset = offset + layoutSize
-        return cache.fileHandle.readDataSequence(
-            offset: numericCast(offset),
-            numberOfElements: numericCast(layout.count)
+        return AnyRandomAccessCollection(
+            cache.fileHandle.readDataSequence(
+                offset: numericCast(offset),
+                entrySize: numericCast(layout.entsize),
+                numberOfElements: numericCast(layout.count)
+            )
         )
     }
 }
