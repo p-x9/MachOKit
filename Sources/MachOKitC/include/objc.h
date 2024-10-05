@@ -53,13 +53,14 @@ struct objc_headeropt_rw_t_32 {
 
 // https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/OptimizerObjC.h#L734
 struct objc_header_info_ro_t_64 {
-    int32_t mhdr_offset;     // offset to mach_header or mach_header_64
-    int32_t info_offset;     // offset to objc_image_info *
+    int64_t mhdr_offset;     // offset to mach_header or mach_header_64
+    int64_t info_offset;     // offset to objc_image_info *
+    uint64_t pad;
 };
 
 struct objc_header_info_ro_t_32 {
-    int64_t mhdr_offset;     // offset to mach_header or mach_header_64
-    int64_t info_offset;     // offset to objc_image_info *
+    int32_t mhdr_offset;     // offset to mach_header or mach_header_64
+    int32_t info_offset;     // offset to objc_image_info *
 };
 
 // https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/OptimizerObjC.h#L772
