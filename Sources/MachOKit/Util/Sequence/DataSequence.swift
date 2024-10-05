@@ -67,7 +67,7 @@ extension DataSequence {
 
         public mutating func next() -> Element? {
             guard nextIndex < numberOfElements else { return nil }
-            guard nextOffset < data.count else { return nil }
+            guard nextOffset + entrySize <= data.count else { return nil }
 
             defer {
                 nextIndex += 1
@@ -95,6 +95,7 @@ extension DataSequence: Collection {
     public subscript(position: Int) -> Element {
         precondition(position >= 0)
         precondition(position < endIndex)
+        precondition(data.count >= (position + 1) * entrySize)
         return data.withUnsafeBytes {
             guard let baseAddress = $0.baseAddress else { fatalError() }
             return baseAddress
