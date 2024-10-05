@@ -11,7 +11,8 @@ import Foundation
 public struct MemorySequence<T>: Sequence {
     public typealias Element = T
 
-    private let basePointer: UnsafePointer<T>
+    private let basePointer: UnsafeRawPointer
+    private let entrySize: Int
     private let numberOfElements: Int
 
     @_spi(Support)
@@ -19,13 +20,26 @@ public struct MemorySequence<T>: Sequence {
         basePointer: UnsafePointer<T>,
         numberOfElements: Int
     ) {
-        self.basePointer = basePointer
+        self.basePointer = .init(basePointer)
+        self.entrySize = MemoryLayout<Element>.size
+        self.numberOfElements = numberOfElements
+    }
+
+    @_spi(Support)
+    public init(
+        basePointer: UnsafePointer<T>,
+        entrySize: Int,
+        numberOfElements: Int
+    ) {
+        self.basePointer = .init(basePointer)
+        self.entrySize = entrySize
         self.numberOfElements = numberOfElements
     }
 
     public func makeIterator() -> Iterator {
         Iterator(
             basePointer: basePointer,
+            entrySize: entrySize,
             numberOfElements: numberOfElements
         )
     }
@@ -35,16 +49,19 @@ extension MemorySequence {
     public struct Iterator: IteratorProtocol {
         public typealias Element = T
 
-        private let basePointer: UnsafePointer<T>
+        private let basePointer: UnsafeRawPointer
+        private let entrySize: Int
         private let numberOfElements: Int
 
         private var nextIndex: Int = 0
 
         init(
-            basePointer: UnsafePointer<T>,
+            basePointer: UnsafeRawPointer,
+            entrySize: Int,
             numberOfElements: Int
         ) {
             self.basePointer = basePointer
+            self.entrySize = entrySize
             self.numberOfElements = numberOfElements
         }
 
@@ -52,8 +69,8 @@ extension MemorySequence {
             guard nextIndex < numberOfElements else { return nil }
             defer { nextIndex += 1 }
             return basePointer
-                .advanced(by: nextIndex)
-                .pointee
+                .advanced(by: nextIndex * entrySize)
+                .load(as: Element.self)
         }
     }
 }
@@ -71,7 +88,9 @@ extension MemorySequence: Collection {
     public subscript(position: Int) -> Element {
         precondition(position >= 0)
         precondition(position < endIndex)
-        return basePointer.advanced(by: position).pointee
+        return basePointer
+            .advanced(by: position * entrySize)
+            .load(as: Element.self)
     }
 }
 
