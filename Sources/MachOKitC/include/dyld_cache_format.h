@@ -28,7 +28,9 @@
 #define __DYLD_CACHE_FORMAT__
 
 #include <stdint.h>
-#include <uuid/uuid.h>
+
+//#include <uuid/uuid.h>
+typedef uint8_t uuid_t[16];
 
 //#include <mach-o/fixup-chains.h>
 #include "fixup-chains.h"
