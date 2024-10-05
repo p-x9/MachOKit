@@ -56,3 +56,45 @@ extension ObjCOptimization {
         )
     }
 }
+
+// MARK: Header Optimization RO
+// https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/common/DyldSharedCache.cpp#L2017
+extension ObjCOptimization {
+    public func headerOptimizationRO64(
+        in cache: DyldCache
+    ) -> ObjCHeaderOptimizationRO64? {
+        guard layout.headerInfoROCacheOffset > 0 else {
+            return nil
+        }
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        guard let offset = cache.fileOffset(
+            of: sharedRegionStart + numericCast(layout.headerInfoROCacheOffset)
+        ) else {
+            return nil
+        }
+        let layout: ObjCHeaderOptimizationRO64.Layout =  cache.fileHandle.read(offset: offset)
+        return .init(
+            layout: layout,
+            offset: numericCast(offset)
+        )
+    }
+
+    public func headerOptimizationRO32(
+        in cache: DyldCache
+    ) -> ObjCHeaderOptimizationRO32? {
+        guard layout.headerInfoROCacheOffset > 0 else {
+            return nil
+        }
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        guard let offset = cache.fileOffset(
+            of: sharedRegionStart + numericCast(layout.headerInfoROCacheOffset)
+        ) else {
+            return nil
+        }
+        let layout: ObjCHeaderOptimizationRO32.Layout =  cache.fileHandle.read(offset: offset)
+        return .init(
+            layout: layout,
+            offset: numericCast(offset)
+        )
+    }
+}
