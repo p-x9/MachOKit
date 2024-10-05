@@ -12,6 +12,7 @@ public struct DataSequence<T>: Sequence {
     public typealias Element = T
 
     private let data: Data
+    private let entrySize: Int
     private let numberOfElements: Int
 
     @_spi(Support)
@@ -20,12 +21,24 @@ public struct DataSequence<T>: Sequence {
         numberOfElements: Int
     ) {
         self.data = data
+        self.entrySize = MemoryLayout<Element>.size
         self.numberOfElements = numberOfElements
+    }
+
+    @_spi(Support)
+    public init(
+        data: Data,
+        entrySize: Int
+    ) {
+        self.data = data
+        self.entrySize = entrySize
+        self.numberOfElements = data.count / entrySize
     }
 
     public func makeIterator() -> Iterator {
         Iterator(
-            data: data,
+            data: data, 
+            entrySize: entrySize,
             numberOfElements: numberOfElements
         )
     }
@@ -36,6 +49,7 @@ extension DataSequence {
         public typealias Element = T
 
         private let data: Data
+        private let entrySize: Int
         private let numberOfElements: Int
 
         private var nextIndex: Int = 0
@@ -43,9 +57,11 @@ extension DataSequence {
 
         init(
             data: Data,
+            entrySize: Int,
             numberOfElements: Int
         ) {
             self.data = data
+            self.entrySize = entrySize
             self.numberOfElements = numberOfElements
         }
 
@@ -55,7 +71,7 @@ extension DataSequence {
 
             defer {
                 nextIndex += 1
-                nextOffset += MemoryLayout<Element>.size
+                nextOffset += entrySize
             }
 
             return data.withUnsafeBytes {
@@ -82,9 +98,8 @@ extension DataSequence: Collection {
         return data.withUnsafeBytes {
             guard let baseAddress = $0.baseAddress else { fatalError() }
             return baseAddress
-                .assumingMemoryBound(to: Element.self)
-                .advanced(by: position)
-                .pointee
+                .advanced(by: position * entrySize)
+                .load(as: Element.self)
         }
     }
 }
