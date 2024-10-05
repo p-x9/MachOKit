@@ -98,10 +98,34 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper {
         roOptimizaion: ObjCHeaderOptimizationRO64,
         in cache: DyldCache
     ) -> MachOFile? {
+        _machO(
+            headerInfoROOffset: objcOptimization.headerInfoROCacheOffset,
+            roOptimizaion: roOptimizaion,
+            in: cache
+        )
+    }
+
+    public func machO(
+        objcOptimization: OldObjCOptimization,
+        roOptimizaion: ObjCHeaderOptimizationRO64,
+        in cache: DyldCache
+    ) -> MachOFile? {
+        _machO(
+            headerInfoROOffset: numericCast(objcOptimization.offset) + numericCast(objcOptimization.headeropt_ro_offset),
+            roOptimizaion: roOptimizaion,
+            in: cache
+        )
+    }
+
+    private func _machO(
+        headerInfoROOffset: UInt64,
+        roOptimizaion: ObjCHeaderOptimizationRO64,
+        in cache: DyldCache
+    ) -> MachOFile? {
         let offsetFromRoHeader = roOptimizaion.layoutSize + index * numericCast(roOptimizaion.entsize)
 
         let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        let roOffset = objcOptimization.headerInfoROCacheOffset + sharedRegionStart
+        let roOffset = headerInfoROOffset + sharedRegionStart
         let _offset: Int = numericCast(roOffset) + offsetFromRoHeader + numericCast(layout.mhdr_offset)
         guard let offset = cache.fileOffset(
             of: numericCast(_offset)
@@ -133,10 +157,34 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper {
         roOptimizaion: ObjCHeaderOptimizationRO32,
         in cache: DyldCache
     ) -> MachOFile? {
+        _machO(
+            headerInfoROOffset: objcOptimization.headerInfoROCacheOffset,
+            roOptimizaion: roOptimizaion,
+            in: cache
+        )
+    }
+
+    public func machO(
+        objcOptimization: OldObjCOptimization,
+        roOptimizaion: ObjCHeaderOptimizationRO32,
+        in cache: DyldCache
+    ) -> MachOFile? {
+        _machO(
+            headerInfoROOffset: numericCast(objcOptimization.offset) + numericCast(objcOptimization.headeropt_ro_offset),
+            roOptimizaion: roOptimizaion,
+            in: cache
+        )
+    }
+
+    private func _machO(
+        headerInfoROOffset: UInt64,
+        roOptimizaion: ObjCHeaderOptimizationRO32,
+        in cache: DyldCache
+    ) -> MachOFile? {
         let offsetFromRoHeader = roOptimizaion.layoutSize + index * numericCast(roOptimizaion.entsize)
 
         let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        let roOffset = objcOptimization.headerInfoROCacheOffset + sharedRegionStart
+        let roOffset = headerInfoROOffset + sharedRegionStart
         let _offset: Int = numericCast(roOffset) + offsetFromRoHeader + numericCast(layout.mhdr_offset)
         guard let offset = cache.fileOffset(
             of: numericCast(_offset)

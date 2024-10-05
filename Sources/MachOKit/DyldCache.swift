@@ -304,6 +304,36 @@ extension DyldCache {
         return fileHandle.read(offset: offset)
     }
 
+    public var oldObjcOptimization: OldObjCOptimization? {
+        guard let libobjc = machOFiles().first(where: {
+            $0.imagePath == "/usr/lib/libobjc.A.dylib"
+        }) else { return nil }
+
+        let __objc_opt_ro: any SectionProtocol
+
+        if libobjc.is64Bit {
+            guard let _text = libobjc.loadCommands.text64,
+                  let section = _text.sections(in: libobjc).first(where: {
+                      $0.sectionName == "__objc_opt_ro"
+                  }) else {
+                return nil
+            }
+            __objc_opt_ro = section
+        } else {
+            guard let _text = libobjc.loadCommands.text,
+                  let section = _text.sections(in: libobjc).first(where: {
+                      $0.sectionName == "__objc_opt_ro"
+                  }) else {
+                return nil
+            }
+            __objc_opt_ro = section
+        }
+
+        let offset = __objc_opt_ro.offset + libobjc.headerStartOffset
+        let layout: OldObjCOptimization.Layout = fileHandle.read(offset: numericCast(offset))
+        return .init(layout: layout, offset: offset)
+    }
+
     public var swiftOptimization: SwiftOptimization? {
         let sharedRegionStart = mainCacheHeader.sharedRegionStart
         guard let offset = fileOffset(
