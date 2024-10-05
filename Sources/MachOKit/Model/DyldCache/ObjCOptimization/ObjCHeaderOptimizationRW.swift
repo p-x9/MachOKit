@@ -10,6 +10,8 @@ import Foundation
 
 public protocol ObjCHeaderOptimizationRWProtocol {
     associatedtype HeaderInfo: LayoutWrapper
+    var count: Int { get }
+    var entrySize: Int { get }
     func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo>
 }
 
@@ -19,6 +21,9 @@ public struct ObjCHeaderOptimizationRW64: LayoutWrapper, ObjCHeaderOptimizationR
 
     public var layout: Layout
     public var offset: Int
+
+    public var count: Int { numericCast(layout.count) }
+    public var entrySize: Int { numericCast(layout.entsize) }
 
     public func headerInfos(
         in cache: DyldCache
@@ -44,6 +49,9 @@ public struct ObjCHeaderOptimizationRW32: LayoutWrapper, ObjCHeaderOptimizationR
 
     public var layout: Layout
     public var offset: Int
+
+    public var count: Int { numericCast(layout.count) }
+    public var entrySize: Int { numericCast(layout.entsize) }
 
     public func headerInfos(
         in cache: DyldCache
