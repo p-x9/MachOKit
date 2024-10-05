@@ -86,13 +86,17 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper {
     }
 
     public func machO(
+        objcOptimization: ObjCOptimization,
+        roOptimizaion: ObjCHeaderOptimizationRO64,
         in cache: DyldCache
     ) -> MachOFile? {
-        let offsetFromRoHeader = ObjCHeaderOptimizationRO64.layoutSize + index * layoutSize
-        let _offset = offsetFromRoHeader + numericCast(layout.mhdr_offset)
-        let roOffset = cache.address(of: numericCast(self.offset - offsetFromRoHeader))!
+        let offsetFromRoHeader = roOptimizaion.layoutSize + index * numericCast(roOptimizaion.entsize)
+
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        let roOffset = objcOptimization.headerInfoROCacheOffset + sharedRegionStart
+        let _offset: Int = numericCast(roOffset) + offsetFromRoHeader + numericCast(layout.mhdr_offset)
         guard let offset = cache.fileOffset(
-            of: numericCast(Int64(roOffset) + Int64(_offset))
+            of: numericCast(_offset)
         ) else {
             return nil
         }
@@ -117,13 +121,17 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper {
     }
 
     public func machO(
+        objcOptimization: ObjCOptimization,
+        roOptimizaion: ObjCHeaderOptimizationRO32,
         in cache: DyldCache
     ) -> MachOFile? {
-        let offsetFromRoHeader = ObjCHeaderOptimizationRO64.layoutSize + index * layoutSize
-        let _offset = offsetFromRoHeader + numericCast(layout.mhdr_offset)
-        let roOffset = cache.address(of: numericCast(self.offset - offsetFromRoHeader))!
+        let offsetFromRoHeader = roOptimizaion.layoutSize + index * numericCast(roOptimizaion.entsize)
+
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        let roOffset = objcOptimization.headerInfoROCacheOffset + sharedRegionStart
+        let _offset: Int = numericCast(roOffset) + offsetFromRoHeader + numericCast(layout.mhdr_offset)
         guard let offset = cache.fileOffset(
-            of: numericCast(Int64(roOffset) + Int64(_offset))
+            of: numericCast(_offset)
         ) else {
             return nil
         }
