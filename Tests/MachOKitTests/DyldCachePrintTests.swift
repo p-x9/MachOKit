@@ -222,6 +222,51 @@ final class DyldCachePrintTests: XCTestCase {
         print("Relative Method Selector Base  Address Offset:", objcOptimization.relativeMethodSelectorBaseAddressOffset)
     }
 
+    func testObjCHeaderOptimizationRW() throws {
+        guard let objcOptimization = cache.objcOptimization else { return }
+        let rw = objcOptimization.headerOptimizationRW64(in: cache)!
+        let rwHeaders = rw.headerInfos(in: cache)
+        print("Count:", rw.count)
+        print("EntrySize:", rw.entrySize)
+        for info in rwHeaders {
+            print(" isLoaded: \(info.isLoaded), isAllClassesRelized: \(info.isAllClassesRelized)")
+        }
+    }
+
+    func testObjCHeaderOptimizationRO() throws {
+        guard let objcOptimization = cache.objcOptimization else { return }
+        let ro = objcOptimization.headerOptimizationRO64(in: cache)!
+        let roHeaders = ro.headerInfos(in: cache)
+        print("Count:", ro.count)
+        print("EntrySize:", ro.entrySize)
+
+        print("Image Info:")
+        for info in roHeaders {
+            guard let imageInfo = info.imageInfo(in: cache) else {
+                print(" nil")
+                continue
+            }
+            print(" Flags: \(imageInfo.flags.bits), Version: \(imageInfo.version)")
+        }
+
+        print("Image:")
+        for info in roHeaders {
+            guard let machO = info.machO(
+                objcOptimization: objcOptimization,
+                roOptimizaion: ro,
+                in: cache
+            ) else {
+                print(" nil")
+                continue
+            }
+            let path = machO.loadCommands
+                .info(of: LoadCommand.idDylib)?
+                .dylib(in: machO)
+                .name ?? "unknonw"
+            print(" \(path), offset: \(machO.headerStartOffsetInCache)")
+        }
+    }
+
     func testSwiftOptimization() throws {
         guard let swiftOptimization = cache.swiftOptimization else { return }
         print("Version:", swiftOptimization.version)
