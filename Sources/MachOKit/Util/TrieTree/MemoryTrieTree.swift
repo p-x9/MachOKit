@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct MemoryTrieTree<Content: TrieNodeContent> {
+public struct MemoryTrieTree<Content: TrieNodeContent>: TrieTreeProtocol {
     public let basePointer: UnsafeRawPointer
     public let size: Int
 
