@@ -14,7 +14,6 @@ public protocol DyldCacheRepresentable {
     associatedtype ImageInfos: RandomAccessCollection<DyldCacheImageInfo>
     associatedtype ImageTextInfos: RandomAccessCollection<DyldCacheImageTextInfo>
     associatedtype SubCaches: Sequence<DyldSubCacheEntry>
-    associatedtype CodeSign: CodeSignProtocol
     associatedtype DylibsTrieEntries: TrieTreeProtocol<DylibsTrieNodeContent>
     associatedtype ProgramsTrieEntries: TrieTreeProtocol<ProgramsTrieNodeContent>
 
@@ -53,9 +52,6 @@ public protocol DyldCacheRepresentable {
     /// Local symbol info
     var localSymbolsInfo: DyldCacheLocalSymbolsInfo? { get }
 
-    /// Code sign infos
-    var codeSign: CodeSign? { get }
-
     /// Dylibs trie is for searching by dylib name.
     ///
     /// The ``dylibIndices`` are retrieved from this trie tree．
@@ -85,25 +81,32 @@ public protocol DyldCacheRepresentable {
     /// 131776 /cdhash/fed26a75645fed2a674b5c4d01001bfa69b9dbea
     /// ```
     var programOffsets: [ProgramOffset] { get }
+    /// PrebuiltLoaderSet of all cached dylibs
     var dylibsPrebuiltLoaderSet: PrebuiltLoaderSet? { get }
 
+    /// Optimization info for Objective-C
+    ///
+    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/common/DyldSharedCache.cpp#L1892-L1898)
     var objcOptimization: ObjCOptimization? { get }
+    /// Old style of optimization info for Objective-C
+    ///
+    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/common/DyldSharedCache.cpp#L1906-L1942)
     var oldObjcOptimization: OldObjCOptimization? { get }
+    /// Optimization info for Swift
+    ///
+    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/common/DyldSharedCache.cpp#L2088-L2098)
     var swiftOptimization: SwiftOptimization? { get }
 
     /// Get the prebuiltLoaderSet indicated by programOffset.
     /// - Parameter programOffset: program name and offset pair
     /// - Returns: prebuiltLoaderSet
     func prebuiltLoaderSet(for programOffset: ProgramOffset) -> PrebuiltLoaderSet?
-    
-    /// Sequence of MachO information contained in this cache
-    func machOFiles() -> AnySequence<MachOFile>
-    
+
     /// Convert vmaddr to file offset
     /// - Parameter address: vmaddr
     /// - Returns: file offset
     ///
-    /// If nil is returned, it may be that a non-valid address was given or 
+    /// If nil is returned, it may be that a non-valid address was given or
     /// an address that exists in the subcache.
     func fileOffset(of address: UInt64) -> UInt64?
     /// Convert file offset to vmaddr
@@ -130,4 +133,70 @@ public protocol DyldCacheRepresentable {
     /// - Parameter offset: file offset
     /// - Returns: mapping and slide info
     func mappingAndSlideInfo(forFileOffset offset: UInt64) -> DyldCacheMappingAndSlideInfo?
+}
+
+extension DyldCacheRepresentable {
+    public func fileOffset(of address: UInt64) -> UInt64? {
+        guard let mapping = mappingInfo(for: address) else {
+            return nil
+        }
+        return address - mapping.address + mapping.fileOffset
+    }
+
+    public func address(of fileOffset: UInt64) -> UInt64? {
+        guard let mapping = mappingInfo(forFileOffset: fileOffset) else {
+            return nil
+        }
+        return fileOffset - mapping.fileOffset + mapping.address
+    }
+
+    public func mappingInfo(for address: UInt64) -> DyldCacheMappingInfo? {
+        guard let mappings = self.mappingInfos else { return nil }
+        for mapping in mappings {
+            if mapping.address <= address,
+               address < mapping.address + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    public func mappingInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingInfo? {
+        guard let mappings = self.mappingInfos else { return nil }
+        for mapping in mappings {
+            if mapping.fileOffset <= offset,
+               offset < mapping.fileOffset + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    public func mappingAndSlideInfo(
+        for address: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = self.mappingAndSlideInfos else { return nil }
+        for mapping in mappings {
+            if mapping.address <= address,
+               address < mapping.address + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    public func mappingAndSlideInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = self.mappingAndSlideInfos else { return nil }
+        for mapping in mappings {
+            if mapping.fileOffset <= offset,
+               offset < mapping.fileOffset + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
 }
