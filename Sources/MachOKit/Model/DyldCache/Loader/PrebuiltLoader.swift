@@ -24,7 +24,9 @@ extension PrebuiltLoader {
     public var ref: LoaderRef {
         .init(layout: layout.ref)
     }
+}
 
+extension PrebuiltLoader {
     public func path(in cache: DyldCache) -> String? {
         guard let offset = cache.fileOffset(
             of: numericCast(address) + numericCast(layout.pathOffset)
@@ -41,6 +43,32 @@ extension PrebuiltLoader {
         }
         return cache.fileHandle.readDataSequence(
             offset: offset,
+            numberOfElements: numericCast(layout.depCount)
+        )
+    }
+}
+
+extension PrebuiltLoader {
+    public func path(in cache: DyldCacheLoaded) -> String? {
+        guard let baseAddress = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        return String(
+            cString: baseAddress
+                .advanced(by: numericCast(layout.pathOffset))
+                .assumingMemoryBound(to: CChar.self)
+        )
+    }
+
+    public func dependentLoaderRefs(in cache: DyldCache) -> MemorySequence<LoaderRef>? {
+        guard layout.dependentLoaderRefsArrayOffset != 0,
+              let baseAddress = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        return .init(
+            basePointer: baseAddress
+                .advanced(by: numericCast(layout.dependentLoaderRefsArrayOffset))
+                .assumingMemoryBound(to: LoaderRef.self),
             numberOfElements: numericCast(layout.depCount)
         )
     }

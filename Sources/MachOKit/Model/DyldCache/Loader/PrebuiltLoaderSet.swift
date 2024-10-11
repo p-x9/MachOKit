@@ -42,6 +42,27 @@ extension PrebuiltLoaderSet {
             }
         }
     }
+
+    public func loaders(in cache: DyldCacheLoaded) -> [PrebuiltLoader]? {
+        guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        let offsets: MemorySequence<UInt32> = .init(
+            basePointer: basePointer
+                .advanced(by: numericCast(layout.loadersArrayOffset))
+                .assumingMemoryBound(to: UInt32.self),
+            numberOfElements: numericCast(layout.loadersArrayCount)
+        )
+        return offsets.compactMap { _offset -> PrebuiltLoader? in
+            let layout: prebuilt_loader = basePointer
+                .advanced(by: numericCast(_offset))
+                .assumingMemoryBound(to: prebuilt_loader.self).pointee
+            return PrebuiltLoader(
+                layout: layout,
+                address: address + numericCast(_offset)
+            )
+        }
+    }
 }
 
 extension PrebuiltLoaderSet {
@@ -58,6 +79,10 @@ extension PrebuiltLoaderSet {
 
     public func mustBeMissingPaths(in cache: DyldCache) -> [String]? {
         guard layout.mustBeMissingPathsOffset != 0,
+              layout.mustBeMissingPathsCount != 0 else {
+            return nil
+        }
+        guard layout.mustBeMissingPathsOffset != 0,
               var offset = cache.fileOffset(
                 of: numericCast(address) + numericCast(layout.mustBeMissingPathsOffset)
               ) else {
@@ -70,6 +95,45 @@ extension PrebuiltLoaderSet {
             }
             strings.append(string)
             offset += UInt64(string.utf8.count) + 1 // \0
+        }
+        return strings
+    }
+}
+
+extension PrebuiltLoaderSet {
+    public func dyldCacheUUID(in cache: DyldCacheLoaded) -> UUID? {
+        guard layout.dyldCacheUUIDOffset != 0 else { return nil }
+        guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+
+        let data: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) = basePointer
+            .advanced(by: numericCast(layout.dyldCacheUUIDOffset))
+            .autoBoundPointee()
+        return .init(uuid: data)
+    }
+
+    public func mustBeMissingPaths(in cache: DyldCacheLoaded) -> [String]? {
+        guard layout.mustBeMissingPathsOffset != 0,
+              layout.mustBeMissingPathsCount != 0 else {
+            return nil
+        }
+        guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        var offset: Int = numericCast(layout.mustBeMissingPathsOffset)
+        var strings: [String] = []
+        for _ in 0 ..< layout.mustBeMissingPathsCount {
+            guard let string = String(
+                cString: basePointer
+                    .advanced(by: offset)
+                    .assumingMemoryBound(to: CChar.self),
+                encoding: .utf8
+            ) else {
+                break
+            }
+            strings.append(string)
+            offset += numericCast(string.utf8.count) + 1 // \0
         }
         return strings
     }
