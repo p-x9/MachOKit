@@ -34,15 +34,22 @@ extension MachOImage.Symbol {
 // https://stackoverflow.com/questions/20481058/find-pathname-from-dlopen-handle-on-osx
 extension MachOImage {
     public struct Symbols64: Sequence {
-        public let ptr: UnsafeRawPointer
-        public let text: SegmentCommand64
-        public let linkedit: SegmentCommand64
-        public let symtab: LoadCommandInfo<symtab_command>
-
         public let stringBase: UnsafePointer<CChar>
         public let addressStart: Int
         public let symbols: UnsafePointer<nlist_64>
         public let numberOfSymbols: Int
+
+        init(
+            stringBase: UnsafePointer<CChar>,
+            addressStart: Int,
+            symbols: UnsafePointer<nlist_64>,
+            numberOfSymbols: Int
+        ) {
+            self.stringBase = stringBase
+            self.addressStart = addressStart
+            self.symbols = symbols
+            self.numberOfSymbols = numberOfSymbols
+        }
 
         init(
             ptr: UnsafeRawPointer,
@@ -50,11 +57,6 @@ extension MachOImage {
             linkedit: SegmentCommand64,
             symtab: LoadCommandInfo<symtab_command>
         ) {
-            self.ptr = ptr
-            self.text = text
-            self.linkedit = linkedit
-            self.symtab = symtab
-
             let fileSlide: Int = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr) - numericCast(linkedit.fileoff)
 
             stringBase = ptr
@@ -82,15 +84,22 @@ extension MachOImage {
 
 extension MachOImage {
     public struct Symbols: Sequence {
-        public let ptr: UnsafeRawPointer
-        public let text: SegmentCommand
-        public let linkedit: SegmentCommand
-        public let symtab: LoadCommandInfo<symtab_command>
-
         public let stringBase: UnsafePointer<CChar>
         public let addressStart: Int
         public let symbols: UnsafePointer<nlist>
         public let numberOfSymbols: Int
+
+        init(
+            stringBase: UnsafePointer<CChar>,
+            addressStart: Int,
+            symbols: UnsafePointer<nlist>,
+            numberOfSymbols: Int
+        ) {
+            self.stringBase = stringBase
+            self.addressStart = addressStart
+            self.symbols = symbols
+            self.numberOfSymbols = numberOfSymbols
+        }
 
         init(
             ptr: UnsafeRawPointer,
@@ -98,11 +107,6 @@ extension MachOImage {
             linkedit: SegmentCommand,
             symtab: LoadCommandInfo<symtab_command>
         ) {
-            self.ptr = ptr
-            self.text = text
-            self.linkedit = linkedit
-            self.symtab = symtab
-
             let fileSlide: Int = numericCast(linkedit.vmaddr) - numericCast(text.vmaddr) - numericCast(linkedit.fileoff)
 
             stringBase = ptr
