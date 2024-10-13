@@ -10,9 +10,18 @@ import Foundation
 
 public protocol ObjCHeaderOptimizationROProtocol {
     associatedtype HeaderInfo: LayoutWrapper
+    /// number of header infos
     var count: Int { get }
+    /// layout size of header info
     var entrySize: Int { get }
+    /// Sequence of header infos
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: header infos
     func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo>
+    /// Sequence of header infos
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: header infos
+    func headerInfos(in cache: DyldCacheLoaded) -> AnyRandomAccessCollection<HeaderInfo>
 }
 
 public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationROProtocol {
@@ -44,6 +53,31 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
                     index: $0
                 )
             })
+        )
+    }
+
+    public func headerInfos(in cache: DyldCacheLoaded) -> AnyRandomAccessCollection<HeaderInfo> {
+        precondition(
+            layout.entsize >= HeaderInfo.layoutSize,
+            "entsize is smaller than HeaderInfo"
+        )
+        let offset = offset + layoutSize
+        let layouts: MemorySequence<HeaderInfo.Layout> = .init(
+            basePointer: cache.ptr
+                .advanced(by: offset)
+                .assumingMemoryBound(to: HeaderInfo.Layout.self),
+            entrySize: numericCast(layout.entsize),
+            numberOfElements: numericCast(layout.count)
+        )
+        return AnyRandomAccessCollection(
+            layouts.enumerated()
+                .map {
+                    HeaderInfo(
+                        layout: $1,
+                        offset: offset + HeaderInfo.layoutSize * $0,
+                        index: $0
+                    )
+                }
         )
     }
 }
@@ -79,122 +113,29 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
             })
         )
     }
-}
 
-public struct ObjCHeaderInfoRO64: LayoutWrapper {
-    public typealias Layout = objc_header_info_ro_t_64
-
-    public var layout: Layout
-    public let offset: Int
-    public let index: Int
-
-    public func imageInfo(in cache: DyldCache) -> ObjCImageInfo? {
-        let offset = offset + layoutOffset(of: \.info_offset) + numericCast(layout.info_offset)
-        return cache.fileHandle.read(offset: numericCast(offset))
-    }
-
-    public func machO(
-        objcOptimization: ObjCOptimization,
-        roOptimizaion: ObjCHeaderOptimizationRO64,
-        in cache: DyldCache
-    ) -> MachOFile? {
-        _machO(
-            headerInfoROOffset: objcOptimization.headerInfoROCacheOffset,
-            roOptimizaion: roOptimizaion,
-            in: cache
+    public func headerInfos(in cache: DyldCacheLoaded) -> AnyRandomAccessCollection<HeaderInfo> {
+        precondition(
+            layout.entsize >= HeaderInfo.layoutSize,
+            "entsize is smaller than HeaderInfo"
         )
-    }
-
-    public func machO(
-        objcOptimization: OldObjCOptimization,
-        roOptimizaion: ObjCHeaderOptimizationRO64,
-        in cache: DyldCache
-    ) -> MachOFile? {
-        _machO(
-            headerInfoROOffset: numericCast(objcOptimization.offset) + numericCast(objcOptimization.headeropt_ro_offset),
-            roOptimizaion: roOptimizaion,
-            in: cache
+        let offset = offset + layoutSize
+        let layouts: MemorySequence<HeaderInfo.Layout> = .init(
+            basePointer: cache.ptr
+                .advanced(by: offset)
+                .assumingMemoryBound(to: HeaderInfo.Layout.self),
+            entrySize: numericCast(layout.entsize),
+            numberOfElements: numericCast(layout.count)
         )
-    }
-
-    private func _machO(
-        headerInfoROOffset: UInt64,
-        roOptimizaion: ObjCHeaderOptimizationRO64,
-        in cache: DyldCache
-    ) -> MachOFile? {
-        let offsetFromRoHeader = roOptimizaion.layoutSize + index * numericCast(roOptimizaion.entsize)
-
-        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        let roOffset = headerInfoROOffset + sharedRegionStart
-        let _offset: Int = numericCast(roOffset) + offsetFromRoHeader + numericCast(layout.mhdr_offset)
-        guard let offset = cache.fileOffset(
-            of: numericCast(_offset)
-        ) else {
-            return nil
-        }
-        return try? .init(
-            url: cache.url,
-            imagePath: "", // FIXME: path
-            headerStartOffsetInCache: numericCast(offset)
-        )
-    }
-}
-
-public struct ObjCHeaderInfoRO32: LayoutWrapper {
-    public typealias Layout = objc_header_info_ro_t_32
-
-    public var layout: Layout
-    public let offset: Int
-    public let index: Int
-
-    public func imageInfo(in cache: DyldCache) -> ObjCImageInfo? {
-        let offset = offset + layoutOffset(of: \.info_offset) + numericCast(layout.info_offset)
-        return cache.fileHandle.read(offset: numericCast(offset))
-    }
-
-    public func machO(
-        objcOptimization: ObjCOptimization,
-        roOptimizaion: ObjCHeaderOptimizationRO32,
-        in cache: DyldCache
-    ) -> MachOFile? {
-        _machO(
-            headerInfoROOffset: objcOptimization.headerInfoROCacheOffset,
-            roOptimizaion: roOptimizaion,
-            in: cache
-        )
-    }
-
-    public func machO(
-        objcOptimization: OldObjCOptimization,
-        roOptimizaion: ObjCHeaderOptimizationRO32,
-        in cache: DyldCache
-    ) -> MachOFile? {
-        _machO(
-            headerInfoROOffset: numericCast(objcOptimization.offset) + numericCast(objcOptimization.headeropt_ro_offset),
-            roOptimizaion: roOptimizaion,
-            in: cache
-        )
-    }
-
-    private func _machO(
-        headerInfoROOffset: UInt64,
-        roOptimizaion: ObjCHeaderOptimizationRO32,
-        in cache: DyldCache
-    ) -> MachOFile? {
-        let offsetFromRoHeader = roOptimizaion.layoutSize + index * numericCast(roOptimizaion.entsize)
-
-        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        let roOffset = headerInfoROOffset + sharedRegionStart
-        let _offset: Int = numericCast(roOffset) + offsetFromRoHeader + numericCast(layout.mhdr_offset)
-        guard let offset = cache.fileOffset(
-            of: numericCast(_offset)
-        ) else {
-            return nil
-        }
-        return try? .init(
-            url: cache.url,
-            imagePath: "", // FIXME: path
-            headerStartOffsetInCache: numericCast(offset)
+        return AnyRandomAccessCollection(
+            layouts.enumerated()
+                .map {
+                    HeaderInfo(
+                        layout: $1,
+                        offset: offset + HeaderInfo.layoutSize * $0,
+                        index: $0
+                    )
+                }
         )
     }
 }
