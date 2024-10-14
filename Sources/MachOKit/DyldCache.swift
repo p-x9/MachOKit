@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class DyldCache {
+public class DyldCache: DyldCacheRepresentable {
     /// URL of loaded dyld cache file
     public let url: URL
     let fileHandle: FileHandle
@@ -346,74 +346,11 @@ extension DyldCache {
 }
 
 extension DyldCache {
-    public func fileOffset(of address: UInt64) -> UInt64? {
-        guard let mapping = mappingInfo(for: address) else {
-            return nil
-        }
-        return address - mapping.address + mapping.fileOffset
-    }
-
-    public func address(of fileOffset: UInt64) -> UInt64? {
-        guard let mapping = mappingInfo(forFileOffset: fileOffset) else {
-            return nil
-        }
-        return fileOffset - mapping.fileOffset + mapping.address
-    }
-
-
-    public func mappingInfo(for address: UInt64) -> DyldCacheMappingInfo? {
-        guard let mappings = self.mappingInfos else { return nil }
-        for mapping in mappings {
-            if mapping.address <= address,
-               address < mapping.address + mapping.size {
-                return mapping
-            }
-        }
-        return nil
-    }
-
-    public func mappingInfo(
-        forFileOffset offset: UInt64
-    ) -> DyldCacheMappingInfo? {
-        guard let mappings = self.mappingInfos else { return nil }
-        for mapping in mappings {
-            if mapping.fileOffset <= offset,
-               offset < mapping.fileOffset + mapping.size {
-                return mapping
-            }
-        }
-        return nil
-    }
-
-    public func mappingAndSlideInfo(
-        for address: UInt64
-    ) -> DyldCacheMappingAndSlideInfo? {
-        guard let mappings = self.mappingAndSlideInfos else { return nil }
-        for mapping in mappings {
-            if mapping.address <= address,
-               address < mapping.address + mapping.size {
-                return mapping
-            }
-        }
-        return nil
-    }
-
-    public func mappingAndSlideInfo(
-        forFileOffset offset: UInt64
-    ) -> DyldCacheMappingAndSlideInfo? {
-        guard let mappings = self.mappingAndSlideInfos else { return nil }
-        for mapping in mappings {
-            if mapping.fileOffset <= offset,
-               offset < mapping.fileOffset + mapping.size {
-                return mapping
-            }
-        }
-        return nil
-    }
-}
-
-extension DyldCache {
-    // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MetadataVisitor.cpp#L262
+    /// File offset after rebasing performed on the specified file offset
+    /// - Parameter offset: target file offset
+    /// - Returns: rebased file offset
+    ///
+    /// [dyld Implementation](https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MetadataVisitor.cpp#L262)
     public func resolveRebase(at offset: UInt64) -> UInt64? {
         guard let mappingInfos,
               let unslidLoadAddress = mappingInfos.first?.address else {
@@ -489,7 +426,12 @@ extension DyldCache {
         return runtimeOffset + onDiskDylibChainedPointerBaseAddress
     }
 
-    // https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/MetadataVisitor.cpp#L424
+    /// File offset after optional rebasing performed on the specified file offset
+    /// - Parameter offset: target file offset
+    /// - Returns: optional rebased file offset
+    ///
+    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/MetadataVisitor.cpp#L424)
+    /// `resolveOptionalRebase` differs from `resolveRebase` in that rebasing may or may not actually take place.
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
         guard let mappingInfos,
               let unslidLoadAddress = mappingInfos.first?.address else {

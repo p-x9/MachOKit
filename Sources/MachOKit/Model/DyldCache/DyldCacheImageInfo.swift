@@ -23,4 +23,15 @@ extension DyldCacheImageInfo {
             offset: numericCast(layout.pathFileOffset)
         )
     }
+
+    /// Path for image
+    /// - Parameter cache: DyldCache to which this image belongs
+    /// - Returns: Path for image
+    public func path(in cache: DyldCacheLoaded) -> String? {
+        String(
+            cString: cache.ptr
+                .advanced(by: numericCast(layout.pathFileOffset))
+                .assumingMemoryBound(to: CChar.self)
+        )
+    }
 }

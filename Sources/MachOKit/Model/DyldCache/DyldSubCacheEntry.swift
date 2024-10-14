@@ -62,9 +62,17 @@ public enum DyldSubCacheEntry {
 
 // cache
 extension DyldSubCacheEntry {
-    func subcache(for cache: DyldCache) throws -> DyldCache? {
+    public func subcache(for cache: DyldCache) throws -> DyldCache? {
         let url = URL(fileURLWithPath: cache.url.path + fileSuffix)
         return try DyldCache(subcacheUrl: url, mainCacheHeader: cache.header)
+    }
+
+    public func subcache(for cache: DyldCacheLoaded) throws -> DyldCacheLoaded? {
+        try DyldCacheLoaded(
+            subcachePtr: cache.ptr
+                .advanced(by: numericCast(cacheVMOffset)),
+            mainCacheHeader: cache.header
+        )
     }
 }
 
