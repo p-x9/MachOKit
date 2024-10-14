@@ -1,32 +1,29 @@
 //
-//  DyldCachePrintTests.swift
+//  DyldCacheLoadedPrintTests.swift
 //
 //
-//  Created by p-x9 on 2024/01/13.
-//
+//  Created by p-x9 on 2024/10/10
+//  
 //
 
 import XCTest
 @testable import MachOKit
 
-final class DyldCachePrintTests: XCTestCase {
-    private var cache: DyldCache!
-    private var cache1: DyldCache!
+#if canImport(Darwin)
+
+final class DyldCacheLoadedPrintTests: XCTestCase {
+    var cache: DyldCacheLoaded!
+    var cache1: DyldCacheLoaded!
 
     override func setUp() {
         print("----------------------------------------------------")
-        let arch = "arm64e"
-        let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_\(arch)"
-//        let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_\(arch).01"
-//        let path = "/System/Volumes/Preboot/Cryptexes/OS/System/DriverKit/System/Library/dyld/dyld_shared_cache_\(arch)"
-//        let path = "/System/Volumes/Preboot/Cryptexes/OS/System/DriverKit/System/Library/dyld/dyld_shared_cache_\(arch).symbols"
-        let url = URL(fileURLWithPath: path)
-
-        self.cache = try! DyldCache(url: url)
-        self.cache1 = try! DyldCache(
-            subcacheUrl: URL(fileURLWithPath: path + ".01"),
-            mainCacheHeader: cache.header
-        )
+        var size = 0
+        guard let ptr = _dyld_get_shared_cache_range(&size) else {
+           return
+        }
+        cache = try? .init(ptr: ptr)
+        cache1 = try? Array(cache.subCaches!)[0]
+            .subcache(for: cache)
     }
 
     func testHeader() throws {
@@ -71,11 +68,6 @@ final class DyldCachePrintTests: XCTestCase {
             print("Flags:", info.flags.bits)
             print("MaxProtection:", info.maxProtection.bits)
             print("InitProtection:", info.initialProtection.bits)
-            if let slideInfo = info.slideInfo(in: cache) {
-                print("SlideInfo")
-                print(" Version:", slideInfo.version.rawValue)
-                print(" Info:", slideInfo)
-            }
         }
     }
 
@@ -114,7 +106,7 @@ final class DyldCachePrintTests: XCTestCase {
             print("File Suffix:", subCache.fileSuffix)
             print(
                 "Path:",
-                cache.url.path + subCache.fileSuffix
+                subCache.fileSuffix
             )
         }
     }
@@ -151,19 +143,20 @@ final class DyldCachePrintTests: XCTestCase {
         }
     }
 
-    func testMachOFiles() throws {
-        let machOs = cache.machOFiles()
+    func testMachOImages() throws {
+        let machOs = cache.machOImages()
         for machO in machOs {
             print(
-                String(machO.headerStartOffsetInCache, radix: 16),
-                machO.imagePath,
+                machO.loadCommands.info(of: LoadCommand.idDylib)?
+                    .dylib(cmdsStart: machO.cmdsStartPtr)
+                    .name ?? "Unknown",
                 machO.header.ncmds
             )
         }
     }
 
     func testDylibIndices() {
-        let cache = self.cache1!
+        let cache = cache1!
         let indices = cache.dylibIndices
             .sorted(by: { lhs, rhs in
                 lhs.index < rhs.index
@@ -174,7 +167,7 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testProgramOffsets() {
-        let cache = self.cache1!
+        let cache = cache1!
         let programOffsets = cache.programOffsets
         for programOffset in programOffsets {
             print(programOffset.offset, programOffset.name)
@@ -268,9 +261,9 @@ final class DyldCachePrintTests: XCTestCase {
             }
             let path = machO.loadCommands
                 .info(of: LoadCommand.idDylib)?
-                .dylib(in: machO)
-                .name ?? "unknonw"
-            print(" \(path), offset: \(machO.headerStartOffsetInCache)")
+                .dylib(cmdsStart: machO.cmdsStartPtr)
+                .name ?? "unknown"
+            print(" \(path)")
         }
     }
 
@@ -284,93 +277,4 @@ final class DyldCachePrintTests: XCTestCase {
     }
 }
 
-extension DyldCachePrintTests {
-    func testCodeSign() {
-        guard let codeSign = cache.codeSign else {
-            return
-        }
-        guard let superBlob = codeSign.superBlob else {
-            return
-        }
-        let indices = superBlob.blobIndices(in: codeSign)
-        print(
-            indices.compactMap(\.type)
-        )
-    }
-
-    func testCodeSignCodeDirectories() {
-        guard let codeSign = cache.codeSign else {
-            return
-        }
-        let directories = codeSign.codeDirectories
-
-        /* Identifier */
-        let identifiers = directories
-            .compactMap {
-                $0.identifier(in: codeSign)
-            }
-        print(
-            "identifier:",
-            identifiers
-        )
-
-        /* CD Hash */
-        let cdHashes = directories
-            .compactMap {
-                $0.hash(in: codeSign)
-            }.map {
-                $0.map { String(format: "%02x", $0) }.joined()
-            }
-        print(
-            "CDHash:",
-            cdHashes
-        )
-
-        /* Page Hashes*/
-        //        let pageHashes = directories
-        //            .map { directory in
-        //                (-Int(directory.nSpecialSlots)..<Int(directory.nCodeSlots))
-        //                    .map {
-        //                        if let hash = directory.hash(forSlot: $0, in: codeSign) {
-        //                            return "\($0) " + hash.map { String(format: "%02x", $0) }.joined()
-        //                        } else {
-        //                            return "\($0) unknown"
-        //                        }
-        //                    }
-        //            }
-        //        print(
-        //            "PageHashes:",
-        //            pageHashes
-        //        )
-
-        /* Team IDs */
-        let teamIDs = directories
-            .compactMap {
-                $0.teamId(in: codeSign)
-            }
-        print(
-            "TeamID:",
-            teamIDs
-        )
-
-        /* Exec Segment */
-        let execSeg = directories
-            .compactMap {
-                $0.executableSegment(in: codeSign)
-            }
-        print(
-            "ExecSeg:",
-            execSeg
-        )
-
-        /* Runtime */
-        let runtime = directories
-            .compactMap {
-                $0.runtime(in: codeSign)
-            }
-        print(
-            "Runtime:",
-            runtime
-        )
-    }
-}
+#endif
