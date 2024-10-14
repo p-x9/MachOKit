@@ -25,7 +25,7 @@ In addition to file reading, parsing of images in memory by `_dyld_get_image_hea
 
 ### Load from memory
 
-For reading from memory, use the `MachO` structure.
+For reading from memory, use the `MachOImage` structure.
 
 It can be initialized by using the Mach-O Header pointer obtained by `_dyld_get_image_header`.
 
@@ -65,24 +65,29 @@ case .fat(let fatFile): // Fat file
 
 ### Main properties and methods
 
-Both `MachO` and `MachOFile` can use essentially the same properties and methods.
+Both `MachOImage` and `MachOFile` can use essentially the same properties and methods.
 The available methods are defined in the following file as the `MachORepresentable` protocol.
 
 [MachORepresentable](./Sources/MachOKit/Protocol/MachORepresentable.swift)
 
-
 ### Dyld Cache
 
-loading of `dyld_shared_cache` is also supported.
+Loading of `dyld_shared_cache` is also supported.
+
+The available methods are defined in the following file as the `DyldCacheRepresentable` protocol.
+
+[DyldCacheRepresentable](./Sources/MachOKit/Protocol/DyldCacheRepresentable.swift)
+
+#### Dyld Cache (File)
 
 ```swift
-let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_x86_64h"
+let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e"
 let url = URL(fileURLWithPath: path)
 
 let cache = try! DyldCache(url: url)
 ```
 
-It is also possible to extract machO information contained in `dyld _shared _cache`.
+It is also possible to extract machO information contained in `dyld_shared_cache`.
 The machO extracted is of type `MachOFile`.
 As with reading from a single MachO file, various analyses are possible.
 
@@ -102,6 +107,38 @@ for machO in machOs {
 // ...
 ```
 
+#### Dyld Cache (on memory)
+
+On the Apple platform, the dyld cache is deployed in memory.
+
+```swift
+var size = 0
+guard let ptr = _dyld_get_shared_cache_range(&size) else {
+    return
+}
+let cache = try! DyldCacheLoaded(ptr: ptr)
+```
+
+It is also possible to extract machO information contained in `dyld_shared_cache`.
+The machO extracted is of type `MachOImage`.
+As with reading from a single MachO image, various analyses are possible.
+
+```swift
+let machOs = cache.machOImages()
+for machO in machOs {
+    print(
+        String(Int(bitPattern: machO.ptr), radix: 16),
+        machO.path!,
+        machO.header.ncmds
+    )
+}
+
+// 193438000 /usr/lib/libobjc.A.dylib 24
+// 193489000 /usr/lib/dyld 15
+// 193513000 /usr/lib/system/libsystem_blocks.dylib 24
+// ...
+```
+
 ### Example Codes
 
 There are a variety of uses, but most show a basic example that prints output to the Test directory.
@@ -116,10 +153,15 @@ The following file contains sample code.
 The following file contains sample code.
 [MachOFilePrintTests](./Tests/MachOKitTests/MachOFilePrintTests.swift)
 
-#### Dyld Cache
+#### Dyld Cache (file)
 
 The following file contains sample code.
 [DyldCachePrintTests](./Tests/MachOKitTests/DyldCachePrintTests.swift)
+
+#### Dyld Cache (on memory)
+
+The following file contains sample code.
+[DyldCacheLoadedPrintTests](./Tests/MachOKitTests/DyldCacheLoadedPrintTests.swift)
 
 ## Related Projects
 
@@ -131,6 +173,10 @@ The following file contains sample code.
     Re-implementation of [facebook/fishhook](https://github.com/facebook/fishhook) with Swift using MachOKit
 - [AntiFishHook](https://github.com/p-x9/swift-anti-fishhook)
     A Swift library to deactivate fishhook. (Anti-FishHook)
+
+### Other binary type
+- [ELFKit](https://github.com/p-x9/ELFKit)
+    Elf format
 
 ## License
 
