@@ -8,11 +8,13 @@
 
 import Foundation
 import MachOKitC
-//#if compiler(>=5.10)
-//private import Crypto
-//#else
+#if compiler(>=6.0)
+private import Crypto
+#elseif compiler(>=5.10) && hasFeature(AccessLevelOnImport)
+private import Crypto
+#else
 @_implementationOnly import Crypto
-//#endif
+#endif
 
 public struct CodeSignCodeDirectory: LayoutWrapper {
     public typealias Layout = CS_CodeDirectory
