@@ -106,3 +106,24 @@ extension DyldCacheHeader {
         }
     }
 }
+
+extension DyldCacheHeader {
+    /// Actual size of the header that this dyld cache has
+    ///
+    /// There are properties in the dyld_cache_header that are not present in the old dyld cache format.
+    /// In this case, a value smaller than sizeof(dyld_cache_header) is returned.
+    public var actualSize: Int {
+        numericCast(layout.mappingOffset)
+    }
+    
+    /// Whether the property is included in the header of this dyld cache.
+    /// - Parameter keyPath: keyPath of property.
+    /// - Returns: True if included, false if not.
+    public func hasProperty<Value>(_ keyPath: KeyPath<Layout, Value>) -> Bool {
+        guard let offset = MemoryLayout<Layout>.offset(of: keyPath) else {
+            return false
+        }
+        let size = MemoryLayout<Value>.size
+        return actualSize >= offset + size
+    }
+}
