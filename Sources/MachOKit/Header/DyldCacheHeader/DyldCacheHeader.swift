@@ -68,6 +68,24 @@ extension DyldCacheHeader {
 }
 
 extension DyldCacheHeader {
+    public var imagesCount: Int {
+        if hasProperty(\.imagesCount) {
+            return numericCast(layout.imagesCount)
+        } else {
+            return numericCast(layout.imagesCountOld)
+        }
+    }
+
+    public var imagesOffset: Int {
+        if hasProperty(\.imagesOffset) {
+            return numericCast(layout.imagesOffset)
+        } else {
+            return numericCast(layout.imagesOffsetOld)
+        }
+    }
+}
+
+extension DyldCacheHeader {
     // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/dyld/SharedCacheRuntime.cpp#L100
     // https://github.com/opensource-apple/dyld/blob/3f928f32597888c5eac6003b9199d972d49857b5/src/dyld.cpp#L3112
     internal var _cpuType: CPUType? {
@@ -104,5 +122,26 @@ extension DyldCacheHeader {
         case "dyld_v1arm64_32": return .arm64_32(.arm64_32_all)
         default: return nil
         }
+    }
+}
+
+extension DyldCacheHeader {
+    /// Actual size of the header that this dyld cache has
+    ///
+    /// There are properties in the dyld_cache_header that are not present in the old dyld cache format.
+    /// In this case, a value smaller than sizeof(dyld_cache_header) is returned.
+    public var actualSize: Int {
+        numericCast(layout.mappingOffset)
+    }
+    
+    /// Whether the property is included in the header of this dyld cache.
+    /// - Parameter keyPath: keyPath of property.
+    /// - Returns: True if included, false if not.
+    public func hasProperty<Value>(_ keyPath: KeyPath<Layout, Value>) -> Bool {
+        guard let offset = MemoryLayout<Layout>.offset(of: keyPath) else {
+            return false
+        }
+        let size = MemoryLayout<Value>.size
+        return actualSize >= offset + size
     }
 }
