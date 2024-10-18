@@ -68,6 +68,24 @@ extension DyldCacheHeader {
 }
 
 extension DyldCacheHeader {
+    public var imagesCount: Int {
+        if hasProperty(\.imagesCount) {
+            return numericCast(layout.imagesCount)
+        } else {
+            return numericCast(layout.imagesCountOld)
+        }
+    }
+
+    public var imagesOffset: Int {
+        if hasProperty(\.imagesOffset) {
+            return numericCast(layout.imagesOffset)
+        } else {
+            return numericCast(layout.imagesOffsetOld)
+        }
+    }
+}
+
+extension DyldCacheHeader {
     // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/dyld/SharedCacheRuntime.cpp#L100
     // https://github.com/opensource-apple/dyld/blob/3f928f32597888c5eac6003b9199d972d49857b5/src/dyld.cpp#L3112
     internal var _cpuType: CPUType? {

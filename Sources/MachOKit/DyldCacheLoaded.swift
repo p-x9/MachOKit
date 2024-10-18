@@ -14,7 +14,7 @@ public struct DyldCacheLoaded: DyldCacheRepresentable {
     public let ptr: UnsafeRawPointer
 
     public var headerSize: Int {
-        DyldCacheHeader.layoutSize
+        header.actualSize
     }
 
     /// Header for dyld cache
@@ -104,7 +104,10 @@ extension DyldCacheLoaded {
 
     /// Sequence of mapping and slide infos
     public var mappingAndSlideInfos: MemorySequence<DyldCacheMappingAndSlideInfo>? {
-        guard header.mappingWithSlideCount > 0 else { return nil }
+        guard header.mappingWithSlideCount > 0,
+              header.hasProperty(\.mappingWithSlideCount) else {
+            return nil
+        }
         return .init(
             basePointer: ptr
                 .advanced(by: numericCast(header.mappingWithSlideOffset))
@@ -126,7 +129,10 @@ extension DyldCacheLoaded {
 
     /// Sequence of image text infos.
     public var imageTextInfos: MemorySequence<DyldCacheImageTextInfo>? {
-        guard header.imagesTextCount > 0 else { return nil }
+        guard header.imagesTextCount > 0,
+              header.hasProperty(\.imagesTextCount) else {
+            return nil
+        }
         return .init(
             basePointer: ptr
                 .advanced(by: numericCast(header.imagesTextOffset))
@@ -142,22 +148,17 @@ extension DyldCacheLoaded {
         guard header.subCacheArrayCount > 0 else {
             return nil
         }
-
-        let layout: DyldSubCacheEntryGeneral.Layout = ptr
-            .advanced(by: numericCast(header.subCacheArrayOffset))
-            .autoBoundPointee()
-        let subCache = DyldSubCacheEntryGeneral(layout: layout, index: 0)
-
-        if subCache.fileSuffix.starts(with: ".") {
-            return .general
-        } else {
-            return .v1
-        }
+        // https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/common/DyldSharedCache.cpp#L1763
+        let hasCacheSuffix = header.hasProperty(\.cacheSubType)
+        return hasCacheSuffix ? .general : .v1
     }
 
     /// Sequence of sub caches
     public var subCaches: SubCaches? {
-        guard let subCacheEntryType else { return nil }
+        guard let subCacheEntryType,
+              header.hasProperty(\.subCacheArrayCount) else {
+            return nil
+        }
         return .init(
             basePointer: ptr
                 .advanced(by: numericCast(header.subCacheArrayOffset)),
@@ -168,7 +169,10 @@ extension DyldCacheLoaded {
 
     /// Local symbol info
     public var localSymbolsInfo: DyldCacheLocalSymbolsInfo? {
-        guard header.localSymbolsSize > 0 else { return nil }
+        guard header.localSymbolsSize > 0,
+              header.hasProperty(\.localSymbolsSize) else {
+            return nil
+        }
         return ptr
             .advanced(by: numericCast(header.localSymbolsOffset))
             .autoBoundPointee()
@@ -205,7 +209,7 @@ extension DyldCacheLoaded {
     /// The ``dylibIndices`` are retrieved from this trie tree．
     public var dylibsTrieEntries: DylibsTrieEntries? {
         guard mainCacheHeader.dylibsTrieAddr > 0,
-              mainCacheHeader.dylibsTrieSize > 0,
+              mainCacheHeader.hasProperty(\.dylibsTrieSize),
               let slide else {
             return nil
         }
@@ -248,7 +252,7 @@ extension DyldCacheLoaded {
     /// The ``programOffsets`` are retrieved from this trie tree．
     public var programsTrieEntries: ProgramsTrieEntries? {
         guard mainCacheHeader.programTrieAddr > 0,
-              mainCacheHeader.programTrieSize > 0,
+              mainCacheHeader.hasProperty(\.programTrieSize),
               let slide else {
             return nil
         }
@@ -285,7 +289,11 @@ extension DyldCacheLoaded {
     /// - Parameter programOffset: program name and offset pair
     /// - Returns: prebuiltLoaderSet
     public func prebuiltLoaderSet(for programOffset: ProgramOffset) -> PrebuiltLoaderSet? {
-        guard let slide else { return nil }
+        guard mainCacheHeader.programsPBLSetPoolAddr > 0,
+              mainCacheHeader.hasProperty(\.programsPBLSetPoolSize),
+              let slide else {
+            return nil
+        }
         let address: Int = numericCast(mainCacheHeader.programsPBLSetPoolAddr) + numericCast(programOffset.offset) + slide
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
@@ -299,7 +307,11 @@ extension DyldCacheLoaded {
 extension DyldCacheLoaded {
     /// PrebuiltLoaderSet of all cached dylibs
     public var dylibsPrebuiltLoaderSet: PrebuiltLoaderSet? {
-        guard let slide else { return nil }
+        guard mainCacheHeader.dylibsPBLSetAddr > 0,
+              mainCacheHeader.hasProperty(\.dylibsPBLSetAddr),
+              let slide else {
+            return nil
+        }
         let address: Int = numericCast(mainCacheHeader.dylibsPBLSetAddr) + slide
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
@@ -313,7 +325,7 @@ extension DyldCacheLoaded {
 extension DyldCacheLoaded {
     public var objcOptimization: ObjCOptimization? {
         guard mainCacheHeader.objcOptsOffset > 0,
-              mainCacheHeader.objcOptsSize > 0 else {
+              mainCacheHeader.hasProperty(\.objcOptsSize) else {
             return nil
         }
         return ptr
@@ -370,7 +382,7 @@ extension DyldCacheLoaded {
 
     public var swiftOptimization: SwiftOptimization? {
         guard mainCacheHeader.swiftOptsOffset > 0,
-              mainCacheHeader.swiftOptsSize > 0 else {
+              mainCacheHeader.hasProperty(\.swiftOptsSize) else {
             return nil
         }
         return ptr
