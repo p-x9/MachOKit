@@ -30,7 +30,9 @@ let package = Package(
                 "MachOKitC",
                 .product(name: "Crypto", package: "swift-crypto")
             ],
-            swiftSettings: SwiftSetting.allCases
+            swiftSettings: SwiftSetting.allCases + [
+                .enableExperimentalFeature("AccessLevelOnImport", .when(configuration: .debug))
+            ]
         ),
         .target(
             name: "MachOKitC",
