@@ -39,6 +39,14 @@ extension DyldCacheMappingFlags {
     public static let configData = DyldCacheMappingFlags(
         rawValue: Bit.configData.rawValue
     )
+    /// DYLD_CACHE_READ_ONLY_DATA
+    public static let readOnlyData = DyldCacheMappingFlags(
+        rawValue: Bit.readOnlyData.rawValue
+    )
+    /// DYLD_CACHE_MAPPING_CONST_TPRO_DATA
+    public static let constTproData = DyldCacheMappingFlags(
+        rawValue: Bit.constTproData.rawValue
+    )
 }
 
 extension DyldCacheMappingFlags {
@@ -53,6 +61,10 @@ extension DyldCacheMappingFlags {
         case textStubs
         /// DYLD_CACHE_DYNAMIC_CONFIG_DATA
         case configData
+        /// DYLD_CACHE_READ_ONLY_DATA
+        case readOnlyData
+        /// DYLD_CACHE_MAPPING_CONST_TPRO_DATA
+        case constTproData
     }
 }
 
@@ -66,6 +78,8 @@ extension DyldCacheMappingFlags.Bit: RawRepresentable {
         case RawValue(DYLD_CACHE_MAPPING_CONST_DATA): self = .constData
         case RawValue(DYLD_CACHE_MAPPING_TEXT_STUBS): self = .textStubs
         case RawValue(DYLD_CACHE_DYNAMIC_CONFIG_DATA): self = .configData
+        case RawValue(DYLD_CACHE_READ_ONLY_DATA): self = .readOnlyData
+        case RawValue(DYLD_CACHE_MAPPING_CONST_TPRO_DATA): self = .constTproData
         default: return nil
         }
     }
@@ -77,6 +91,8 @@ extension DyldCacheMappingFlags.Bit: RawRepresentable {
         case .constData: RawValue(DYLD_CACHE_MAPPING_CONST_DATA)
         case .textStubs: RawValue(DYLD_CACHE_MAPPING_TEXT_STUBS)
         case .configData: RawValue(DYLD_CACHE_DYNAMIC_CONFIG_DATA)
+        case .readOnlyData: RawValue(DYLD_CACHE_READ_ONLY_DATA)
+        case .constTproData: RawValue(DYLD_CACHE_MAPPING_CONST_TPRO_DATA)
         }
     }
 }
@@ -89,6 +105,8 @@ extension DyldCacheMappingFlags.Bit: CustomStringConvertible {
         case .constData: "DYLD_CACHE_MAPPING_CONST_DATA"
         case .textStubs: "DYLD_CACHE_MAPPING_TEXT_STUBS"
         case .configData: "DYLD_CACHE_DYNAMIC_CONFIG_DATA"
+        case .readOnlyData: "DYLD_CACHE_READ_ONLY_DATA"
+        case .constTproData: "DYLD_CACHE_MAPPING_CONST_TPRO_DATA"
         }
     }
 }
