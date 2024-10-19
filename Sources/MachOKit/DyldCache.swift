@@ -153,6 +153,19 @@ extension DyldCache {
         )
     }
 
+    /// DyldCache containing unmapped local symbols
+    public var symbolCache: DyldCache? {
+        get throws {
+            guard header.hasProperty(\.symbolFileUUID),
+                  header.symbolFileUUID != .zero else {
+                return nil
+            }
+            let suffix = ".symbols"
+            let path = url.path + suffix
+            return try .init(url: .init(fileURLWithPath: path))
+        }
+    }
+
     /// Local symbol info
     public var localSymbolsInfo: DyldCacheLocalSymbolsInfo? {
         guard header.localSymbolsSize > 0,
