@@ -208,14 +208,14 @@ extension DyldCacheLoaded {
     ///
     /// The ``dylibIndices`` are retrieved from this trie tree．
     public var dylibsTrieEntries: DylibsTrieEntries? {
-        guard mainCacheHeader.dylibsTrieAddr > 0,
-              mainCacheHeader.hasProperty(\.dylibsTrieSize),
+        guard header.dylibsTrieAddr > 0,
+              header.hasProperty(\.dylibsTrieSize),
               let slide else {
             return nil
         }
 
-        let address = UInt(mainCacheHeader.dylibsTrieAddr) + UInt(slide)
-        let size = mainCacheHeader.dylibsTrieSize
+        let address = UInt(header.dylibsTrieAddr) + UInt(slide)
+        let size = header.dylibsTrieSize
 
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
@@ -251,13 +251,13 @@ extension DyldCacheLoaded {
     ///
     /// The ``programOffsets`` are retrieved from this trie tree．
     public var programsTrieEntries: ProgramsTrieEntries? {
-        guard mainCacheHeader.programTrieAddr > 0,
-              mainCacheHeader.hasProperty(\.programTrieSize),
+        guard header.programTrieAddr > 0,
+              header.hasProperty(\.programTrieSize),
               let slide else {
             return nil
         }
-        let address = UInt(mainCacheHeader.programTrieAddr) + UInt(slide)
-        let size = mainCacheHeader.programTrieSize
+        let address = UInt(header.programTrieAddr) + UInt(slide)
+        let size = header.programTrieSize
 
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
@@ -289,12 +289,12 @@ extension DyldCacheLoaded {
     /// - Parameter programOffset: program name and offset pair
     /// - Returns: prebuiltLoaderSet
     public func prebuiltLoaderSet(for programOffset: ProgramOffset) -> PrebuiltLoaderSet? {
-        guard mainCacheHeader.programsPBLSetPoolAddr > 0,
-              mainCacheHeader.hasProperty(\.programsPBLSetPoolSize),
+        guard header.programsPBLSetPoolAddr > 0,
+              header.hasProperty(\.programsPBLSetPoolSize),
               let slide else {
             return nil
         }
-        let address: Int = numericCast(mainCacheHeader.programsPBLSetPoolAddr) + numericCast(programOffset.offset) + slide
+        let address: Int = numericCast(header.programsPBLSetPoolAddr) + numericCast(programOffset.offset) + slide
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
         }
@@ -307,12 +307,12 @@ extension DyldCacheLoaded {
 extension DyldCacheLoaded {
     /// PrebuiltLoaderSet of all cached dylibs
     public var dylibsPrebuiltLoaderSet: PrebuiltLoaderSet? {
-        guard mainCacheHeader.dylibsPBLSetAddr > 0,
-              mainCacheHeader.hasProperty(\.dylibsPBLSetAddr),
+        guard header.dylibsPBLSetAddr > 0,
+              header.hasProperty(\.dylibsPBLSetAddr),
               let slide else {
             return nil
         }
-        let address: Int = numericCast(mainCacheHeader.dylibsPBLSetAddr) + slide
+        let address: Int = numericCast(header.dylibsPBLSetAddr) + slide
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
         }
@@ -324,12 +324,12 @@ extension DyldCacheLoaded {
 
 extension DyldCacheLoaded {
     public var objcOptimization: ObjCOptimization? {
-        guard mainCacheHeader.objcOptsOffset > 0,
-              mainCacheHeader.hasProperty(\.objcOptsSize) else {
+        guard header.objcOptsOffset > 0,
+              header.hasProperty(\.objcOptsSize) else {
             return nil
         }
         return ptr
-            .advanced(by: numericCast(mainCacheHeader.objcOptsOffset))
+            .advanced(by: numericCast(header.objcOptsOffset))
             .autoBoundPointee()
     }
 
@@ -381,12 +381,12 @@ extension DyldCacheLoaded {
     }
 
     public var swiftOptimization: SwiftOptimization? {
-        guard mainCacheHeader.swiftOptsOffset > 0,
-              mainCacheHeader.hasProperty(\.swiftOptsSize) else {
+        guard header.swiftOptsOffset > 0,
+              header.hasProperty(\.swiftOptsSize) else {
             return nil
         }
         return ptr
-            .advanced(by: numericCast(mainCacheHeader.swiftOptsOffset))
+            .advanced(by: numericCast(header.swiftOptsOffset))
             .autoBoundPointee()
     }
 }

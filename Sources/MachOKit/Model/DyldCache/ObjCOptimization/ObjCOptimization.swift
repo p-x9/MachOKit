@@ -15,6 +15,20 @@ public struct ObjCOptimization: LayoutWrapper {
     public var layout: Layout
 }
 
+extension ObjCOptimization {
+    /// Relative method list selectors are offsets from this address
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: relative selector's base address
+    public func relativeMethodSelectorBaseAddress(
+        in cache: DyldCacheLoaded
+    ) -> UnsafeRawPointer {
+        cache.ptr
+            .advanced(
+                by: numericCast(layout.relativeMethodSelectorBaseAddressOffset)
+            )
+    }
+}
+
 // MARK: Header Optimization RW
 // https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/common/DyldSharedCache.cpp#L1892
 extension ObjCOptimization {

@@ -18,6 +18,9 @@ public struct OldObjCOptimization: LayoutWrapper {
 }
 
 extension OldObjCOptimization {
+    /// Relative method list selectors are offsets from this address
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: relative selector's base address
     public func relativeMethodSelectorBaseAddress(
         in cache: DyldCacheLoaded
     ) -> UnsafeRawPointer {

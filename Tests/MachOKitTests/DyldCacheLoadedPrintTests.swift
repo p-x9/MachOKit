@@ -222,6 +222,28 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         print("Relative Method Selector Base Address Offset:", objcOptimization.relativeMethodSelectorBaseAddressOffset)
     }
 
+    func testObjCMethodSelectorBaseAddress() {
+        print("Relative method selector base")
+        print(
+            " Expected            :",
+            unsafeBitCast(NSSelectorFromString("🤯"), to: UnsafeRawPointer.self)
+        )
+
+        if let oldObjcOptimization = cache.oldObjcOptimization {
+            print(
+                " old objcOptimization:",
+                oldObjcOptimization.relativeMethodSelectorBaseAddress(in: cache)
+            )
+        }
+
+        if let objcOptimization = cache.objcOptimization {
+            print(
+                " objcOptimization    :",
+                objcOptimization.relativeMethodSelectorBaseAddress(in: cache)
+            )
+        }
+    }
+
     func testObjCHeaderOptimizationRW() throws {
         guard let objcOptimization = cache.objcOptimization else { return }
         let rw = objcOptimization.headerOptimizationRW64(in: cache)!
