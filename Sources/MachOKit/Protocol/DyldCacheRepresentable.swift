@@ -13,7 +13,7 @@ public protocol DyldCacheRepresentable {
     associatedtype MappingAndSlideInfos: RandomAccessCollection<DyldCacheMappingAndSlideInfo>
     associatedtype ImageInfos: RandomAccessCollection<DyldCacheImageInfo>
     associatedtype ImageTextInfos: RandomAccessCollection<DyldCacheImageTextInfo>
-    associatedtype SubCaches: Sequence<DyldSubCacheEntry>
+    associatedtype SubCaches: RandomAccessCollection<DyldSubCacheEntry>
     associatedtype DylibsTrieEntries: TrieTreeProtocol<DylibsTrieNodeContent>
     associatedtype ProgramsTrieEntries: TrieTreeProtocol<ProgramsTrieNodeContent>
 

@@ -81,3 +81,42 @@ extension DyldCache.SubCaches {
         }
     }
 }
+
+extension DyldCache.SubCaches: Collection {
+    public typealias Index = Int
+
+    public var startIndex: Index { 0 }
+    public var endIndex: Index { numberOfSubCaches }
+
+    public func index(after i: Int) -> Int {
+        i + 1
+    }
+
+    public subscript(position: Int) -> Element {
+        precondition(position >= 0)
+        precondition(position < endIndex)
+        precondition(data.count >= (position + 1) * subCacheEntryType.layoutSize)
+        switch subCacheEntryType {
+        case .general:
+            return data.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else { fatalError("data is empty") }
+
+                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                    .advanced(by: position * subCacheEntryType.layoutSize)
+                    .assumingMemoryBound(to: DyldSubCacheEntryGeneral.Layout.self)
+                return .general(.init(layout: ptr.pointee, index: position))
+            }
+        case .v1:
+            return data.withUnsafeBytes {
+                guard let baseAddress = $0.baseAddress else { fatalError("data is empty") }
+
+                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                    .advanced(by: position * subCacheEntryType.layoutSize)
+                    .assumingMemoryBound(to: DyldSubCacheEntryV1.Layout.self)
+                return .v1(.init(layout: ptr.pointee, index: position))
+            }
+        }
+    }
+}
+
+extension DyldCache.SubCaches: RandomAccessCollection {}

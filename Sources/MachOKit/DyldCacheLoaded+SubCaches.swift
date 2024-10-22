@@ -70,3 +70,34 @@ extension DyldCacheLoaded.SubCaches {
         }
     }
 }
+
+extension DyldCacheLoaded.SubCaches: Collection {
+    public typealias Index = Int
+
+    public var startIndex: Index { 0 }
+    public var endIndex: Index { numberOfSubCaches }
+
+    public func index(after i: Int) -> Int {
+        i + 1
+    }
+
+    public subscript(position: Int) -> Element {
+        precondition(position >= 0)
+        precondition(position < endIndex)
+
+        switch subCacheEntryType {
+        case .general:
+            let ptr = UnsafeMutableRawPointer(mutating: basePointer)
+                .advanced(by: position * subCacheEntryType.layoutSize)
+                .assumingMemoryBound(to: DyldSubCacheEntryGeneral.Layout.self)
+            return .general(.init(layout: ptr.pointee, index: position))
+        case .v1:
+            let ptr = UnsafeMutableRawPointer(mutating: basePointer)
+                .advanced(by: position * subCacheEntryType.layoutSize)
+                .assumingMemoryBound(to: DyldSubCacheEntryV1.Layout.self)
+            return .v1(.init(layout: ptr.pointee, index: position))
+        }
+    }
+}
+
+extension DyldCacheLoaded.SubCaches: RandomAccessCollection {}
