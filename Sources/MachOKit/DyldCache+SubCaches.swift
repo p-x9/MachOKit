@@ -63,7 +63,7 @@ extension DyldCache.SubCaches {
                 return data.withUnsafeBytes {
                     guard let baseAddress = $0.baseAddress else { return nil }
 
-                    let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                    let ptr = baseAddress
                         .advanced(by: nextOffset)
                         .assumingMemoryBound(to: DyldSubCacheEntryGeneral.Layout.self)
                     return .general(.init(layout: ptr.pointee, index: nextIndex))
@@ -72,7 +72,7 @@ extension DyldCache.SubCaches {
                 return data.withUnsafeBytes {
                     guard let baseAddress = $0.baseAddress else { return nil }
 
-                    let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                    let ptr = baseAddress
                         .advanced(by: nextOffset)
                         .assumingMemoryBound(to: DyldSubCacheEntryV1.Layout.self)
                     return .v1(.init(layout: ptr.pointee, index: nextIndex))
@@ -101,7 +101,7 @@ extension DyldCache.SubCaches: Collection {
             return data.withUnsafeBytes {
                 guard let baseAddress = $0.baseAddress else { fatalError("data is empty") }
 
-                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                let ptr = baseAddress
                     .advanced(by: position * subCacheEntryType.layoutSize)
                     .assumingMemoryBound(to: DyldSubCacheEntryGeneral.Layout.self)
                 return .general(.init(layout: ptr.pointee, index: position))
@@ -110,7 +110,7 @@ extension DyldCache.SubCaches: Collection {
             return data.withUnsafeBytes {
                 guard let baseAddress = $0.baseAddress else { fatalError("data is empty") }
 
-                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                let ptr = baseAddress
                     .advanced(by: position * subCacheEntryType.layoutSize)
                     .assumingMemoryBound(to: DyldSubCacheEntryV1.Layout.self)
                 return .v1(.init(layout: ptr.pointee, index: position))

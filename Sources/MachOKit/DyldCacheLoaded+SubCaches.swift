@@ -57,12 +57,12 @@ extension DyldCacheLoaded.SubCaches {
 
             switch subCacheEntryType {
             case .general:
-                let ptr = UnsafeMutableRawPointer(mutating: basePointer)
+                let ptr = basePointer
                     .advanced(by: nextOffset)
                     .assumingMemoryBound(to: DyldSubCacheEntryGeneral.Layout.self)
                 return .general(.init(layout: ptr.pointee, index: nextIndex))
             case .v1:
-                let ptr = UnsafeMutableRawPointer(mutating: basePointer)
+                let ptr = basePointer
                     .advanced(by: nextOffset)
                     .assumingMemoryBound(to: DyldSubCacheEntryV1.Layout.self)
                 return .v1(.init(layout: ptr.pointee, index: nextIndex))
@@ -87,12 +87,12 @@ extension DyldCacheLoaded.SubCaches: Collection {
 
         switch subCacheEntryType {
         case .general:
-            let ptr = UnsafeMutableRawPointer(mutating: basePointer)
+            let ptr = basePointer
                 .advanced(by: position * subCacheEntryType.layoutSize)
                 .assumingMemoryBound(to: DyldSubCacheEntryGeneral.Layout.self)
             return .general(.init(layout: ptr.pointee, index: position))
         case .v1:
-            let ptr = UnsafeMutableRawPointer(mutating: basePointer)
+            let ptr = basePointer
                 .advanced(by: position * subCacheEntryType.layoutSize)
                 .assumingMemoryBound(to: DyldSubCacheEntryV1.Layout.self)
             return .v1(.init(layout: ptr.pointee, index: position))
