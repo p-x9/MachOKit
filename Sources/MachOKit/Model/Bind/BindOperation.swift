@@ -71,13 +71,13 @@ extension BindOperation: CustomStringConvertible {
             "\(opcode) ordinal: \(ordinal)"
         case .set_dylib_special_imm(let special):
             "\(opcode) special: \(special)"
-        case .set_symbol_trailing_flags_imm(let flags, let symbol):
+        case let .set_symbol_trailing_flags_imm(flags, symbol):
             "\(opcode) flags: \(flags), symbol: \(symbol)"
         case .set_type_imm(let type):
             "\(opcode) type: \(type)"
         case .set_addend_sleb(let addend):
             "\(opcode) addend: \(addend)"
-        case .set_segment_and_offset_uleb(let segment, let offset):
+        case let .set_segment_and_offset_uleb(segment, offset):
             "\(opcode) segment: \(segment), offset: \(offset)"
         case .add_addr_uleb(let offset):
             "\(opcode) offset: \(offset)"
@@ -87,7 +87,7 @@ extension BindOperation: CustomStringConvertible {
             "\(opcode) offset: \(offset)"
         case .do_bind_add_addr_imm_scaled(let scale):
             "\(opcode) scale: \(scale)"
-        case .do_bind_uleb_times_skipping_uleb(let count, let skip):
+        case let .do_bind_uleb_times_skipping_uleb(count, skip):
             "\(opcode) count: \(count), skip: \(skip)"
         case .threaded(let bindSubOpcode):
             "\(opcode) subopecode: \(bindSubOpcode)"
@@ -157,7 +157,9 @@ extension BindOperation {
                 let signExtended = BIND_OPCODE_MASK | imm
                 libraryOrdinal = signExtended
             }
-            let special = BindSpecial(rawValue: libraryOrdinal)!
+            guard let special = BindSpecial(rawValue: libraryOrdinal) else {
+                fatalError("unknown bind special")
+            }
             return .set_dylib_special_imm(special: special)
 
         case .set_symbol_trailing_flags_imm:
@@ -219,7 +221,9 @@ extension BindOperation {
             return .do_bind_uleb_times_skipping_uleb(count: count, skip: skip)
 
         case .threaded:
-            let subopcode = BindSubOpcode(rawValue: imm)!
+            guard let subopcode = BindSubOpcode(rawValue: imm) else {
+                fatalError("unknown bind subopcode")
+            }
             switch subopcode {
             case .threaded_apply:
                 return .threaded(.threaded_apply)

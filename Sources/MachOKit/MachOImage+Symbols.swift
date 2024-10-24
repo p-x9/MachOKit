@@ -237,18 +237,16 @@ extension MachOImage.Symbols64: Collection {
     }
 
     public subscript(position: Int) -> MachOImage.Symbol {
-        get {
-            let symbol = symbols.advanced(by: position).pointee
-            let str = stringBase
-                .advanced(by: numericCast(symbol.n_un.n_strx))
-            let address = addressStart + numericCast(symbol.n_value)
+        let symbol = symbols.advanced(by: position).pointee
+        let str = stringBase
+            .advanced(by: numericCast(symbol.n_un.n_strx))
+        let address = addressStart + numericCast(symbol.n_value)
 
-            return MachOImage.Symbol(
-                nameC: str,
-                offset: address,
-                nlist: Nlist64(layout: symbol)
-            )
-        }
+        return MachOImage.Symbol(
+            nameC: str,
+            offset: address,
+            nlist: Nlist64(layout: symbol)
+        )
     }
 }
 
@@ -263,18 +261,16 @@ extension MachOImage.Symbols: Collection {
     }
 
     public subscript(position: Int) -> MachOImage.Symbol {
-        get {
-            let symbol = symbols.advanced(by: position).pointee
-            let str = stringBase
-                .advanced(by: numericCast(symbol.n_un.n_strx))
-            let address = addressStart + numericCast(symbol.n_value)
+        let symbol = symbols.advanced(by: position).pointee
+        let str = stringBase
+            .advanced(by: numericCast(symbol.n_un.n_strx))
+        let address = addressStart + numericCast(symbol.n_value)
 
-            return MachOImage.Symbol(
-                nameC: str,
-                offset: address,
-                nlist: Nlist(layout: symbol)
-            )
-        }
+        return MachOImage.Symbol(
+            nameC: str,
+            offset: address,
+            nlist: Nlist(layout: symbol)
+        )
     }
 }
 

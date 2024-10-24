@@ -73,7 +73,7 @@ extension MachOImage.ExportTrieEntries {
     ) {
 
         let linkeditStart = vmaddrSlide + Int(linkedit.layout.vmaddr - linkedit.layout.fileoff)
-        let ptr = UnsafeRawPointer(bitPattern: linkeditStart)!
+        let ptr = UnsafeRawPointer(bitPattern: linkeditStart)! // swiftlint:disable:this force_unwrapping
             .advanced(by: Int(export.dataoff))
             .assumingMemoryBound(to: UInt8.self)
 
@@ -88,7 +88,7 @@ extension MachOImage.ExportTrieEntries {
         vmaddrSlide: Int
     ) {
         let linkeditStart = vmaddrSlide + Int(linkedit.layout.vmaddr - linkedit.layout.fileoff)
-        let ptr = UnsafeRawPointer(bitPattern: linkeditStart)!
+        let ptr = UnsafeRawPointer(bitPattern: linkeditStart)! // swiftlint:disable:this force_unwrapping
             .advanced(by: Int(export.dataoff))
             .assumingMemoryBound(to: UInt8.self)
 

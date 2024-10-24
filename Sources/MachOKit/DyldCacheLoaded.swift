@@ -9,7 +9,6 @@
 import Foundation
 
 public struct DyldCacheLoaded: DyldCacheRepresentable {
-    
     /// Address of dyld cache header start
     public let ptr: UnsafeRawPointer
 
@@ -183,7 +182,7 @@ extension DyldCacheLoaded {
     /// Sequence of MachO information contained in this cache
     public func machOImages() -> AnySequence<MachOImage> {
         guard let slide,
-              let imageInfos = imageInfos else {
+              let imageInfos else {
             return AnySequence([])
         }
         let machOFiles = imageInfos

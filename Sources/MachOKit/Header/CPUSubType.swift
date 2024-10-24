@@ -17,6 +17,7 @@ public enum CPUSubType {
     case arm64(CPUARM64SubType)
     case arm64_32(CPUARM64_32SubType)
 
+    // swiftlint:disable:next cyclomatic_complexity
     init?(rawValue: cpu_subtype_t, of cputype: CPUType) {
         switch cputype {
         case .any:
@@ -198,6 +199,7 @@ extension CPUAnySubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .multiple: CPU_SUBTYPE_MULTIPLE
@@ -269,6 +271,7 @@ extension CPUVAXSubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .vax_all: CPU_SUBTYPE_VAX_ALL
@@ -333,6 +336,7 @@ extension CPUMC680x0SubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .mc680x0_all: CPU_SUBTYPE_MC680x0_ALL
@@ -433,6 +437,7 @@ extension CPUI386SubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .i386_all: CPU_SUBTYPE_I386_ALL
@@ -515,6 +520,7 @@ extension CPUX86SubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .x86_all: CPU_SUBTYPE_X86_ALL
@@ -573,6 +579,7 @@ extension CPUMipsSubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .mips_all: CPU_SUBTYPE_MIPS_ALL
@@ -621,6 +628,7 @@ extension CPUMC98000SubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .mc98000_all: CPU_SUBTYPE_MC98000_ALL
@@ -660,6 +668,7 @@ extension CPUHPPASubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .hppa_all: CPU_SUBTYPE_HPPA_ALL
@@ -701,6 +710,7 @@ extension CPUMC88000SubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .mc88000_all: CPU_SUBTYPE_MC88000_ALL
@@ -736,6 +746,7 @@ extension CPUSPARCSubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .sparc_all: CPU_SUBTYPE_SPARC_ALL
@@ -770,6 +781,7 @@ extension CPUI860SubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .i860_all: CPU_SUBTYPE_I860_ALL
@@ -839,6 +851,7 @@ extension CPUPowerPCSubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .powerpc_all: CPU_SUBTYPE_POWERPC_ALL
@@ -933,6 +946,7 @@ extension CPUARMSubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .arm_all: CPU_SUBTYPE_ARM_ALL
@@ -996,6 +1010,7 @@ extension CPUARM64SubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .arm64_all: CPU_SUBTYPE_ARM64_ALL
@@ -1034,6 +1049,7 @@ extension CPUARM64_32SubType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .arm64_32_all: CPU_SUBTYPE_ARM64_32_ALL
@@ -1065,7 +1081,7 @@ extension CPUSubType {
         return .init(rawValue: subtype, of: cpuType)
     }
 }
-#endif 
+#endif
 
 /*
  I386 series declarations cannot be used from swift
@@ -1154,3 +1170,4 @@ private var CPU_SUBTYPE_XEON: cpu_subtype_t {
 private var CPU_SUBTYPE_XEON_MP: cpu_subtype_t {
     cpu_subtype_t(12 + (1 << 4))
 }
+// swiftlint:disable:this file_length

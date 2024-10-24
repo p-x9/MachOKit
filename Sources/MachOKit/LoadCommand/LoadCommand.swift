@@ -122,6 +122,7 @@ public enum LoadCommand {
 }
 
 extension LoadCommand {
+    // swiftlint:disable:next function_body_length
     public static func convert(
         _ commandPtr: UnsafePointer<load_command>,
         offset: Int
@@ -498,6 +499,7 @@ extension LoadCommand {
 }
 
 extension LoadCommand {
+    // swiftlint:disable:next function_body_length
     public func swapped() -> Self {
         switch self {
         case let .segment(info):

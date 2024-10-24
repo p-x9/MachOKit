@@ -58,7 +58,7 @@ extension CodeSignCodeDirectory {
         forSlot index: Int,
         in signature: MachOFile.CodeSign
     ) -> Data? {
-        guard  0 <= index,
+        guard  index >= 0,
                index < Int(layout.nCodeSlots),
                let runtime = runtime(in: signature),
                runtime.preEncryptOffset != 0 else {
@@ -75,7 +75,7 @@ extension CodeSignCodeDirectory {
         forSlot index: Int,
         in signature: MachOImage.CodeSign
     ) -> Data? {
-        guard  0 <= index,
+        guard  index >= 0,
                index < Int(layout.nCodeSlots),
                let runtime = runtime(in: signature),
                runtime.preEncryptOffset != 0 else {

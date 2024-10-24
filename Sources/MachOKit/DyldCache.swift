@@ -181,7 +181,7 @@ extension DyldCache {
 extension DyldCache {
     /// Sequence of MachO information contained in this cache
     public func machOFiles() -> AnySequence<MachOFile> {
-        guard let imageInfos = imageInfos else {
+        guard let imageInfos else {
             return AnySequence([])
         }
         let machOFiles = imageInfos
@@ -411,9 +411,8 @@ extension DyldCache {
                     return numericCast(value)
                 }
             } else {
-
+                return nil
             }
-            return nil
         }
 
         let runtimeOffset: UInt64
@@ -474,6 +473,7 @@ extension DyldCache {
     /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/MetadataVisitor.cpp#L424)
     /// `resolveOptionalRebase` differs from `resolveRebase` in that rebasing may or may not actually take place.
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
+        // swiftlint:disable:previous cyclomatic_complexity
         guard let mappingInfos,
               let unslidLoadAddress = mappingInfos.first?.address else {
             return nil
@@ -494,9 +494,8 @@ extension DyldCache {
                     return numericCast(value)
                 }
             } else {
-
+                return nil
             }
-            return nil
         }
 
         let runtimeOffset: UInt64

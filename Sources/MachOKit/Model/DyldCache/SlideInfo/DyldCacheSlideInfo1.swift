@@ -47,9 +47,8 @@ extension DyldCacheSlideInfo1 {
         precondition(layout.entries_size == Entry.layoutSize)
         guard layout.entries_offset > 0 else { return nil }
         return cache.fileHandle.readDataSequence(
-            offset: numericCast(offset) +  numericCast(layout.entries_offset),
+            offset: numericCast(offset) + numericCast(layout.entries_offset),
             numberOfElements: numberOfEntries
         )
     }
 }
-

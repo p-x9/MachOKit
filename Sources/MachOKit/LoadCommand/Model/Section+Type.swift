@@ -88,6 +88,7 @@ extension SectionType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .regular: S_REGULAR

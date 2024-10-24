@@ -16,6 +16,7 @@ public struct DependedDylib {
         case upwardLoad
         case lazyLoad
     }
+
     public let dylib: Dylib
     public let type: DependType
 }

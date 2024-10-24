@@ -52,7 +52,7 @@ extension RebaseOperation: CustomStringConvertible {
             opcode.description
         case .set_type_imm(let rebaseType):
             "\(opcode) \(rebaseType)"
-        case .set_segment_and_offset_uleb(let segment, let offset):
+        case let .set_segment_and_offset_uleb(segment, offset):
             "\(opcode) segment: \(segment), offset: \(offset)"
         case .add_addr_uleb(let offset):
             "\(opcode) offset: \(offset)"
@@ -64,7 +64,7 @@ extension RebaseOperation: CustomStringConvertible {
             "\(opcode) count: \(count)"
         case .do_rebase_add_addr_uleb(let offset):
             "\(opcode) offset: \(offset)"
-        case .do_rebase_uleb_times_skipping_uleb(let count, let skip):
+        case let .do_rebase_uleb_times_skipping_uleb(count, skip):
             "\(opcode) count: \(count), skip: \(skip)"
         }
     }

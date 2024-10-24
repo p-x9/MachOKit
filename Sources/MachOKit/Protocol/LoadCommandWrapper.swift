@@ -15,6 +15,7 @@ public protocol LoadCommandWrapper: LayoutWrapper {
 }
 
 extension LoadCommandWrapper {
+    // swiftlint:disable:next unavailable_function
     public func swap() {
         fatalError("Not Implemented")
     }

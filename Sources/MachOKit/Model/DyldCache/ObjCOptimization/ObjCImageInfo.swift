@@ -15,7 +15,7 @@ public struct ObjCImageInfo: LayoutWrapper {
 }
 
 extension ObjCImageInfo {
-    public var version : Version {
+    public var version: Version {
         .init(numericCast(layout.version))
     }
 
@@ -26,6 +26,7 @@ extension ObjCImageInfo {
 
 public struct ObjCImageInfoFlags: BitFlags {
     public typealias RawValue = UInt32
+
     public var rawValue: RawValue
 
     public init(rawValue: RawValue) {

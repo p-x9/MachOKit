@@ -20,8 +20,8 @@ extension CodeSignGenericBlob {
         layout.isSwapped
     }
 
-    public var magic: CodeSignMagic {
-        .init(rawValue: isSwapped ? layout.magic.byteSwapped : layout.magic)!
+    public var magic: CodeSignMagic! {
+        .init(rawValue: isSwapped ? layout.magic.byteSwapped : layout.magic)
     }
 
     public var length: Int {

@@ -90,7 +90,7 @@ public protocol MachORepresentable {
 
     /// Sequence of weak bind operations
     var weakBindOperations: BindOperations? { get }
-    
+
     /// Sequence of lazy bind operations
     var lazyBindOperations: BindOperations? { get }
 
@@ -134,7 +134,7 @@ public protocol MachORepresentable {
 
     /// Chained fixup infos
     var dyldChainedFixups: DyldChainedFixups? { get }
-    
+
     /// Sequence of external relocation infos
     var externalRelocations: ExternalRelocations? { get }
 
@@ -249,7 +249,7 @@ extension MachORepresentable {
 }
 
 extension MachORepresentable {
-    public func closestSymbol(
+    public func closestSymbol( // swiftlint:disable:this cyclomatic_complexity
         at offset: Int,
         inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
@@ -268,8 +268,11 @@ extension MachORepresentable {
 
                 guard nlist.flags?.type == .sect,
                       symbol.offset <= offset,
-                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
-                      bestSymbol == nil || bestSymbol!.offset < symbol.offset else {
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber else {
+                    continue
+                }
+                if let bestSymbol,
+                   bestSymbol.offset >= symbol.offset {
                     continue
                 }
                 bestSymbol = symbol
@@ -287,8 +290,11 @@ extension MachORepresentable {
                 guard nlist.flags?.type == .sect,
                       nlist.flags?.stab == nil,
                       symbol.offset <= offset,
-                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
-                      bestSymbol == nil || bestSymbol!.offset < symbol.offset else {
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber else {
+                    continue
+                }
+                if let bestSymbol,
+                   bestSymbol.offset >= symbol.offset {
                     continue
                 }
                 bestSymbol = symbol
@@ -302,8 +308,11 @@ extension MachORepresentable {
                       nlist.flags?.stab == nil,
                       symbol.offset <= offset,
                       !isGlobalOnly || nlist.flags?.contains(.ext) ?? false,
-                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
-                      bestSymbol == nil || bestSymbol!.offset < symbol.offset else {
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber else {
+                    continue
+                }
+                if let bestSymbol,
+                   bestSymbol.offset >= symbol.offset {
                     continue
                 }
                 bestSymbol = symbol

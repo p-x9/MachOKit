@@ -31,6 +31,7 @@ extension BindSpecial: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .dylib_self: BIND_SPECIAL_DYLIB_SELF

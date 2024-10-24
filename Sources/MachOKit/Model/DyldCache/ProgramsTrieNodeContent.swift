@@ -17,7 +17,7 @@ public struct ProgramsTrieNodeContent {
 extension ProgramsTrieNodeContent: TrieNodeContent {
     public static func read(
         basePointer: UnsafePointer<UInt8>,
-        trieSize: Int,
+        trieSize _: Int,
         nextOffset: inout Int
     ) -> ProgramsTrieNodeContent? {
         let (offset, ulebOffset) = basePointer

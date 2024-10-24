@@ -48,7 +48,7 @@ extension OldObjCOptimization {
         ) else {
             return nil
         }
-        let layout: ObjCHeaderOptimizationRW64.Layout =  cache.fileHandle.read(offset: offset)
+        let layout: ObjCHeaderOptimizationRW64.Layout = cache.fileHandle.read(offset: offset)
         return .init(
             layout: layout,
             offset: numericCast(offset)
@@ -70,7 +70,7 @@ extension OldObjCOptimization {
         ) else {
             return nil
         }
-        let layout: ObjCHeaderOptimizationRW32.Layout =  cache.fileHandle.read(offset: offset)
+        let layout: ObjCHeaderOptimizationRW32.Layout = cache.fileHandle.read(offset: offset)
         return .init(
             layout: layout,
             offset: numericCast(offset)
@@ -134,7 +134,7 @@ extension OldObjCOptimization {
         ) else {
             return nil
         }
-        let layout: ObjCHeaderOptimizationRO64.Layout =  cache.fileHandle.read(offset: offset)
+        let layout: ObjCHeaderOptimizationRO64.Layout = cache.fileHandle.read(offset: offset)
         return .init(
             layout: layout,
             offset: numericCast(offset)
@@ -156,7 +156,7 @@ extension OldObjCOptimization {
         ) else {
             return nil
         }
-        let layout: ObjCHeaderOptimizationRO32.Layout =  cache.fileHandle.read(offset: offset)
+        let layout: ObjCHeaderOptimizationRO32.Layout = cache.fileHandle.read(offset: offset)
         return .init(
             layout: layout,
             offset: numericCast(offset)

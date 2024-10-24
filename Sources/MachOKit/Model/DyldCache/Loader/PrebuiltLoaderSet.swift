@@ -44,6 +44,7 @@ extension PrebuiltLoaderSet {
     }
 
     public func loaders(in cache: DyldCacheLoaded) -> [PrebuiltLoader]? {
+        // swiftlint:disable:previous unused_parameter
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
         }
@@ -102,6 +103,7 @@ extension PrebuiltLoaderSet {
 
 extension PrebuiltLoaderSet {
     public func dyldCacheUUID(in cache: DyldCacheLoaded) -> UUID? {
+        // swiftlint:disable:previous unused_parameter
         guard layout.dyldCacheUUIDOffset != 0 else { return nil }
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
@@ -114,6 +116,7 @@ extension PrebuiltLoaderSet {
     }
 
     public func mustBeMissingPaths(in cache: DyldCacheLoaded) -> [String]? {
+        // swiftlint:disable:previous unused_parameter
         guard layout.mustBeMissingPathsOffset != 0,
               layout.mustBeMissingPathsCount != 0 else {
             return nil

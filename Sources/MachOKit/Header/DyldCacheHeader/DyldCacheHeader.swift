@@ -26,8 +26,8 @@ extension DyldCacheHeader {
     }
 
     /// Type of dyld  cache.
-    public var cacheType: DyldCacheType {
-        .init(rawValue: layout.cacheType)!
+    public var cacheType: DyldCacheType! {
+        .init(rawValue: layout.cacheType)
     }
 
     /// Sub type of dyld cache for a multi-cache, nil otherwise.
@@ -133,7 +133,7 @@ extension DyldCacheHeader {
     public var actualSize: Int {
         numericCast(layout.mappingOffset)
     }
-    
+
     /// Whether the property is included in the header of this dyld cache.
     /// - Parameter keyPath: keyPath of property.
     /// - Returns: True if included, false if not.

@@ -1,5 +1,5 @@
 //
-//  MachHeader+Flags+Bits.swift
+//  MachHeader+Flags+Bit.swift
 //
 //
 //  Created by p-x9 on 2023/11/29.

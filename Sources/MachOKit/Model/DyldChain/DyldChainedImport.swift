@@ -25,6 +25,7 @@ public enum DyldChainedImport {
 
 public struct DyldChainedImportGeneral: DyldChainedImportProtocol {
     public typealias Layout = dyld_chained_import
+
     public var layout: Layout
 
     public var libraryOrdinal: Int {
@@ -46,6 +47,7 @@ public struct DyldChainedImportGeneral: DyldChainedImportProtocol {
 
 public struct DyldChainedImportAddend: DyldChainedImportProtocol {
     public typealias Layout = dyld_chained_import_addend
+
     public var layout: Layout
 
     public var libraryOrdinal: Int {
@@ -67,6 +69,7 @@ public struct DyldChainedImportAddend: DyldChainedImportProtocol {
 
 public struct DyldChainedImportAddend64: DyldChainedImportProtocol {
     public typealias Layout = dyld_chained_import_addend64
+
     public var layout: Layout
 
     public var libraryOrdinal: Int {
@@ -115,7 +118,7 @@ extension DyldChainedImportAddend {
             let bytes = UnsafeMutableBufferPointer(
                 start: ptr
                     .assumingMemoryBound(to: UInt32.self),
-                count: 2
+                count: layoutSize / MemoryLayout<UInt32>.size
             )
             bytes[0] = bytes[0].byteSwapped
             bytes[1] = bytes[1].byteSwapped
@@ -137,7 +140,7 @@ extension DyldChainedImportAddend64 {
             let bytes = UnsafeMutableBufferPointer(
                 start: ptr
                     .assumingMemoryBound(to: UInt64.self),
-                count: 2
+                count: layoutSize / MemoryLayout<UInt64>.size
             )
             bytes[0] = bytes[0].byteSwapped
             bytes[1] = bytes[1].byteSwapped

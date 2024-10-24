@@ -104,7 +104,7 @@ extension MachOImage {
         }
         return nil
     }
-    
+
     /// Obtains symbols matching the specified name.
     /// - Parameters:
     ///   - name: symbol name to search

@@ -10,6 +10,7 @@ import Foundation
 
 public struct DataInCodeEntry: LayoutWrapper {
     public typealias Layout = data_in_code_entry
+
     public var layout: Layout
 }
 

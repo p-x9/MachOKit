@@ -61,6 +61,7 @@ extension BindOpcode: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .done: BIND_OPCODE_DONE
@@ -119,6 +120,7 @@ extension BindSubOpcode: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .threaded_set_bind_ordinal_table_size_uleb: BIND_SUBOPCODE_THREADED_SET_BIND_ORDINAL_TABLE_SIZE_ULEB

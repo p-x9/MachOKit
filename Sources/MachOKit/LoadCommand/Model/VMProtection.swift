@@ -97,6 +97,7 @@ extension VMProtection.Bit: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .read: RawValue(VM_PROT_READ)

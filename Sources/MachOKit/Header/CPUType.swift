@@ -133,7 +133,6 @@ extension CPUType {
         let ret = sysctlbyname("hw.cputype", &type, &size, nil, 0)
         guard ret != -1 else { return nil }
 
-
         var is64BitCapable: Int = 0
         sysctlbyname("hw.cpu64bit_capable", &is64BitCapable, &size, nil, 0)
         if is64BitCapable == 1 {

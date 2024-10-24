@@ -374,6 +374,7 @@ extension DyldChainedPointerContentBind {
 
 public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_rebase
+
     public var layout: Layout
 
     public var target: Int {
@@ -391,6 +392,7 @@ public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase {
 
 public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_bind
+
     public var layout: Layout
 
     public var ordinal: Int {
@@ -417,6 +419,7 @@ public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind {
 
 public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_rebase
+
     public var layout: Layout
 
     public var target: Int {
@@ -436,6 +439,7 @@ public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase {
 
 public struct DyldChainedPtrArm64eAuthBind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_bind
+
     public var layout: Layout
 
     public var ordinal: Int {
@@ -455,6 +459,7 @@ public struct DyldChainedPtrArm64eAuthBind: DyldChainedPointerContentBind {
 
 public struct DyldChainedPtr64Rebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_64_rebase
+
     public var layout: Layout
 
     public var target: Int {
@@ -472,6 +477,7 @@ public struct DyldChainedPtr64Rebase: DyldChainedPointerContentRebase {
 
 public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_64_bind
+
     public var layout: Layout
 
     public var ordinal: Int {
@@ -487,7 +493,7 @@ public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
     }
 
     public var signExtendedAddend: UInt64 {
-        let addend27 = layout.addend;
+        let addend27 = layout.addend
         let top8Bits = addend27 & 0x00007F80000
         let bottom19Bits = addend27 & 0x0000007FFFF
         let newValue = (top8Bits << 13) | (((bottom19Bits << 37) >> 37) & 0x00FFFFFFFFFFFFFF)
@@ -497,6 +503,7 @@ public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
 
 public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_bind24
+
     public var layout: Layout
 
     public var ordinal: Int {
@@ -523,6 +530,7 @@ public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
 
 public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_bind24
+
     public var layout: Layout
 
     public var ordinal: Int {
@@ -542,6 +550,7 @@ public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind {
 
 public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_64_kernel_cache_rebase
+
     public var layout: Layout
 
     public var target: Int {
@@ -561,6 +570,7 @@ public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase
 
 public struct DyldChainedPtr32Rebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_32_rebase
+
     public var layout: Layout
 
     public var target: Int {
@@ -574,6 +584,7 @@ public struct DyldChainedPtr32Rebase: DyldChainedPointerContentRebase {
 
 public struct DyldChainedPtr32Bind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_32_bind
+
     public var layout: Layout
 
     public var ordinal: Int {
@@ -591,6 +602,7 @@ public struct DyldChainedPtr32Bind: DyldChainedPointerContentBind {
 
 public struct DyldChainedPtr32CacheRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_32_cache_rebase
+
     public var layout: Layout
 
     public var target: Int {
@@ -604,6 +616,7 @@ public struct DyldChainedPtr32CacheRebase: DyldChainedPointerContentRebase {
 
 public struct DyldChainedPtr32FirmwareRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_32_firmware_rebase
+
     public var layout: Layout
 
     public var target: Int {
@@ -617,6 +630,7 @@ public struct DyldChainedPtr32FirmwareRebase: DyldChainedPointerContentRebase {
 
 public struct DyldChainedPtrArm64eSharedCacheRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_shared_cache_rebase
+
     public var layout: Layout
 
     public var target: Int {
@@ -634,6 +648,7 @@ public struct DyldChainedPtrArm64eSharedCacheRebase: DyldChainedPointerContentRe
 
 public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_shared_cache_auth_rebase
+
     public var layout: Layout
 
     public var target: Int {
