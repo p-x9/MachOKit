@@ -76,7 +76,7 @@ disabled_rules:
   #- superfluous_disable_command
   #- switch_case_alignment
   - syntactic_sugar
-  #- todo
+  - todo
   #- trailing_comma
   #- trailing_newline
   #- trailing_semicolon
@@ -106,7 +106,7 @@ opt_in_rules:
   - array_init
   #- attributes
   - balanced_xctest_lifecycle
-  - capture_variable
+  #- capture_variable
   - closure_body_length
   - closure_end_indentation
   - closure_spacing
@@ -122,10 +122,10 @@ opt_in_rules:
   #- direct_return
   - discarded_notification_center_observer
   - discouraged_assert
-  - discouraged_none_name
+  #- discouraged_none_name
   #- discouraged_object_literal
   - discouraged_optional_boolean
-  - discouraged_optional_collection
+  #- discouraged_optional_collection
   - empty_collection_literal
   - empty_count
   - empty_string
@@ -155,7 +155,6 @@ opt_in_rules:
   - implicit_return
   #- implicitly_unwrapped_optional
   #- indentation_width
-  - inert_defer
   - joined_default_parameter
   - last_where
   - legacy_multiple
@@ -172,10 +171,10 @@ opt_in_rules:
   #- multiline_parameters
   #- multiline_parameters_brackets
   - nimble_operator
-  - no_empty_block
+  #- no_empty_block
   #- no_extension_access_modifier
   #- no_grouping_extension
-  - no_magic_numbers
+  #- no_magic_numbers
   - non_overridable_class_declaration
   - nslocalizedstring_key
   - nslocalizedstring_require_bundle
@@ -218,7 +217,7 @@ opt_in_rules:
   #- sorted_enum_cases
   - sorted_first_last
   #- sorted_imports
-  - static_operator
+  #- static_operator
   #- strict_fileprivate
   #- strong_iboutlet
   #- superfluous_else
@@ -227,15 +226,14 @@ opt_in_rules:
   - toggle_bool
   #- trailing_closure
   #- type_contents_order
-  - typesafe_array_init
+  #- typesafe_array_init
   - unavailable_function
   - unhandled_throwing_task
   - unneeded_parentheses_in_closure_argument
   - unowned_variable_capture
   - untyped_error_in_catch
-  - unused_capture_list
-  - unused_declaration
-  - unused_import
+  #- unused_declaration
+  #- unused_import
   - unused_parameter
   - vertical_parameter_alignment_on_call
   #- vertical_whitespace_between_cases
@@ -261,14 +259,52 @@ file_length:
   warning: 750
   error: 1000
 
-identifier_name:
-  min_length:
-    warning: 1
-  excluded:
-    - id
-    - URL
-    - GlobalAPIKey
+function_body_length:
+  warning: 150
+  error: 200
+
+closure_body_length:
+  warning: 100
+  error: 150
+
+# identifier_name:
+#   min_length:
+#     warning: 1
+#   excluded:
+#     - id
+#     - URL
+#     - GlobalAPIKey
 
 file_name:
   excluded:
     - main.swift
+    - MachOKit.swift
+    - MachHeader+Flags+Bit.swift
+    - SegmentCommand+Flags.swift
+    - Section+Attribute.swift
+    - Section+Flags.swift
+    - Section+Type.swift
+    - UnsafePointer+.swift
+    - dyld_chained_ptr+.swift
+    - ThreadStateFlavor.swift
+    - ObjCHeaderOptimizationRO.swift
+    - ObjCHeaderOptimizationRW.swift
+    - ObjCHeaderInfoRO.swift
+    - ObjCHeaderInfoRW.swift
+
+type_name:
+  excluded:
+    - CPUARM64_32SubType
+    - x86ThreadStateFlavor
+    - i386ThreadStateFlavor
+    - X86_64RelocationType
+    - DyldChainedPtrArm64eSharedCacheAuthRebase
+
+cyclomatic_complexity:
+  ignores_case_statements: true
+
+analyzer_rules:
+  - capture_variable
+  - typesafe_array_init
+  - unused_declaration
+  - unused_import
