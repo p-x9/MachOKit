@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol ObjCHeaderInfoROProtocol {
-    associatedtype HeaderOptimizationRO: ObjCHeaderOptimizationROProtocol & LayoutWrapper
+    associatedtype HeaderOptimizationRO: ObjCHeaderOptimizationROProtocol, LayoutWrapper
     /// offset from dyld cache starts
     var offset: Int { get }
     /// index of this header info
@@ -23,7 +23,7 @@ public protocol ObjCHeaderInfoROProtocol {
     /// - Parameter cache: DyldCacheLoaded to which `self` belongs
     /// - Returns: image info
     func imageInfo(in cache: DyldCacheLoaded) -> ObjCImageInfo?
-    
+
     /// Target mach-o image of header
     /// - Parameters:
     ///   - objcOptimization: objc optimization to which `self` belongs

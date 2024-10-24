@@ -28,6 +28,7 @@ extension SymbolLibraryOrdinalType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .`self`: RawValue(SELF_LIBRARY_ORDINAL)

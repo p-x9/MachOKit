@@ -10,6 +10,7 @@ import Foundation
 
 public protocol SegmentCommandProtocol: LoadCommandWrapper {
     associatedtype SectionType: SectionProtocol
+
     var segmentName: String { get }
     var virtualMemoryAddress: Int { get }
     var virtualMemorySize: Int { get }

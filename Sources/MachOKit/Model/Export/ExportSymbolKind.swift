@@ -28,6 +28,7 @@ extension ExportSymbolKind: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .regular: EXPORT_SYMBOL_FLAGS_KIND_REGULAR

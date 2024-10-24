@@ -107,6 +107,7 @@ extension SectionAttributes.Bit: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .pure_instructions: RawValue(S_ATTR_PURE_INSTRUCTIONS)

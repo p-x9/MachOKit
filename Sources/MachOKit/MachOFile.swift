@@ -190,6 +190,7 @@ extension MachOFile {
     }
 
     public typealias IndirectSymbols = DataSequence<IndirectSymbol>
+
     public var indirectSymbols: IndirectSymbols? {
         guard let dysymtab = loadCommands.dysymtab else { return nil }
 
@@ -229,15 +230,15 @@ extension MachOFile {
     /// Strings in `__TEXT, __cstring` section
     public var cStrings: Strings? {
         if is64Bit, let text = loadCommands.text64 {
-            let cstrings = text.sections(in: self).filter {
+            let cstrings = text.sections(in: self).first {
                 $0.sectionName == "__cstring"
-            }.first
+            }
             guard let cstrings else { return nil }
             return cstrings.strings(in: self)
         } else if let text = loadCommands.text {
-            let cstrings = text.sections(in: self).filter {
+            let cstrings = text.sections(in: self).first {
                 $0.sectionName == "__cstring"
-            }.first
+            }
             guard let cstrings else { return nil }
             return cstrings.strings(in: self)
         }

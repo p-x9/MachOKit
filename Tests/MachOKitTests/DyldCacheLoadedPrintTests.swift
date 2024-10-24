@@ -30,7 +30,7 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         let header = cache.header
         print("Magic:", header.magic)
         print("UUID:", header.uuid)
-        print("CacheType:", header.cacheType)
+        print("CacheType:", header.cacheType!)
         print("Mappings:", header.mappingCount)
         print("Images:", header.imagesCount)
         print("Platform:", header.platform)

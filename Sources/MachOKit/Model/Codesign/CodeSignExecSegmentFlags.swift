@@ -84,6 +84,7 @@ extension CodeSignExecSegmentFlags.Bit: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .main_binary: RawValue(CS_EXECSEG_MAIN_BINARY)

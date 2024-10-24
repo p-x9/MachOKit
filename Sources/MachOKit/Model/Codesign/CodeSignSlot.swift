@@ -71,6 +71,7 @@ extension CodeSignSlot: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .codedirectory: RawValue(CSSLOT_CODEDIRECTORY)

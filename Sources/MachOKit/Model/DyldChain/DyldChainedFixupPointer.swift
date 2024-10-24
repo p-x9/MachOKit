@@ -75,7 +75,7 @@ extension DyldChainedFixupPointer {
 extension DyldChainedFixupPointer {
     // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MachOLayout.cpp#L2139
     public func bindOrdinalAndAddend(
-        for machO: MachOFile
+        for machO: MachOFile  // swiftlint:disable:this unused_parameter
     ) -> (ordinal: Int, addend: UInt64)? {
         guard let bind = fixupInfo.bind else {
             return nil

@@ -66,6 +66,7 @@ extension ExportSymbolFlags.Bit: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .weak_definition: RawValue(EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION)

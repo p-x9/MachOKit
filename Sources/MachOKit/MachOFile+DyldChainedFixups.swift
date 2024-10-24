@@ -198,13 +198,13 @@ extension MachOFile.DyldChainedFixups {
                     offsetInPage = pages[overflowIndex].offset & ~UInt16(DYLD_CHAINED_PTR_START_LAST)
                     let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
                     let chainOffset = pageContentStart + numericCast(offsetInPage)
-                    walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, in: machO, pointers: &pointers)
+                    walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, pointers: &pointers)
                     overflowIndex += 1
                 }
             } else {
                 let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
                 let chainOffset = pageContentStart + numericCast(offsetInPage)
-                walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, in: machO, pointers: &pointers)
+                walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, pointers: &pointers)
             }
         }
 
@@ -215,7 +215,6 @@ extension MachOFile.DyldChainedFixups {
         offset: Int,
         data: Data,
         of startsInSegment: DyldChainedStartsInSegment,
-        in machO: MachOFile,
         pointers: inout [DyldChainedFixupPointer]
     ) {
         guard let pointerFormat = startsInSegment.pointerFormat else {

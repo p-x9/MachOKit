@@ -37,7 +37,7 @@ public struct DataSequence<T>: Sequence {
 
     public func makeIterator() -> Iterator {
         Iterator(
-            data: data, 
+            data: data,
             entrySize: entrySize,
             numberOfElements: numberOfElements
         )
@@ -97,7 +97,9 @@ extension DataSequence: Collection {
         precondition(position < endIndex)
         precondition(data.count >= (position + 1) * entrySize)
         return data.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else { fatalError() }
+            guard let baseAddress = $0.baseAddress else {
+                fatalError("data is empty")
+            }
             return baseAddress
                 .advanced(by: position * entrySize)
                 .load(as: Element.self)

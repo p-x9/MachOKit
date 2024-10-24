@@ -46,6 +46,7 @@ extension RebaseOpcode: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .done: REBASE_OPCODE_DONE

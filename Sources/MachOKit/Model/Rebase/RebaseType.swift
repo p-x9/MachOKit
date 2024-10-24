@@ -28,6 +28,7 @@ extension RebaseType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .pointer: REBASE_TYPE_POINTER

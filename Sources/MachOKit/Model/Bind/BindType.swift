@@ -28,6 +28,7 @@ extension BindType: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .pointer: BIND_TYPE_POINTER

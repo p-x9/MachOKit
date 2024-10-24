@@ -36,7 +36,7 @@ extension CodeSignCodeDirectory {
             return nil
         }
         return signature.data.withUnsafeBytes {
-            let baseAddress = $0.baseAddress!
+            guard let baseAddress = $0.baseAddress else { return nil }
             let ptr = baseAddress
                 .advanced(by: offset)
                 .advanced(by: Int(teamIdOffset.teamOffset))

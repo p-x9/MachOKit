@@ -27,7 +27,7 @@ public struct TrieNode<Content: TrieNodeContent> {
     public init(
         offset: Int,
         terminalSize: UInt,
-        content: Content? = nil,
+        content: Content?,
         children: [Child]
     ) {
         self.offset = offset

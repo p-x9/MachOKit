@@ -50,6 +50,7 @@ extension CodeSignMagic: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .requirement: RawValue(CSMAGIC_REQUIREMENT)

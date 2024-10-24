@@ -22,6 +22,7 @@ public struct LinkerOptionCommand: LoadCommandWrapper {
 
 extension LinkerOptionCommand {
     public func options(cmdsStart: UnsafeRawPointer) -> [String] {
+        // swiftlint:disable:next empty_count
         guard layout.count > 0 else { return [] }
 
         let ptr = cmdsStart
@@ -37,6 +38,7 @@ extension LinkerOptionCommand {
     }
 
     public func options(in machO: MachOFile) -> [String] {
+        // swiftlint:disable:next empty_count
         guard layout.count > 0 else { return [] }
 
         let offset = machO.cmdsStartOffset + offset + layoutSize

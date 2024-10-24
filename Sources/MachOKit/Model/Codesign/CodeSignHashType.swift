@@ -50,3 +50,14 @@ extension CodeSignHashType: CustomStringConvertible {
         }
     }
 }
+
+extension CodeSignHashType {
+    package var priority: Int {
+        switch self {
+        case .sha1: 0
+        case .sha256_truncated: 1
+        case .sha256: 2
+        case .sha384: 3
+        }
+    }
+}

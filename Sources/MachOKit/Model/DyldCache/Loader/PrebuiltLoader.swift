@@ -50,6 +50,7 @@ extension PrebuiltLoader {
 
 extension PrebuiltLoader {
     public func path(in cache: DyldCacheLoaded) -> String? {
+        // swiftlint:disable:previous unused_parameter
         guard let baseAddress = UnsafeRawPointer(bitPattern: address) else {
             return nil
         }
@@ -61,6 +62,7 @@ extension PrebuiltLoader {
     }
 
     public func dependentLoaderRefs(in cache: DyldCache) -> MemorySequence<LoaderRef>? {
+        // swiftlint:disable:previous unused_parameter
         guard layout.dependentLoaderRefsArrayOffset != 0,
               let baseAddress = UnsafeRawPointer(bitPattern: address) else {
             return nil

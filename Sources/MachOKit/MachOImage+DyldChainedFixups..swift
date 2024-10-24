@@ -19,7 +19,6 @@ extension MachOImage.DyldChainedFixups {
     init?(
         dyldChainedFixups: linkedit_data_command,
         linkedit: SegmentCommand64,
-        text: SegmentCommand64,
         vmaddrSlide: Int
     ) {
         guard let linkeditStartPtr = linkedit.startPtr(
@@ -43,7 +42,6 @@ extension MachOImage.DyldChainedFixups {
     init?(
         dyldChainedFixups: linkedit_data_command,
         linkedit: SegmentCommand,
-        text: SegmentCommand,
         vmaddrSlide: Int
     ) {
         guard let linkeditStartPtr = linkedit.startPtr(

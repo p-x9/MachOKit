@@ -35,8 +35,7 @@ extension CodeSignCodeDirectory {
 }
 extension CodeSignCodeDirectory {
     public func identifier(in signature: MachOFile.CodeSign) -> String {
-        signature.data.withUnsafeBytes {
-            bufferPointer in
+        signature.data.withUnsafeBytes { bufferPointer in
             guard let baseAddress = bufferPointer.baseAddress else {
                 return ""
             }
@@ -66,14 +65,14 @@ extension CodeSignCodeDirectory {
         let data = signature.data[offset ..< offset + numericCast(layout.length)]
 
         switch hashType {
-            case .sha1:
-                return Data(Insecure.SHA1.hash(data: data))
-            case .sha256, .sha256_truncated:
-                return Data(SHA256.hash(data: data))
-            case .sha384:
-                return Data(SHA384.hash(data: data))
-            case .none:
-                return nil
+        case .sha1:
+            return Data(Insecure.SHA1.hash(data: data))
+        case .sha256, .sha256_truncated:
+            return Data(SHA256.hash(data: data))
+        case .sha384:
+            return Data(SHA384.hash(data: data))
+        case .none:
+            return nil
         }
     }
 
@@ -86,14 +85,14 @@ extension CodeSignCodeDirectory {
         )
 
         switch hashType {
-            case .sha1:
-                return Data(Insecure.SHA1.hash(data: data))
-            case .sha256, .sha256_truncated:
-                return Data(SHA256.hash(data: data))
-            case .sha384:
-                return Data(SHA384.hash(data: data))
-            case .none:
-                return nil
+        case .sha1:
+            return Data(Insecure.SHA1.hash(data: data))
+        case .sha256, .sha256_truncated:
+            return Data(SHA256.hash(data: data))
+        case .sha384:
+            return Data(SHA384.hash(data: data))
+        case .none:
+            return nil
         }
     }
 }

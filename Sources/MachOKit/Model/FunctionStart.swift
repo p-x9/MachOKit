@@ -23,25 +23,11 @@ extension FunctionStart {
     ) -> FunctionStart? {
         guard nextOffset < functionStartsSize else { return nil }
 
-        var delta: UInt = 0
-        var shift: UInt = 0
-        var more = true
+        let (additionalOffset, size) = basePointer
+            .advanced(by: nextOffset)
+            .readULEB128()
+        nextOffset += size
 
-        var functionOffset = lastFunctionOffset
-
-        repeat {
-            let byte = basePointer
-                .advanced(by: nextOffset)
-                .pointee
-            nextOffset += 1
-            delta |= ((numericCast(byte) & 0x7F) << shift)
-            shift += 7
-            if byte < 0x80 {
-                functionOffset += delta
-                more = false
-            }
-        } while more
-
-        return .init(offset: functionOffset)
+        return .init(offset: lastFunctionOffset + additionalOffset)
     }
 }

@@ -37,6 +37,7 @@ extension SymbolReferenceFlag: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .undefined_non_lazy: RawValue(REFERENCE_FLAG_UNDEFINED_NON_LAZY)

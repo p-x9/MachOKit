@@ -121,6 +121,7 @@ extension SymbolDescription.Bit: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .referenced_dynamically: RawValue(REFERENCED_DYNAMICALLY)

@@ -17,8 +17,8 @@ public struct CodeSignSuperBlob: LayoutWrapper {
 }
 
 extension CodeSignSuperBlob {
-    public var magic: CodeSignMagic {
-        .init(rawValue: layout.magic)!
+    public var magic: CodeSignMagic! {
+        .init(rawValue: layout.magic)
     }
 
     public var count: Int {
@@ -44,7 +44,7 @@ extension CodeSignSuperBlob {
             }
         )
     }
-    
+
     /// Get indices of this SuperBlob
     /// - Parameter signature: ``MachOImage.CodeSign`` to which this SuperBlob belongs.
     /// - Returns: indices of this superBlob
@@ -61,7 +61,7 @@ extension CodeSignSuperBlob {
                 numberOfElements: count
             ).lazy.map {
                 .init(layout: signature.isSwapped ? $0.swapped : $0)
-            }
+            } // swiftlint:disable:this closure_end_indentation
         )
     }
 }

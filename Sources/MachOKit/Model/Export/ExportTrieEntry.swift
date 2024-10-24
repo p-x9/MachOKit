@@ -27,11 +27,10 @@ public struct ExportTrieNodeContent {
 extension ExportTrieNodeContent: TrieNodeContent {
     public static func read(
         basePointer: UnsafePointer<UInt8>,
-        trieSize: Int,
+        trieSize _: Int,
         nextOffset: inout Int
     ) -> ExportTrieNodeContent? {
-
-        var content = Self.init()
+        var content: Self = .init()
 
         let (flagsRaw, ulebOffset) = basePointer
             .advanced(by: nextOffset)

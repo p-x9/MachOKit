@@ -112,6 +112,7 @@ extension Stab: RawRepresentable {
         default: return nil
         }
     }
+
     public var rawValue: RawValue {
         switch self {
         case .gsym: RawValue(N_GSYM)

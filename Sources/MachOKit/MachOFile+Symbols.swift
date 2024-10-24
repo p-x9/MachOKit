@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2023/12/08.
-//  
+//
 //
 
 import Foundation
@@ -105,7 +105,7 @@ extension MachOFile.Symbols64 {
 
             let symbol: nlist_64 = symbolsData.withUnsafeBytes {
                 guard let baseAddress = $0.baseAddress else {
-                    fatalError()
+                    fatalError("data is empty")
                 }
                 let ptr = baseAddress
                     .assumingMemoryBound(to: nlist_64.self)
@@ -119,7 +119,7 @@ extension MachOFile.Symbols64 {
 
             let string: String = stringData.withUnsafeBytes {
                 guard let baseAddress = $0.baseAddress else {
-                    fatalError()
+                    fatalError("data is empty")
                 }
                 let ptr = baseAddress
                     .assumingMemoryBound(to: CChar.self)
@@ -185,7 +185,7 @@ extension MachOFile.Symbols {
         }
 
         self.init(
-            symtab: symtab, 
+            symtab: symtab,
             stringData: stringData,
             symbolsData: symbolsData,
             numberOfSymbols: numericCast(symtab.nsyms)
@@ -223,7 +223,7 @@ extension MachOFile.Symbols {
 
             let symbol: nlist = symbolsData.withUnsafeBytes {
                 guard let baseAddress = $0.baseAddress else {
-                    fatalError()
+                    fatalError("data is empty")
                 }
                 let ptr = baseAddress
                     .assumingMemoryBound(to: nlist.self)
@@ -237,7 +237,7 @@ extension MachOFile.Symbols {
 
             let string: String = stringData.withUnsafeBytes {
                 guard let baseAddress = $0.baseAddress else {
-                    fatalError()
+                    fatalError("data is empty")
                 }
                 let ptr = baseAddress
                     .assumingMemoryBound(to: CChar.self)
@@ -268,35 +268,32 @@ extension MachOFile.Symbols64: Collection {
     }
 
     public subscript(position: Int) -> MachOFile.Symbol {
-        get {
-            let symbol: nlist_64 = symbolsData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else {
-                    fatalError()
-                }
-                let ptr = baseAddress
-                    .assumingMemoryBound(to: nlist_64.self)
-                return ptr.advanced(by: position).pointee
+        let symbol: nlist_64 = symbolsData.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                fatalError("data is empty")
             }
-
-            let string: String = stringData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else {
-                    fatalError()
-                }
-                let ptr = baseAddress
-                    .assumingMemoryBound(to: CChar.self)
-                    .advanced(by: Int(symbol.n_un.n_strx))
-                return String(cString: ptr)
-            }
-
-            return .init(
-                name: string,
-                offset: Int(symbol.n_value),
-                nlist: Nlist64(layout: symbol)
-            )
+            let ptr = baseAddress
+                .assumingMemoryBound(to: nlist_64.self)
+            return ptr.advanced(by: position).pointee
         }
+
+        let string: String = stringData.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                fatalError("data is empty")
+            }
+            let ptr = baseAddress
+                .assumingMemoryBound(to: CChar.self)
+                .advanced(by: Int(symbol.n_un.n_strx))
+            return String(cString: ptr)
+        }
+
+        return .init(
+            name: string,
+            offset: Int(symbol.n_value),
+            nlist: Nlist64(layout: symbol)
+        )
     }
 }
-
 
 extension MachOFile.Symbols: Collection {
     public typealias Index = Int
@@ -309,32 +306,30 @@ extension MachOFile.Symbols: Collection {
     }
 
     public subscript(position: Int) -> MachOFile.Symbol {
-        get {
-            let symbol: nlist = symbolsData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else {
-                    fatalError()
-                }
-                let ptr = baseAddress
-                    .assumingMemoryBound(to: nlist.self)
-                return ptr.advanced(by: position).pointee
+        let symbol: nlist = symbolsData.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                fatalError("data is empty")
             }
-
-            let string: String = stringData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else {
-                    fatalError()
-                }
-                let ptr = baseAddress
-                    .assumingMemoryBound(to: CChar.self)
-                    .advanced(by: Int(symbol.n_un.n_strx))
-                return String(cString: ptr)
-            }
-
-            return .init(
-                name: string,
-                offset: Int(symbol.n_value),
-                nlist: Nlist(layout: symbol)
-            )
+            let ptr = baseAddress
+                .assumingMemoryBound(to: nlist.self)
+            return ptr.advanced(by: position).pointee
         }
+
+        let string: String = stringData.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                fatalError("data is empty")
+            }
+            let ptr = baseAddress
+                .assumingMemoryBound(to: CChar.self)
+                .advanced(by: Int(symbol.n_un.n_strx))
+            return String(cString: ptr)
+        }
+
+        return .init(
+            name: string,
+            offset: Int(symbol.n_value),
+            nlist: Nlist(layout: symbol)
+        )
     }
 }
 

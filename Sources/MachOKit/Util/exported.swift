@@ -7,10 +7,10 @@
 //
 
 #if canImport(MachO)
-@_documentation(visibility: internal) 
-@_exported 
+@_documentation(visibility: internal)
+@_exported
 import MachO
 #endif
 
-@_exported 
+@_exported
 import MachOKitC

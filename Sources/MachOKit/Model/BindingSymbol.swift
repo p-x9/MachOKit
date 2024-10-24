@@ -21,6 +21,7 @@ extension BindingSymbol {
     public var bindSpecial: BindSpecial? {
         .init(rawValue: BindSpecial.RawValue(libraryOrdinal))
     }
+
     public func library(in machO: MachOImage) -> Dylib? {
         if let bindSpecial {
             if bindSpecial == .dylib_self {

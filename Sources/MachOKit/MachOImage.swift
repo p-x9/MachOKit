@@ -51,7 +51,7 @@ public struct MachOImage: MachORepresentable {
     public var cmdsStartPtr: UnsafeRawPointer {
         ptr.advanced(by: headerSize)
     }
-    
+
     /// Initialized with the start pointer of mach header.
     /// - Parameter ptr: start pointer of mach header
     ///
@@ -210,8 +210,11 @@ extension MachOImage {
         }
         return nil
     }
+}
 
+extension MachOImage {
     public typealias IndirectSymbols = MemorySequence<IndirectSymbol>
+
     public var indirectSymbols: IndirectSymbols? {
         let fileSlide: Int
         guard let dysymtab = loadCommands.dysymtab else { return nil }
@@ -268,15 +271,15 @@ extension MachOImage {
     public var cStrings: Strings? {
         guard let vmaddrSlide else { return nil }
         if is64Bit, let text = loadCommands.text64 {
-            let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
+            let cstrings = text.sections(cmdsStart: cmdsStartPtr).first {
                 $0.sectionName == "__cstring"
-            }.first
+            }
             guard let cstrings else { return nil }
             return cstrings.strings(in: text, vmaddrSlide: vmaddrSlide)
         } else if let text = loadCommands.text {
-            let cstrings = text.sections(cmdsStart: cmdsStartPtr).filter {
+            let cstrings = text.sections(cmdsStart: cmdsStartPtr).first {
                 $0.sectionName == "__cstring"
-            }.first
+            }
             guard let cstrings else { return nil }
             return cstrings.strings(in: text, vmaddrSlide: vmaddrSlide)
         }
@@ -569,20 +572,16 @@ extension MachOImage {
             return nil
         }
 
-        if let linkedit = loadCommands.linkedit64,
-           let text = loadCommands.text64 {
+        if let linkedit = loadCommands.linkedit64 {
             return .init(
                 dyldChainedFixups: chainedFixups.layout,
                 linkedit: linkedit,
-                text: text,
                 vmaddrSlide: vmaddrSlide
             )
-        } else if let linkedit = loadCommands.linkedit,
-                  let text = loadCommands.text {
+        } else if let linkedit = loadCommands.linkedit {
             return .init(
                 dyldChainedFixups: chainedFixups.layout,
                 linkedit: linkedit,
-                text: text,
                 vmaddrSlide: vmaddrSlide
             )
         }
