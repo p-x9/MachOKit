@@ -15,6 +15,9 @@ public protocol ObjCHeaderInfoROProtocol {
     /// index of this header info
     var index: Int { get }
 
+    /// offset to mach-o header from start of self
+    var machOHeaderOffset: Int { get }
+
     /// Description of an Objective-C image
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: image info
@@ -54,6 +57,10 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
     public let offset: Int
     public let index: Int
 
+    public var machOHeaderOffset: Int {
+        numericCast(layout.mhdr_offset)
+    }
+
     public func imageInfo(in cache: DyldCache) -> ObjCImageInfo? {
         let offset = offset + layoutOffset(of: \.info_offset) + numericCast(layout.info_offset)
         return cache.fileHandle.read(offset: numericCast(offset))
@@ -90,14 +97,9 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
         roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCache
     ) -> MachOFile? {
-        let offsetFromRoHeader = roOptimizaion.layoutSize + index * roOptimizaion.entrySize
-
-        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        let roOffset = roOptimizaion.offset + numericCast(sharedRegionStart)
-        let _offset: Int = roOffset + offsetFromRoHeader + numericCast(layout.mhdr_offset)
-        guard let offset = cache.fileOffset(
-            of: numericCast(_offset)
-        ) else {
+        let offset = offset + machOHeaderOffset
+        // Check if the cache file contains offset
+        guard cache.address(of: numericCast(offset)) != nil else {
             return nil
         }
         return try? .init(
@@ -111,15 +113,9 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
         roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCacheLoaded
     ) -> MachOImage? {
-        guard let slide = cache.slide else { return nil }
-        let offsetFromRoHeader = roOptimizaion.layoutSize + index * roOptimizaion.entrySize
-
-        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        let roOffset = roOptimizaion.offset + numericCast(sharedRegionStart) + numericCast(slide)
-        let _offset: Int = roOffset + offsetFromRoHeader + numericCast(layout.mhdr_offset)
-        guard let ptr = UnsafeRawPointer(bitPattern: _offset) else {
-            return nil
-        }
+        let ptr = cache.ptr
+            .advanced(by: offset)
+            .advanced(by: numericCast(layout.mhdr_offset))
         return .init(
             ptr: ptr
                 .assumingMemoryBound(to: mach_header.self)
@@ -136,6 +132,10 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
     public let offset: Int
     public let index: Int
 
+    public var machOHeaderOffset: Int {
+        numericCast(layout.mhdr_offset)
+    }
+
     public func imageInfo(in cache: DyldCache) -> ObjCImageInfo? {
         let offset = offset + layoutOffset(of: \.info_offset) + numericCast(layout.info_offset)
         return cache.fileHandle.read(offset: numericCast(offset))
@@ -172,14 +172,8 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
         roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCache
     ) -> MachOFile? {
-        let offsetFromRoHeader = roOptimizaion.layoutSize + index * numericCast(roOptimizaion.entsize)
-
-        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        let roOffset = roOptimizaion.offset + numericCast(sharedRegionStart)
-        let _offset: Int = numericCast(roOffset) + offsetFromRoHeader + numericCast(layout.mhdr_offset)
-        guard let offset = cache.fileOffset(
-            of: numericCast(_offset)
-        ) else {
+        let offset = offset + machOHeaderOffset
+        guard cache.address(of: numericCast(offset)) != nil else {
             return nil
         }
         return try? .init(
@@ -193,15 +187,9 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
         roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCacheLoaded
     ) -> MachOImage? {
-        guard let slide = cache.slide else { return nil }
-        let offsetFromRoHeader = roOptimizaion.layoutSize + index * numericCast(roOptimizaion.entsize)
-
-        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        let roOffset = roOptimizaion.offset + numericCast(sharedRegionStart) + numericCast(slide)
-        let _offset: Int = roOffset + offsetFromRoHeader + numericCast(layout.mhdr_offset)
-        guard let ptr = UnsafeRawPointer(bitPattern: _offset) else {
-            return nil
-        }
+        let ptr = cache.ptr
+            .advanced(by: offset)
+            .advanced(by: numericCast(layout.mhdr_offset))
         return .init(
             ptr: ptr
                 .assumingMemoryBound(to: mach_header.self)
