@@ -149,3 +149,44 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
         )
     }
 }
+
+extension ObjCHeaderOptimizationROProtocol where Self: LayoutWrapper {
+    /// Optimisation info of the specified machO
+    /// - Parameters:
+    ///   - cache: DyldCache to which `self` belongs
+    ///   - machO: target machO file
+    /// - Returns: objc ro optimization info for specified machO
+    public func headerInfo(
+        in cache: DyldCache, for machO: MachOFile
+    ) -> HeaderInfo? {
+        guard machO.headerStartOffsetInCache > 0 else {
+            return nil
+        }
+        return headerInfos(in: cache)
+            .first(
+                where: {
+                    let offset = $0.offset + $0.machOHeaderOffset
+                    return machO.headerStartOffsetInCache == offset
+                }
+            )
+    }
+
+    /// Optimisation info of the specified machO
+    /// - Parameters:
+    ///   - cache: DyldCacheLoaded to which `self` belongs
+    ///   - machO: target machO image
+    /// - Returns: objc ro optimization info for specified machO
+    public func headerInfo(
+        in cache: DyldCacheLoaded, for machO: MachOImage
+    ) -> HeaderInfo? {
+        headerInfos(in: cache)
+            .first(
+                where: {
+                    let ptr = cache.ptr
+                        .advanced(by: $0.offset)
+                        .advanced(by: $0.machOHeaderOffset)
+                    return ptr == machO.ptr
+                }
+            )
+    }
+}
