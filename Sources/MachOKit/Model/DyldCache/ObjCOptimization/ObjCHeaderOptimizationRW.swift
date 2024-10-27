@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol ObjCHeaderOptimizationRWProtocol {
-    associatedtype HeaderInfo: LayoutWrapper
+    associatedtype HeaderInfo: ObjCHeaderInfoRWProtocol
     /// number of header infos
     var count: Int { get }
     /// layout size of header info

@@ -9,7 +9,8 @@
 import Foundation
 
 public protocol ObjCHeaderOptimizationROProtocol {
-    associatedtype HeaderInfo: LayoutWrapper
+    associatedtype HeaderInfo: ObjCHeaderInfoROProtocol
+    var offset: Int { get }
     /// number of header infos
     var count: Int { get }
     /// layout size of header info
@@ -42,6 +43,7 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
             "entsize is smaller than HeaderInfo"
         )
         let offset = offset + layoutSize
+        // Warning: HeaderInfo.layoutSize and entrySize are different.
         return AnyRandomAccessCollection(
             cache.fileHandle.readDataSequence<HeaderInfo.Layout>(
                 offset: numericCast(offset),
@@ -51,7 +53,7 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
             ).enumerated().map({
                 HeaderInfo(
                     layout: $1,
-                    offset: offset + HeaderInfo.layoutSize * $0,
+                    offset: offset + entrySize * $0,
                     index: $0
                 )
             })
@@ -78,7 +80,7 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
                 .map {
                     HeaderInfo(
                         layout: $1,
-                        offset: offset + HeaderInfo.layoutSize * $0,
+                        offset: offset + entrySize * $0,
                         index: $0
                     )
                 }
@@ -113,7 +115,7 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
             ).enumerated().map({
                 HeaderInfo(
                     layout: $1,
-                    offset: offset + HeaderInfo.layoutSize * $0,
+                    offset: offset + entrySize * $0,
                     index: $0
                 )
             })
@@ -140,7 +142,7 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
                 .map {
                     HeaderInfo(
                         layout: $1,
-                        offset: offset + HeaderInfo.layoutSize * $0,
+                        offset: offset + entrySize * $0,
                         index: $0
                     )
                 }
