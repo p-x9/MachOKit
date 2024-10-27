@@ -34,7 +34,9 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
     public var count: Int { numericCast(layout.count) }
     public var entrySize: Int { numericCast(layout.entsize) }
 
-    public func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo> {
+    public func headerInfos(
+        in cache: DyldCache
+    ) -> AnyRandomAccessCollection<HeaderInfo> {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
             "entsize is smaller than HeaderInfo"
@@ -56,7 +58,9 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
         )
     }
 
-    public func headerInfos(in cache: DyldCacheLoaded) -> AnyRandomAccessCollection<HeaderInfo> {
+    public func headerInfos(
+        in cache: DyldCacheLoaded
+    ) -> AnyRandomAccessCollection<HeaderInfo> {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
             "entsize is smaller than HeaderInfo"
@@ -92,7 +96,9 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
     public var count: Int { numericCast(layout.count) }
     public var entrySize: Int { numericCast(layout.entsize) }
 
-    public func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo> {
+    public func headerInfos(
+        in cache: DyldCache
+    ) -> AnyRandomAccessCollection<HeaderInfo> {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
             "entsize is smaller than HeaderInfo"
@@ -114,7 +120,9 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
         )
     }
 
-    public func headerInfos(in cache: DyldCacheLoaded) -> AnyRandomAccessCollection<HeaderInfo> {
+    public func headerInfos(
+        in cache: DyldCacheLoaded)
+    -> AnyRandomAccessCollection<HeaderInfo> {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
             "entsize is smaller than HeaderInfo"

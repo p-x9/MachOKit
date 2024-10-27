@@ -256,7 +256,7 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
     }
 
     func testObjCHeaderOptimizationRO() throws {
-        guard let objcOptimization = cache.objcOptimization else { return }
+        guard let objcOptimization = cache.oldObjcOptimization else { return }
         let ro = objcOptimization.headerOptimizationRO64(in: cache)!
         let roHeaders = ro.headerInfos(in: cache)
         print("Count:", ro.count)
@@ -274,7 +274,6 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         print("Image:")
         for info in roHeaders {
             guard let machO = info.machO(
-                objcOptimization: objcOptimization,
                 roOptimizaion: ro,
                 in: cache
             ) else {
