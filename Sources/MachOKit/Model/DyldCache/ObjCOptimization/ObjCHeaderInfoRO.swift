@@ -29,21 +29,17 @@ public protocol ObjCHeaderInfoROProtocol {
 
     /// Target mach-o image of header
     /// - Parameters:
-    ///   - roOptimizaion: ro optimization to which `self` belongs
     ///   - cache: DyldCache to which `self` belongs
     /// - Returns: mach-o file
     func machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCache
     ) -> MachOFile?
 
     /// Target mach-o image of header
     /// - Parameters:
-    ///   - roOptimizaion: ro optimization to which `self` belongs
     ///   - cache: DyldCacheLoaded to which `self` belongs
     /// - Returns: mach-o file
     func machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCacheLoaded
     ) -> MachOImage?
 }
@@ -74,27 +70,22 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
     }
 
     public func machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCache
     ) -> MachOFile? {
         _machO(
-            roOptimizaion: roOptimizaion,
             in: cache
         )
     }
 
     public func machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCacheLoaded
     ) -> MachOImage? {
         _machO(
-            roOptimizaion: roOptimizaion,
             in: cache
         )
     }
 
     private func _machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCache
     ) -> MachOFile? {
         let offset = offset + machOHeaderOffset
@@ -110,7 +101,6 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
     }
 
     private func _machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCacheLoaded
     ) -> MachOImage? {
         let ptr = cache.ptr
@@ -149,27 +139,22 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
     }
 
     public func machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCache
     ) -> MachOFile? {
         _machO(
-            roOptimizaion: roOptimizaion,
             in: cache
         )
     }
 
     public func machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCacheLoaded
     ) -> MachOImage? {
         _machO(
-            roOptimizaion: roOptimizaion,
             in: cache
         )
     }
 
     private func _machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCache
     ) -> MachOFile? {
         let offset = offset + machOHeaderOffset
@@ -184,7 +169,6 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
     }
 
     private func _machO(
-        roOptimizaion: HeaderOptimizationRO,
         in cache: DyldCacheLoaded
     ) -> MachOImage? {
         let ptr = cache.ptr

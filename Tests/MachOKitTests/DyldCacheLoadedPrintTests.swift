@@ -274,7 +274,6 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         print("Image:")
         for info in roHeaders {
             guard let machO = info.machO(
-                roOptimizaion: ro,
                 in: cache
             ) else {
                 print(" nil")
