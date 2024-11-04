@@ -31,6 +31,8 @@ public protocol ObjCHeaderInfoROProtocol {
     /// - Parameters:
     ///   - cache: DyldCache to which `self` belongs
     /// - Returns: mach-o file
+    ///
+    /// target mach-o may be included in one of the subcaches.
     func machO(
         in cache: DyldCache
     ) -> MachOFile?
@@ -90,13 +92,15 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
     ) -> MachOFile? {
         let offset = offset + machOHeaderOffset
         // Check if the cache file contains offset
-        guard cache.address(of: numericCast(offset)) != nil else {
+        // objc header info is exsisted only in main dyld cache
+        let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
+        guard let fileOffset = cache.fileOffset(of: numericCast(address)) else {
             return nil
         }
         return try? .init(
             url: cache.url,
             imagePath: "", // FIXME: path
-            headerStartOffsetInCache: numericCast(offset)
+            headerStartOffsetInCache: numericCast(fileOffset)
         )
     }
 
@@ -158,13 +162,16 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
         in cache: DyldCache
     ) -> MachOFile? {
         let offset = offset + machOHeaderOffset
-        guard cache.address(of: numericCast(offset)) != nil else {
+        // Check if the cache file contains offset
+        // objc header info is exsisted only in main dyld cache
+        let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
+        guard let fileOffset = cache.fileOffset(of: numericCast(address)) else {
             return nil
         }
         return try? .init(
             url: cache.url,
             imagePath: "", // FIXME: path
-            headerStartOffsetInCache: numericCast(offset)
+            headerStartOffsetInCache: numericCast(fileOffset)
         )
     }
 
