@@ -10,6 +10,8 @@ import Foundation
 
 public protocol ObjCHeaderOptimizationRWProtocol {
     associatedtype HeaderInfo: ObjCHeaderInfoRWProtocol
+    /// offset from start address of main cache
+    var offset: Int { get }
     /// number of header infos
     var count: Int { get }
     /// layout size of header info
@@ -17,7 +19,7 @@ public protocol ObjCHeaderOptimizationRWProtocol {
     /// Sequence of header infos
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: header infos
-    func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo>
+    func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo>?
     /// Sequence of header infos
     /// - Parameter cache: DyldCacheLoaded to which `self` belongs
     /// - Returns: header infos
@@ -36,17 +38,23 @@ public struct ObjCHeaderOptimizationRW64: LayoutWrapper, ObjCHeaderOptimizationR
 
     public func headerInfos(
         in cache: DyldCache
-    ) -> AnyRandomAccessCollection<HeaderInfo> {
+    ) -> AnyRandomAccessCollection<HeaderInfo>? {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
             "entsize is smaller than HeaderInfo"
         )
-        let offset = offset + layoutSize
+        let offset: UInt64 = numericCast(offset + layoutSize)
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + offset
+        ) else {
+            return nil
+        }
         return AnyRandomAccessCollection(
             cache.fileHandle.readDataSequence(
-                offset: numericCast(offset),
-                entrySize: numericCast(layout.entsize),
-                numberOfElements: numericCast(layout.count)
+                offset: resolvedOffset,
+                entrySize: entrySize,
+                numberOfElements: count
             )
         )
     }
@@ -83,17 +91,23 @@ public struct ObjCHeaderOptimizationRW32: LayoutWrapper, ObjCHeaderOptimizationR
 
     public func headerInfos(
         in cache: DyldCache
-    ) -> AnyRandomAccessCollection<HeaderInfo> {
+    ) -> AnyRandomAccessCollection<HeaderInfo>? {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
             "entsize is smaller than HeaderInfo"
         )
-        let offset = offset + layoutSize
+        let offset: UInt64 = numericCast(offset + layoutSize)
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + offset
+        ) else {
+            return nil
+        }
         return AnyRandomAccessCollection(
             cache.fileHandle.readDataSequence(
-                offset: numericCast(offset),
-                entrySize: numericCast(layout.entsize),
-                numberOfElements: numericCast(layout.count)
+                offset: resolvedOffset,
+                entrySize: entrySize,
+                numberOfElements: count
             )
         )
     }

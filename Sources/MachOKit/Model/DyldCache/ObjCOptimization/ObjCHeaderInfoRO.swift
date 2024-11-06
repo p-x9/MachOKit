@@ -61,7 +61,11 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
 
     public func imageInfo(in cache: DyldCache) -> ObjCImageInfo? {
         let offset = offset + layoutOffset(of: \.info_offset) + numericCast(layout.info_offset)
-        return cache.fileHandle.read(offset: numericCast(offset))
+        let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
+        guard let fileOffset = cache.fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        return cache.fileHandle.read(offset: fileOffset)
     }
 
     public func imageInfo(in cache: DyldCacheLoaded) -> ObjCImageInfo? {
@@ -90,17 +94,13 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
     private func _machO(
         in cache: DyldCache
     ) -> MachOFile? {
-        let offset = offset + machOHeaderOffset
-        // Check if the cache file contains offset
-        // objc header info is exsisted only in main dyld cache
-        let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
-        guard let fileOffset = cache.fileOffset(of: numericCast(address)) else {
+        guard let offset = resolvedMachOHeaderOffset(in: cache) else {
             return nil
         }
         return try? .init(
             url: cache.url,
             imagePath: "", // FIXME: path
-            headerStartOffsetInCache: numericCast(fileOffset)
+            headerStartOffsetInCache: numericCast(offset)
         )
     }
 
@@ -132,7 +132,11 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
 
     public func imageInfo(in cache: DyldCache) -> ObjCImageInfo? {
         let offset = offset + layoutOffset(of: \.info_offset) + numericCast(layout.info_offset)
-        return cache.fileHandle.read(offset: numericCast(offset))
+        let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
+        guard let fileOffset = cache.fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        return cache.fileHandle.read(offset: fileOffset)
     }
 
     public func imageInfo(in cache: DyldCacheLoaded) -> ObjCImageInfo? {
@@ -161,17 +165,13 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
     private func _machO(
         in cache: DyldCache
     ) -> MachOFile? {
-        let offset = offset + machOHeaderOffset
-        // Check if the cache file contains offset
-        // objc header info is exsisted only in main dyld cache
-        let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
-        guard let fileOffset = cache.fileOffset(of: numericCast(address)) else {
+        guard let offset = resolvedMachOHeaderOffset(in: cache) else {
             return nil
         }
         return try? .init(
             url: cache.url,
             imagePath: "", // FIXME: path
-            headerStartOffsetInCache: numericCast(fileOffset)
+            headerStartOffsetInCache: numericCast(offset)
         )
     }
 
@@ -185,5 +185,18 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
             ptr: ptr
                 .assumingMemoryBound(to: mach_header.self)
         )
+    }
+}
+
+extension ObjCHeaderInfoROProtocol {
+    internal func resolvedMachOHeaderOffset(in cache: DyldCache) -> UInt64? {
+        let offset = offset + machOHeaderOffset
+        // Check if the cache file contains offset
+        // objc header info is exsisted only in main dyld cache
+        let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
+        guard let fileOffset = cache.fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        return fileOffset
     }
 }

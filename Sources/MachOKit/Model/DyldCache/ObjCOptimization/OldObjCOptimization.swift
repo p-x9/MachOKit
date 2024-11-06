@@ -13,7 +13,7 @@ public struct OldObjCOptimization: LayoutWrapper {
     public typealias Layout = objc_opt_t
 
     public var layout: Layout
-    // offset from file starts
+    /// offset from start address of main cache
     public let offset: Int
 }
 
@@ -42,13 +42,14 @@ extension OldObjCOptimization {
         guard layout.headeropt_rw_offset > 0 else {
             return nil
         }
+        let offset: UInt64 = numericCast(offset) + numericCast(layout.headeropt_rw_offset)
         let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        guard let offset = cache.fileOffset(
-            of: sharedRegionStart + numericCast(offset) + numericCast(layout.headeropt_rw_offset)
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + offset
         ) else {
             return nil
         }
-        let layout: ObjCHeaderOptimizationRW64.Layout = cache.fileHandle.read(offset: offset)
+        let layout: ObjCHeaderOptimizationRW64.Layout = cache.fileHandle.read(offset: resolvedOffset)
         return .init(
             layout: layout,
             offset: numericCast(offset)
@@ -64,13 +65,14 @@ extension OldObjCOptimization {
         guard layout.headeropt_rw_offset > 0 else {
             return nil
         }
+        let offset: UInt64 = numericCast(offset) + numericCast(layout.headeropt_rw_offset)
         let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        guard let offset = cache.fileOffset(
-            of: sharedRegionStart + numericCast(offset) + numericCast(layout.headeropt_rw_offset)
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + offset
         ) else {
             return nil
         }
-        let layout: ObjCHeaderOptimizationRW32.Layout = cache.fileHandle.read(offset: offset)
+        let layout: ObjCHeaderOptimizationRW32.Layout = cache.fileHandle.read(offset: resolvedOffset)
         return .init(
             layout: layout,
             offset: numericCast(offset)
@@ -128,13 +130,14 @@ extension OldObjCOptimization {
         guard layout.headeropt_ro_offset > 0 else {
             return nil
         }
+        let offset: UInt64 = numericCast(offset) + numericCast(layout.headeropt_ro_offset)
         let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        guard let offset = cache.fileOffset(
-            of: sharedRegionStart + numericCast(offset) + numericCast(layout.headeropt_ro_offset)
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + offset
         ) else {
             return nil
         }
-        let layout: ObjCHeaderOptimizationRO64.Layout = cache.fileHandle.read(offset: offset)
+        let layout: ObjCHeaderOptimizationRO64.Layout = cache.fileHandle.read(offset: resolvedOffset)
         return .init(
             layout: layout,
             offset: numericCast(offset)
@@ -150,13 +153,14 @@ extension OldObjCOptimization {
         guard layout.headeropt_ro_offset > 0 else {
             return nil
         }
+        let offset: UInt64 = numericCast(offset) + numericCast(layout.headeropt_ro_offset)
         let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        guard let offset = cache.fileOffset(
-            of: sharedRegionStart + numericCast(offset) + numericCast(layout.headeropt_ro_offset)
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + offset
         ) else {
             return nil
         }
-        let layout: ObjCHeaderOptimizationRO32.Layout = cache.fileHandle.read(offset: offset)
+        let layout: ObjCHeaderOptimizationRO32.Layout = cache.fileHandle.read(offset: resolvedOffset)
         return .init(
             layout: layout,
             offset: numericCast(offset)
