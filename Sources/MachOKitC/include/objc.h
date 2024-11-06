@@ -78,6 +78,7 @@ struct objc_header_info_ro_t_32 {
 };
 
 // https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/OptimizerObjC.h#L772
+// https://github.com/apple-oss-distributions/objc4/blob/89543e2c0f67d38ca5211cea33f42c51500287d5/runtime/objc-private.h#L418
 struct objc_headeropt_ro_t_64 {
     uint32_t count;
     uint32_t entsize;
