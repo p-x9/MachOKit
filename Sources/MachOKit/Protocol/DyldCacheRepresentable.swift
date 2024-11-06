@@ -102,6 +102,12 @@ public protocol DyldCacheRepresentable {
     /// - Returns: prebuiltLoaderSet
     func prebuiltLoaderSet(for programOffset: ProgramOffset) -> PrebuiltLoaderSet?
 
+    /// Expected file size of this cache
+    ///
+    /// mapping information is used in the calculation.
+    /// Does not include subcache size.
+    var expectedCacheFileSize: Int? { get }
+
     /// Convert vmaddr to file offset
     /// - Parameter address: vmaddr
     /// - Returns: file offset
@@ -133,6 +139,15 @@ public protocol DyldCacheRepresentable {
     /// - Parameter offset: file offset
     /// - Returns: mapping and slide info
     func mappingAndSlideInfo(forFileOffset offset: UInt64) -> DyldCacheMappingAndSlideInfo?
+}
+
+extension DyldCacheRepresentable {
+    public var expectedCacheFileSize: Int? {
+        guard let map = mappingAndSlideInfos?.max(
+            by: { lhs, rhs in lhs.fileOffset < rhs.fileOffset }
+        ) else { return nil }
+        return numericCast(map.fileOffset + map.size + header.codeSignatureSize)
+    }
 }
 
 extension DyldCacheRepresentable {
