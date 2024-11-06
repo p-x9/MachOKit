@@ -141,6 +141,12 @@ public protocol MachORepresentable {
     /// Code sign infos
     var codeSign: CodeSign? { get }
 
+    /// Expected file size of this mach-o
+    ///
+    /// segments information is used in the calculation.
+    /// If this mach-o is read from a fat file or dyld cache, it will differ from the actual file size.
+    var expectedMachOFileSize: Int? { get }
+
     /// Find the symbol closest to the address at the specified offset.
     ///
     /// Behaves almost identically to the `dladdr` function
@@ -245,6 +251,15 @@ extension MachORepresentable {
             return []
         }
         return rebaseOperations.rebases(is64Bit: is64Bit)
+    }
+}
+
+extension MachORepresentable {
+    public var expectedMachOFileSize: Int? {
+        guard let segment = segments.max(
+            by: { lhs, rhs in lhs.fileOffset < rhs.fileOffset }
+        ) else { return nil }
+        return segment.fileOffset + segment.fileSize
     }
 }
 
