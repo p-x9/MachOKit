@@ -279,6 +279,11 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
                 print(" nil")
                 continue
             }
+
+            let _info = ro.headerInfo(in: cache, for: machO)!
+            XCTAssertEqual(info.mhdr_offset, _info.mhdr_offset)
+            XCTAssertEqual(info.info_offset, _info.info_offset)
+
             let path = machO.loadCommands
                 .info(of: LoadCommand.idDylib)?
                 .dylib(cmdsStart: machO.cmdsStartPtr)
