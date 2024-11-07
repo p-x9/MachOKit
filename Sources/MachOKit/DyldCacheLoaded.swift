@@ -52,6 +52,12 @@ public struct DyldCacheLoaded: DyldCacheRepresentable {
         _mainCacheHeader ?? header
     }
 
+    /// Pointer of main cache
+    public var mainCachePtr: UnsafeRawPointer {
+        let diff = header.sharedRegionStart - mainCacheHeader.sharedRegionStart
+        return ptr.advanced(by: -numericCast(diff))
+    }
+
     /// Initialized with the start pointer of dyld cache loaded on memory.
     /// - Parameter ptr: start pointer of dyld cache header
     ///
