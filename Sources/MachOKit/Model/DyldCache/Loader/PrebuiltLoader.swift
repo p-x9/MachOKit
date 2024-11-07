@@ -75,3 +75,16 @@ extension PrebuiltLoader {
         )
     }
 }
+
+extension PrebuiltLoader {
+    // [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/dyld/Loader.h#L317)
+    public var magic: String? {
+        withUnsafeBytes(of: layout.magic.bigEndian, {
+            let cString = $0.map({ CChar($0)} ) + [0]
+            return String(
+                cString: cString,
+                encoding: .utf8
+            )
+        })
+    }
+}
