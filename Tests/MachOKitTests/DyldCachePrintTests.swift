@@ -232,7 +232,7 @@ final class DyldCachePrintTests: XCTestCase {
     func testObjCHeaderOptimizationRW() throws {
         guard let objcOptimization = cache.objcOptimization else { return }
         let rw = objcOptimization.headerOptimizationRW64(in: cache)!
-        let rwHeaders = rw.headerInfos(in: cache)
+        let rwHeaders = rw.headerInfos(in: cache)!
         print("Count:", rw.count)
         print("EntrySize:", rw.entrySize)
         for info in rwHeaders {
@@ -243,7 +243,7 @@ final class DyldCachePrintTests: XCTestCase {
     func testObjCHeaderOptimizationRO() throws {
         guard let objcOptimization = cache.objcOptimization else { return }
         let ro = objcOptimization.headerOptimizationRO64(in: cache)!
-        let roHeaders = ro.headerInfos(in: cache)
+        let roHeaders = ro.headerInfos(in: cache)!
         print("Count:", ro.count)
         print("EntrySize:", ro.entrySize)
 
@@ -264,6 +264,11 @@ final class DyldCachePrintTests: XCTestCase {
                 print(" nil")
                 continue
             }
+
+            let _info = ro.headerInfo(in: cache, for: machO)!
+            XCTAssertEqual(info.mhdr_offset, _info.mhdr_offset)
+            XCTAssertEqual(info.info_offset, _info.info_offset)
+
             let path = machO.loadCommands
                 .info(of: LoadCommand.idDylib)?
                 .dylib(in: machO)

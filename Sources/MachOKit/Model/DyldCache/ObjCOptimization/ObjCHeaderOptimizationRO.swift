@@ -10,6 +10,7 @@ import Foundation
 
 public protocol ObjCHeaderOptimizationROProtocol {
     associatedtype HeaderInfo: ObjCHeaderInfoROProtocol
+    /// offset from start address of main cache
     var offset: Int { get }
     /// number of header infos
     var count: Int { get }
@@ -18,7 +19,7 @@ public protocol ObjCHeaderOptimizationROProtocol {
     /// Sequence of header infos
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: header infos
-    func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo>
+    func headerInfos(in cache: DyldCache) -> AnyRandomAccessCollection<HeaderInfo>?
     /// Sequence of header infos
     /// - Parameter cache: DyldCacheLoaded to which `self` belongs
     /// - Returns: header infos
@@ -37,18 +38,24 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
 
     public func headerInfos(
         in cache: DyldCache
-    ) -> AnyRandomAccessCollection<HeaderInfo> {
+    ) -> AnyRandomAccessCollection<HeaderInfo>? {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
             "entsize is smaller than HeaderInfo"
         )
         let offset = offset + layoutSize
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + numericCast(offset)
+        ) else {
+            return nil
+        }
         // Warning: HeaderInfo.layoutSize and entrySize are different.
         return AnyRandomAccessCollection(
             cache.fileHandle.readDataSequence<HeaderInfo.Layout>(
-                offset: numericCast(offset),
-                entrySize: numericCast(layout.entsize),
-                numberOfElements: numericCast(layout.count),
+                offset: resolvedOffset,
+                entrySize: entrySize,
+                numberOfElements: count,
                 swapHandler: { _ in }
             ).enumerated().map({
                 HeaderInfo(
@@ -100,17 +107,23 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
 
     public func headerInfos(
         in cache: DyldCache
-    ) -> AnyRandomAccessCollection<HeaderInfo> {
+    ) -> AnyRandomAccessCollection<HeaderInfo>? {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
             "entsize is smaller than HeaderInfo"
         )
         let offset = offset + layoutSize
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + numericCast(offset)
+        ) else {
+            return nil
+        }
         return AnyRandomAccessCollection(
             cache.fileHandle.readDataSequence<HeaderInfo.Layout>(
-                offset: numericCast(offset),
-                entrySize: numericCast(layout.entsize),
-                numberOfElements: numericCast(layout.count),
+                offset: resolvedOffset,
+                entrySize: entrySize,
+                numberOfElements: count,
                 swapHandler: { _ in }
             ).enumerated().map({
                 HeaderInfo(
@@ -150,7 +163,7 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
     }
 }
 
-extension ObjCHeaderOptimizationROProtocol where Self: LayoutWrapper {
+extension ObjCHeaderOptimizationROProtocol {
     /// Optimisation info of the specified machO
     /// - Parameters:
     ///   - cache: DyldCache to which `self` belongs
@@ -162,10 +175,12 @@ extension ObjCHeaderOptimizationROProtocol where Self: LayoutWrapper {
         guard machO.headerStartOffsetInCache > 0 else {
             return nil
         }
-        return headerInfos(in: cache)
+        return headerInfos(in: cache)?
             .first(
                 where: {
-                    let offset = $0.offset + $0.machOHeaderOffset
+                    guard let offset = $0.resolvedMachOHeaderOffset(in: cache) else {
+                        return false
+                    }
                     return machO.headerStartOffsetInCache == offset
                 }
             )

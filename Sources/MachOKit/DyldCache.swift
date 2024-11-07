@@ -368,7 +368,13 @@ extension DyldCache {
 
         let offset = __objc_opt_ro.offset + libobjc.headerStartOffset
         let layout: OldObjCOptimization.Layout = fileHandle.read(offset: numericCast(offset))
-        return .init(layout: layout, offset: offset)
+        guard let address = address(of: numericCast(offset)) else {
+            return nil
+        }
+
+        return .init(
+            layout: layout,
+            offset: numericCast(address - mainCacheHeader.sharedRegionStart))
     }
 
     public var swiftOptimization: SwiftOptimization? {
