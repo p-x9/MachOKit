@@ -10,7 +10,7 @@ import Foundation
 
 public protocol ObjCHeaderInfoROProtocol {
     associatedtype HeaderOptimizationRO: ObjCHeaderOptimizationROProtocol, LayoutWrapper
-    /// offset from dyld cache starts
+    /// offset from start address of main cache
     var offset: Int { get }
     /// index of this header info
     var index: Int { get }
