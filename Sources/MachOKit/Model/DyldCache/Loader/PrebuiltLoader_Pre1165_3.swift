@@ -32,6 +32,14 @@ extension PrebuiltLoader_Pre1165_3 {
         return cache.fileHandle.readString(offset: offset)
     }
 
+    public func altPath(in cache: DyldCache) -> String? {
+        guard layout.altPathOffset != 0 else { return nil }
+        guard let offset = cache.fileOffset(
+            of: numericCast(address) + numericCast(layout.altPathOffset)
+        ) else { return nil }
+        return cache.fileHandle.readString(offset: offset)
+    }
+
     public func dependentLoaderRefs(in cache: DyldCache) -> DataSequence<LoaderRef>? {
         guard layout.dependentLoaderRefsArrayOffset != 0,
               let offset = cache.fileOffset(
@@ -55,6 +63,19 @@ extension PrebuiltLoader_Pre1165_3 {
         return String(
             cString: baseAddress
                 .advanced(by: numericCast(layout.pathOffset))
+                .assumingMemoryBound(to: CChar.self)
+        )
+    }
+
+    public func altPath(in cache: DyldCacheLoaded) -> String? {
+        // swiftlint:disable:previous unused_parameter
+        guard layout.altPathOffset != 0 else { return nil }
+        guard let baseAddress = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        return String(
+            cString: baseAddress
+                .advanced(by: numericCast(layout.altPathOffset))
                 .assumingMemoryBound(to: CChar.self)
         )
     }

@@ -25,6 +25,10 @@ public protocol PrebuiltLoaderProtocol {
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: path name
     func path(in cache: DyldCache) -> String?
+    /// alternative path for target mach-o image if install_name does not match real path
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: path name
+    func altPath(in cache: DyldCache) -> String?
     /// loader reference list of target 's dependencies
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: sequence of loader reference
@@ -34,6 +38,10 @@ public protocol PrebuiltLoaderProtocol {
     /// - Parameter cache: DyldCacheLoaded to which `self` belongs
     /// - Returns: path name
     func path(in cache: DyldCacheLoaded) -> String?
+    /// alternative path for target mach-o image if install_name does not match real path
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: path name
+    func altPath(in cache: DyldCacheLoaded) -> String?
     /// loader reference list of target 's dependencies
     /// - Parameter cache: DyldCacheLoaded to which `self` belongs
     /// - Returns: sequence of loader reference
