@@ -17,6 +17,8 @@ public struct PrebuiltLoaderSet: LayoutWrapper {
 
 extension PrebuiltLoaderSet {
     public func loaders(in cache: DyldCache) -> [PrebuiltLoader]? {
+        guard isLatestVersion else { return nil }
+
         guard let offset = cache.fileOffset(of: numericCast(address)) else {
             return nil
         }
@@ -34,8 +36,8 @@ extension PrebuiltLoaderSet {
                 offset: numericCast(offset),
                 size: PrebuiltLoader.layoutSize
             ).withUnsafeBytes {
-                let loader = $0.load(as: prebuilt_loader.self)
-                return PrebuiltLoader(
+                let loader = $0.load(as: PrebuiltLoader.Layout.self)
+                return .init(
                     layout: loader,
                     address: address + numericCast(_offset)
                 )
@@ -45,6 +47,8 @@ extension PrebuiltLoaderSet {
 
     public func loaders(in cache: DyldCacheLoaded) -> [PrebuiltLoader]? {
         // swiftlint:disable:previous unused_parameter
+        guard isLatestVersion else { return nil }
+
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
         }
@@ -55,10 +59,65 @@ extension PrebuiltLoaderSet {
             numberOfElements: numericCast(layout.loadersArrayCount)
         )
         return offsets.compactMap { _offset -> PrebuiltLoader? in
-            let layout: prebuilt_loader = basePointer
+            let layout: PrebuiltLoader.Layout = basePointer
                 .advanced(by: numericCast(_offset))
-                .assumingMemoryBound(to: prebuilt_loader.self).pointee
-            return PrebuiltLoader(
+                .autoBoundPointee()
+            return .init(
+                layout: layout,
+                address: address + numericCast(_offset)
+            )
+        }
+    }
+}
+
+extension PrebuiltLoaderSet {
+    public func loaders_pre1165_3(in cache: DyldCache) -> [PrebuiltLoader_Pre1165_3]? {
+        guard let version, version.isPre1165_3 else { return nil }
+
+        guard let offset = cache.fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        let offsets: DataSequence<UInt32> = cache.fileHandle.readDataSequence(
+            offset: offset + numericCast(layout.loadersArrayOffset),
+            numberOfElements: numericCast(layout.loadersArrayCount)
+        )
+        return offsets.compactMap { _offset -> PrebuiltLoader_Pre1165_3? in
+            guard let offset = cache.fileOffset(
+                of: numericCast(address) + numericCast(_offset)
+            ) else {
+                return nil
+            }
+            return cache.fileHandle.readData(
+                offset: numericCast(offset),
+                size: PrebuiltLoader_Pre1165_3.layoutSize
+            ).withUnsafeBytes {
+                let loader = $0.load(as: PrebuiltLoader_Pre1165_3.Layout.self)
+                return .init(
+                    layout: loader,
+                    address: address + numericCast(_offset)
+                )
+            }
+        }
+    }
+
+    public func loaders_pre1165_3(in cache: DyldCacheLoaded) -> [PrebuiltLoader_Pre1165_3]? {
+        // swiftlint:disable:previous unused_parameter
+        guard let version, version.isPre1165_3 else { return nil }
+
+        guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        let offsets: MemorySequence<UInt32> = .init(
+            basePointer: basePointer
+                .advanced(by: numericCast(layout.loadersArrayOffset))
+                .assumingMemoryBound(to: UInt32.self),
+            numberOfElements: numericCast(layout.loadersArrayCount)
+        )
+        return offsets.compactMap { _offset -> PrebuiltLoader_Pre1165_3? in
+            let layout: PrebuiltLoader_Pre1165_3.Layout = basePointer
+                .advanced(by: numericCast(_offset))
+                .autoBoundPointee()
+            return .init(
                 layout: layout,
                 address: address + numericCast(_offset)
             )
