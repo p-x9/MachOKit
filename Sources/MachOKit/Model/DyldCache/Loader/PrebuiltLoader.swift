@@ -18,11 +18,11 @@ public struct PrebuiltLoader: LayoutWrapper {
 extension PrebuiltLoader {
     // always true
     public var isPrebuilt: Bool {
-        layout.isPrebuilt != 0
+        layout.loader.isPrebuilt != 0
     }
 
     public var ref: LoaderRef {
-        .init(layout: layout.ref)
+        .init(layout: layout.loader.ref)
     }
 }
 
@@ -79,7 +79,7 @@ extension PrebuiltLoader {
 extension PrebuiltLoader {
     // [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/dyld/Loader.h#L317)
     public var magic: String? {
-        withUnsafeBytes(of: layout.magic.bigEndian, {
+        withUnsafeBytes(of: layout.loader.magic.bigEndian, {
             let cString = $0.map({ CChar($0)} ) + [0]
             return String(
                 cString: cString,
