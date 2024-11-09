@@ -24,6 +24,10 @@ extension PrebuiltLoader {
     public var ref: LoaderRef {
         .init(layout: layout.loader.ref)
     }
+
+    public var uuid: UUID {
+        .init(uuid: layout.loader.uuid)
+    }
 }
 
 extension PrebuiltLoader {
