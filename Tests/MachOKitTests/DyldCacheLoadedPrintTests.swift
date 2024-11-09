@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2024/10/10
-//  
+//
 //
 
 import XCTest
@@ -156,7 +156,7 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
     }
 
     func testDylibIndices() {
-        let cache = cache1!
+        let cache = cache!
         let indices = cache.dylibIndices
             .sorted(by: { lhs, rhs in
                 lhs.index < rhs.index
@@ -167,7 +167,7 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
     }
 
     func testProgramOffsets() {
-        let cache = cache1!
+        let cache = cache!
         let programOffsets = cache.programOffsets
         for programOffset in programOffsets {
             print(programOffset.offset, programOffset.name)
@@ -175,7 +175,7 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
     }
 
     func testProgramPreBuildLoaderSet() {
-        let cache = self.cache1!
+        let cache = self.cache!
         let programOffsets = cache.programOffsets
         for programOffset in programOffsets {
             guard !programOffset.name.starts(with: "/cdhash") else {
@@ -187,6 +187,9 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
             print("Name:", programOffset.name)
             print("Loaders:")
             for loader in loaderSet.loaders(in: cache)! {
+                print("  \(loader.path(in: cache) ?? "unknown")")
+            }
+            for loader in loaderSet.loaders_pre1165_3(in: cache) ?? [] {
                 print("  \(loader.path(in: cache) ?? "unknown")")
             }
             let dyldCacheUUID = loaderSet.dyldCacheUUID(in: cache)
@@ -204,6 +207,7 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         guard let loaderSet = cache.dylibsPrebuiltLoaderSet else {
             return
         }
+        XCTAssertNotNil(loaderSet.version)
         print("Loaders:")
         for loader in loaderSet.loaders(in: cache) ?? [] {
             print("  \(loader.path(in: cache) ?? "unknown")")
