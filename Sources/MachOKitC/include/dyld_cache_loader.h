@@ -55,7 +55,7 @@ struct section_locations {
     uint64_t sizes[21];
 };
 
-struct loader_pre1160_6 {
+struct loader_pre1165_3 {
     const uint32_t      magic;                    // kMagic
     const uint16_t      isPrebuilt         :  1,  // PrebuiltLoader vs JustInTimeLoader
                         dylibInDyldCache   :  1,
@@ -94,8 +94,8 @@ struct loader {
     uint32_t            unused;
 };
 
-struct prebuilt_loader_pre1160_6 {
-    struct loader_pre1160_6   loader;
+struct prebuilt_loader_pre1165_3 {
+    struct loader_pre1165_3   loader;
 
     uint16_t            pathOffset;
     uint16_t            dependentLoaderRefsArrayOffset; // offset to array of LoaderRef
