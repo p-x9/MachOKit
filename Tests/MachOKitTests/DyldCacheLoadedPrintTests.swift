@@ -200,12 +200,15 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
     }
 
     func testDylibsPreBuildLoaderSet() {
-        let cache = self.cache1!
+        let cache = self.cache!
         guard let loaderSet = cache.dylibsPrebuiltLoaderSet else {
             return
         }
         print("Loaders:")
-        for loader in loaderSet.loaders(in: cache)! {
+        for loader in loaderSet.loaders(in: cache) ?? [] {
+            print("  \(loader.path(in: cache) ?? "unknown")")
+        }
+        for loader in loaderSet.loaders_pre1165_3(in: cache) ?? [] {
             print("  \(loader.path(in: cache) ?? "unknown")")
         }
     }

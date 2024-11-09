@@ -212,7 +212,10 @@ final class DyldCachePrintTests: XCTestCase {
             return
         }
         print("Loaders:")
-        for loader in loaderSet.loaders(in: cache)! {
+        for loader in loaderSet.loaders(in: cache) ?? [] {
+            print("  \(loader.path(in: cache) ?? "unknown")")
+        }
+        for loader in loaderSet.loaders_pre1165_3(in: cache) ?? [] {
             print("  \(loader.path(in: cache) ?? "unknown")")
         }
     }
