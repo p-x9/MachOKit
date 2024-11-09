@@ -154,3 +154,46 @@ extension PrebuiltLoaderSet {
         })
     }
 }
+
+extension PrebuiltLoaderSet {
+    public enum KnownVersion: UInt32, CaseIterable {
+        /// from dyld-940
+        case v0x041c09d6 = 0x041c09d6
+        /// from dyld-955
+        case v0xcb8ba960 = 0xcb8ba960
+        /// from dyld-1042.1
+        case v0x4d2b8647 = 0x4d2b8647
+        /// from dyld-1122.1
+        case v0xd647423f = 0xd647423f
+        /// from dyld-1160.6
+        case v0x9a661060 = 0x9a661060
+        /// from dyld-1231.3
+        case v0x173a676e = 0x173a676e
+
+        public var isLatest: Bool {
+            self == .v0x173a676e
+        }
+
+        public var isPre1165_3: Bool {
+            [
+                .v0x041c09d6,
+                .v0xcb8ba960,
+                .v0x4d2b8647,
+                .v0xd647423f,
+                .v0x9a661060
+            ].contains(self)
+        }
+    }
+
+    public var version: KnownVersion? {
+        KnownVersion(rawValue: layout.versionHash)
+    }
+
+    public var isKnownVersion: Bool {
+        version != nil
+    }
+
+    public var isLatestVersion: Bool {
+        version?.isLatest ?? false
+    }
+}
