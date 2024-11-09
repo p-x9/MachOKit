@@ -196,6 +196,9 @@ final class DyldCachePrintTests: XCTestCase {
             for loader in loaderSet.loaders(in: cache)! {
                 print("  \(loader.path(in: cache) ?? "unknown")")
             }
+            for loader in loaderSet.loaders_pre1165_3(in: cache) ?? [] {
+                print("  \(loader.path(in: cache) ?? "unknown")")
+            }
             let dyldCacheUUID = loaderSet.dyldCacheUUID(in: cache)
             print("dyldCacheUUID:", dyldCacheUUID?.uuidString ?? "None")
             let mustBeMissingPaths = loaderSet.mustBeMissingPaths(in: cache) ?? []
@@ -211,8 +214,12 @@ final class DyldCachePrintTests: XCTestCase {
         guard let loaderSet = cache.dylibsPrebuiltLoaderSet else {
             return
         }
+        XCTAssertNotNil(loaderSet.version)
         print("Loaders:")
-        for loader in loaderSet.loaders(in: cache)! {
+        for loader in loaderSet.loaders(in: cache) ?? [] {
+            print("  \(loader.path(in: cache) ?? "unknown")")
+        }
+        for loader in loaderSet.loaders_pre1165_3(in: cache) ?? [] {
             print("  \(loader.path(in: cache) ?? "unknown")")
         }
     }

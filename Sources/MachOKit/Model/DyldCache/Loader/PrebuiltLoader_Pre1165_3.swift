@@ -1,21 +1,19 @@
 //
-//  PrebuiltLoader.swift
-//  
+//  PrebuiltLoader_Pre1165_3.swift
+//  MachOKit
 //
-//  Created by p-x9 on 2024/07/09
+//  Created by p-x9 on 2024/11/09
 //  
 //
 
-import Foundation
-
-public struct PrebuiltLoader: LayoutWrapper, PrebuiltLoaderProtocol {
-    public typealias Layout = prebuilt_loader
+public struct PrebuiltLoader_Pre1165_3: LayoutWrapper, PrebuiltLoaderProtocol {
+    public typealias Layout = prebuilt_loader_pre1165_3
 
     public var layout: Layout
     public var address: Int
 }
 
-extension PrebuiltLoader {
+extension PrebuiltLoader_Pre1165_3 {
     // always true
     public var isPrebuilt: Bool {
         layout.loader.isPrebuilt != 0
@@ -26,7 +24,7 @@ extension PrebuiltLoader {
     }
 }
 
-extension PrebuiltLoader {
+extension PrebuiltLoader_Pre1165_3 {
     public func path(in cache: DyldCache) -> String? {
         guard let offset = cache.fileOffset(
             of: numericCast(address) + numericCast(layout.pathOffset)
@@ -48,7 +46,7 @@ extension PrebuiltLoader {
     }
 }
 
-extension PrebuiltLoader {
+extension PrebuiltLoader_Pre1165_3 {
     public func path(in cache: DyldCacheLoaded) -> String? {
         // swiftlint:disable:previous unused_parameter
         guard let baseAddress = UnsafeRawPointer(bitPattern: address) else {
@@ -76,7 +74,7 @@ extension PrebuiltLoader {
     }
 }
 
-extension PrebuiltLoader {
+extension PrebuiltLoader_Pre1165_3 {
     // [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/dyld/Loader.h#L317)
     public var magic: String? {
         withUnsafeBytes(of: layout.loader.magic.bigEndian, {
