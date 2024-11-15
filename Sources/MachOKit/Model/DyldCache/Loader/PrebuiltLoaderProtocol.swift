@@ -17,9 +17,15 @@ public protocol PrebuiltLoaderProtocol {
 
     /// magic of loader starts
     var magic: String? { get }
-    ///  PrebuiltLoader vs JustInTimeLoader
+    /// PrebuiltLoader vs JustInTimeLoader
     var isPrebuilt: Bool { get }
+    var neverUnload: Bool { get }
+    var isPremapped: Bool { get }
+
     var ref: LoaderRef { get }
+
+    // Information for all pre-calculated sections that we know about
+    var sectionLocations: SectionLocations { get }
 
     /// path for target mach-o image
     /// - Parameter cache: DyldCache to which `self` belongs

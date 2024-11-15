@@ -21,6 +21,14 @@ extension PrebuiltLoader {
         layout.loader.isPrebuilt != 0
     }
 
+    public var neverUnload: Bool {
+        layout.loader.neverUnload != 0
+    }
+
+    public var isPremapped: Bool {
+        layout.loader.isPremapped != 0
+    }
+
     public var ref: LoaderRef {
         .init(layout: layout.loader.ref)
     }
