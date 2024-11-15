@@ -22,6 +22,10 @@ extension PrebuiltLoader_Pre1165_3 {
     public var ref: LoaderRef {
         .init(layout: layout.loader.ref)
     }
+
+    public var sectionLocations: SectionLocations {
+        .init(layout: layout.sectionLocations)
+    }
 }
 
 extension PrebuiltLoader_Pre1165_3 {

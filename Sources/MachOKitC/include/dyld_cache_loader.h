@@ -175,7 +175,7 @@ struct prebuilt_loader {
     uint32_t            overrideBindTargetRefsOffset;
     uint32_t            overrideBindTargetRefsCount;
 
-    // struct section_locations    sectionLocations;
+     struct section_locations    sectionLocations;
 };
 
 #endif /* dyld_cache_loader_h */

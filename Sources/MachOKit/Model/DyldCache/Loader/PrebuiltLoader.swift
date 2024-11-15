@@ -28,6 +28,10 @@ extension PrebuiltLoader {
     public var uuid: UUID {
         .init(uuid: layout.loader.uuid)
     }
+
+    public var sectionLocations: SectionLocations {
+        .init(layout: layout.sectionLocations)
+    }
 }
 
 extension PrebuiltLoader {
