@@ -39,6 +39,10 @@ public protocol PrebuiltLoaderProtocol {
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: sequence of loader reference
     func dependentLoaderRefs(in cache: DyldCache) -> DataSequence<LoaderRef>?
+    /// Stores information about the layout of the objc sections in a binary
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: binary info for objc
+    func objcBinaryInfo(in cache: DyldCache) -> ObjCBinaryInfo?
 
     /// path for target mach-o image
     /// - Parameter cache: DyldCacheLoaded to which `self` belongs
@@ -52,4 +56,8 @@ public protocol PrebuiltLoaderProtocol {
     /// - Parameter cache: DyldCacheLoaded to which `self` belongs
     /// - Returns: sequence of loader reference
     func dependentLoaderRefs(in cache: DyldCacheLoaded) -> MemorySequence<LoaderRef>?
+    /// Stores information about the layout of the objc sections in a binary
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: binary info for objc
+    func objcBinaryInfo(in cache: DyldCacheLoaded) -> ObjCBinaryInfo?
 }

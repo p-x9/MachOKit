@@ -70,6 +70,14 @@ extension PrebuiltLoader {
             numberOfElements: numericCast(layout.depCount)
         )
     }
+
+    public func objcBinaryInfo(in cache: DyldCache) -> ObjCBinaryInfo? {
+        guard layout.objcBinaryInfoOffset != 0 else { return nil }
+        guard let offset = cache.fileOffset(
+            of: numericCast(address) + numericCast(layout.objcBinaryInfoOffset)
+        ) else { return nil }
+        return cache.fileHandle.read(offset: offset)
+    }
 }
 
 extension PrebuiltLoader {
@@ -110,6 +118,18 @@ extension PrebuiltLoader {
                 .assumingMemoryBound(to: LoaderRef.self),
             numberOfElements: numericCast(layout.depCount)
         )
+    }
+
+    public func objcBinaryInfo(in cache: DyldCacheLoaded) -> ObjCBinaryInfo? {
+        // swiftlint:disable:previous unused_parameter
+        guard layout.objcBinaryInfoOffset != 0,
+              let baseAddress = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        return baseAddress
+            .advanced(by: numericCast(layout.objcBinaryInfoOffset))
+            .assumingMemoryBound(to: ObjCBinaryInfo.self)
+            .pointee
     }
 }
 
