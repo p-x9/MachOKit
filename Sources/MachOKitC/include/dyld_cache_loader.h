@@ -9,6 +9,7 @@
 #ifndef dyld_cache_loader_h
 #define dyld_cache_loader_h
 
+#include <stdbool.h>
 // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/dyld/PrebuiltLoader.h#L254
 struct prebuilt_loader_set {
     uint32_t    magic;
@@ -175,7 +176,55 @@ struct prebuilt_loader {
     uint32_t            overrideBindTargetRefsOffset;
     uint32_t            overrideBindTargetRefsCount;
 
-    // struct section_locations    sectionLocations;
+     struct section_locations    sectionLocations;
+};
+
+// https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/dyld/PrebuiltLoader.h#L344
+// Stores information about the layout of the objc sections in a binary, as well as other properties relating to
+// the objc information in there.
+struct objc_binary_info {
+    // Offset to the __objc_imageinfo section
+    uint64_t imageInfoRuntimeOffset;
+
+    // Offsets to sections containing objc pointers
+    uint64_t selRefsRuntimeOffset;
+    uint64_t classListRuntimeOffset;
+    uint64_t categoryListRuntimeOffset;
+    uint64_t protocolListRuntimeOffset;
+
+    // Counts of the above sections.
+    uint32_t selRefsCount;
+    uint32_t classListCount;
+    uint32_t categoryCount;
+    uint32_t protocolListCount;
+
+    // Do we have stable Swift fixups to apply to at least one class?
+    bool     hasClassStableSwiftFixups;
+
+    // Do we have any pointer-based method lists to set as uniqued?
+    bool     hasClassMethodListsToSetUniqued;
+    bool     hasCategoryMethodListsToSetUniqued;
+    bool     hasProtocolMethodListsToSetUniqued;
+
+    // Do we have any method lists in which to set selector references.
+    // Note we only support visiting selector refernces in pointer based method lists
+    // Relative method lists should have been verified to always point to __objc_selrefs
+    bool     hasClassMethodListsToUnique;
+    bool     hasCategoryMethodListsToUnique;
+    bool     hasProtocolMethodListsToUnique;
+
+    // Whwn serialized to the PrebuildLoader, these fields will encode other information about
+    // the binary.
+
+    // Offset to an array of uint8_t's.  One for each protocol.
+    // Note this can be 0 (ie, have no fixups), even if we have protocols.  That would be the case
+    // if this binary contains no canonical protocol definitions, ie, all canonical defs are in other binaries
+    // or the shared cache.
+    uint32_t protocolFixupsOffset;
+    // Offset to an array of BindTargetRef's.  One for each selector reference to fix up
+    // Note we only fix up selector refs in the __objc_selrefs section, and in pointer-based method lists
+    uint32_t selectorReferencesFixupsOffset;
+    uint32_t selectorReferencesFixupsCount;
 };
 
 #endif /* dyld_cache_loader_h */

@@ -19,8 +19,20 @@ extension PrebuiltLoader_Pre1165_3 {
         layout.loader.isPrebuilt != 0
     }
 
+    public var neverUnload: Bool {
+        layout.loader.neverUnload != 0
+    }
+
+    public var isPremapped: Bool {
+        layout.loader.isPremapped != 0
+    }
+
     public var ref: LoaderRef {
         .init(layout: layout.loader.ref)
+    }
+
+    public var sectionLocations: SectionLocations {
+        .init(layout: layout.sectionLocations)
     }
 }
 
@@ -28,6 +40,14 @@ extension PrebuiltLoader_Pre1165_3 {
     public func path(in cache: DyldCache) -> String? {
         guard let offset = cache.fileOffset(
             of: numericCast(address) + numericCast(layout.pathOffset)
+        ) else { return nil }
+        return cache.fileHandle.readString(offset: offset)
+    }
+
+    public func altPath(in cache: DyldCache) -> String? {
+        guard layout.altPathOffset != 0 else { return nil }
+        guard let offset = cache.fileOffset(
+            of: numericCast(address) + numericCast(layout.altPathOffset)
         ) else { return nil }
         return cache.fileHandle.readString(offset: offset)
     }
@@ -44,6 +64,14 @@ extension PrebuiltLoader_Pre1165_3 {
             numberOfElements: numericCast(layout.depCount)
         )
     }
+
+    public func objcBinaryInfo(in cache: DyldCache) -> ObjCBinaryInfo? {
+        guard layout.objcBinaryInfoOffset != 0 else { return nil }
+        guard let offset = cache.fileOffset(
+            of: numericCast(address) + numericCast(layout.objcBinaryInfoOffset)
+        ) else { return nil }
+        return cache.fileHandle.read(offset: offset)
+    }
 }
 
 extension PrebuiltLoader_Pre1165_3 {
@@ -55,6 +83,19 @@ extension PrebuiltLoader_Pre1165_3 {
         return String(
             cString: baseAddress
                 .advanced(by: numericCast(layout.pathOffset))
+                .assumingMemoryBound(to: CChar.self)
+        )
+    }
+
+    public func altPath(in cache: DyldCacheLoaded) -> String? {
+        // swiftlint:disable:previous unused_parameter
+        guard layout.altPathOffset != 0 else { return nil }
+        guard let baseAddress = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        return String(
+            cString: baseAddress
+                .advanced(by: numericCast(layout.altPathOffset))
                 .assumingMemoryBound(to: CChar.self)
         )
     }
@@ -71,6 +112,18 @@ extension PrebuiltLoader_Pre1165_3 {
                 .assumingMemoryBound(to: LoaderRef.self),
             numberOfElements: numericCast(layout.depCount)
         )
+    }
+
+    public func objcBinaryInfo(in cache: DyldCacheLoaded) -> ObjCBinaryInfo? {
+        // swiftlint:disable:previous unused_parameter
+        guard layout.objcBinaryInfoOffset != 0,
+              let baseAddress = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        return baseAddress
+            .advanced(by: numericCast(layout.objcBinaryInfoOffset))
+            .assumingMemoryBound(to: ObjCBinaryInfo.self)
+            .pointee
     }
 }
 
