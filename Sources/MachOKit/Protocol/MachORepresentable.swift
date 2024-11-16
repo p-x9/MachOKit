@@ -176,14 +176,14 @@ public protocol MachORepresentable {
     /// - Returns: Matched symbols
     func symbols(named name: String, mangled: Bool) -> [Symbol]
 
-    /// Find the symbol matching the given name.
+    /// Find the symbol matching the given name
+    /// Search only for symbols defined within this mach-o
     /// - Parameters:
     ///   - name: Symbol name to find
     ///   - mangled: A boolean value that indicates whether the specified name is mangled with Swift
+    ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
-    @available(*, deprecated, renamed: "symbols(named:mangled:)", message: "Please use a new function that returns as an array")
-    @_disfavoredOverload
-    func symbol(named name: String, mangled: Bool) -> Symbol?
+    func symbol(named name: String, mangled: Bool, isGlobalOnly: Bool) -> Symbol?
 }
 
 extension MachORepresentable {
@@ -373,13 +373,24 @@ extension MachORepresentable where Symbol == MachOFile.Symbol {
         return []
     }
 
-    @available(*, deprecated, renamed: "symbols(named:mangled:)", message: "Please use a new function that returns as an array")
-    @_disfavoredOverload
     public func symbol(
         named name: String,
-        mangled: Bool = true
+        mangled: Bool = true,
+        isGlobalOnly: Bool = false
     ) -> Symbol? {
-        symbols(named: name, mangled: mangled).first
+        _symbol(
+            named: name,
+            isGlobalOnly: isGlobalOnly,
+            matchesName: { nameC, symbol in
+                if strcmp(nameC, symbol.name) == 0 {
+                    return true
+                } else if !mangled {
+                    let demangled = stdlib_demangleName(symbol.name)
+                    return strcmp(nameC, demangled) == 0
+                }
+                return false
+            }
+        )
     }
 }
 
@@ -396,12 +407,87 @@ extension MachORepresentable where Symbol == MachOImage.Symbol {
         return []
     }
 
-    @available(*, deprecated, renamed: "symbols(named:mangled:)", message: "Please use a new function that returns as an array")
-    @_disfavoredOverload
     public func symbol(
         named name: String,
-        mangled: Bool = true
+        mangled: Bool = true,
+        isGlobalOnly: Bool = false
     ) -> Symbol? {
-        symbols(named: name, mangled: mangled).first
+        _symbol(
+            named: name,
+            isGlobalOnly: isGlobalOnly,
+            matchesName: { nameC, symbol in
+                if strcmp(nameC, symbol.name) == 0 {
+                    return true
+                } else if !mangled {
+                    let demangled = stdlib_demangleName(symbol.nameC)
+                    return strcmp(nameC, demangled) == 0
+                }
+                return false
+            }
+        )
+    }
+}
+
+extension MachORepresentable {
+    private func _symbol(
+        named name: String,
+        isGlobalOnly: Bool = false,
+        matchesName: ([CChar], Symbol) -> Bool
+    ) -> Symbol? {
+        guard let nameC = name.cString(using: .utf8) else {
+            return nil
+        }
+
+        let symbols = Array(self.symbols)
+        var bestSymbol: Symbol?
+
+        if let dysym = loadCommands.dysymtab {
+            // find closest match in globals
+            let globalStart: Int = numericCast(dysym.iextdefsym)
+            let globalCount: Int = numericCast(dysym.nextdefsym)
+            for i in globalStart ..< globalStart + globalCount {
+                let symbol = symbols[i]
+                let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
+                guard nlist.flags?.type == .sect,
+                      matchesName(nameC, symbol) else {
+                    continue
+                }
+                bestSymbol = symbol
+            }
+            if isGlobalOnly { return bestSymbol }
+
+            // find closest match in locals
+            let localStart: Int = numericCast(dysym.ilocalsym)
+            let localCount: Int = numericCast(dysym.nlocalsym)
+            for i in localStart ..< localStart + localCount {
+                let symbol = symbols[i]
+                let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
+                guard nlist.flags?.type == .sect,
+                      nlist.flags?.stab == nil,
+                      matchesName(nameC, symbol) else {
+                    continue
+                }
+                bestSymbol = symbol
+            }
+        } else {
+            // find closest match in locals
+            for symbol in symbols {
+                let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+                guard nlist.flags?.type == .sect,
+                      nlist.flags?.stab == nil,
+                      matchesName(nameC, symbol),
+                      !isGlobalOnly || nlist.flags?.contains(.ext) ?? false else {
+                    continue
+                }
+                bestSymbol = symbol
+            }
+        }
+
+        return bestSymbol
     }
 }
