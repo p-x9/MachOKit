@@ -43,37 +43,7 @@ extension MachOImage {
                 return (image, symbol)
             }
         }
-
-        var closestImage: MachOImage?
-        var leastDistance: Int?
-        for image in images {
-            let address = Int(bitPattern: address)
-            guard let distance = leastDistance else {
-                if let range = image.addressRange {
-                    closestImage = image
-                    leastDistance = min(
-                        abs(range.lowerBound - address),
-                        abs(range.upperBound - address)
-                    )
-                }
-                continue
-            }
-
-            guard let range = image.addressRange else {
-                continue
-            }
-
-            let newDistance = min(
-                abs(range.lowerBound - address),
-                abs(range.upperBound - address)
-            )
-            if newDistance < distance {
-                leastDistance = newDistance
-                closestImage = image
-            }
-        }
-
-        guard let closestImage,
+        guard let closestImage = closestImage(at: address),
               let symbol = closestImage.closestSymbol(
                 at: address,
                 isGlobalOnly: isGlobalOnly
@@ -81,6 +51,39 @@ extension MachOImage {
             return nil
         }
         return (closestImage, symbol)
+    }
+
+    /// Obtains the symbols closest to the specified address.
+    ///
+    /// Finds the symbol closest to the specified address among all loaded machO images.
+    /// - Parameters:
+    ///   - address: Addresses to search
+    ///   - isGlobalOnly: A Boolean value that indicates whether to look for global symbols only (or to look for local symbols as well)
+    /// - Returns: The closest symbols and the machO image to which it belongs.
+    public static func closestSymbols(
+        at address: UnsafeRawPointer,
+        isGlobalOnly: Bool = false
+    ) -> (MachOImage, [Symbol])? {
+        for image in images where image.contains(address) {
+            let symbols = image.closestSymbols(
+                at: address,
+                isGlobalOnly: isGlobalOnly
+            )
+            if !symbols.isEmpty {
+                return (image, symbols)
+            }
+        }
+        guard let closestImage = closestImage(at: address) else {
+            return nil
+        }
+        let symbols = closestImage.closestSymbols(
+            at: address,
+            isGlobalOnly: isGlobalOnly
+        )
+        guard !symbols.isEmpty else {
+            return nil
+        }
+        return (closestImage, symbols)
     }
 
     /// Obtains the symbol that exist at the specified address.
@@ -146,6 +149,42 @@ extension MachOImage {
                     }
                 }
         )
+    }
+}
+
+fileprivate extension MachOImage {
+    static func closestImage(
+        at address: UnsafeRawPointer
+    ) -> MachOImage? {
+        var closestImage: MachOImage?
+        var leastDistance: Int?
+        for image in images {
+            let address = Int(bitPattern: address)
+            guard let distance = leastDistance else {
+                if let range = image.addressRange {
+                    closestImage = image
+                    leastDistance = min(
+                        abs(range.lowerBound - address),
+                        abs(range.upperBound - address)
+                    )
+                }
+                continue
+            }
+
+            guard let range = image.addressRange else {
+                continue
+            }
+
+            let newDistance = min(
+                abs(range.lowerBound - address),
+                abs(range.upperBound - address)
+            )
+            if newDistance < distance {
+                leastDistance = newDistance
+                closestImage = image
+            }
+        }
+        return closestImage
     }
 }
 

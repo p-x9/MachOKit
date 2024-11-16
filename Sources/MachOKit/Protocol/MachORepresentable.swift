@@ -162,12 +162,37 @@ public protocol MachORepresentable {
         isGlobalOnly: Bool
     ) -> Symbol?
 
-    /// Find symbols matching the specified offset.
+    /// Find the symbols closest to the address at the specified offset.
+    ///
+    /// Different from ``closestSymbol(at:inSection:isGlobalOnly:)`` multiple symbols with the same offset may be found.
+    ///
     /// - Parameters:
-    ///   -  offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - sectionNumber: Section number to be searched.
+    ///   - isGlobalOnly: If true, search only global symbols.
+    /// - Returns: Closest symbols.
+    func closestSymbols(
+        at offset: Int,
+        inSection sectionNumber: Int,
+        isGlobalOnly: Bool
+    ) -> [Symbol]
+
+    /// Find the symbol matching the specified offset.
+    /// - Parameters:
+    ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
     func symbol(for offset: Int, isGlobalOnly: Bool) -> Symbol?
+
+    /// Find the symbols matching the specified offset.
+    ///
+    /// Different from ``symbol(for:isGlobalOnly:)`` multiple symbols with the same offset may be found.
+    ///
+    /// - Parameters:
+    ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - isGlobalOnly: If true, search only global symbols.
+    /// - Returns: Matched symbols
+    func symbols(for offset: Int, isGlobalOnly: Bool) -> [Symbol]
 
     /// Find the symbol matching the given name.
     /// - Parameters:
@@ -345,6 +370,84 @@ extension MachORepresentable {
 
         return bestSymbol
     }
+
+    public func closestSymbols( // swiftlint:disable:this cyclomatic_complexity
+        at offset: Int,
+        inSection sectionNumber: Int = 0,
+        isGlobalOnly: Bool = false
+    ) -> [Symbol] {
+        let symbols = Array(self.symbols)
+        var bestOffset: Int?
+        var bestSymbols: [Symbol] = []
+
+        func updateBestSymbols(_ symbol: Symbol) {
+            if let _bestOffset = bestOffset {
+                if _bestOffset > symbol.offset {
+                    return
+                } else if _bestOffset == symbol.offset {
+                    bestSymbols.append(symbol)
+                } else {
+                    bestOffset = symbol.offset
+                    bestSymbols = [symbol]
+                }
+            } else {
+                bestOffset = symbol.offset
+                bestSymbols = [symbol]
+            }
+        }
+
+        if let dysym = loadCommands.dysymtab {
+            // find closest match in globals
+            let globalStart: Int = numericCast(dysym.iextdefsym)
+            let globalCount: Int = numericCast(dysym.nextdefsym)
+            for i in globalStart ..< globalStart + globalCount {
+                let symbol = symbols[i]
+                let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
+                guard nlist.flags?.type == .sect,
+                      symbol.offset <= offset,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber else {
+                    continue
+                }
+                updateBestSymbols(symbol)
+            }
+            if isGlobalOnly { return bestSymbols }
+
+            // find closest match in locals
+            let localStart: Int = numericCast(dysym.ilocalsym)
+            let localCount: Int = numericCast(dysym.nlocalsym)
+            for i in localStart ..< localStart + localCount {
+                let symbol = symbols[i]
+                let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
+                guard nlist.flags?.type == .sect,
+                      nlist.flags?.stab == nil,
+                      symbol.offset <= offset,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber else {
+                    continue
+                }
+                updateBestSymbols(symbol)
+            }
+        } else {
+            // find closest match in locals
+            for symbol in symbols {
+                let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+                guard nlist.flags?.type == .sect,
+                      nlist.flags?.stab == nil,
+                      symbol.offset <= offset,
+                      !isGlobalOnly || nlist.flags?.contains(.ext) ?? false,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber else {
+                    continue
+                }
+                updateBestSymbols(symbol)
+            }
+        }
+
+        return bestSymbols
+    }
 }
 
 extension MachORepresentable {
@@ -357,6 +460,17 @@ extension MachORepresentable {
             isGlobalOnly: isGlobalOnly
         )
         return best?.offset == offset ? best : nil
+    }
+
+    public func symbols(
+        for offset: Int,
+        isGlobalOnly: Bool = false
+    ) -> [Symbol] {
+        let best = closestSymbols(
+            at: offset,
+            isGlobalOnly: isGlobalOnly
+        )
+        return best.first?.offset == offset ? best : []
     }
 }
 
@@ -433,7 +547,7 @@ extension MachORepresentable {
         named name: String,
         isGlobalOnly: Bool = false,
         matchesName: ([CChar], Symbol) -> Bool
-    ) -> Symbol? {
+    ) -> Symbol? { // swiftlint:disable:this cyclomatic_complexity
         guard let nameC = name.cString(using: .utf8) else {
             return nil
         }
@@ -448,8 +562,6 @@ extension MachORepresentable {
             for i in globalStart ..< globalStart + globalCount {
                 let symbol = symbols[i]
                 let nlist = symbol.nlist
-                let symbolSectionNumber = symbol.nlist.sectionNumber
-
                 guard nlist.flags?.type == .sect,
                       matchesName(nameC, symbol) else {
                     continue
@@ -464,8 +576,6 @@ extension MachORepresentable {
             for i in localStart ..< localStart + localCount {
                 let symbol = symbols[i]
                 let nlist = symbol.nlist
-                let symbolSectionNumber = symbol.nlist.sectionNumber
-
                 guard nlist.flags?.type == .sect,
                       nlist.flags?.stab == nil,
                       matchesName(nameC, symbol) else {
@@ -477,7 +587,6 @@ extension MachORepresentable {
             // find closest match in locals
             for symbol in symbols {
                 let nlist = symbol.nlist
-                let symbolSectionNumber = symbol.nlist.sectionNumber
                 guard nlist.flags?.type == .sect,
                       nlist.flags?.stab == nil,
                       matchesName(nameC, symbol),

@@ -495,10 +495,31 @@ extension MachOImage {
             isGlobalOnly: isGlobalOnly
         )
     }
+    /// Find the symbols closest to the address at the specified offset.
+    ///
+    /// Different from ``closestSymbol(at:inSection:isGlobalOnly:)`` multiple symbols with the same offset may be found.
+    ///
+    /// - Parameters:
+    ///   - address: Address to find closest symbol.
+    ///   - sectionNumber: Section number to be searched.
+    ///   - isGlobalOnly: If true, search only global symbols.
+    /// - Returns: Closest symbols.
+    func closestSymbols(
+        at address: UnsafeRawPointer,
+        inSection sectionNumber: Int = 0,
+        isGlobalOnly: Bool = false
+    ) -> [Symbol] {
+        let offset = Int(bitPattern: address) - Int(bitPattern: ptr)
+        return closestSymbols(
+            at: offset,
+            inSection: sectionNumber,
+            isGlobalOnly: isGlobalOnly
+        )
+    }
 
     /// Find symbols matching the specified address.
     /// - Parameters:
-    ///   -  address: Address to find matching symbol.
+    ///   - address: Address to find matching symbol.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
     public func symbol(
@@ -507,6 +528,22 @@ extension MachOImage {
     ) -> Symbol? {
         let offset = Int(bitPattern: address) - Int(bitPattern: ptr)
         return symbol(for: offset, isGlobalOnly: isGlobalOnly)
+    }
+
+    /// Find the symbols matching the specified offset.
+    ///
+    /// Different from ``symbol(for:isGlobalOnly:)`` multiple symbols with the same offset may be found.
+    ///
+    /// - Parameters:
+    ///   - address: Address to find matching symbol.
+    ///   - isGlobalOnly: If true, search only global symbols.
+    /// - Returns: Matched symbols
+    func symbols(
+        for address: UnsafeRawPointer,
+        isGlobalOnly: Bool = false
+    ) -> [Symbol] {
+        let offset = Int(bitPattern: address) - Int(bitPattern: ptr)
+        return symbols(for: offset, isGlobalOnly: isGlobalOnly)
     }
 }
 
