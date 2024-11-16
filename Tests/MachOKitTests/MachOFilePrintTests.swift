@@ -518,7 +518,7 @@ extension MachOFilePrintTests {
             "_" + name == symbol.name
         )
 
-        guard let symbol2 = machO.symbol(named: demangledName, mangled: false) else {
+        guard let symbol2 = machO.symbols(named: demangledName, mangled: false).first else {
             XCTFail("not found symbol named \"\(demangledName)\"")
             return
         }
