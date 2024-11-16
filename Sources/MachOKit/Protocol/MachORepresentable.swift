@@ -373,6 +373,8 @@ extension MachORepresentable where Symbol == MachOFile.Symbol {
         return []
     }
 
+    @available(*, deprecated, renamed: "symbols(named:mangled:)", message: "Please use a new function that returns as an array")
+    @_disfavoredOverload
     public func symbol(
         named name: String,
         mangled: Bool = true
@@ -394,6 +396,8 @@ extension MachORepresentable where Symbol == MachOImage.Symbol {
         return []
     }
 
+    @available(*, deprecated, renamed: "symbols(named:mangled:)", message: "Please use a new function that returns as an array")
+    @_disfavoredOverload
     public func symbol(
         named name: String,
         mangled: Bool = true
