@@ -279,22 +279,32 @@ extension Sequence where Element == MachOFile.Symbol {
     func named(
         _ name: String,
         mangled: Bool = true
-    ) -> Element? {
+    ) -> [Element] {
         guard let nameC = name.cString(using: .utf8) else {
-            return nil
+            return []
         }
+        var results: [Element] = []
         for symbol in self {
             if strcmp(nameC, symbol.name) == 0 ||
                 symbol.name.withCString({ strcmp(nameC, $0 + 1) == 0 }) {
-                return symbol
+                results.append(symbol)
             } else if !mangled {
                 let demangled = stdlib_demangleName(symbol.name)
                 if strcmp(nameC, demangled) == 0 {
-                    return symbol
+                    results.append(symbol)
                 }
             }
         }
-        return nil
+        return results
+    }
+
+    @available(*, deprecated, renamed: "named(_:mangled:)", message: "Please use a new function that returns as an array")
+    @_disfavoredOverload
+    func named(
+        _ name: String,
+        mangled: Bool = true
+    ) -> Element? {
+        named(name, mangled: mangled).first
     }
 }
 
@@ -303,21 +313,31 @@ extension Sequence where Element == MachOImage.Symbol {
     func named(
         _ name: String,
         mangled: Bool = true
-    ) -> Element? {
+    ) -> [Element] {
         guard let nameC = name.cString(using: .utf8) else {
-            return nil
+            return []
         }
+        var results: [Element] = []
         for symbol in self {
             if strcmp(nameC, symbol.nameC) == 0 || strcmp(nameC, symbol.nameC + 1) == 0 {
-                return symbol
+                results.append(symbol)
             } else if !mangled {
                 let demangled = stdlib_demangleName(symbol.nameC)
                 if strcmp(nameC, demangled) == 0 {
-                    return symbol
+                    results.append(symbol)
                 }
             }
         }
-        return nil
+        return results
+    }
+
+    @available(*, deprecated, renamed: "named(_:mangled:)", message: "Please use a new function that returns as an array")
+    @_disfavoredOverload
+    func named(
+        _ name: String,
+        mangled: Bool = true
+    ) -> Element? {
+        named(name, mangled: mangled).first
     }
 }
 

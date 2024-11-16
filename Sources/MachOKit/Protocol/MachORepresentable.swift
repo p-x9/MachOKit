@@ -173,7 +173,16 @@ public protocol MachORepresentable {
     /// - Parameters:
     ///   - name: Symbol name to find
     ///   - mangled: A boolean value that indicates whether the specified name is mangled with Swift
+    /// - Returns: Matched symbols
+    func symbols(named name: String, mangled: Bool) -> [Symbol]
+
+    /// Find the symbol matching the given name.
+    /// - Parameters:
+    ///   - name: Symbol name to find
+    ///   - mangled: A boolean value that indicates whether the specified name is mangled with Swift
     /// - Returns: Matched symbol
+    @available(*, deprecated, renamed: "symbols(named:mangled:)", message: "Please use a new function that returns as an array")
+    @_disfavoredOverload
     func symbol(named name: String, mangled: Bool) -> Symbol?
 }
 
@@ -352,27 +361,43 @@ extension MachORepresentable {
 }
 
 extension MachORepresentable where Symbol == MachOFile.Symbol {
+    public func symbols(
+        named name: String,
+        mangled: Bool = true
+    ) -> [Symbol] {
+        if is64Bit, let symbols64 {
+            return symbols64.named(name, mangled: mangled)
+        } else if let symbols32 {
+            return symbols32.named(name, mangled: mangled)
+        }
+        return []
+    }
+
     public func symbol(
         named name: String,
         mangled: Bool = true
     ) -> Symbol? {
-        if is64Bit {
-            return symbols64?.named(name, mangled: mangled)
-        } else {
-            return symbols32?.named(name, mangled: mangled)
-        }
+        symbols(named: name, mangled: mangled).first
     }
 }
 
 extension MachORepresentable where Symbol == MachOImage.Symbol {
+    public func symbols(
+        named name: String,
+        mangled: Bool = true
+    ) -> [Symbol] {
+        if is64Bit, let symbols64 {
+            return symbols64.named(name, mangled: mangled)
+        } else if let symbols32 {
+            return symbols32.named(name, mangled: mangled)
+        }
+        return []
+    }
+
     public func symbol(
         named name: String,
         mangled: Bool = true
     ) -> Symbol? {
-        if is64Bit {
-            return symbols64?.named(name, mangled: mangled)
-        } else {
-            return symbols32?.named(name, mangled: mangled)
-        }
+        symbols(named: name, mangled: mangled).first
     }
 }

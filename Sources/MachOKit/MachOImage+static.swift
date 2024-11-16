@@ -113,15 +113,37 @@ extension MachOImage {
     public static func symbols(
         named name: String,
         mangled: Bool = true
-    ) -> AnySequence<(MachOImage, Symbol)> {
+    ) -> AnySequence<(MachOImage, [Symbol])> {
         AnySequence(
             images
                 .lazy
                 .compactMap {
-                    guard let symbol = $0.symbol(named: name, mangled: mangled) else {
+                    let symbols = $0.symbols(named: name, mangled: mangled)
+                    guard !symbols.isEmpty else {
                         return nil
                     }
-                    return ($0, symbol)
+                    return ($0, symbols)
+                }
+        )
+    }
+
+    /// Obtains symbols matching the specified name.
+    /// - Parameters:
+    ///   - name: symbol name to search
+    ///   - mangled: A boolean value that indicates whether the specified symbol name is mangled or not.
+    /// - Returns: Sequence of matched symbols and machO images.
+    @available(*, deprecated, renamed: "symbols(named:mangled:)", message: "Please use a new function that returns as an symbol array")
+    @_disfavoredOverload
+    public static func symbols(
+        named name: String,
+        mangled: Bool = true
+    ) -> AnySequence<(MachOImage, Symbol)> {
+        AnySequence(
+            symbols(named: name, mangled: mangled)
+                .flatMap { machO, symbols in
+                    symbols.map {
+                        (machO, $0)
+                    }
                 }
         )
     }

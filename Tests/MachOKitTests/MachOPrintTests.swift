@@ -450,7 +450,7 @@ extension MachOPrintTests {
         let name = "$s13MachOKitTests0a10OFilePrintC0C11testSymbolsyyKF0aB011LoadCommandOAE05DylibI0VcAGmcfu_AgIcfu0_"
         let demangledName = "MachOKitTests.MachOFilePrintTests.testLinkerOptionCommand() -> ()"
 
-        guard let symbol = machO.symbol(named: name) else {
+        guard let symbol = machO.symbols(named: name).first else {
             XCTFail("not found symbol named \"\(name)\"")
             return
         }
@@ -460,7 +460,7 @@ extension MachOPrintTests {
             "_" + name == symbol.name
         )
 
-        guard let symbol2 = machO.symbol(named: demangledName, mangled: false) else {
+        guard let symbol2 = machO.symbols(named: demangledName, mangled: false).first else {
             XCTFail("not found symbol named \"\(demangledName)\"")
             return
         }
@@ -589,9 +589,9 @@ extension MachOPrintTests {
     func testStaticSymbolSearchByName() {
         let name = "$ss17_assertionFailure__4file4line5flagss5NeverOs12StaticStringV_A2HSus6UInt32VtF"
         let symbols = MachOImage.symbols(named: name, mangled: true)
-        for (image, symbol) in symbols {
+        for (image, symbols) in symbols {
             if let path = image.path {
-                print(path, symbol.nlist.sectionNumber?.description ?? "NO_SECT")
+                print(path, symbols.first?.nlist.sectionNumber?.description ?? "NO_SECT")
             }
         }
     }
