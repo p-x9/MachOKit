@@ -134,19 +134,25 @@ extension MachOImage {
     /// - Parameters:
     ///   - name: symbol name to search
     ///   - mangled: A boolean value that indicates whether the specified symbol name is mangled or not.
+    ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Sequence of matched symbols and machO images.
-    @available(*, deprecated, renamed: "symbols(named:mangled:)", message: "Please use a new function that returns as an symbol array")
-    @_disfavoredOverload
     public static func symbols(
         named name: String,
-        mangled: Bool = true
+        mangled: Bool = true,
+        isGlobalOnly: Bool = false
     ) -> AnySequence<(MachOImage, Symbol)> {
         AnySequence(
-            symbols(named: name, mangled: mangled)
-                .flatMap { machO, symbols in
-                    symbols.map {
-                        (machO, $0)
+            images
+                .lazy
+                .compactMap {
+                    guard let symbol = $0.symbol(
+                        named: name,
+                        mangled: mangled,
+                        isGlobalOnly: isGlobalOnly
+                    ) else {
+                        return nil
                     }
+                    return ($0, symbol)
                 }
         )
     }
