@@ -376,7 +376,7 @@ extension MachORepresentable {
         inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> [Symbol] {
-        let symbols = Array(self.symbols)
+        let symbols = self.symbols
         var bestOffset: Int?
         var bestSymbols: [Symbol] = []
 
@@ -401,7 +401,7 @@ extension MachORepresentable {
             let globalStart: Int = numericCast(dysym.iextdefsym)
             let globalCount: Int = numericCast(dysym.nextdefsym)
             for i in globalStart ..< globalStart + globalCount {
-                let symbol = symbols[i]
+                let symbol = symbols[AnyIndex(i)]
                 let nlist = symbol.nlist
                 let symbolSectionNumber = symbol.nlist.sectionNumber
 
@@ -418,7 +418,7 @@ extension MachORepresentable {
             let localStart: Int = numericCast(dysym.ilocalsym)
             let localCount: Int = numericCast(dysym.nlocalsym)
             for i in localStart ..< localStart + localCount {
-                let symbol = symbols[i]
+                let symbol = symbols[AnyIndex(i)]
                 let nlist = symbol.nlist
                 let symbolSectionNumber = symbol.nlist.sectionNumber
 
@@ -552,7 +552,7 @@ extension MachORepresentable {
             return nil
         }
 
-        let symbols = Array(self.symbols)
+        let symbols = self.symbols
         var bestSymbol: Symbol?
 
         if let dysym = loadCommands.dysymtab {
@@ -560,7 +560,7 @@ extension MachORepresentable {
             let globalStart: Int = numericCast(dysym.iextdefsym)
             let globalCount: Int = numericCast(dysym.nextdefsym)
             for i in globalStart ..< globalStart + globalCount {
-                let symbol = symbols[i]
+                let symbol = symbols[AnyIndex(i)]
                 let nlist = symbol.nlist
                 guard nlist.flags?.type == .sect,
                       matchesName(nameC, symbol) else {
@@ -574,7 +574,7 @@ extension MachORepresentable {
             let localStart: Int = numericCast(dysym.ilocalsym)
             let localCount: Int = numericCast(dysym.nlocalsym)
             for i in localStart ..< localStart + localCount {
-                let symbol = symbols[i]
+                let symbol = symbols[AnyIndex(i)]
                 let nlist = symbol.nlist
                 guard nlist.flags?.type == .sect,
                       nlist.flags?.stab == nil,
