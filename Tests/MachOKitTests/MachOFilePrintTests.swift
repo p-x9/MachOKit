@@ -505,10 +505,10 @@ extension MachOFilePrintTests {
 
 extension MachOFilePrintTests {
     func testFindSymbolByName() {
-        let name = "$s15GroupActivities0A16SessionMessengerC8MessagesV8IteratorV4nextx_AC14MessageContextVtSgyYaF"
-        let demangledName = "GroupActivities.GroupSessionMessenger.Messages.Iterator.next() async -> Swift.Optional<(A, GroupActivities.GroupSessionMessenger.MessageContext)>"
+        let name = "$ss9CodingKeyP9CoherenceAC15IntCaseIterableRzs0eF0RzrlE8intCasesShySiGvgZ"
+        let demangledName = "async function pointer to dispatch thunk of Swift.Clock.sleep(until: A.Instant, tolerance: Swift.Optional<A.Duration>) async throws -> ()"
 
-        guard let symbol = machO.symbol(named: name) else {
+        guard let symbol = machO.symbols(named: name).first else {
             XCTFail("not found symbol named \"\(name)\"")
             return
         }
@@ -518,7 +518,7 @@ extension MachOFilePrintTests {
             "_" + name == symbol.name
         )
 
-        guard let symbol2 = machO.symbol(named: demangledName, mangled: false) else {
+        guard let symbol2 = machO.symbols(named: demangledName, mangled: false).first else {
             XCTFail("not found symbol named \"\(demangledName)\"")
             return
         }
