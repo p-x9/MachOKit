@@ -99,7 +99,7 @@ final class MachOFilePrintTests: XCTestCase {
     }
 
     func testSectionRelocationInfos() {
-        let symbols = Array(machO.symbols)
+        let symbols = machO.symbols
         for section in machO.sections32 where section.nreloc > 0 {
             print("----")
             print("Name:", "\(section.segmentName).\(section.sectionName)"
@@ -118,7 +118,7 @@ final class MachOFilePrintTests: XCTestCase {
                     print("pcRelative:", info.isRelocatedPCRelative)
                     if let symbolIndex = info.symbolIndex {
                         print("SymbolIndex:", symbolIndex)
-                        print("SymbolName:", symbols[symbolIndex].name)
+                        print("SymbolName:", symbols[AnyIndex(symbolIndex)].name)
                     }
                     if let sectionOrdinal = info.sectionOrdinal {
                         print("SectionOrdinal:", sectionOrdinal)
@@ -239,7 +239,7 @@ final class MachOFilePrintTests: XCTestCase {
 
     func testIndirectSymbols() throws {
         guard let _indirectSymbols = machO.indirectSymbols else { return }
-        let symbols = Array(machO.symbols)
+        let symbols = machO.symbols
         let indirectSymbols = Array(_indirectSymbols)
 
         for section in machO.sections {
@@ -253,7 +253,7 @@ final class MachOFilePrintTests: XCTestCase {
             for symbol in indirectSymbols {
                 print(" ", symbol._value, terminator: " ")
                 if let index = symbol.index {
-                    print(symbols[index].name)
+                    print(symbols[AnyIndex(index)].name)
                 } else {
                     print(symbol)
                 }

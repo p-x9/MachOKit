@@ -170,7 +170,7 @@ final class MachOPrintTests: XCTestCase {
 
     func testIndirectSymbols() throws {
         guard let _indirectSymbols = machO.indirectSymbols else { return }
-        let symbols = Array(machO.symbols)
+        let symbols = machO.symbols
         let indirectSymbols = Array(_indirectSymbols)
 
         for section in machO.sections {
@@ -184,7 +184,7 @@ final class MachOPrintTests: XCTestCase {
             for symbol in indirectSymbols {
                 print(" ", symbol._value, terminator: " ")
                 if let index = symbol.index {
-                    print(symbols[index].name)
+                    print(symbols[AnyIndex(index)].name)
                 } else {
                     print(symbol)
                 }
