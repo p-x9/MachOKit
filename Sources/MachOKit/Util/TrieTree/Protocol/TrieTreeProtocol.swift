@@ -40,3 +40,30 @@ extension TrieTreeProtocol {
         }
     }
 }
+
+extension TrieTreeProtocol {
+    public func _search(for key: String) -> (offset: Int, content: Content)? {
+        guard !key.isEmpty else { return nil }
+
+        var currentLabel = ""
+        var current = self.first(where: { _ in true })
+
+        while true {
+            guard let child = current?.children.first(
+                where: { child in
+                    key.starts(with: currentLabel + child.label)
+                }
+            ) else { break }
+            currentLabel += child.label
+            current = element(atOffset: numericCast(child.offset))
+
+            if key == currentLabel {
+                guard let content = current?.content else {
+                    return nil
+                }
+                return (numericCast(child.offset), content)
+            }
+        }
+        return nil
+    }
+}
