@@ -254,12 +254,12 @@ extension DyldCache {
 }
 
 extension DyldCache {
-    public typealias ProgramsTrieEntries = DataTrieTree<ProgramsTrieNodeContent>
+    public typealias ProgramsTrie = DataTrieTree<ProgramsTrieNodeContent>
 
     /// Pair of program name/cdhash and offset to prebuiltLoaderSet
     ///
     /// The ``programOffsets`` are retrieved from this trie tree．
-    public var programsTrieEntries: ProgramsTrieEntries? {
+    public var programsTrie: ProgramsTrie? {
         guard mainCacheHeader.programTrieAddr > 0,
               mainCacheHeader.hasProperty(\.programTrieSize) else {
             return nil
@@ -269,7 +269,7 @@ extension DyldCache {
         }
         let size = mainCacheHeader.programTrieSize
 
-        return ProgramsTrieEntries(
+        return ProgramsTrie(
             data: fileHandle.readData(offset: offset, size: Int(size))
         )
     }
@@ -284,10 +284,10 @@ extension DyldCache {
     /// 131776 /cdhash/fed26a75645fed2a674b5c4d01001bfa69b9dbea
     /// ```
     public var programOffsets: [ProgramOffset] {
-        guard let programsTrieEntries else {
+        guard let programsTrie else {
             return []
         }
-        return programsTrieEntries.programOffsets
+        return programsTrie.programOffsets
     }
 
     /// Get the prebuiltLoaderSet indicated by programOffset.

@@ -15,7 +15,7 @@ public protocol DyldCacheRepresentable {
     associatedtype ImageTextInfos: RandomAccessCollection<DyldCacheImageTextInfo>
     associatedtype SubCaches: RandomAccessCollection<DyldSubCacheEntry>
     associatedtype DylibsTrie: TrieTreeProtocol<DylibsTrieNodeContent>
-    associatedtype ProgramsTrieEntries: TrieTreeProtocol<ProgramsTrieNodeContent>
+    associatedtype ProgramsTrie: TrieTreeProtocol<ProgramsTrieNodeContent>
 
     /// Byte size of header
     var headerSize: Int { get }
@@ -70,7 +70,7 @@ public protocol DyldCacheRepresentable {
     /// Pair of program name/cdhash and offset to prebuiltLoaderSet
     ///
     /// The ``programOffsets`` are retrieved from this trie tree．
-    var programsTrieEntries: ProgramsTrieEntries? { get }
+    var programsTrie: ProgramsTrie? { get }
     /// Pair of program name/cdhash and offset to prebuiltLoaderSet
     ///
     /// Example:
