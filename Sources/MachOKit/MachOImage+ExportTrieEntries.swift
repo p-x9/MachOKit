@@ -10,7 +10,7 @@ import Foundation
 
 extension MachOImage {
     public struct ExportTrieEntries: Sequence {
-        public typealias Iterator = MemoryTrieTree<ExportTrieNodeContent>.Iterator
+        public typealias Wrapped = MemoryTrieTree<ExportTrieNodeContent>
 
         private let wrapped: MemoryTrieTree<ExportTrieNodeContent>
 
@@ -26,7 +26,73 @@ extension MachOImage {
         }
 
         public func makeIterator() -> Iterator {
-            wrapped.makeIterator()
+            .init(wrapped: wrapped.makeIterator())
+        }
+    }
+}
+
+extension MachOImage.ExportTrieEntries {
+    public var exportedSymbols: [ExportedSymbol] {
+        guard let root = first(where: { _ in true }) else { return [] }
+        var result: [ExportedSymbol] = []
+        wrapped.recurseTrie(currentName: "", entry: root, result: &result)
+        return result
+    }
+
+    public var entries: [ExportTrieEntry] {
+        wrapped.entries
+    }
+
+    public func search(for key: String) -> ExportedSymbol? {
+        guard let (_, content) = wrapped._search(for: key) else {
+            return nil
+        }
+        let symbolOffset: Int? = if let symbolOffset = content.symbolOffset {
+            .init(bitPattern: symbolOffset)
+        } else { nil }
+
+        return .init(
+            name: key,
+            offset: symbolOffset,
+            flags: content.flags ?? [],
+            ordinal: content.ordinal,
+            importedName: content.importedName,
+            stub: content.stub,
+            resolver: content.stub
+        )
+    }
+}
+
+extension MachOImage.ExportTrieEntries {
+    public struct Iterator: IteratorProtocol {
+        public typealias Element = Wrapped.Element
+
+        private var wrapped: Wrapped.Iterator
+
+        @_spi(Support)
+        public init(wrapped: Wrapped.Iterator) {
+            self.wrapped = wrapped
+        }
+
+        public mutating func next() -> Element? {
+            let isRoot = wrapped.nextOffset == 0
+
+            guard let next = wrapped.next() else {
+                return nil
+            }
+
+            // HACK: for after dyld-1122.1
+            if isRoot {
+                // ref: https://github.com/apple-oss-distributions/dyld/blob/main/mach_o/ExportsTrie.cpp#L669-L674
+                // root is allocated the size that `UINT_MAX` can represent
+                // 32 / 7
+                wrapped.nextOffset -= next.children
+                    .map(\.offset.uleb128Size)
+                    .reduce(0, +)
+                wrapped.nextOffset += 5 * next.children.count
+            }
+
+            return next
         }
     }
 }

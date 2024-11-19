@@ -46,7 +46,7 @@ extension DataTrieTree: Sequence {
 extension DataTrieTree {
     public struct Iterator: IteratorProtocol {
         private let data: Data
-        private var nextOffset: Int = 0
+        internal var nextOffset: Int = 0
 
         @_spi(Support)
         public init(data: Data) {

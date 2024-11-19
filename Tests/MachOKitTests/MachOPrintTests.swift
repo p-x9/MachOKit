@@ -291,7 +291,7 @@ extension MachOPrintTests {
     func testExportedSymbols() throws {
         for symbol in machO.exportedSymbols {
             print("----")
-            print("0x" + String(symbol.offset, radix: 16), symbol.name)
+            print("0x" + String(symbol.offset ?? 0, radix: 16), symbol.name)
 
             print("Flags:", symbol.flags.bits)
             if let kind = symbol.flags.kind {

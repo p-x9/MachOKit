@@ -43,7 +43,7 @@ extension MemoryTrieTree {
         public let basePointer: UnsafeRawPointer
         public let size: Int
 
-        private var nextOffset: Int = 0
+        internal var nextOffset: Int = 0
 
         @_spi(Support)
         public init(basePointer: UnsafeRawPointer, size: Int) {
