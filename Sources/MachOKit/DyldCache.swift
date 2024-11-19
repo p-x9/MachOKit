@@ -216,12 +216,12 @@ extension DyldCache {
 }
 
 extension DyldCache {
-    public typealias DylibsTrieEntries = DataTrieTree<DylibsTrieNodeContent>
+    public typealias DylibsTrie = DataTrieTree<DylibsTrieNodeContent>
 
     /// Dylibs trie is for searching by dylib name.
     ///
     /// The ``dylibIndices`` are retrieved from this trie tree．
-    public var dylibsTrieEntries: DylibsTrieEntries? {
+    public var dylibsTrie: DylibsTrie? {
         guard mainCacheHeader.dylibsTrieAddr > 0,
               mainCacheHeader.hasProperty(\.dylibsTrieSize) else {
             return nil
@@ -246,10 +246,10 @@ extension DyldCache {
     /// 0 /usr/lib/libobjc.dylib
     /// ```
     public var dylibIndices: [DylibIndex] {
-        guard let dylibsTrieEntries else {
+        guard let dylibsTrie else {
             return []
         }
-        return dylibsTrieEntries.dylibIndices
+        return dylibsTrie.dylibIndices
     }
 }
 
