@@ -33,3 +33,29 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
             }
     }
 }
+
+extension TrieTreeProtocol where Content == DylibsTrieNodeContent {
+    public var dylibIndices: [DylibIndex] {
+        guard let root = first(where: { _ in true }) else {
+            return []
+        }
+        var result: [(String, Content)] = []
+        _recurseTrie(currentName: "", entry: root, result: &result)
+        return result.map {
+            .init(name: $0, index: $1.index)
+        }
+    }
+}
+
+extension TrieTreeProtocol where Content == ProgramsTrieNodeContent {
+    public var programOffsets: [ProgramOffset] {
+        guard let root = first(where: { _ in true }) else {
+            return []
+        }
+        var result: [(String, Content)] = []
+        _recurseTrie(currentName: "", entry: root, result: &result)
+        return result.map {
+            .init(name: $0, offset: $1.offset)
+        }
+    }
+}
