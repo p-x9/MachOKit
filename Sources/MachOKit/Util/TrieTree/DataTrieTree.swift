@@ -19,6 +19,22 @@ public struct DataTrieTree<Content: TrieNodeContent>: TrieTreeProtocol {
     }
 }
 
+extension DataTrieTree {
+    public func element(atOffset offset: Int) -> TrieNode<Content>? {
+        var nextOffset: Int = offset
+
+        return data.withUnsafeBytes {
+            guard let basePointer = $0.baseAddress else { return nil }
+
+            return .readNext(
+                basePointer: basePointer.assumingMemoryBound(to: UInt8.self),
+                trieSize: data.count,
+                nextOffset: &nextOffset
+            )
+        }
+    }
+}
+
 extension DataTrieTree: Sequence {
     public typealias Element = TrieNode<Content>
 
