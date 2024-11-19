@@ -39,22 +39,7 @@ extension MachOFile.ExportTrieEntries {
     }
 
     public func search(for key: String) -> ExportedSymbol? {
-        guard let (_, content) = wrapped._search(for: key) else {
-            return nil
-        }
-        let symbolOffset: Int? = if let symbolOffset = content.symbolOffset {
-            .init(bitPattern: symbolOffset)
-        } else { nil }
-
-        return .init(
-            name: key,
-            offset: symbolOffset,
-            flags: content.flags ?? [],
-            ordinal: content.ordinal,
-            importedName: content.importedName,
-            stub: content.stub,
-            resolver: content.stub
-        )
+        wrapped.search(for: key)
     }
 }
 
