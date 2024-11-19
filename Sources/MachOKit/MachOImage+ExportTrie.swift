@@ -1,5 +1,5 @@
 //
-//  MachOImage+ExportTrieEntries.swift
+//  MachOImage+ExportTrie.swift
 //
 //
 //  Created by p-x9 on 2023/12/04.
@@ -9,7 +9,7 @@
 import Foundation
 
 extension MachOImage {
-    public struct ExportTrieEntries: Sequence {
+    public struct ExportTrie: Sequence {
         public typealias Wrapped = MemoryTrieTree<ExportTrieNodeContent>
 
         private let wrapped: MemoryTrieTree<ExportTrieNodeContent>
@@ -31,7 +31,7 @@ extension MachOImage {
     }
 }
 
-extension MachOImage.ExportTrieEntries {
+extension MachOImage.ExportTrie {
     public var exportedSymbols: [ExportedSymbol] {
         wrapped.exportedSymbols
     }
@@ -45,7 +45,7 @@ extension MachOImage.ExportTrieEntries {
     }
 }
 
-extension MachOImage.ExportTrieEntries {
+extension MachOImage.ExportTrie {
     public struct Iterator: IteratorProtocol {
         public typealias Element = Wrapped.Element
 
@@ -79,7 +79,7 @@ extension MachOImage.ExportTrieEntries {
     }
 }
 
-extension MachOImage.ExportTrieEntries {
+extension MachOImage.ExportTrie {
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,

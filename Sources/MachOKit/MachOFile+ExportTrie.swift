@@ -1,5 +1,5 @@
 //
-//  MachOFile+ExportTrieEntries.swift
+//  MachOFile+ExportTrie.swift
 //
 //
 //  Created by p-x9 on 2023/12/09.
@@ -11,7 +11,7 @@ import Foundation
 extension MachOFile {
     // https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/mach_o/ExportsTrie.cpp
     // https://github.com/apple-oss-distributions/ld64/blob/47f477cb721755419018f7530038b272e9d0cdea/src/mach_o/ExportsTrie.cpp
-    public struct ExportTrieEntries: Sequence {
+    public struct ExportTrie: Sequence {
         public typealias Wrapped = DataTrieTree<ExportTrieNodeContent>
 
         public let exportOffset: Int
@@ -29,7 +29,7 @@ extension MachOFile {
     }
 }
 
-extension MachOFile.ExportTrieEntries {
+extension MachOFile.ExportTrie {
     public var exportedSymbols: [ExportedSymbol] {
         wrapped.exportedSymbols
     }
@@ -43,7 +43,7 @@ extension MachOFile.ExportTrieEntries {
     }
 }
 
-extension MachOFile.ExportTrieEntries {
+extension MachOFile.ExportTrie {
     public struct Iterator: IteratorProtocol {
         public typealias Element = Wrapped.Element
 
@@ -77,7 +77,7 @@ extension MachOFile.ExportTrieEntries {
     }
 }
 
-extension MachOFile.ExportTrieEntries {
+extension MachOFile.ExportTrie {
     private init(
         machO: MachOFile,
         exportOffset: Int,

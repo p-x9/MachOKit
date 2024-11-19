@@ -313,7 +313,7 @@ extension MachOFile {
 }
 
 extension MachOFile {
-    public var exportTrieEntries: ExportTrieEntries? {
+    public var exportTrie: ExportTrie? {
         let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         if let info {
@@ -331,10 +331,10 @@ extension MachOFile {
     }
 
     public var exportedSymbols: [ExportedSymbol] {
-        guard let exportTrieEntries else {
+        guard let exportTrie else {
             return []
         }
-        return exportTrieEntries.exportedSymbols
+        return exportTrie.exportedSymbols
     }
 }
 

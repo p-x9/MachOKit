@@ -426,14 +426,14 @@ extension MachOImage {
 }
 
 extension MachOImage {
-    public var exportTrieEntries: ExportTrieEntries? {
+    public var exportTrie: ExportTrie? {
         let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         if let info {
             if is64Bit,
                let text = loadCommands.text64,
                let linkedit = loadCommands.linkedit64 {
-                return ExportTrieEntries(
+                return ExportTrie(
                     ptr: ptr,
                     text: text,
                     linkedit: linkedit,
@@ -441,7 +441,7 @@ extension MachOImage {
                 )
             } else if let text = loadCommands.text,
                       let linkedit = loadCommands.linkedit {
-                return ExportTrieEntries(
+                return ExportTrie(
                     ptr: ptr,
                     text: text,
                     linkedit: linkedit,
@@ -457,13 +457,13 @@ extension MachOImage {
 
         if is64Bit,
            let linkedit = loadCommands.linkedit64 {
-            return ExportTrieEntries(
+            return ExportTrie(
                 linkedit: linkedit,
                 export: export.layout,
                 vmaddrSlide: vmaddrSlide
             )
         } else if let linkedit = loadCommands.linkedit {
-            return ExportTrieEntries(
+            return ExportTrie(
                 linkedit: linkedit,
                 export: export.layout,
                 vmaddrSlide: vmaddrSlide
@@ -473,10 +473,10 @@ extension MachOImage {
     }
 
     public var exportedSymbols: [ExportedSymbol] {
-        guard let exportTrieEntries else {
+        guard let exportTrie else {
             return []
         }
-        return exportTrieEntries.exportedSymbols
+        return exportTrie.exportedSymbols
     }
 }
 

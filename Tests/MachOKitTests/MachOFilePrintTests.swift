@@ -314,8 +314,8 @@ extension MachOFilePrintTests {
     }
 
     func testExportTries() throws {
-        guard let exportTrieEntries = machO.exportTrieEntries else { return }
-        for entry in exportTrieEntries {
+        guard let exportTrie = machO.exportTrie else { return }
+        for entry in exportTrie.entries {
             print(entry)
         }
     }
