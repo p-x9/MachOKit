@@ -9,18 +9,20 @@
 import Foundation
 
 extension TrieTreeProtocol where Content == ExportTrieNodeContent {
-    func recurseTrie(
-        currentName: String,
-        entry: Element,
-        result: inout [ExportedSymbol]
-    ) {
-        if let content = entry.content {
-            let symbolOffset: Int? = if let symbolOffset = content.symbolOffset {
-                .init(bitPattern: symbolOffset)
-            } else { nil }
-            result.append(
-                ExportedSymbol(
-                    name: currentName,
+    public var exportedSymbols: [ExportedSymbol] {
+        guard let root = first(where: { _ in true }) else {
+            return []
+        }
+        var result: [(String, Content)] = []
+        _recurseTrie(currentName: "", entry: root, result: &result)
+        return result
+            .map {
+                name, content in
+                let symbolOffset: Int? = if let symbolOffset = content.symbolOffset {
+                    .init(bitPattern: symbolOffset)
+                } else { nil }
+                return .init(
+                    name: name,
                     offset: symbolOffset,
                     flags: content.flags ?? [],
                     ordinal: content.ordinal,
@@ -28,17 +30,6 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
                     stub: content.stub,
                     resolver: content.resolver
                 )
-            )
-        }
-        for child in entry.children {
-            guard let entry = element(atOffset: Int(child.offset)) else {
-                continue
             }
-            recurseTrie(
-                currentName: currentName + child.label,
-                entry: entry,
-                result: &result
-            )
-        }
     }
 }

@@ -42,6 +42,28 @@ extension TrieTreeProtocol {
 }
 
 extension TrieTreeProtocol {
+    public func _recurseTrie(
+        currentName: String,
+        entry: Element,
+        result: inout [(String, Content)]
+    ) {
+        if let content = entry.content {
+            result.append((currentName, content))
+        }
+        for child in entry.children {
+            guard let entry = element(atOffset: Int(child.offset)) else {
+                continue
+            }
+            _recurseTrie(
+                currentName: currentName + child.label,
+                entry: entry,
+                result: &result
+            )
+        }
+    }
+}
+
+extension TrieTreeProtocol {
     public func _search(for key: String) -> (offset: Int, content: Content)? {
         guard !key.isEmpty else { return nil }
 

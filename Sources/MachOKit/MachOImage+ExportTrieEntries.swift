@@ -33,10 +33,7 @@ extension MachOImage {
 
 extension MachOImage.ExportTrieEntries {
     public var exportedSymbols: [ExportedSymbol] {
-        guard let root = first(where: { _ in true }) else { return [] }
-        var result: [ExportedSymbol] = []
-        wrapped.recurseTrie(currentName: "", entry: root, result: &result)
-        return result
+        wrapped.exportedSymbols
     }
 
     public var entries: [ExportTrieEntry] {
