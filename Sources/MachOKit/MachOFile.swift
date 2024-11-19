@@ -329,6 +329,13 @@ extension MachOFile {
             export: export.layout
         )
     }
+
+    public var exportedSymbols: [ExportedSymbol] {
+        guard let exportTrieEntries else {
+            return []
+        }
+        return exportTrieEntries.exportedSymbols
+    }
 }
 
 extension MachOFile {

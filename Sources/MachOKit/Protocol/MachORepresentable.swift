@@ -252,13 +252,6 @@ extension MachORepresentable {
 }
 
 extension MachORepresentable {
-    public var exportedSymbols: [ExportedSymbol] {
-        guard let exportTrieEntries else {
-            return []
-        }
-        return exportTrieEntries.exportedSymbols
-    }
-
     public var bindingSymbols: [BindingSymbol] {
         guard let bindOperations else {
             return []

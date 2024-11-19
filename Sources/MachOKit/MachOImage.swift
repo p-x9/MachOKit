@@ -471,6 +471,13 @@ extension MachOImage {
         }
         return nil
     }
+
+    public var exportedSymbols: [ExportedSymbol] {
+        guard let exportTrieEntries else {
+            return []
+        }
+        return exportTrieEntries.exportedSymbols
+    }
 }
 
 extension MachOImage {
