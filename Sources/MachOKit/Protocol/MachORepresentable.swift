@@ -101,7 +101,7 @@ public protocol MachORepresentable {
 
     /// List of export symbols
     ///
-    /// It is obtained by parsing  ``exportTrieEntries``
+    /// It is obtained by parsing  ``exportTrie``
     var exportedSymbols: [ExportedSymbol] { get }
 
     /// List of binding symbols

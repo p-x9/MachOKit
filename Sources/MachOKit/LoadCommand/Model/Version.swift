@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Version {
+public struct Version: Equatable {
     public let major: Int
     public let minor: Int
     public let patch: Int
@@ -27,6 +27,15 @@ extension Version {
 extension Version: CustomStringConvertible {
     public var description: String {
         "\(major).\(minor).\(patch)"
+    }
+}
+
+extension Version: Comparable {
+    public static func < (lhs: Version, rhs: Version) -> Bool {
+        if lhs.major != rhs.major { return lhs.major < rhs.major }
+        if lhs.minor != rhs.minor { return lhs.minor < rhs.minor }
+        if lhs.patch != rhs.patch { return lhs.patch < rhs.patch }
+        return false
     }
 }
 

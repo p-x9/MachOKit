@@ -427,6 +427,13 @@ extension MachOImage {
 
 extension MachOImage {
     public var exportTrie: ExportTrie? {
+        let ldVersion: Version? = {
+            loadCommands.info(of: LoadCommand.buildVersion)?
+                .tools(cmdsStart: cmdsStartPtr)
+                .first(where: { $0.tool == .ld })?
+                .version
+        }()
+
         let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         if let info {
@@ -437,7 +444,8 @@ extension MachOImage {
                     ptr: ptr,
                     text: text,
                     linkedit: linkedit,
-                    info: info.layout
+                    info: info.layout,
+                    ldVersion: ldVersion
                 )
             } else if let text = loadCommands.text,
                       let linkedit = loadCommands.linkedit {
@@ -445,7 +453,8 @@ extension MachOImage {
                     ptr: ptr,
                     text: text,
                     linkedit: linkedit,
-                    info: info.layout
+                    info: info.layout,
+                    ldVersion: ldVersion
                 )
             }
         }
@@ -460,13 +469,15 @@ extension MachOImage {
             return ExportTrie(
                 linkedit: linkedit,
                 export: export.layout,
-                vmaddrSlide: vmaddrSlide
+                vmaddrSlide: vmaddrSlide,
+                ldVersion: ldVersion
             )
         } else if let linkedit = loadCommands.linkedit {
             return ExportTrie(
                 linkedit: linkedit,
                 export: export.layout,
-                vmaddrSlide: vmaddrSlide
+                vmaddrSlide: vmaddrSlide,
+                ldVersion: ldVersion
             )
         }
         return nil

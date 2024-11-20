@@ -13,6 +13,16 @@ extension MachOImage {
         public typealias Wrapped = MemoryTrieTree<ExportTrieNodeContent>
 
         private let wrapped: MemoryTrieTree<ExportTrieNodeContent>
+        let ldVersion: Version?
+
+        var isPreDyld_1008: Bool {
+            if let ldVersion {
+                // Initial version of ld-prime
+                // Xcode 15.0 beta 1 (15A5160n)
+                return ldVersion < .init(major: 1008, minor: 7, patch: 0)
+            }
+            return false // fallback
+        }
 
         public var basePointer: UnsafeRawPointer {
             wrapped.basePointer
@@ -21,12 +31,19 @@ extension MachOImage {
             wrapped.size
         }
 
-        init(wrapped: MemoryTrieTree<ExportTrieNodeContent>) {
+        init(
+            wrapped: MemoryTrieTree<ExportTrieNodeContent>,
+            ldVersion: Version?
+        ) {
             self.wrapped = wrapped
+            self.ldVersion = ldVersion
         }
 
         public func makeIterator() -> Iterator {
-            .init(wrapped: wrapped.makeIterator())
+            .init(
+                wrapped: wrapped.makeIterator(),
+                isPreDyld_1008: isPreDyld_1008
+            )
         }
     }
 }
@@ -50,10 +67,12 @@ extension MachOImage.ExportTrie {
         public typealias Element = Wrapped.Element
 
         private var wrapped: Wrapped.Iterator
+        let isPreDyld_1008: Bool
 
         @_spi(Support)
-        public init(wrapped: Wrapped.Iterator) {
+        public init(wrapped: Wrapped.Iterator, isPreDyld_1008: Bool) {
             self.wrapped = wrapped
+            self.isPreDyld_1008 = isPreDyld_1008
         }
 
         public mutating func next() -> Element? {
@@ -63,8 +82,8 @@ extension MachOImage.ExportTrie {
                 return nil
             }
 
-            // HACK: for after dyld-1122.1
-            if isRoot {
+            // HACK: for after dyld-1008.7
+            if isRoot && !isPreDyld_1008 {
                 // ref: https://github.com/apple-oss-distributions/dyld/blob/main/mach_o/ExportsTrie.cpp#L669-L674
                 // root is allocated the size that `UINT_MAX` can represent
                 // 32 / 7
@@ -84,7 +103,8 @@ extension MachOImage.ExportTrie {
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
         linkedit: SegmentCommand64,
-        info: dyld_info_command
+        info: dyld_info_command,
+        ldVersion: Version?
     ) {
         let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         let ptr = ptr
@@ -93,7 +113,8 @@ extension MachOImage.ExportTrie {
             .assumingMemoryBound(to: UInt8.self)
 
         self.init(
-            wrapped: .init(basePointer: ptr, size: Int(info.export_size))
+            wrapped: .init(basePointer: ptr, size: Int(info.export_size)),
+            ldVersion: ldVersion
         )
     }
 
@@ -101,7 +122,8 @@ extension MachOImage.ExportTrie {
         ptr: UnsafeRawPointer,
         text: SegmentCommand,
         linkedit: SegmentCommand,
-        info: dyld_info_command
+        info: dyld_info_command,
+        ldVersion: Version?
     ) {
         let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         let ptr = ptr
@@ -110,14 +132,16 @@ extension MachOImage.ExportTrie {
             .assumingMemoryBound(to: UInt8.self)
 
         self.init(
-            wrapped: .init(basePointer: ptr, size: Int(info.export_size))
+            wrapped: .init(basePointer: ptr, size: Int(info.export_size)),
+            ldVersion: ldVersion
         )
     }
 
     init(
         linkedit: SegmentCommand64,
         export: linkedit_data_command,
-        vmaddrSlide: Int
+        vmaddrSlide: Int,
+        ldVersion: Version?
     ) {
 
         let linkeditStart = vmaddrSlide + Int(linkedit.layout.vmaddr - linkedit.layout.fileoff)
@@ -126,14 +150,16 @@ extension MachOImage.ExportTrie {
             .assumingMemoryBound(to: UInt8.self)
 
         self.init(
-            wrapped: .init(basePointer: ptr, size: Int(export.datasize))
+            wrapped: .init(basePointer: ptr, size: Int(export.datasize)),
+            ldVersion: ldVersion
         )
     }
 
     init(
         linkedit: SegmentCommand,
         export: linkedit_data_command,
-        vmaddrSlide: Int
+        vmaddrSlide: Int,
+        ldVersion: Version?
     ) {
         let linkeditStart = vmaddrSlide + Int(linkedit.layout.vmaddr - linkedit.layout.fileoff)
         let ptr = UnsafeRawPointer(bitPattern: linkeditStart)! // swiftlint:disable:this force_unwrapping
@@ -141,7 +167,8 @@ extension MachOImage.ExportTrie {
             .assumingMemoryBound(to: UInt8.self)
 
         self.init(
-            wrapped: .init(basePointer: ptr, size: Int(export.datasize))
+            wrapped: .init(basePointer: ptr, size: Int(export.datasize)),
+            ldVersion: ldVersion
         )
     }
 }

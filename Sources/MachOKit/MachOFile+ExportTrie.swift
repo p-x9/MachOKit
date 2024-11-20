@@ -16,15 +16,27 @@ extension MachOFile {
 
         public let exportOffset: Int
         public let exportSize: Int
+        let ldVersion: Version?
 
         let wrapped: Wrapped
+
+        var isPreDyld_1008: Bool {
+            if let ldVersion {
+                // Xcode 15.0 beta 1 (15A5160n)
+                return ldVersion < .init(major: 1008, minor: 7, patch: 0)
+            }
+            return false // fallback
+        }
 
         public var data: Data {
             wrapped.data
         }
 
         public func makeIterator() -> Iterator {
-            .init(wrapped: wrapped.makeIterator())
+            .init(
+                wrapped: wrapped.makeIterator(),
+                isPreDyld_1008: isPreDyld_1008
+            )
         }
     }
 }
@@ -48,10 +60,12 @@ extension MachOFile.ExportTrie {
         public typealias Element = Wrapped.Element
 
         private var wrapped: Wrapped.Iterator
+        let isPreDyld_1008: Bool
 
         @_spi(Support)
-        public init(wrapped: Wrapped.Iterator) {
+        public init(wrapped: Wrapped.Iterator, isPreDyld_1008: Bool) {
             self.wrapped = wrapped
+            self.isPreDyld_1008 = isPreDyld_1008
         }
 
         public mutating func next() -> Element? {
@@ -61,8 +75,8 @@ extension MachOFile.ExportTrie {
                 return nil
             }
 
-            // HACK: for after dyld-1122.1
-            if isRoot {
+            // HACK: for after dyld-1008.7
+            if isRoot && !isPreDyld_1008 {
                 // ref: https://github.com/apple-oss-distributions/dyld/blob/main/mach_o/ExportsTrie.cpp#L669-L674
                 // root is allocated the size that `UINT_MAX` can represent
                 // 32 / 7
@@ -81,7 +95,8 @@ extension MachOFile.ExportTrie {
     private init(
         machO: MachOFile,
         exportOffset: Int,
-        exportSize: Int
+        exportSize: Int,
+        ldVersion: Version?
     ) {
         let offset = machO.headerStartOffset + exportOffset
         let data = machO.fileHandle.readData(
@@ -92,29 +107,34 @@ extension MachOFile.ExportTrie {
         self.init(
             exportOffset: exportOffset,
             exportSize: exportSize,
+            ldVersion: ldVersion,
             wrapped: .init(data: data)
         )
     }
 
     init(
         machO: MachOFile,
-        info: dyld_info_command
+        info: dyld_info_command,
+        ldVersion: Version?
     ) {
         self.init(
             machO: machO,
             exportOffset: numericCast(info.export_off),
-            exportSize: numericCast(info.export_size)
+            exportSize: numericCast(info.export_size),
+            ldVersion: ldVersion
         )
     }
 
     init(
         machO: MachOFile,
-        export: linkedit_data_command
+        export: linkedit_data_command,
+        ldVersion: Version?
     ) {
         self.init(
             machO: machO,
             exportOffset: numericCast(export.dataoff),
-            exportSize: numericCast(export.datasize)
+            exportSize: numericCast(export.datasize),
+            ldVersion: ldVersion
         )
     }
 }
