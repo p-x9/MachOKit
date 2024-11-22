@@ -42,14 +42,22 @@ extension MachOFile {
 }
 
 extension MachOFile.ExportTrie {
+    /// All exported symbols from the trie tree
     public var exportedSymbols: [ExportedSymbol] {
         wrapped.exportedSymbols
     }
 
+    /// Elements of each of the nodes that make up the trie tree
+    ///
+    /// It is obtained by traversing the nodes of the trie tree.It is obtained by traversing a trie tree.
+    /// Slower than using `ExportTrie` iterator, but compatible with all Linker(ld) versions
     public var entries: [ExportTrieEntry] {
         wrapped.entries
     }
 
+    /// Search the trie tree by symbol name to get the expoted symbol
+    /// - Parameter key: symbol name
+    /// - Returns: If found, retruns exported symbol
     public func search(for key: String) -> ExportedSymbol? {
         wrapped.search(for: key)
     }
