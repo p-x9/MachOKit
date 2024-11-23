@@ -16,7 +16,7 @@ public protocol MachORepresentable {
     associatedtype IndirectSymbols: RandomAccessCollection<IndirectSymbol>
     associatedtype RebaseOperations: Sequence<RebaseOperation>
     associatedtype BindOperations: Sequence<BindOperation>
-    associatedtype ExportTrieEntries: Sequence<ExportTrieEntry>
+    associatedtype ExportTrie: Sequence<ExportTrieEntry>
     associatedtype Strings: Sequence<StringTableEntry>
     associatedtype FunctionStarts: Sequence<FunctionStart>
     associatedtype DataInCode: RandomAccessCollection<DataInCodeEntry>
@@ -97,11 +97,11 @@ public protocol MachORepresentable {
     /// Sequence of export tries
     ///
     /// If LC_DYLD_INFO(LC_DYLD_INFO_ONLY) does not exist, look for LC_DYLD_EXPORTS_TRIE
-    var exportTrieEntries: ExportTrieEntries? { get }
+    var exportTrie: ExportTrie? { get }
 
     /// List of export symbols
     ///
-    /// It is obtained by parsing  ``exportTrieEntries``
+    /// It is obtained by parsing  ``exportTrie``
     var exportedSymbols: [ExportedSymbol] { get }
 
     /// List of binding symbols
@@ -252,13 +252,6 @@ extension MachORepresentable {
 }
 
 extension MachORepresentable {
-    public var exportedSymbols: [ExportedSymbol] {
-        guard let exportTrieEntries else {
-            return []
-        }
-        return exportTrieEntries.exportedSymbols
-    }
-
     public var bindingSymbols: [BindingSymbol] {
         guard let bindOperations else {
             return []

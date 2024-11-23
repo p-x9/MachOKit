@@ -314,8 +314,8 @@ extension MachOFilePrintTests {
     }
 
     func testExportTries() throws {
-        guard let exportTrieEntries = machO.exportTrieEntries else { return }
-        for entry in exportTrieEntries {
+        guard let exportTrie = machO.exportTrie else { return }
+        for entry in exportTrie.entries {
             print(entry)
         }
     }
@@ -360,7 +360,11 @@ extension MachOFilePrintTests {
     func testExportedSymbols() throws {
         for symbol in machO.exportedSymbols {
             print("----")
-            print("0x" + String(symbol.offset, radix: 16), symbol.name)
+            print("0x" + String(symbol.offset ?? 0, radix: 16), symbol.name)
+
+            let found = machO.exportTrie?.search(for: symbol.name)
+            XCTAssertNotNil(found)
+            XCTAssertEqual(found?.offset, symbol.offset)
 
             print("Flags:", symbol.flags.bits)
             if let kind = symbol.flags.kind {

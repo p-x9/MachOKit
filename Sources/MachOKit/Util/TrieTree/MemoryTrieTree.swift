@@ -19,6 +19,17 @@ public struct MemoryTrieTree<Content: TrieNodeContent>: TrieTreeProtocol {
     }
 }
 
+extension MemoryTrieTree {
+    public func element(atOffset offset: Int) -> TrieNode<Content>? {
+        var nextOffset: Int = offset
+        return .readNext(
+            basePointer: basePointer.assumingMemoryBound(to: UInt8.self),
+            trieSize: size,
+            nextOffset: &nextOffset
+        )
+    }
+}
+
 extension MemoryTrieTree: Sequence {
     public typealias Element = TrieNode<Content>
 
@@ -32,7 +43,7 @@ extension MemoryTrieTree {
         public let basePointer: UnsafeRawPointer
         public let size: Int
 
-        private var nextOffset: Int = 0
+        internal var nextOffset: Int = 0
 
         @_spi(Support)
         public init(basePointer: UnsafeRawPointer, size: Int) {

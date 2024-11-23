@@ -161,7 +161,12 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
             .sorted(by: { lhs, rhs in
                 lhs.index < rhs.index
             })
+        let trie = cache.dylibsTrie
         for index in indices {
+            let found = trie?.search(for: index.name)
+            XCTAssertNotNil(found)
+            XCTAssertEqual(found?.index, index.index)
+
             print(index.index, index.name)
         }
     }
@@ -169,7 +174,12 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
     func testProgramOffsets() {
         let cache = cache!
         let programOffsets = cache.programOffsets
+        let trie = cache.programsTrie
         for programOffset in programOffsets {
+            let found = trie?.search(for: programOffset.name)
+            XCTAssertNotNil(found)
+            XCTAssertEqual(found?.offset, programOffset.offset)
+
             print(programOffset.offset, programOffset.name)
         }
     }

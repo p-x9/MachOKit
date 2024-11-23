@@ -12,7 +12,7 @@ public struct ExportedSymbol {
     public var name: String
     /// Symbol offset from start of mach header (`MachO`)
     /// Symbol offset from start of file (`MachOFile`)
-    public var offset: Int
+    public var offset: Int?
 
     var flags: ExportSymbolFlags
 

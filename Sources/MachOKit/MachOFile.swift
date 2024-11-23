@@ -313,11 +313,22 @@ extension MachOFile {
 }
 
 extension MachOFile {
-    public var exportTrieEntries: ExportTrieEntries? {
+    public var exportTrie: ExportTrie? {
+        let ldVersion: Version? = {
+            loadCommands.info(of: LoadCommand.buildVersion)?
+                .tools(in: self)
+                .first(where: { $0.tool == .ld })?
+                .version
+        }()
+
         let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         if let info {
-            return .init(machO: self, info: info.layout)
+            return .init(
+                machO: self,
+                info: info.layout,
+                ldVersion: ldVersion
+            )
         }
 
         guard let export = loadCommands.info(of: LoadCommand.dyldExportsTrie) else {
@@ -326,8 +337,16 @@ extension MachOFile {
 
         return .init(
             machO: self,
-            export: export.layout
+            export: export.layout,
+            ldVersion: ldVersion
         )
+    }
+
+    public var exportedSymbols: [ExportedSymbol] {
+        guard let exportTrie else {
+            return []
+        }
+        return exportTrie.exportedSymbols
     }
 }
 

@@ -426,26 +426,35 @@ extension MachOImage {
 }
 
 extension MachOImage {
-    public var exportTrieEntries: ExportTrieEntries? {
+    public var exportTrie: ExportTrie? {
+        let ldVersion: Version? = {
+            loadCommands.info(of: LoadCommand.buildVersion)?
+                .tools(cmdsStart: cmdsStartPtr)
+                .first(where: { $0.tool == .ld })?
+                .version
+        }()
+
         let info = loadCommands.info(of: LoadCommand.dyldInfo) ?? loadCommands.info(of: LoadCommand.dyldInfoOnly)
 
         if let info {
             if is64Bit,
                let text = loadCommands.text64,
                let linkedit = loadCommands.linkedit64 {
-                return ExportTrieEntries(
+                return ExportTrie(
                     ptr: ptr,
                     text: text,
                     linkedit: linkedit,
-                    info: info.layout
+                    info: info.layout,
+                    ldVersion: ldVersion
                 )
             } else if let text = loadCommands.text,
                       let linkedit = loadCommands.linkedit {
-                return ExportTrieEntries(
+                return ExportTrie(
                     ptr: ptr,
                     text: text,
                     linkedit: linkedit,
-                    info: info.layout
+                    info: info.layout,
+                    ldVersion: ldVersion
                 )
             }
         }
@@ -457,19 +466,28 @@ extension MachOImage {
 
         if is64Bit,
            let linkedit = loadCommands.linkedit64 {
-            return ExportTrieEntries(
+            return ExportTrie(
                 linkedit: linkedit,
                 export: export.layout,
-                vmaddrSlide: vmaddrSlide
+                vmaddrSlide: vmaddrSlide,
+                ldVersion: ldVersion
             )
         } else if let linkedit = loadCommands.linkedit {
-            return ExportTrieEntries(
+            return ExportTrie(
                 linkedit: linkedit,
                 export: export.layout,
-                vmaddrSlide: vmaddrSlide
+                vmaddrSlide: vmaddrSlide,
+                ldVersion: ldVersion
             )
         }
         return nil
+    }
+
+    public var exportedSymbols: [ExportedSymbol] {
+        guard let exportTrie else {
+            return []
+        }
+        return exportTrie.exportedSymbols
     }
 }
 
