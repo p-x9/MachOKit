@@ -33,6 +33,10 @@ public enum Platform {
     case watchOSSimulator
     /// PLATFORM_DRIVERKIT
     case driverKit
+    /// PLATFORM_VISIONOS
+    case visionOS
+    /// PLATFORM_VISIONOSSIMULATOR
+    case visionOSSimulator
 
     // __OPEN_SOURCE__
     /// PLATFORM_FIRMWARE
@@ -58,6 +62,8 @@ extension Platform: RawRepresentable {
         case UInt32(PLATFORM_TVOSSIMULATOR): self = .tvOSSimulator
         case UInt32(PLATFORM_WATCHOSSIMULATOR): self = .watchOSSimulator
         case UInt32(PLATFORM_DRIVERKIT): self = .driverKit
+        case UInt32(PLATFORM_VISIONOS): self = .visionOS
+        case UInt32(PLATFORM_VISIONOSSIMULATOR): self = .visionOSSimulator
         case UInt32(PLATFORM_FIRMWARE): self = .firmware
         case UInt32(PLATFORM_SEPOS): self = .sepOS
         default:
@@ -79,6 +85,8 @@ extension Platform: RawRepresentable {
         case .tvOSSimulator: UInt32(PLATFORM_TVOSSIMULATOR)
         case .watchOSSimulator: UInt32(PLATFORM_WATCHOSSIMULATOR)
         case .driverKit: UInt32(PLATFORM_DRIVERKIT)
+        case .visionOS: UInt32(PLATFORM_VISIONOS)
+        case .visionOSSimulator: UInt32(PLATFORM_VISIONOSSIMULATOR)
         case .firmware: UInt32(PLATFORM_FIRMWARE)
         case .sepOS: UInt32(PLATFORM_SEPOS)
         }
@@ -100,6 +108,8 @@ extension Platform: CustomStringConvertible {
         case .tvOSSimulator: "PLATFORM_TVOSSIMULATOR"
         case .watchOSSimulator: "PLATFORM_WATCHOSSIMULATOR"
         case .driverKit: "PLATFORM_DRIVERKIT"
+        case .visionOS: "PLATFORM_VISIONOS"
+        case .visionOSSimulator: "PLATFORM_VISIONOSSIMULATOR"
         case .firmware: "PLATFORM_FIRMWARE"
         case .sepOS: "PLATFORM_SEPOS"
         }
