@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 1999 Apple Computer, Inc. All rights reserved.
+ * Copyright (c) 2016 Apple, Inc. All rights reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
- *
+ * 
  * This file contains Original Code and/or Modifications of Original Code
  * as defined in and that are subject to the Apple Public Source License
  * Version 2.0 (the 'License'). You may not use this file except in
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- *
+ * 
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -17,7 +17,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
  * Please see the License for the specific language governing rights and
  * limitations under the License.
- *
+ * 
  * @APPLE_LICENSE_HEADER_END@
  */
 #ifndef _MACH_O_FAT_H_
@@ -49,13 +49,13 @@
 #define FAT_CIGAM	0xbebafeca	/* NXSwapLong(FAT_MAGIC) */
 
 struct fat_header {
-	uint32_t	magic;		/* FAT_MAGIC */
+	uint32_t	magic;		/* FAT_MAGIC or FAT_MAGIC_64 */
 	uint32_t	nfat_arch;	/* number of structs that follow */
 };
 
 struct fat_arch {
-	cpu_type_t	cputype;	/* cpu specifier (int) */
-	cpu_subtype_t	cpusubtype;	/* machine specifier (int) */
+	int32_t		cputype;	/* cpu specifier (int) */
+	int32_t		cpusubtype;	/* machine specifier (int) */
 	uint32_t	offset;		/* file offset to this object file */
 	uint32_t	size;		/* size of this object file */
 	uint32_t	align;		/* alignment as a power of 2 */
@@ -72,8 +72,8 @@ struct fat_arch {
 #define FAT_CIGAM_64	0xbfbafeca	/* NXSwapLong(FAT_MAGIC_64) */
 
 struct fat_arch_64 {
-	cpu_type_t	cputype;	/* cpu specifier (int) */
-	cpu_subtype_t	cpusubtype;	/* machine specifier (int) */
+	int32_t		cputype;	/* cpu specifier (int) */
+	int32_t		cpusubtype;	/* machine specifier (int) */
 	uint64_t	offset;		/* file offset to this object file */
 	uint64_t	size;		/* size of this object file */
 	uint32_t	align;		/* alignment as a power of 2 */

@@ -133,6 +133,10 @@ extension MachHeader.Flags {
     public static let sim_support = MachHeader.Flags(
         rawValue: Bit.sim_support.rawValue
     )
+    /// MH_IMPLICIT_PAGEZERO
+    public static let implicit_pagezero = MachHeader.Flags(
+        rawValue: Bit.implicit_pagezero.rawValue
+    )
     /// MH_DYLIB_IN_CACHE
     public static let dylib_in_cache = MachHeader.Flags(
         rawValue: Bit.dylib_in_cache.rawValue

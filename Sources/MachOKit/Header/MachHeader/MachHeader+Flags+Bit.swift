@@ -66,6 +66,8 @@ extension MachHeader.Flags {
         case nlist_outofsync_with_dyldinfo
         /// MH_SIM_SUPPORT
         case sim_support
+        /// MH_IMPLICIT_PAGEZERO
+        case implicit_pagezero
         /// MH_DYLIB_IN_CACHE
         case dylib_in_cache
     }
@@ -104,6 +106,7 @@ extension MachHeader.Flags.Bit: RawRepresentable {
         case RawValue(MH_APP_EXTENSION_SAFE): self = .app_extension_safe
         case RawValue(MH_NLIST_OUTOFSYNC_WITH_DYLDINFO): self = .nlist_outofsync_with_dyldinfo
         case RawValue(MH_SIM_SUPPORT): self = .sim_support
+        case RawValue(MH_IMPLICIT_PAGEZERO): self = .implicit_pagezero
         case RawValue(MH_DYLIB_IN_CACHE): self = .dylib_in_cache
         default: return nil
         }
@@ -139,6 +142,7 @@ extension MachHeader.Flags.Bit: RawRepresentable {
         case .app_extension_safe: RawValue(MH_APP_EXTENSION_SAFE)
         case .nlist_outofsync_with_dyldinfo: RawValue(MH_NLIST_OUTOFSYNC_WITH_DYLDINFO)
         case .sim_support: RawValue(MH_SIM_SUPPORT)
+        case .implicit_pagezero: RawValue(MH_IMPLICIT_PAGEZERO)
         case .dylib_in_cache: RawValue(MH_DYLIB_IN_CACHE)
         }
     }
@@ -175,6 +179,7 @@ extension MachHeader.Flags.Bit: CustomStringConvertible {
         case .app_extension_safe: "MH_APP_EXTENSION_SAFE"
         case .nlist_outofsync_with_dyldinfo: "MH_NLIST_OUTOFSYNC_WITH_DYLDINFO"
         case .sim_support: "MH_SIM_SUPPORT"
+        case .implicit_pagezero: "MH_IMPLICIT_PAGEZERO"
         case .dylib_in_cache: "MH_DYLIB_IN_CACHE"
         }
     }
