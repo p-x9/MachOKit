@@ -52,6 +52,8 @@ extension DyldChainedFixupPointer {
             return numericCast(rebase.target) - preferedLoadAddress
         case ._32_firmware:
             return numericCast(rebase.target) - preferedLoadAddress
+        case .arm64e_shared_cache:
+            return numericCast(rebase.target)
         default:
             return nil
         }

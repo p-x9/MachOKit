@@ -397,7 +397,7 @@ extension DyldCache {
     /// - Parameter offset: target file offset
     /// - Returns: rebased file offset
     ///
-    /// [dyld Implementation](https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MetadataVisitor.cpp#L262)
+    /// [dyld Implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/MetadataVisitor.cpp#L265)
     public func resolveRebase(at offset: UInt64) -> UInt64? {
         guard let mappingInfos,
               let unslidLoadAddress = mappingInfos.first?.address else {
@@ -462,11 +462,15 @@ extension DyldCache {
                 rawValue: fileHandle.read(offset: offset)
             )
             let fixup: DyldChainedFixupPointerInfo = .arm64e_shared_cache(_fixup)
-            guard let rebase = fixup.rebase else {
-                return nil
-            }
-            runtimeOffset = numericCast(rebase.unpackedTarget)
-            onDiskDylibChainedPointerBaseAddress = slideInfo.value_add
+            let pointer: DyldChainedFixupPointer = .init(
+                offset: Int(offset),
+                fixupInfo: fixup
+            )
+            guard let _runtimeOffset = pointer.rebaseTargetRuntimeOffset(
+                preferedLoadAddress: unslidLoadAddress
+            ) else { return nil }
+            runtimeOffset = _runtimeOffset
+            onDiskDylibChainedPointerBaseAddress = unslidLoadAddress
         }
 
         return runtimeOffset + onDiskDylibChainedPointerBaseAddress
@@ -476,7 +480,7 @@ extension DyldCache {
     /// - Parameter offset: target file offset
     /// - Returns: optional rebased file offset
     ///
-    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/MetadataVisitor.cpp#L424)
+    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/MetadataVisitor.cpp#L435)
     /// `resolveOptionalRebase` differs from `resolveRebase` in that rebasing may or may not actually take place.
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
         // swiftlint:disable:previous cyclomatic_complexity
@@ -551,11 +555,15 @@ extension DyldCache {
                 rawValue: rawValue
             )
             let fixup: DyldChainedFixupPointerInfo = .arm64e_shared_cache(_fixup)
-            guard let rebase = fixup.rebase else {
-                return nil
-            }
-            runtimeOffset = numericCast(rebase.unpackedTarget)
-            onDiskDylibChainedPointerBaseAddress = slideInfo.value_add
+            let pointer: DyldChainedFixupPointer = .init(
+                offset: Int(offset),
+                fixupInfo: fixup
+            )
+            guard let _runtimeOffset = pointer.rebaseTargetRuntimeOffset(
+                preferedLoadAddress: unslidLoadAddress
+            ) else { return nil }
+            runtimeOffset = _runtimeOffset
+            onDiskDylibChainedPointerBaseAddress = unslidLoadAddress
         }
 
         return runtimeOffset + onDiskDylibChainedPointerBaseAddress
