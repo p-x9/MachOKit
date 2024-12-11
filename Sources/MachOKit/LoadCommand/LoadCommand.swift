@@ -108,7 +108,7 @@ public enum LoadCommand {
     /// LC_VERSION_MIN_WATCHOS
     case versionMinWatchos(VersionMinCommand)
     /// LC_NOTE
-    case note(LoadCommandInfo<note_command>)
+    case note(NoteCommand)
     /// LC_BUILD_VERSION
     case buildVersion(BuildVersionCommand)
     /// LC_DYLD_EXPORTS_TRIE
