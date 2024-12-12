@@ -21,3 +21,10 @@ public struct Dylib {
     /// library's compatibility vers number
     public var compatibilityVersion: Version
 }
+
+extension Dylib {
+    /// A boolean value that indicates whether self is loaded from `dylib_use_command`
+    public var isFromDylibUseCommand: Bool {
+        timestamp.timeIntervalSince1970 == TimeInterval(DYLIB_USE_MARKER)
+    }
+}

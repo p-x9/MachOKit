@@ -53,3 +53,37 @@ extension DylibCommand {
         )
     }
 }
+
+extension DylibCommand {
+    public var isDylibUseCommand: Bool {
+        layout.dylib.timestamp == DYLIB_USE_MARKER
+    }
+
+    public func dylibUseCommand(in machO: MachOImage) -> DylibUseCommand? {
+        guard isDylibUseCommand else { return nil }
+
+        let ptr = machO.cmdsStartPtr
+            .advanced(by: offset)
+            .assumingMemoryBound(to: DylibUseCommand.Layout.self)
+        return .init(ptr.pointee, offset: offset)
+    }
+
+    public func dylibUseCommand(in machO: MachOFile) -> DylibUseCommand? {
+        guard isDylibUseCommand else { return nil }
+
+        let offset = machO.cmdsStartOffset + offset
+        let layout: DylibUseCommand.Layout = machO.fileHandle.read(
+            offset: numericCast(offset),
+            swapHandler: {
+                guard machO.isSwapped else { return }
+                return $0.withUnsafeBytes {
+                    guard let baseAddress = $0.baseAddress else { return }
+                    let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
+                        .assumingMemoryBound(to: dylib_use_command.self)
+                    swap_dylib_use_command(ptr, NXHostByteOrder())
+                }
+            }
+        )
+        return .init(layout, offset: offset)
+    }
+}
