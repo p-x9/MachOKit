@@ -151,11 +151,19 @@ extension MachOImage {
         for cmd in loadCommands {
             switch cmd {
             case let .loadDylib(cmd):
+                var flags: DylibUseFlags = []
+                if let dylibUseCmd = cmd.dylibUseCommand(in: self) {
+                    flags = dylibUseCmd.flags
+                }
                 let lib = cmd.dylib(cmdsStart: cmdsStartPtr)
-                dependencies.append(.init(dylib: lib, type: .load))
+                dependencies.append(.init(dylib: lib, type: .load, useFlags: flags))
             case let .loadWeakDylib(cmd):
+                var flags: DylibUseFlags = []
+                if let dylibUseCmd = cmd.dylibUseCommand(in: self) {
+                    flags = dylibUseCmd.flags
+                }
                 let lib = cmd.dylib(cmdsStart: cmdsStartPtr)
-                dependencies.append(.init(dylib: lib, type: .weakLoad))
+                dependencies.append(.init(dylib: lib, type: .load, useFlags: flags))
             case let .reexportDylib(cmd):
                 let lib = cmd.dylib(cmdsStart: cmdsStartPtr)
                 dependencies.append(.init(dylib: lib, type: .reexport))

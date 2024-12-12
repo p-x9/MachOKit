@@ -189,12 +189,15 @@ final class MachOFilePrintTests: XCTestCase {
 
     func testDependencies() throws {
         for dependency in machO.dependencies {
-            let dependency = dependency.dylib
+            let dylib = dependency.dylib
             print("----")
-            print("Name:", dependency.name)
-            print("CurrentVersion:", dependency.currentVersion)
-            print("CompatibilityVersion:", dependency.compatibilityVersion)
-            print("TimeStamp:", dependency.timestamp)
+            print("Name:", dylib.name)
+            print("CurrentVersion:", dylib.currentVersion)
+            print("CompatibilityVersion:", dylib.compatibilityVersion)
+            print("TimeStamp:", dylib.timestamp)
+            if dependency.dylib.isFromDylibUseCommand {
+                print("Flags", dependency.useFlags.bits)
+            }
         }
     }
 

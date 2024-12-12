@@ -19,4 +19,15 @@ public struct DependedDylib {
 
     public let dylib: Dylib
     public let type: DependType
+    public let useFlags: DylibUseFlags
+
+    init(
+        dylib: Dylib,
+        type: DependType,
+        useFlags: DylibUseFlags = []
+    ) {
+        self.dylib = dylib
+        self.type = type
+        self.useFlags = useFlags
+    }
 }
