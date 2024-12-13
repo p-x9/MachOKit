@@ -73,7 +73,7 @@ archive_project() {
                 -archivePath "$ARCHIVE_PATH" \
                 -derivedDataPath "$DERIVED_DATA_PATH" \
                 SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES DEFINES_MODULE=YES \
-                FRAMEWORK_SEARCH_PATHS=\"XCFrameworks/"$PLATFORM"/**\" \
+                FRAMEWORK_SEARCH_PATHS=\"$(pwd)/XCFrameworks/"$PLATFORM"/**\" \
                 OTHER_LDFLAGS="$OTHER_LDFLAGS"
 
     local BUILD_PRODUCTS_PATH=".build/Build/Intermediates.noindex/ArchiveIntermediates/$SCHEME/BuildProductsPath"
