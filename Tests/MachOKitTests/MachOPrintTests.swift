@@ -400,7 +400,7 @@ extension MachOPrintTests {
                   )?.description ?? "unknown"
             )
             print("Count:", command.count(cmdsStart: machO.cmdsStartPtr) ?? 0)
-            if let state = command.state(cmdsStart: machO.cmdsStartPtr) {
+            if let state = command.stateData(cmdsStart: machO.cmdsStartPtr) {
                 print(
                     "State:",
                     state.withUnsafeBytes {

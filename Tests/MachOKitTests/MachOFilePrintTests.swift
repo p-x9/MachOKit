@@ -473,7 +473,7 @@ extension MachOFilePrintTests {
                   )?.description ?? "unknown"
             )
             print("Count:", command.count(in: machO) ?? 0)
-            if let state = command.state(in: machO) {
+            if let state = command.stateData(in: machO) {
                 print(
                     "State:",
                     state.withUnsafeBytes {

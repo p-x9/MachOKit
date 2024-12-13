@@ -45,13 +45,17 @@ extension ThreadCommand {
         return count
     }
 
-    public func state(cmdsStart: UnsafeRawPointer) -> Data? {
+    public func stateData(cmdsStart: UnsafeRawPointer) -> Data? {
         guard let count = count(cmdsStart: cmdsStart) else {
             return nil
         }
+
         let stateSizeExpected = Int(count) * MemoryLayout<UInt32>.size
         let stateSize = Int(layout.cmdsize) - layoutSize - 2 * MemoryLayout<UInt32>.size
-        guard stateSizeExpected == stateSize else { return nil }
+
+        // consider alignment
+        guard stateSizeExpected <= stateSize else { return nil }
+
         let ptr = cmdsStart
             .advanced(by: offset)
             .advanced(by: layoutSize)
@@ -89,13 +93,17 @@ extension ThreadCommand {
         return count
     }
 
-    public func state(in machO: MachOFile) -> Data? {
+    public func stateData(in machO: MachOFile) -> Data? {
         guard let count = count(in: machO) else {
             return nil
         }
+
         let stateSizeExpected = Int(count) * MemoryLayout<UInt32>.size
         let stateSize = Int(layout.cmdsize) - layoutSize - 2 * MemoryLayout<UInt32>.size
-        guard stateSizeExpected == stateSize else { return nil }
+
+        // consider alignment
+        guard stateSizeExpected <= stateSize else { return nil }
+
         let offset = machO.cmdsStartOffset + offset + layoutSize + 2 * MemoryLayout<UInt32>.size
 
         return machO.fileHandle.readData(
