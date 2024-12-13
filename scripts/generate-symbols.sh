@@ -24,7 +24,7 @@ generate_symbol_graphs() {
   scheme=$2
 
   mkdir -p .build/symbol-graphs
-  mkdir -p symbol-graphs
+  mkdir -p "$SYMBOL_DIR"
 
   xcodebuild clean build -scheme "${scheme}"\
     -destination "generic/platform=${destination}" \
@@ -39,7 +39,7 @@ generate_symbol_graphs() {
             -extract-api \
             --product-name=$scheme \
             -o "$SYMBOL_DIR/$scheme-$header.json" \
-            "./Sources/$scheme/include/$header"
+            "$(pwd)/Sources/$scheme/include/$header"
     done <<<"$HEADERS"
   fi
 }

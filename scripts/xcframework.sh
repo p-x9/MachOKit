@@ -73,7 +73,7 @@ archive_project() {
                 -archivePath "$ARCHIVE_PATH" \
                 -derivedDataPath "$DERIVED_DATA_PATH" \
                 SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES DEFINES_MODULE=YES \
-                FRAMEWORK_SEARCH_PATHS=\"XCFrameworks/"$PLATFORM"/**\" \
+                FRAMEWORK_SEARCH_PATHS=\"$(pwd)/XCFrameworks/"$PLATFORM"/**\" \
                 OTHER_LDFLAGS="$OTHER_LDFLAGS"
 
     local BUILD_PRODUCTS_PATH=".build/Build/Intermediates.noindex/ArchiveIntermediates/$SCHEME/BuildProductsPath"
@@ -162,15 +162,15 @@ machokit() {
     LINK_FLAGS="-framework MachOKitC"
 
     archive_project "MachOKit" "iOS" "$LINK_FLAGS"
-    archive_project "MachOKit" "iOS Simulator" "$LINK_FLAGS"
-    archive_project "MachOKit" "macOS" "$LINK_FLAGS"
-    archive_project "MachOKit" "macCatalyst" "$LINK_FLAGS"
-    archive_project "MachOKit" "watchOS" "$LINK_FLAGS"
-    archive_project "MachOKit" "watchOS Simulator" "$LINK_FLAGS"
-    archive_project "MachOKit" "tvOS" "$LINK_FLAGS"
-    archive_project "MachOKit" "tvOS Simulator" "$LINK_FLAGS"
-    archive_project "MachOKit" "visionOS" "$LINK_FLAGS"
-    archive_project "MachOKit" "visionOS Simulator" "$LINK_FLAGS"
+#    archive_project "MachOKit" "iOS Simulator" "$LINK_FLAGS"
+#    archive_project "MachOKit" "macOS" "$LINK_FLAGS"
+#    archive_project "MachOKit" "macCatalyst" "$LINK_FLAGS"
+#    archive_project "MachOKit" "watchOS" "$LINK_FLAGS"
+#    archive_project "MachOKit" "watchOS Simulator" "$LINK_FLAGS"
+#    archive_project "MachOKit" "tvOS" "$LINK_FLAGS"
+#    archive_project "MachOKit" "tvOS Simulator" "$LINK_FLAGS"
+#    archive_project "MachOKit" "visionOS" "$LINK_FLAGS"
+#    archive_project "MachOKit" "visionOS Simulator" "$LINK_FLAGS"
 
     create_xcframework "MachOKit"
     zip_xcframework "MachOKit"
@@ -178,15 +178,15 @@ machokit() {
 
 machokitc() {
     archive_project "MachOKitC" "iOS"
-    archive_project "MachOKitC" "iOS Simulator"
-    archive_project "MachOKitC" "macOS"
-    archive_project "MachOKitC" "macCatalyst"
-    archive_project "MachOKitC" "watchOS"
-    archive_project "MachOKitC" "watchOS Simulator"
-    archive_project "MachOKitC" "tvOS"
-    archive_project "MachOKitC" "tvOS Simulator"
-    archive_project "MachOKitC" "visionOS"
-    archive_project "MachOKitC" "visionOS Simulator"
+#    archive_project "MachOKitC" "iOS Simulator"
+#    archive_project "MachOKitC" "macOS"
+#    archive_project "MachOKitC" "macCatalyst"
+#    archive_project "MachOKitC" "watchOS"
+#    archive_project "MachOKitC" "watchOS Simulator"
+#    archive_project "MachOKitC" "tvOS"
+#    archive_project "MachOKitC" "tvOS Simulator"
+#    archive_project "MachOKitC" "visionOS"
+#    archive_project "MachOKitC" "visionOS Simulator"
 
     create_xcframework "MachOKitC"
     zip_xcframework "MachOKitC"
