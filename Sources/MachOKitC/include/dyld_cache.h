@@ -11,7 +11,7 @@
 
 #ifndef __linux__
 
-#include <__stddef_size_t.h>
+#include <stddef.h>
 
 extern const void* _dyld_get_shared_cache_range(size_t* length);
 
