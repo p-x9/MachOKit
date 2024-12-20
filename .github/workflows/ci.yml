@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - LICENSE
+  pull_request:
+    paths-ignore:
+      - README.md
+      - LICENSE
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_16.2.app
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+      - name: Build
+        run: swift build
+
+  linux-build:
+    name: Linux Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Swift
+        # WORKAROUND:https://github.com/swift-actions/setup-swift/pull/680
+        uses: swift-actions/setup-swift@bb83339d1e8577741bdc6c65ba551ce7dc0fb854
+        with:
+          swift-version: '5.10.1'
+
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: swift build
