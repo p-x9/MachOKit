@@ -14,8 +14,7 @@ extension String {
 
     @_spi(Support)
     public init(tuple: CCharTuple16) {
-        var buffer = tuple
-        self = withUnsafePointer(to: &buffer.0) {
+        self = withUnsafePointer(to: tuple) {
             let size = MemoryLayout<CCharTuple16>.size
             let data = Data(bytes: $0, count: size) + [0]
             return String(cString: data) ?? ""
@@ -29,8 +28,7 @@ extension String {
 
     @_spi(Support)
     public init(tuple: CCharTuple32) {
-        var buffer = tuple
-        self = withUnsafePointer(to: &buffer.0) {
+        self = withUnsafePointer(to: tuple) {
             let size = MemoryLayout<CCharTuple32>.size
             let data = Data(bytes: $0, count: size) + [0]
             return String(cString: data) ?? ""
