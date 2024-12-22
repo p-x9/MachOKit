@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2023/12/04.
-//  
+//
 //
 
 import Foundation
@@ -492,25 +492,15 @@ extension MachOFile {
         }
 
         guard let chainedFixup = dyldChainedFixups,
-              let startsInImage = chainedFixup.startsInImage else {
+              let pointer = chainedFixup.pointer(for: offset, in: self) else {
             return nil
         }
-        let startsInSegments = chainedFixup.startsInSegments(
-            of: startsInImage
-        )
 
-        for segment in startsInSegments {
-            let pointers = chainedFixup.pointers(of: segment, in: self)
-            guard let pointer = pointers.first(where: {
-                $0.offset == offset
-            }) else { continue }
-            guard pointer.fixupInfo.rebase != nil,
-                  let offset = pointer.rebaseTargetRuntimeOffset(for: self) else {
-                return nil
-            }
-            return offset
+        guard pointer.fixupInfo.rebase != nil,
+              let offset = pointer.rebaseTargetRuntimeOffset(for: self) else {
+            return nil
         }
-        return nil
+        return offset
     }
 
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
@@ -520,37 +510,28 @@ extension MachOFile {
         }
 
         guard let chainedFixup = dyldChainedFixups,
-              let startsInImage = chainedFixup.startsInImage else {
+              let pointer = chainedFixup.pointer(for: offset, in: self) else {
             return nil
         }
-        let startsInSegments = chainedFixup.startsInSegments(
-            of: startsInImage
-        )
 
-        for segment in startsInSegments {
-            let pointers = chainedFixup.pointers(of: segment, in: self)
-            guard let pointer = pointers.first(where: {
-                $0.offset == offset
-            }) else { continue }
-            guard pointer.fixupInfo.rebase != nil,
-                  let offset = pointer.rebaseTargetRuntimeOffset(for: self) else {
-                return nil
-            }
-            if is64Bit {
-                let value: UInt64 = fileHandle.read(
-                    offset: numericCast(headerStartOffset + pointer.offset)
-                )
-                if value == 0 { return nil }
-            } else {
-                let value: UInt32 = fileHandle.read(
-                    offset: numericCast(headerStartOffset + pointer.offset)
-                )
-                if value == 0 { return nil }
-            }
-            return offset
+        guard pointer.fixupInfo.rebase != nil,
+              let offset = pointer.rebaseTargetRuntimeOffset(for: self) else {
+            return nil
         }
-        return nil
+        if is64Bit {
+            let value: UInt64 = fileHandle.read(
+                offset: numericCast(headerStartOffset + pointer.offset)
+            )
+            if value == 0 { return nil }
+        } else {
+            let value: UInt32 = fileHandle.read(
+                offset: numericCast(headerStartOffset + pointer.offset)
+            )
+            if value == 0 { return nil }
+        }
+        return offset
     }
+
 
     public func resolveBind(
         at offset: UInt64

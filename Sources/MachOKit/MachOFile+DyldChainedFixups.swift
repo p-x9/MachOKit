@@ -227,95 +227,223 @@ extension MachOFile.DyldChainedFixups {
         var chainEnd = false
 
         while !stop && !chainEnd {
-            data.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else { return }
-                let ptr = baseAddress.advanced(by: offset)
+            guard let fixupInfo = _fixupInfo(
+                at: offset,
+                in: data,
+                pointerFormat: pointerFormat
+            ) else {
+                stop = true
+                continue
+            }
 
-                var fixupInfo: DyldChainedFixupPointerInfo?
+            let pointerOffset = numericCast(startsInSegment.segment_offset) + offset
 
-                if pointerFormat.is64Bit {
-                    let rawValue = ptr.load(as: UInt64.self)
-                    switch pointerFormat {
-                    case .arm64e, .arm64e_kernel, .arm64e_userland, .arm64e_firmware:
-                        let content = DyldChainedFixupPointerInfo.ARM64E(rawValue: rawValue)
-                        switch pointerFormat {
-                        case .arm64e:
-                            fixupInfo = .arm64e(content)
-                        case .arm64e_kernel:
-                            fixupInfo = .arm64e_kernel(content)
-                        case .arm64e_userland:
-                            fixupInfo = .arm64e_userland(content)
-                        case .arm64e_firmware:
-                            fixupInfo = .arm64e_firmware(content)
-                        default: break
-                        }
+            pointers.append(
+                DyldChainedFixupPointer(
+                    offset: pointerOffset,
+                    fixupInfo: fixupInfo
+                )
+            )
 
-                    case .arm64e_userland24:
-                        let content = DyldChainedFixupPointerInfo.ARM64EUserland24(rawValue: rawValue)
-                        fixupInfo = .arm64e_userland24(content)
-
-                    case ._64, ._64_offset:
-                        let content = DyldChainedFixupPointerInfo.General64(rawValue: rawValue)
-                        switch pointerFormat {
-                        case ._64: fixupInfo = ._64(content)
-                        case ._64_offset: fixupInfo = ._64_offset(content)
-                        default: break
-                        }
-
-                    case ._64_kernel_cache, .x86_64_kernel_cache:
-                        let content = DyldChainedFixupPointerInfo.General64Cache(rawValue: rawValue)
-                        switch pointerFormat {
-                        case ._64_kernel_cache:
-                            fixupInfo = ._64_kernel_cache(content)
-                        case .x86_64_kernel_cache:
-                            fixupInfo = .x86_64_kernel_cache(content)
-                        default: break
-                        }
-
-                    case .arm64e_shared_cache:
-                        let content = DyldChainedFixupPointerInfo.ARM64ESharedCache(rawValue: rawValue)
-                        fixupInfo = .arm64e_shared_cache(content)
-
-                    default:
-                        // unknown format
-                        stop = true
-                    }
-
-                } else {
-                    let rawValue = ptr.load(as: UInt32.self)
-                    switch pointerFormat {
-                    case ._32:
-                        let content = DyldChainedFixupPointerInfo.General32(rawValue: rawValue)
-                        fixupInfo = ._32(content)
-                    case ._32_cache:
-                        let content = DyldChainedFixupPointerInfo.General32Cache(rawValue: rawValue)
-                        fixupInfo = ._32_cache(content)
-                    case ._32_firmware:
-                        let content = DyldChainedFixupPointerInfo.General32Firmware(rawValue: rawValue)
-                        fixupInfo = ._32_firmware(content)
-                    default:
-                        // unknown format
-                        stop = true
-                    }
-                }
-
-                if let fixupInfo {
-                    let pointerOffset = numericCast(startsInSegment.segment_offset) + offset
-
-                    pointers.append(
-                        DyldChainedFixupPointer(
-                            offset: pointerOffset,
-                            fixupInfo: fixupInfo
-                        )
-                    )
-
-                    if fixupInfo.next == 0 {
-                        chainEnd = true
-                    } else {
-                        offset += stride * fixupInfo.next
-                    }
-                }
+            if fixupInfo.next == 0 {
+                chainEnd = true
+            } else {
+                offset += stride * fixupInfo.next
             }
         }
+    }
+}
+
+extension MachOFile.DyldChainedFixups {
+    public func pointer(for offset: UInt64, in machO: MachOFile) -> DyldChainedFixupPointer? {
+        guard let startsInImage = startsInImage else { return nil }
+        guard let startsInSegment = startsInSegments(of: startsInImage)
+            .first(where: {
+                let segmentSize = UInt64($0.page_size) * UInt64($0.page_count)
+                return $0.segment_offset <= offset && offset < $0.segment_offset + segmentSize
+            }) else {
+            return nil
+        }
+
+        let pages = pages(of: startsInSegment)
+        let pagesData = machO.fileHandle.readData(
+            offset: numericCast(machO.headerStartOffset) + startsInSegment.segment_offset,
+            size: pages.count * numericCast(startsInSegment.page_size)
+        )
+
+        for (index, page) in pages.enumerated() {
+            var offsetInPage = page.offset
+
+            if page.isNone { continue }
+            if page.isMulti {
+                var overflowIndex = Int(offsetInPage & ~UInt16(DYLD_CHAINED_PTR_START_MULTI))
+                var chainEnd = false
+                while !chainEnd {
+                    chainEnd = pages[overflowIndex].offset & UInt16(DYLD_CHAINED_PTR_START_LAST) != 0
+                    offsetInPage = pages[overflowIndex].offset & ~UInt16(DYLD_CHAINED_PTR_START_LAST)
+                    let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
+                    let chainOffset = pageContentStart + numericCast(offsetInPage)
+
+                    if let pointer = walkChainAndFindPointer(
+                        for: offset,
+                        chainOffset: chainOffset,
+                        data: pagesData,
+                        of: startsInSegment
+                    ) {
+                        return pointer
+                    }
+
+                    overflowIndex += 1
+                }
+            } else {
+                let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
+                let chainOffset = pageContentStart + numericCast(offsetInPage)
+
+                if let pointer = walkChainAndFindPointer(
+                    for: offset,
+                    chainOffset: chainOffset,
+                    data: pagesData,
+                    of: startsInSegment
+                ) {
+                    return pointer
+                }
+
+            }
+        }
+
+        return nil
+    }
+    private func walkChainAndFindPointer(
+        for targetOffset: UInt64,
+        chainOffset: Int,
+        data: Data,
+        of startsInSegment: DyldChainedStartsInSegment
+    ) -> DyldChainedFixupPointer? {
+        guard let pointerFormat = startsInSegment.pointerFormat else {
+            return nil
+        }
+        var chainOffset = chainOffset
+
+        let stride = pointerFormat.stride
+        var stop = false
+        var chainEnd = false
+
+        while !stop && !chainEnd {
+            guard let fixupInfo = _fixupInfo(
+                at: chainOffset,
+                in: data,
+                pointerFormat: pointerFormat
+            ) else {
+                stop = true
+                continue
+            }
+
+            let pointerOffset = numericCast(startsInSegment.segment_offset) + chainOffset
+
+            if pointerOffset == targetOffset {
+                return DyldChainedFixupPointer(
+                    offset: pointerOffset,
+                    fixupInfo: fixupInfo
+                )
+            }
+
+            if fixupInfo.next == 0 {
+                chainEnd = true
+            } else {
+                chainOffset += stride * fixupInfo.next
+            }
+        }
+
+        return nil
+    }
+}
+
+extension MachOFile.DyldChainedFixups {
+    @inline(__always)
+    private func _fixupInfo(
+        at offset: Int,
+        in data: Data,
+        pointerFormat: DyldChainedFixupPointerFormat
+    ) -> DyldChainedFixupPointerInfo? {
+        var fixupInfo: DyldChainedFixupPointerInfo?
+
+        if pointerFormat.is64Bit {
+            //            faster than below code
+            //            let rawValue = data.advanced(by: offset).withUnsafeBytes {
+            //                $0.load(as: UInt64.self)
+            //            }
+            guard let rawValue = data.withUnsafeBytes ({ bytes -> UInt64? in
+                guard let baseAddress = bytes.baseAddress else { return nil }
+                let ptr = baseAddress.advanced(by: offset)
+                return ptr.load(as: UInt64.self)
+            }) else { return nil }
+
+            switch pointerFormat {
+            case .arm64e, .arm64e_kernel, .arm64e_userland, .arm64e_firmware:
+                let content = DyldChainedFixupPointerInfo.ARM64E(rawValue: rawValue)
+                switch pointerFormat {
+                case .arm64e:
+                    fixupInfo = .arm64e(content)
+                case .arm64e_kernel:
+                    fixupInfo = .arm64e_kernel(content)
+                case .arm64e_userland:
+                    fixupInfo = .arm64e_userland(content)
+                case .arm64e_firmware:
+                    fixupInfo = .arm64e_firmware(content)
+                default: break
+                }
+
+            case .arm64e_userland24:
+                let content = DyldChainedFixupPointerInfo.ARM64EUserland24(rawValue: rawValue)
+                fixupInfo = .arm64e_userland24(content)
+
+            case ._64, ._64_offset:
+                let content = DyldChainedFixupPointerInfo.General64(rawValue: rawValue)
+                switch pointerFormat {
+                case ._64: fixupInfo = ._64(content)
+                case ._64_offset: fixupInfo = ._64_offset(content)
+                default: break
+                }
+
+            case ._64_kernel_cache, .x86_64_kernel_cache:
+                let content = DyldChainedFixupPointerInfo.General64Cache(rawValue: rawValue)
+                switch pointerFormat {
+                case ._64_kernel_cache:
+                    fixupInfo = ._64_kernel_cache(content)
+                case .x86_64_kernel_cache:
+                    fixupInfo = .x86_64_kernel_cache(content)
+                default: break
+                }
+
+            case .arm64e_shared_cache:
+                let content = DyldChainedFixupPointerInfo.ARM64ESharedCache(rawValue: rawValue)
+                fixupInfo = .arm64e_shared_cache(content)
+
+            default:
+                break
+            }
+        } else {
+            guard let rawValue = data.withUnsafeBytes ({ bytes -> UInt32? in
+                guard let baseAddress = bytes.baseAddress else { return nil }
+                let ptr = baseAddress.advanced(by: offset)
+                return ptr.load(as: UInt32.self)
+            }) else { return nil }
+
+            switch pointerFormat {
+            case ._32:
+                let content = DyldChainedFixupPointerInfo.General32(rawValue: rawValue)
+                fixupInfo = ._32(content)
+            case ._32_cache:
+                let content = DyldChainedFixupPointerInfo.General32Cache(rawValue: rawValue)
+                fixupInfo = ._32_cache(content)
+            case ._32_firmware:
+                let content = DyldChainedFixupPointerInfo.General32Firmware(rawValue: rawValue)
+                fixupInfo = ._32_firmware(content)
+            default:
+                break
+            }
+        }
+
+        return fixupInfo
     }
 }
