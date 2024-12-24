@@ -20,15 +20,12 @@ let package = Package(
             targets: ["MachOKitC"]
         )
     ],
-    dependencies: [
-        .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "4.0.0")
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "MachOKit",
             dependencies: [
-                "MachOKitC",
-                .product(name: "Crypto", package: "swift-crypto")
+                "MachOKitC"
             ],
             swiftSettings: SwiftSetting.allCases + [
                 .enableExperimentalFeature("AccessLevelOnImport", .when(configuration: .debug))
@@ -44,6 +41,22 @@ let package = Package(
         )
     ]
 )
+
+#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) &&  canImport(CommonCrypto)
+/* Do Nothing */
+#else
+package.dependencies += [
+    .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "4.0.0")
+]
+
+let machOKit = package.targets.first(where: { $0.name == "MachOKit" })
+machOKit?.dependencies += [
+    .product(
+        name: "Crypto",
+        package: "swift-crypto"
+    )
+]
+#endif
 
 // https://github.com/treastrain/swift-upcomingfeatureflags-cheatsheet
 extension SwiftSetting {
