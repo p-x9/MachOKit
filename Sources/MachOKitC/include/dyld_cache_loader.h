@@ -3,13 +3,16 @@
 //
 //
 //  Created by p-x9 on 2024/07/09
-//  
+//
 //
 
 #ifndef dyld_cache_loader_h
 #define dyld_cache_loader_h
 
+#include <stdint.h>
 #include <stdbool.h>
+//#include <uuid/uuid.h>
+typedef uint8_t uuid_t[16];
 // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/dyld/PrebuiltLoader.h#L254
 struct prebuilt_loader_set {
     uint32_t    magic;

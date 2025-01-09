@@ -24,6 +24,24 @@ extension MachOImage {
 }
 
 extension MachOImage {
+    /// The `MachOImage` instance of the image for which this function was called
+    public static func current(
+        _ dso: UnsafeRawPointer = #dsohandle
+    ) -> MachOImage {
+        .init(
+            ptr: dso.assumingMemoryBound(to: mach_header.self)
+        )
+    }
+
+    /// The `MachOImage` instance representing the current executable image.
+    public static var currentExecutable: MachOImage {
+        images.first(where: {
+            $0.header.fileType == .execute
+        })!
+    }
+}
+
+extension MachOImage {
     /// Obtains the symbol closest to the specified address.
     ///
     /// Finds the symbol closest to the specified address among all loaded machO images.

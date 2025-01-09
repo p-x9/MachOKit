@@ -97,9 +97,10 @@ public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
         guard let offset = resolvedMachOHeaderOffset(in: cache) else {
             return nil
         }
+        let imagePath = imagePath(in: cache)
         return try? .init(
             url: cache.url,
-            imagePath: "", // FIXME: path
+            imagePath: imagePath ?? "",
             headerStartOffsetInCache: numericCast(offset)
         )
     }
@@ -168,9 +169,10 @@ public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
         guard let offset = resolvedMachOHeaderOffset(in: cache) else {
             return nil
         }
+        let imagePath = imagePath(in: cache)
         return try? .init(
             url: cache.url,
-            imagePath: "", // FIXME: path
+            imagePath: imagePath ?? "",
             headerStartOffsetInCache: numericCast(offset)
         )
     }
@@ -198,5 +200,19 @@ extension ObjCHeaderInfoROProtocol {
             return nil
         }
         return fileOffset
+    }
+
+    internal func imagePath(in cache: DyldCache) -> String? {
+        let offset = offset + machOHeaderOffset
+        let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
+        guard let imageInfos = cache.imageInfos,
+              let imageInfo = imageInfos.first(
+                where: {
+                    $0.address == address
+                }
+              ) else {
+            return nil
+        }
+        return imageInfo.path(in: cache)
     }
 }

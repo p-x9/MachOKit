@@ -9,6 +9,9 @@
 #ifndef backports_h
 #define backports_h
 
+#ifndef __linux__
+
+#include <mach-o/loader.h>
 #include <stdint.h>
 
 #ifndef MH_IMPLICIT_PAGEZERO
@@ -41,5 +44,6 @@
 #define PLATFORM_VISIONOSSIMULATOR 12
 #endif
 
+#endif /* __linux__ */
 
 #endif /* backports_h */

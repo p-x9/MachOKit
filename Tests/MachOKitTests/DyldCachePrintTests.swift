@@ -285,11 +285,7 @@ final class DyldCachePrintTests: XCTestCase {
             XCTAssertEqual(info.mhdr_offset, _info.mhdr_offset)
             XCTAssertEqual(info.info_offset, _info.info_offset)
 
-            let path = machO.loadCommands
-                .info(of: LoadCommand.idDylib)?
-                .dylib(in: machO)
-                .name ?? "unknonw"
-            print(" \(path), offset: \(machO.headerStartOffsetInCache)")
+            print(" \(machO.imagePath), offset: \(machO.headerStartOffsetInCache)")
         }
     }
 
