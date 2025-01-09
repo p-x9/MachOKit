@@ -8,6 +8,10 @@
 
 import Foundation
 import MachOKitC
+
+#if canImport(CommonCrypto)
+import CommonCrypto
+#else
 #if compiler(>=6.0)
 private import Crypto
 #elseif compiler(>=5.10) && hasFeature(AccessLevelOnImport)
@@ -15,6 +19,7 @@ private import Crypto
 #else
 @_implementationOnly import Crypto
 #endif
+#endif /* canImport(CommonCrypto) */
 
 public struct CodeSignCodeDirectory: LayoutWrapper {
     public typealias Layout = CS_CodeDirectory
@@ -63,17 +68,7 @@ extension CodeSignCodeDirectory {
         in signature: MachOFile.CodeSign
     ) -> Data? {
         let data = signature.data[offset ..< offset + numericCast(layout.length)]
-
-        switch hashType {
-        case .sha1:
-            return Data(Insecure.SHA1.hash(data: data))
-        case .sha256, .sha256_truncated:
-            return Data(SHA256.hash(data: data))
-        case .sha384:
-            return Data(SHA384.hash(data: data))
-        case .none:
-            return nil
-        }
+        return _hash(for: data)
     }
 
     public func hash(
@@ -83,7 +78,37 @@ extension CodeSignCodeDirectory {
             bytes: signature.basePointer.advanced(by: offset),
             count: numericCast(layout.length)
         )
+        return _hash(for: data)
+    }
+}
 
+extension CodeSignCodeDirectory {
+    private func _hash(for data: Data) -> Data? {
+#if canImport(CommonCrypto)
+        let length: CC_LONG = numericCast(data.count)
+
+        return data.withUnsafeBytes {
+            guard let baseAddress = $0.baseAddress else {
+                return nil
+            }
+            switch hashType {
+            case .sha1:
+                var digest = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
+                CC_SHA1(baseAddress, length, &digest)
+                return Data(digest)
+            case .sha256, .sha256_truncated:
+                var digest = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+                CC_SHA256(baseAddress, length, &digest)
+                return Data(digest)
+            case .sha384:
+                var digest = [UInt8](repeating: 0, count: Int(CC_SHA384_DIGEST_LENGTH))
+                CC_SHA384(baseAddress, length, &digest)
+                return Data(digest)
+            case .none:
+                return nil
+            }
+        }
+#else
         switch hashType {
         case .sha1:
             return Data(Insecure.SHA1.hash(data: data))
@@ -94,6 +119,7 @@ extension CodeSignCodeDirectory {
         case .none:
             return nil
         }
+#endif
     }
 }
 
