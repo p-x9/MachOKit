@@ -63,6 +63,7 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         for info in infos {
             print("----")
             print("Address:", String(info.address, radix: 16))
+            print("Name:", info.mappingName ?? "unknown")
             print("File Offset::", String(info.fileOffset, radix: 16))
             print("Size:", String(info.size, radix: 16))
             print("Flags:", info.flags.bits)

@@ -82,3 +82,46 @@ extension DyldCacheMappingAndSlideInfo {
         }
     }
 }
+
+extension DyldCacheMappingAndSlideInfo {
+    // [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/DyldSharedCache.cpp#L305)
+    public var mappingName: String? {
+        switch maxProtection {
+        case _ where maxProtection.contains(.execute):
+            if flags.contains(.textStubs) {
+                return  "__TEXT_STUBS"
+            } else {
+                return "__TEXT"
+            }
+        case _ where maxProtection.contains(.write):
+            if flags.contains(.authData) {
+                if flags.contains(.dirtyData) {
+                    return "__AUTH_DIRTY"
+                } else if flags.contains(.constTproData) {
+                    return "__AUTH_TPRO_CONST"
+                } else if flags.contains(.constData) {
+                    return "__AUTH_CONST"
+                } else {
+                    return "__AUTH"
+                }
+            } else {
+                if flags.contains(.dirtyData) {
+                    return "__DATA_DIRTY"
+                } else if flags.contains(.constTproData) {
+                    return "__TPRO_CONST"
+                } else if flags.contains(.constData) {
+                    return "__DATA_CONST"
+                } else {
+                    return "__DATA"
+                }
+            }
+        case _ where maxProtection.contains(.read):
+            if flags.contains(.readOnlyData) {
+                return "__READ_ONLY"
+            } else {
+                return "__LINKEDIT"
+            }
+        default: return nil
+        }
+    }
+}
