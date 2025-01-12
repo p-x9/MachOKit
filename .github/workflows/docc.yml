@@ -1,6 +1,7 @@
 name: DocC
 
 on:
+  workflow_call:
   workflow_dispatch:
 
 jobs:
