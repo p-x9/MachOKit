@@ -35,7 +35,7 @@ jobs:
 
   linux-build:
     name: Linux Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Install Swift
         # WORKAROUND:https://github.com/swift-actions/setup-swift/pull/680
