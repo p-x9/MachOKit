@@ -458,29 +458,26 @@ extension MachOFilePrintTests {
     }
 
     func testThreadCommand() {
-        let path = "/usr/local/bin/texindex" // has thread command
+        let path = "/cores/core.2627" // has thread command
         let url = URL(fileURLWithPath: path)
         guard let machO = try? MachOFile(url: url) else { return }
 
         let commands = Array(machO.loadCommands.infos(of: LoadCommand.thread))
         + Array(machO.loadCommands.infos(of: LoadCommand.unixthread))
 
+        let cpuType = machO.header.cpuType!
+
         for command in commands {
+            let flavor = command.flavor(
+                in: machO,
+                cpuType: cpuType
+            )
             print("Flavor:",
-                  command.flavor(
-                    in: machO,
-                    cpuType: machO.header.cpuType!
-                  )?.description ?? "unknown"
+                  flavor?.description ?? "unknown"
             )
             print("Count:", command.count(in: machO) ?? 0)
-            if let state = command.stateData(in: machO) {
-                print(
-                    "State:",
-                    state.withUnsafeBytes {
-                        [UInt64]($0.bindMemory(to: UInt64.self))
-                    }.map { "0x" + String($0, radix: 16) }
-                        .joined(separator: ", ")
-                )
+            if let state = command.state(in: machO, cpuType: cpuType) {
+                print("State:", state)
             }
         }
     }

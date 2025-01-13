@@ -392,22 +392,22 @@ extension MachOPrintTests {
         let commands = Array(machO.loadCommands.infos(of: LoadCommand.thread))
         + Array(machO.loadCommands.infos(of: LoadCommand.unixthread))
 
+        let cpuType = machO.header.cpuType!
+
         for command in commands {
+            let flavor = command.flavor(
+                cmdsStart: machO.cmdsStartPtr,
+                cpuType: cpuType
+            )
             print("Flavor:",
-                  command.flavor(
-                    cmdsStart: machO.cmdsStartPtr,
-                    cpuType: machO.header.cpuType!
-                  )?.description ?? "unknown"
+                  flavor?.description ?? "unknown"
             )
             print("Count:", command.count(cmdsStart: machO.cmdsStartPtr) ?? 0)
-            if let state = command.stateData(cmdsStart: machO.cmdsStartPtr) {
-                print(
-                    "State:",
-                    state.withUnsafeBytes {
-                        [UInt64]($0.bindMemory(to: UInt64.self))
-                    }.map { "0x" + String($0, radix: 16) }
-                        .joined(separator: ", ")
-                )
+            if let state = command.state(
+                cmdsStart: machO.cmdsStartPtr,
+                cpuType: cpuType
+            ) {
+                print("State:", state)
             }
         }
     }
