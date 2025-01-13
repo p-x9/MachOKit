@@ -39,6 +39,22 @@ extension MachOImage {
             $0.header.fileType == .execute
         })!
     }
+
+    /// The `MachOImage` instance containing the specified memory address.
+    ///
+    /// This method searches through all loaded Mach-O images and returns the one that contains  the specified address within its range.
+    /// If no matching image is found, the method returns `nil`.
+    ///
+    /// - Parameter address: The memory address to search.
+    /// - Returns: A `MachOImage` instance if an image containing the address is found; otherwise, `nil`.
+    public static func image(
+        for address: UnsafeRawPointer
+    ) -> MachOImage? {
+        guard let header = dyld_image_header_containing_address(address) else {
+            return nil
+        }
+        return .init(ptr: header)
+    }
 }
 
 extension MachOImage {
