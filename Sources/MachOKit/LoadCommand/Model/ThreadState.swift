@@ -9,20 +9,11 @@
 import Foundation
 import MachOKitC
 
-public enum ThreadState/*: CustomStringConvertible*/ {
+public enum ThreadState {
     case arm(ARMThreadState)
     case arm64(ARM64ThreadState)
     case i386(i386ThreadState)
     case x86_64(x86_64ThreadState)
-
-//        public var description: String {
-//            switch self {
-//            case let .arm(flavor): flavor.description
-//            case let .arm64(flavor): flavor.description
-//            case let .i386(flavor): flavor.description
-//            case let .x86_64(flavor): flavor.description
-//            }
-//        }
 }
 
 public struct x86_64ThreadState: LayoutWrapper {

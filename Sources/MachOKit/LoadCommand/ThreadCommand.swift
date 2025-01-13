@@ -117,27 +117,27 @@ extension ThreadCommand {
     public func flavor(
         cmdsStart: UnsafeRawPointer,
         cpuType: CPUType
-    ) -> Flavor? {
+    ) -> ThreadStateFlavor? {
         guard let rawValue = _flavor(cmdsStart: cmdsStart) else {
             return nil
         }
-        return flavor(rawValue: rawValue, cpuType: cpuType)
+        return _flavor(rawValue: rawValue, cpuType: cpuType)
     }
 
     public func flavor(
         in machO: MachOFile,
         cpuType: CPUType
-    ) -> Flavor? {
+    ) -> ThreadStateFlavor? {
         guard let rawValue = _flavor(in: machO) else {
             return nil
         }
-        return flavor(rawValue: rawValue, cpuType: cpuType)
+        return _flavor(rawValue: rawValue, cpuType: cpuType)
     }
 
-    private func flavor(
+    private func _flavor(
         rawValue: UInt32,
         cpuType: CPUType
-    ) -> Flavor? {
+    ) -> ThreadStateFlavor? {
         switch cpuType {
         case .arm, .arm64, .arm64_32:
             let flavor = ARMThreadStateFlavor(rawValue: rawValue)
@@ -161,17 +161,66 @@ extension ThreadCommand {
 }
 
 extension ThreadCommand {
-    public enum Flavor: CustomStringConvertible {
-        case arm(ARMThreadStateFlavor)
-        case i386(i386ThreadStateFlavor)
-        case x86_64(x86ThreadStateFlavor)
-
-        public var description: String {
-            switch self {
-            case let .arm(flavor): flavor.description
-            case let .i386(flavor): flavor.description
-            case let .x86_64(flavor): flavor.description
-            }
+    public func state(
+        cmdsStart: UnsafeRawPointer,
+        cpuType: CPUType
+    ) -> ThreadState? {
+        guard let data = stateData(cmdsStart: cmdsStart) else {
+            return nil
         }
+        return _state(data: data, cpuType: cpuType)
+    }
+
+    public func state(
+        in machO: MachOFile,
+        cpuType: CPUType
+    ) -> ThreadState? {
+        guard let data = stateData(in: machO) else {
+            return nil
+        }
+        return _state(data: data, cpuType: cpuType)
+    }
+
+    private func _state(
+        data: Data,
+        cpuType: CPUType
+    ) -> ThreadState? {
+        switch cpuType {
+        case .arm, .arm64_32:
+            guard data.count == ARMThreadState.layoutSize else {
+                return nil
+            }
+            let state = data.withUnsafeBytes {
+                $0.load(as: ARMThreadState.self)
+            }
+            return .arm(state)
+
+        case .arm64:
+            guard data.count == ARM64ThreadState.layoutSize else {
+                return nil
+            }
+            let state = data.withUnsafeBytes {
+                $0.load(as: ARM64ThreadState.self)
+            }
+            return .arm64(state)
+        case .i386, .x86:
+            guard data.count == i386ThreadState.layoutSize else {
+                return nil
+            }
+            let state = data.withUnsafeBytes {
+                $0.load(as: i386ThreadState.self)
+            }
+            return .i386(state)
+        case .x86_64:
+            guard data.count == x86_64ThreadState.layoutSize else {
+                return nil
+            }
+            let state = data.withUnsafeBytes {
+                $0.load(as: x86_64ThreadState.self)
+            }
+            return .x86_64(state)
+        default: break
+        }
+        return nil
     }
 }
