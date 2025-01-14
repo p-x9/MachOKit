@@ -8,6 +8,20 @@
 
 import Foundation
 
+public enum ThreadStateFlavor: CustomStringConvertible {
+    case arm(ARMThreadStateFlavor)
+    case i386(i386ThreadStateFlavor)
+    case x86_64(x86ThreadStateFlavor)
+
+    public var description: String {
+        switch self {
+        case let .arm(flavor): flavor.description
+        case let .i386(flavor): flavor.description
+        case let .x86_64(flavor): flavor.description
+        }
+    }
+}
+
 // MARK: - x86
 public enum x86ThreadStateFlavor: UInt32, CaseIterable {
     case thread_state32 = 1
