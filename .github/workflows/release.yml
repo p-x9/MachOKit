@@ -74,5 +74,7 @@ jobs:
             ./XCFrameworks/MachOKit.xcframework.zip
             ./XCFrameworks/MachOKitC.xcframework.zip
 
-      - name: Deploy Document
-        uses: ./.github/workflows/docc.yml
+  docc:
+    name: Deploy Document
+    needs: [build]
+    uses: ./.github/workflows/docc.yml
