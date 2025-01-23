@@ -489,7 +489,7 @@ extension MachORepresentable where Symbol == MachOFile.Symbol {
             named: name,
             isGlobalOnly: isGlobalOnly,
             matchesName: { nameC, symbol in
-                if strcmp(nameC, symbol.name) == 0 {
+                if strcmp(nameC, symbol.name) == 0 || strcmp(nameC, "_" + symbol.name) == 0 {
                     return true
                 } else if !mangled {
                     let demangled = stdlib_demangleName(symbol.name)
@@ -523,7 +523,7 @@ extension MachORepresentable where Symbol == MachOImage.Symbol {
             named: name,
             isGlobalOnly: isGlobalOnly,
             matchesName: { nameC, symbol in
-                if strcmp(nameC, symbol.name) == 0 {
+                if strcmp(nameC, symbol.nameC) == 0 || strcmp(nameC, symbol.nameC + 1) == 0 {
                     return true
                 } else if !mangled {
                     let demangled = stdlib_demangleName(symbol.nameC)
