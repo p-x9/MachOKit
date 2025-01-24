@@ -323,6 +323,18 @@ extension MachOPrintTests {
                 print("Stub:", stub)
                 print("Resolver:", resolver)
             }
+
+            if let resolver = symbol.resolver(for: machO) {
+                let resolvedOffset = resolver()
+                print("Resolved Offset:", "0x" + String(resolvedOffset, radix: 16))
+
+                let RTLD_DEFAULT = UnsafeMutableRawPointer(bitPattern: -2)
+                var name = symbol.name
+                name.removeFirst() // remove `_`
+
+                let sym = dlsym(RTLD_DEFAULT, name)
+                XCTAssertEqual(resolvedOffset, UInt(bitPattern: sym))
+            }
         }
     }
 }
