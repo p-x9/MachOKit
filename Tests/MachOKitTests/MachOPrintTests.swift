@@ -319,7 +319,7 @@ extension MachOPrintTests {
                 print("Imported Name:", importedName)
             }
 
-            if let stub = symbol.stub, let resolver = symbol.resolver {
+            if let stub = symbol.stub, let resolver = symbol.resolverOffset {
                 print("Stub:", stub)
                 print("Resolver:", resolver)
             }

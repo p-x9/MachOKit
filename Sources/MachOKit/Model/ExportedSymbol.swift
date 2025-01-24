@@ -20,5 +20,5 @@ public struct ExportedSymbol {
     var importedName: String?
 
     var stub: UInt?
-    var resolver: UInt?
+    var resolverOffset: UInt?
 }

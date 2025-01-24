@@ -28,7 +28,7 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
                     ordinal: content.ordinal,
                     importedName: content.importedName,
                     stub: content.stub,
-                    resolver: content.resolver
+                    resolverOffset: content.resolver
                 )
             }
     }
@@ -48,7 +48,7 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
             ordinal: content.ordinal,
             importedName: content.importedName,
             stub: content.stub,
-            resolver: content.stub
+            resolverOffset: content.stub
         )
     }
 }
