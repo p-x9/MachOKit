@@ -22,3 +22,12 @@ public struct ExportedSymbol {
     var stub: UInt?
     var resolverOffset: UInt?
 }
+
+extension ExportedSymbol {
+    func resolver(for machO: MachOImage) -> (@convention(c) () -> UInt)? {
+        guard let resolverOffset else { return nil }
+        return autoBitCast(
+            machO.ptr.advanced(by: numericCast(resolverOffset))
+        )
+    }
+}
