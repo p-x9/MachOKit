@@ -20,5 +20,15 @@ public struct ExportedSymbol {
     var importedName: String?
 
     var stub: UInt?
-    var resolver: UInt?
+    var resolverOffset: UInt?
+}
+
+extension ExportedSymbol {
+    // [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/MachOLoaded.cpp#L258)
+    func resolver(for machO: MachOImage) -> (@convention(c) () -> UInt)? {
+        guard let resolverOffset else { return nil }
+        return autoBitCast(
+            machO.ptr.advanced(by: numericCast(resolverOffset))
+        )
+    }
 }
