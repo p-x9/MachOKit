@@ -37,10 +37,17 @@ public protocol SectionProtocol: LayoutWrapper {
     ///   - segment: Segment to which this section belongs
     ///   - vmaddrSlide: slide
     /// - Returns: Pointer where this section starts
+    @available(*, deprecated, renamed: "startPtr(vmaddrSlide:)")
     func startPtr(
         in segment: any SegmentCommandProtocol,
         vmaddrSlide: Int
     ) -> UnsafeRawPointer?
+
+    /// Get the pointer where this section starts
+    /// - Parameters:
+    ///   - vmaddrSlide: slide
+    /// - Returns: Pointer where this section starts
+    func startPtr(vmaddrSlide: Int) -> UnsafeRawPointer?
 
     /// returns nil except when type is `cstring_literals
     func strings(
@@ -66,6 +73,11 @@ extension SectionProtocol {
         segment.startPtr(vmaddrSlide: vmaddrSlide)?
             .advanced(by: -segment.fileOffset)
             .advanced(by: offset)
+    }
+
+    public func startPtr(vmaddrSlide: Int) -> UnsafeRawPointer? {
+        let address = vmaddrSlide + address
+        return UnsafeRawPointer(bitPattern: address)
     }
 }
 
