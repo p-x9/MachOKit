@@ -151,6 +151,8 @@ public protocol MachORepresentable {
     ///
     /// Behaves almost identically to the `dladdr` function
     ///
+    /// If sectionNumber is 0, search in all sections
+    ///
     /// - Parameters:
     ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
     ///   - sectionNumber: Section number to be searched.
@@ -166,6 +168,8 @@ public protocol MachORepresentable {
     ///
     /// Different from ``closestSymbol(at:inSection:isGlobalOnly:)`` multiple symbols with the same offset may be found.
     ///
+    /// If sectionNumber is 0, search in all sections
+    ///
     /// - Parameters:
     ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
     ///   - sectionNumber: Section number to be searched.
@@ -178,21 +182,36 @@ public protocol MachORepresentable {
     ) -> [Symbol]
 
     /// Find the symbol matching the specified offset.
+    ///
+    /// If sectionNumber is 0, search in all sections
+    ///
     /// - Parameters:
     ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
-    func symbol(for offset: Int, isGlobalOnly: Bool) -> Symbol?
+    func symbol(
+        for offset: Int,
+        inSection sectionNumber: Int,
+        isGlobalOnly: Bool
+    ) -> Symbol?
 
     /// Find the symbols matching the specified offset.
     ///
     /// Different from ``symbol(for:isGlobalOnly:)`` multiple symbols with the same offset may be found.
     ///
+    /// If sectionNumber is 0, search in all sections
+    ///
     /// - Parameters:
     ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbols
-    func symbols(for offset: Int, isGlobalOnly: Bool) -> [Symbol]
+    func symbols(
+        for offset: Int,
+        inSection sectionNumber: Int,
+        isGlobalOnly: Bool
+    ) -> [Symbol]
 
     /// Find the symbol matching the given name.
     /// - Parameters:
@@ -203,12 +222,21 @@ public protocol MachORepresentable {
 
     /// Find the symbol matching the given name
     /// Search only for symbols defined within this mach-o
+    ///
+    /// If sectionNumber is 0, search in all sections
+    ///
     /// - Parameters:
     ///   - name: Symbol name to find
     ///   - mangled: A boolean value that indicates whether the specified name is mangled with Swift
+    ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
-    func symbol(named name: String, mangled: Bool, isGlobalOnly: Bool) -> Symbol?
+    func symbol(
+        named name: String,
+        mangled: Bool,
+        inSection sectionNumber: Int,
+        isGlobalOnly: Bool
+    ) -> Symbol?
 }
 
 extension MachORepresentable {
@@ -446,10 +474,12 @@ extension MachORepresentable {
 extension MachORepresentable {
     public func symbol(
         for offset: Int,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> Symbol? {
         let best = closestSymbol(
             at: offset,
+            inSection: sectionNumber,
             isGlobalOnly: isGlobalOnly
         )
         return best?.offset == offset ? best : nil
@@ -457,10 +487,12 @@ extension MachORepresentable {
 
     public func symbols(
         for offset: Int,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> [Symbol] {
         let best = closestSymbols(
             at: offset,
+            inSection: sectionNumber,
             isGlobalOnly: isGlobalOnly
         )
         return best.first?.offset == offset ? best : []
@@ -483,10 +515,12 @@ extension MachORepresentable where Symbol == MachOFile.Symbol {
     public func symbol(
         named name: String,
         mangled: Bool = true,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> Symbol? {
         _symbol(
             named: name,
+            inSection: sectionNumber,
             isGlobalOnly: isGlobalOnly,
             matchesName: { nameC, symbol in
                 if strcmp(nameC, symbol.name) == 0 || strcmp(nameC, "_" + symbol.name) == 0 {
@@ -517,10 +551,12 @@ extension MachORepresentable where Symbol == MachOImage.Symbol {
     public func symbol(
         named name: String,
         mangled: Bool = true,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> Symbol? {
         _symbol(
             named: name,
+            inSection: sectionNumber,
             isGlobalOnly: isGlobalOnly,
             matchesName: { nameC, symbol in
                 if strcmp(nameC, symbol.nameC) == 0 || strcmp(nameC, symbol.nameC + 1) == 0 {
@@ -538,6 +574,7 @@ extension MachORepresentable where Symbol == MachOImage.Symbol {
 extension MachORepresentable {
     private func _symbol(
         named name: String,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false,
         matchesName: ([CChar], Symbol) -> Bool
     ) -> Symbol? { // swiftlint:disable:this cyclomatic_complexity
@@ -555,7 +592,10 @@ extension MachORepresentable {
             for i in globalStart ..< globalStart + globalCount {
                 let symbol = symbols[AnyIndex(i)]
                 let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
                 guard nlist.flags?.type == .sect,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
                       matchesName(nameC, symbol) else {
                     continue
                 }
@@ -569,8 +609,11 @@ extension MachORepresentable {
             for i in localStart ..< localStart + localCount {
                 let symbol = symbols[AnyIndex(i)]
                 let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
                 guard nlist.flags?.type == .sect,
                       nlist.flags?.stab == nil,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
                       matchesName(nameC, symbol) else {
                     continue
                 }
@@ -580,10 +623,12 @@ extension MachORepresentable {
             // find closest match in locals
             for symbol in symbols {
                 let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
                 guard nlist.flags?.type == .sect,
                       nlist.flags?.stab == nil,
-                      matchesName(nameC, symbol),
-                      !isGlobalOnly || nlist.flags?.contains(.ext) ?? false else {
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
+                      !isGlobalOnly || nlist.flags?.contains(.ext) ?? false,
+                      matchesName(nameC, symbol) else {
                     continue
                 }
                 bestSymbol = symbol
