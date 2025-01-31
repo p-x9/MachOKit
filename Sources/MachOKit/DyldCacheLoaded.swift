@@ -350,7 +350,6 @@ extension DyldCacheLoaded {
             return nil
         }
 
-        let text: any SegmentCommandProtocol
         let __objc_opt_ro: any SectionProtocol
 
         if libobjc.is64Bit {
@@ -360,7 +359,6 @@ extension DyldCacheLoaded {
                   }) else {
                 return nil
             }
-            text = _text
             __objc_opt_ro = section
         } else {
             guard let _text = libobjc.loadCommands.text,
@@ -369,16 +367,16 @@ extension DyldCacheLoaded {
                   }) else {
                 return nil
             }
-            text = _text
             __objc_opt_ro = section
         }
 
         guard let start = __objc_opt_ro.startPtr(
-            in: text,
             vmaddrSlide: vmaddrSlide
         ) else { return nil }
+
         let layout: OldObjCOptimization.Layout = start
                 .autoBoundPointee()
+
         return .init(
             layout: layout,
             offset: Int(bitPattern: start) - Int(bitPattern: ptr)

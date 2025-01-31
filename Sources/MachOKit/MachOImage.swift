@@ -283,13 +283,13 @@ extension MachOImage {
                 $0.sectionName == "__cstring"
             }
             guard let cstrings else { return nil }
-            return cstrings.strings(in: text, vmaddrSlide: vmaddrSlide)
+            return cstrings.strings(vmaddrSlide: vmaddrSlide)
         } else if let text = loadCommands.text {
             let cstrings = text.sections(cmdsStart: cmdsStartPtr).first {
                 $0.sectionName == "__cstring"
             }
             guard let cstrings else { return nil }
-            return cstrings.strings(in: text, vmaddrSlide: vmaddrSlide)
+            return cstrings.strings(vmaddrSlide: vmaddrSlide)
         }
         return nil
     }
@@ -301,7 +301,7 @@ extension MachOImage {
             return segments.flatMap { segment in
                 segment.sections(cmdsStart: cmdsStartPtr)
                     .compactMap { section in
-                        section.strings(in: segment, vmaddrSlide: vmaddrSlide)
+                        section.strings(vmaddrSlide: vmaddrSlide)
                     }
             }
         } else {
@@ -309,7 +309,7 @@ extension MachOImage {
             return segments.flatMap { segment in
                 segment.sections(cmdsStart: cmdsStartPtr)
                     .compactMap { section in
-                        section.strings(in: segment, vmaddrSlide: vmaddrSlide)
+                        section.strings(vmaddrSlide: vmaddrSlide)
                     }
             }
         }
