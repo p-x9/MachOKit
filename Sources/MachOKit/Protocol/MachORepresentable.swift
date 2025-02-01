@@ -14,6 +14,8 @@ public protocol MachORepresentable {
     associatedtype Symbols64: RandomAccessCollection<Symbol>
     associatedtype Symbols: RandomAccessCollection<Symbol>
     associatedtype IndirectSymbols: RandomAccessCollection<IndirectSymbol>
+    associatedtype CFStrings32: RandomAccessCollection<CFString32>
+    associatedtype CFStrings64: RandomAccessCollection<CFString64>
     associatedtype RebaseOperations: Sequence<RebaseOperation>
     associatedtype BindOperations: Sequence<BindOperation>
     associatedtype ExportTrie: Sequence<ExportTrieEntry>
@@ -81,6 +83,13 @@ public protocol MachORepresentable {
     ///
     /// Symbol strings is not included.
     var allCStrings: [String] { get }
+
+    /// List of CFStrings in all segments
+    var cfStrings: [any CFStringProtocol]? { get }
+    /// List of CFStrings in 64-bit architecture segments
+    var cfStrings64: CFStrings64? { get }
+    /// List of CFStrings in 32-bit architecture segments
+    var cfStrings32: CFStrings32? { get }
 
     /// Sequence of rebase operations
     var rebaseOperations: RebaseOperations? { get }
@@ -275,6 +284,16 @@ extension MachORepresentable {
             AnyRandomAccessCollection(symbols32)
         } else {
             AnyRandomAccessCollection([])
+        }
+    }
+}
+
+extension MachORepresentable {
+    public var cfStrings: [any CFStringProtocol]? {
+        if is64Bit {
+            cfStrings64?.map { $0 as (any CFStringProtocol) }
+        } else {
+            cfStrings32?.map { $0 as (any CFStringProtocol) }
         }
     }
 }
