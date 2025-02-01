@@ -80,7 +80,7 @@ extension CFStringProtocol {
         if isUnicode {
             let data = machO.fileHandle.readData(
                 offset: UInt64(offset),
-                size: numericCast(stringSize) * numericCast(MemoryLayout<UniChar>.size)
+                size: numericCast(stringSize) * numericCast(MemoryLayout<UInt16/*UInt16*/>.size)
             )
             return String(bytes: data, encoding: .utf16LittleEndian)
         } else {
@@ -97,7 +97,7 @@ extension CFStringProtocol {
         }
 
         if isUnicode {
-            let data = Data(bytes: ptr, count: numericCast(stringSize) * numericCast(MemoryLayout<UniChar>.size))
+            let data = Data(bytes: ptr, count: numericCast(stringSize) * numericCast(MemoryLayout<UInt16/*UniChar*/>.size))
             return String(bytes: data, encoding: .utf16LittleEndian)
         } else {
             return .init(
