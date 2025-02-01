@@ -10,13 +10,24 @@ import Foundation
 import MachOKitC
 
 public protocol CFStringProtocol {
+    /// Offset at which string data is stored
     var stringOffset: Int { get }
+    /// Number (in terms of UTF-16 code pairs) of Unicode characters in a string.
     var stringSize: Int { get }
 
+    /// A Boolean value that indicates whether the String data is stored in unicode or not.
     var isUnicode: Bool { get }
+    /// A Boolean value that indicates whether the String data is stored in 8-bit or not.
     var isEightBit: Bool { get }
-
+    
+    /// Obtain a stored string as a `Swift.String`
+    /// - Parameter machO: MachOFile to which `self` belongs
+    /// - Returns: stored string
     func string(in machO: MachOFile) -> String?
+
+    /// Obtain a stored string as a `Swift.String`
+    /// - Parameter machO: MachOImage to which `self` belongs
+    /// - Returns: stored string
     func string(in machO: MachOImage) -> String?
 }
 
