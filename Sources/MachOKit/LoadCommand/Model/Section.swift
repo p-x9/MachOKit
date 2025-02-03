@@ -34,21 +34,27 @@ public protocol SectionProtocol: LayoutWrapper {
 
     /// Get the pointer where this section starts
     /// - Parameters:
-    ///   - segment: Segment to which this section belongs
     ///   - vmaddrSlide: slide
     /// - Returns: Pointer where this section starts
-    func startPtr(
-        in segment: any SegmentCommandProtocol,
-        vmaddrSlide: Int
-    ) -> UnsafeRawPointer?
+    func startPtr(vmaddrSlide: Int) -> UnsafeRawPointer?
 
+    /// Get the data in this section as a string table
+    ///
     /// returns nil except when type is `cstring_literals
+    ///
+    /// - Parameters:
+    ///   - vmaddrSlide: slide
+    /// - Returns: string table
     func strings(
-        in segment: any SegmentCommandProtocol,
         vmaddrSlide: Int
     ) -> MachOImage.Strings?
 
+    /// Get the data in this section as a string table
+    ///
     /// returns nil except when type is `cstring_literals
+    ///
+    /// - Parameter machO: MachOFile to which `self` belongs
+    /// - Returns: string table
     func strings(in machO: MachOFile) -> MachOFile.Strings?
 
     /// relocation informations.
@@ -62,10 +68,21 @@ public protocol SectionProtocol: LayoutWrapper {
 }
 
 extension SectionProtocol {
+    /// Get the pointer where this section starts
+    /// - Parameters:
+    ///   - segment: Segment to which this section belongs
+    ///   - vmaddrSlide: slide
+    /// - Returns: Pointer where this section starts
+    @available(*, deprecated, renamed: "startPtr(vmaddrSlide:)", message: "No need to provide segment.")
     public func startPtr(in segment: any SegmentCommandProtocol, vmaddrSlide: Int) -> UnsafeRawPointer? {
         segment.startPtr(vmaddrSlide: vmaddrSlide)?
             .advanced(by: -segment.fileOffset)
             .advanced(by: offset)
+    }
+
+    public func startPtr(vmaddrSlide: Int) -> UnsafeRawPointer? {
+        let address = vmaddrSlide + address
+        return UnsafeRawPointer(bitPattern: address)
     }
 }
 
@@ -194,13 +211,27 @@ extension Section64 {
 }
 
 extension SectionProtocol {
+    /// Get the data in this section as a string table
+    ///
+    /// returns nil except when type is `cstring_literals
+    ///
+    /// - Parameters:
+    ///   - segment: sgment to which this section belongs
+    ///   - vmaddrSlide: slide
+    /// - Returns: string table
+    @available(*, deprecated, renamed: "strings(vmaddrSlide:)", message: "No need to provide segment")
     public func strings(
         in segment: any SegmentCommandProtocol,
         vmaddrSlide: Int
     ) -> MachOImage.Strings? {
+        strings(vmaddrSlide: vmaddrSlide)
+    }
+
+    public func strings(
+        vmaddrSlide: Int
+    ) -> MachOImage.Strings? {
         guard flags.type == .cstring_literals else { return nil }
         guard let basePointer = startPtr(
-            in: segment,
             vmaddrSlide: vmaddrSlide
         ) else {
             return nil
