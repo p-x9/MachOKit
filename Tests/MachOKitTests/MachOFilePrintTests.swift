@@ -285,6 +285,15 @@ final class MachOFilePrintTests: XCTestCase {
             print(i, cstring)
         }
     }
+
+    func testCFStrings() {
+        guard let cfStrings = machO.cfStrings else { return }
+        for (i, cfString) in cfStrings.enumerated() {
+            let string = cfString.string(in: machO) ?? ""
+            let type = cfString.isUnicode ? "Unicode" : "8-bit"
+            print(i, type, cfString.stringSize, string)
+        }
+    }
 }
 
 extension MachOFilePrintTests {
