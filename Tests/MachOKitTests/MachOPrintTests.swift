@@ -217,6 +217,14 @@ final class MachOPrintTests: XCTestCase {
         }
     }
 
+    func testUStrings() throws {
+        guard let cstrings = machO.uStrings else { return }
+        for (i, cstring) in cstrings.enumerated() {
+            let ptr = cstrings.basePointer.advanced(by: cstring.offset)
+            print(i, "0x" + String(Int(bitPattern: ptr), radix: 16), cstring.string)
+        }
+    }
+
     func testCFStrings() {
         guard let cfStrings = machO.cfStrings else { return }
         for (i, cfString) in cfStrings.enumerated() {
