@@ -319,6 +319,24 @@ extension MachOImage {
     public var allCStrings: [String] {
         allCStringTables.flatMap { $0.map(\.string) }
     }
+
+    public var uStrings: UTF16Strings? {
+        guard let vmaddrSlide else { return nil }
+        guard let section = sections64.first(where: {
+            $0.sectionName == "__ustring"
+        }) else { return nil }
+
+        guard let start = section.startPtr(vmaddrSlide: vmaddrSlide) else {
+            return nil
+        }
+
+        return .init(
+            basePointer: start
+                .assumingMemoryBound(to: UInt16.self),
+            tableSize: numericCast(section.size),
+            isLittleEndian: true
+        )
+    }
 }
 
 extension MachOImage {

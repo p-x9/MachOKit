@@ -278,6 +278,21 @@ extension MachOFile {
     public var allCStrings: [String] {
         allCStringTables.flatMap { $0.map(\.string) }
     }
+
+    public var uStrings: UTF16Strings? {
+        guard let section = sections.first(where: {
+            $0.sectionName == "__ustring"
+        }) else { return nil }
+
+        let offset = headerStartOffset + section.offset
+
+        return .init(
+            machO: self,
+            offset: offset,
+            size: section.size,
+            isLittleEndian: true
+        )
+    }
 }
 
 extension MachOFile {

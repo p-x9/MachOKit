@@ -85,6 +85,9 @@ public protocol MachORepresentable {
     /// Symbol strings is not included.
     var allCStrings: [String] { get }
 
+    /// Sequence of utf16 strings in `__TEXT, __ustring` section
+    var uStrings: UTF16Strings? { get }
+
     /// List of CFStrings in all segments
     var cfStrings: [any CFStringProtocol]? { get }
     /// List of CFStrings in 64-bit architecture segments
