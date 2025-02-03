@@ -207,7 +207,7 @@ extension SectionProtocol {
         }
         let tableSize = size
         return MachOImage.Strings(
-            basePointer: basePointer.assumingMemoryBound(to: CChar.self),
+            basePointer: basePointer.assumingMemoryBound(to: UInt8.self),
             tableSize: tableSize
         )
     }

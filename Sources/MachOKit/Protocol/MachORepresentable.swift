@@ -17,7 +17,8 @@ public protocol MachORepresentable {
     associatedtype RebaseOperations: Sequence<RebaseOperation>
     associatedtype BindOperations: Sequence<BindOperation>
     associatedtype ExportTrie: Sequence<ExportTrieEntry>
-    associatedtype Strings: Sequence<StringTableEntry>
+    associatedtype Strings: StringTable<UTF8>
+    associatedtype UTF16Strings: StringTable<UTF16>
     associatedtype FunctionStarts: Sequence<FunctionStart>
     associatedtype DataInCode: RandomAccessCollection<DataInCodeEntry>
     associatedtype DyldChainedFixups: DyldChainedFixupsProtocol
