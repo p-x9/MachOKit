@@ -286,6 +286,14 @@ final class MachOFilePrintTests: XCTestCase {
         }
     }
 
+    func testUStrings() throws {
+        guard let cstrings = machO.uStrings else { return }
+        for (i, cstring) in cstrings.enumerated() {
+            let offset = cstrings.offset + cstring.offset - machO.headerStartOffset
+            print(i, "0x" + String(offset, radix: 16), cstring.string)
+        }
+    }
+
     func testCFStrings() {
         guard let cfStrings = machO.cfStrings else { return }
         for (i, cfString) in cfStrings.enumerated() {

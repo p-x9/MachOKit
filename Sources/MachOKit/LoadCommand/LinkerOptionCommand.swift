@@ -28,7 +28,7 @@ extension LinkerOptionCommand {
         let ptr = cmdsStart
             .advanced(by: offset)
             .advanced(by: layoutSize)
-            .assumingMemoryBound(to: CChar.self)
+            .assumingMemoryBound(to: UInt8.self)
         let strings = MachOImage.Strings(
             basePointer: ptr,
             tableSize: Int(layout.cmdsize) - layoutSize
