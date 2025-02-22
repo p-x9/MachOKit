@@ -124,7 +124,7 @@ public enum LoadCommand {
     /// LC_FUNCTION_VARIANT_FIXUPS
     case functionVariantFixups(LoadCommandInfo<linkedit_data_command>)
     /// LC_TARGET_TRIPLE
-    case targetTriple(LoadCommandInfo<target_triple_command>)
+    case targetTriple(TargetTripleCommand)
 }
 
 extension LoadCommand {
