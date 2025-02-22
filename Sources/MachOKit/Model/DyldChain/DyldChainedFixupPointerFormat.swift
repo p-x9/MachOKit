@@ -37,6 +37,8 @@ public enum DyldChainedFixupPointerFormat {
     case arm64e_userland24
     /// DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE
     case arm64e_shared_cache
+    /// DYLD_CHAINED_PTR_ARM64E_SEGMENTED
+    case arm64e_segmented
 }
 
 extension DyldChainedFixupPointerFormat: CustomStringConvertible {
@@ -56,6 +58,7 @@ extension DyldChainedFixupPointerFormat: CustomStringConvertible {
         case .x86_64_kernel_cache: "DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE"
         case .arm64e_userland24: "DYLD_CHAINED_PTR_ARM64E_USERLAND24"
         case .arm64e_shared_cache: "DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE"
+        case .arm64e_segmented: "DYLD_CHAINED_PTR_ARM64E_SEGMENTED"
         }
     }
 }
@@ -79,6 +82,7 @@ extension DyldChainedFixupPointerFormat: RawRepresentable {
         case UInt16(DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE): self = .x86_64_kernel_cache
         case UInt16(DYLD_CHAINED_PTR_ARM64E_USERLAND24): self = .arm64e_userland24
         case UInt16(DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE): self = .arm64e_shared_cache
+        case UInt16(DYLD_CHAINED_PTR_ARM64E_SEGMENTED): self = .arm64e_segmented
         default: return nil
         }
     }
@@ -99,6 +103,7 @@ extension DyldChainedFixupPointerFormat: RawRepresentable {
         case .x86_64_kernel_cache: UInt16(DYLD_CHAINED_PTR_X86_64_KERNEL_CACHE)
         case .arm64e_userland24: UInt16(DYLD_CHAINED_PTR_ARM64E_USERLAND24)
         case .arm64e_shared_cache: UInt16(DYLD_CHAINED_PTR_ARM64E_SHARED_CACHE)
+        case .arm64e_segmented: UInt16(DYLD_CHAINED_PTR_ARM64E_SEGMENTED)
         }
     }
 }
@@ -109,7 +114,7 @@ extension DyldChainedFixupPointerFormat {
         switch self {
         case .arm64e, .arm64e_userland, .arm64e_userland24,
                 .arm64e_kernel, .arm64e_firmware,
-                .arm64e_shared_cache,
+                .arm64e_shared_cache, .arm64e_segmented,
                 ._64, ._64_offset, ._64_kernel_cache,
                 .x86_64_kernel_cache:
             return true
@@ -125,7 +130,7 @@ extension DyldChainedFixupPointerFormat {
         switch self {
         case .arm64e, .arm64e_userland, .arm64e_userland24, .arm64e_shared_cache:
             return 8
-        case .arm64e_kernel, .arm64e_firmware,
+        case .arm64e_kernel, .arm64e_firmware, .arm64e_segmented,
                 ._32, ._32_firmware, ._32_cache,
                 ._64, ._64_offset, ._64_kernel_cache:
             return 4

@@ -445,6 +445,7 @@ extension DyldCache {
                 fixupInfo: fixup
             )
             guard let _runtimeOffset = pointer.rebaseTargetRuntimeOffset(
+                for: self,
                 preferedLoadAddress: unslidLoadAddress
             ) else { return nil }
             runtimeOffset = _runtimeOffset
@@ -457,7 +458,7 @@ extension DyldCache {
             runtimeOffset = numericCast(rawValue) & valueMask
             onDiskDylibChainedPointerBaseAddress = slideInfo.value_add
 
-        case let .v5(slideInfo):
+        case .v5:
             let _fixup = DyldChainedFixupPointerInfo.ARM64ESharedCache(
                 rawValue: fileHandle.read(offset: offset)
             )
@@ -467,6 +468,7 @@ extension DyldCache {
                 fixupInfo: fixup
             )
             guard let _runtimeOffset = pointer.rebaseTargetRuntimeOffset(
+                for: self,
                 preferedLoadAddress: unslidLoadAddress
             ) else { return nil }
             runtimeOffset = _runtimeOffset
@@ -535,6 +537,7 @@ extension DyldCache {
                 fixupInfo: fixup
             )
             guard let _runtimeOffset = pointer.rebaseTargetRuntimeOffset(
+                for: self,
                 preferedLoadAddress: unslidLoadAddress
             ) else { return nil }
             runtimeOffset = _runtimeOffset
@@ -548,7 +551,7 @@ extension DyldCache {
             runtimeOffset = numericCast(rawValue) & valueMask
             onDiskDylibChainedPointerBaseAddress = slideInfo.value_add
 
-        case let .v5(slideInfo):
+        case .v5:
             let rawValue: UInt64 = fileHandle.read(offset: offset)
             guard rawValue != 0 else { return nil }
             let _fixup = DyldChainedFixupPointerInfo.ARM64ESharedCache(
@@ -560,6 +563,7 @@ extension DyldCache {
                 fixupInfo: fixup
             )
             guard let _runtimeOffset = pointer.rebaseTargetRuntimeOffset(
+                for: self,
                 preferedLoadAddress: unslidLoadAddress
             ) else { return nil }
             runtimeOffset = _runtimeOffset

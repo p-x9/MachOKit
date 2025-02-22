@@ -101,6 +101,18 @@ extension dyld_chained_ptr_arm64e_shared_cache_auth_rebase: @retroactive CustomS
     }
 }
 
+extension dyld_chained_ptr_arm64e_segmented_rebase: @retroactive CustomStringConvertible {
+    public var description: String {
+        "dyld_chained_ptr_arm64e_segmented_rebase(targetSegOffset: \(targetSegOffset), targetSegIndex: \(targetSegIndex), padding: \(padding), next: \(next), auth: \(auth)"
+    }
+}
+
+extension dyld_chained_ptr_arm64e_auth_segmented_rebase: @retroactive CustomStringConvertible {
+    public var description: String {
+        "dyld_chained_ptr_arm64e_auth_segmented_rebase(targetSegOffset: \(targetSegOffset), targetSegIndex: \(targetSegIndex), diversity: \(diversity), addrDiv: \(addrDiv), key: \(key), next: \(next), auth: \(auth)"
+    }
+}
+
 #else
 
 extension dyld_chained_ptr_arm64e_rebase: CustomStringConvertible {
@@ -190,6 +202,18 @@ extension dyld_chained_ptr_arm64e_shared_cache_rebase: CustomStringConvertible {
 extension dyld_chained_ptr_arm64e_shared_cache_auth_rebase: CustomStringConvertible {
     public var description: String {
         "dyld_chained_ptr_arm64e_shared_cache_auth_rebase(runtimeOffset: \(runtimeOffset), diversity: \(diversity), addrDiv: \(addrDiv), key: \(keyIsData), next: \(next), auth: \(auth))"
+    }
+}
+
+extension dyld_chained_ptr_arm64e_segmented_rebase: CustomStringConvertible {
+    public var description: String {
+        "dyld_chained_ptr_arm64e_segmented_rebase(targetSegOffset: \(targetSegOffset), targetSegIndex: \(targetSegIndex), padding: \(padding), next: \(next), auth: \(auth)"
+    }
+}
+
+extension dyld_chained_ptr_arm64e_auth_segmented_rebase: CustomStringConvertible {
+    public var description: String {
+        "dyld_chained_ptr_arm64e_auth_segmented_rebase(targetSegOffset: \(targetSegOffset), targetSegIndex: \(targetSegIndex), diversity: \(diversity), addrDiv: \(addrDiv), key: \(key), next: \(next), auth: \(auth)"
     }
 }
 

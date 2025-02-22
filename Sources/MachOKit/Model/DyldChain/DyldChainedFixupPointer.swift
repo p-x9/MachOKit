@@ -14,8 +14,32 @@ public struct DyldChainedFixupPointer {
 }
 
 extension DyldChainedFixupPointer {
-    // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MachOLayout.cpp#L2087
     public func rebaseTargetRuntimeOffset(
+        for cache: DyldCache, // dummy
+        preferedLoadAddress: UInt64
+    ) -> UInt64? {
+        _rebaseTargetRuntimeOffset(
+            cache: cache,
+            machO: nil,
+            preferedLoadAddress: preferedLoadAddress
+        )
+    }
+
+    public func rebaseTargetRuntimeOffset(
+        for machO: MachOFile,
+        preferedLoadAddress: UInt64
+    ) -> UInt64? {
+        _rebaseTargetRuntimeOffset(
+            cache: nil,
+            machO: machO,
+            preferedLoadAddress: preferedLoadAddress
+        )
+    }
+
+    // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MachOLayout.cpp#L2087
+    private func _rebaseTargetRuntimeOffset(
+        cache: DyldCache?,
+        machO: MachOFile?,
         preferedLoadAddress: UInt64
     ) -> UInt64? {
         guard let rebase = fixupInfo.rebase else {
@@ -23,7 +47,7 @@ extension DyldChainedFixupPointer {
         }
 
         let format = fixupInfo.pointerFormat
-        switch format {
+        switch fixupInfo {
         case .arm64e: fallthrough
         case .arm64e_userland: fallthrough
         case .arm64e_userland24: fallthrough
@@ -54,6 +78,23 @@ extension DyldChainedFixupPointer {
             return numericCast(rebase.target) - preferedLoadAddress
         case .arm64e_shared_cache:
             return numericCast(rebase.target)
+        case .arm64e_segmented(let info): // FIXME: Check when new dylds are released.
+            guard let machO else {
+                return nil
+            }
+            let targetSegOffset: UInt32
+            let targetSegIndex: UInt32
+
+            switch info {
+            case .rebase(let rebase):
+                targetSegOffset = rebase.targetSegOffset
+                targetSegIndex = rebase.targetSegIndex
+            case .authRebase(let rebase):
+                targetSegOffset = rebase.targetSegOffset
+                targetSegIndex = rebase.targetSegIndex
+            }
+            let segment = machO.segments[numericCast(targetSegIndex)]
+            return numericCast(segment.virtualMemoryAddress) - preferedLoadAddress + numericCast(targetSegOffset)
         default:
             return nil
         }
@@ -69,6 +110,7 @@ extension DyldChainedFixupPointer {
             return nil
         }
         return rebaseTargetRuntimeOffset(
+            for: machO,
             preferedLoadAddress: preferedLoadAddress
         )
     }

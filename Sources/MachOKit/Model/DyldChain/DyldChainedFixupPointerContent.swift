@@ -342,6 +342,47 @@ extension DyldChainedFixupPointerInfo {
             }
         }
     }
+
+    public enum ARM64ESegmented: DyldChainedFixupPointerContent {
+        case rebase(DyldChainedPtrArm64eSegmentedRebase)
+        case authRebase(DyldChainedPtrArm64eSegmentedAuthRebase)
+
+        public var next: Int {
+            switch self {
+            case let .rebase(info): info.next
+            case let .authRebase(info): info.next
+            }
+        }
+
+        public var type: DyldChainedFixupPointerInfo.ContentType {
+            switch self {
+            case .rebase: .rebase
+            case .authRebase: .rebase
+            }
+        }
+
+        public var rebase: (any DyldChainedPointerContentRebase)? {
+            switch self {
+            case let .rebase(info): info
+            case let .authRebase(info): info
+            }
+        }
+
+        public var bind: (any DyldChainedPointerContentBind)? {
+            nil
+        }
+
+        init(rawValue: UInt64) {
+            let tmp = DyldChainedPtrArm64eSegmentedRebase(layout: autoBitCast(rawValue))
+            let isAuth = tmp.layout.auth == 1
+
+            if isAuth {
+                self = .authRebase(autoBitCast(rawValue))
+            } else {
+                self = .rebase(tmp)
+            }
+        }
+    }
 }
 
 // MARK: - Rebase & Bind Layout
@@ -663,5 +704,46 @@ public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerConte
 
     public var keyName: String {
         ["IA", "DA"][Int(layout.keyIsData)]
+    }
+}
+
+
+public struct DyldChainedPtrArm64eSegmentedRebase: DyldChainedPointerContentRebase {
+    public typealias Layout = dyld_chained_ptr_arm64e_segmented_rebase
+
+    public var layout: Layout
+
+    public var target: Int {
+        numericCast(layout.targetSegOffset)
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
+}
+
+public struct DyldChainedPtrArm64eSegmentedAuthRebase: DyldChainedPointerContentRebase {
+    public typealias Layout = dyld_chained_ptr_arm64e_auth_segmented_rebase
+
+    public var layout: Layout
+
+    /// @available(*, unavailable)
+    public var target: Int {
+        0
+    }
+
+    /// @available(*, unavailable)
+    public var unpackedTarget: UInt64 {
+        0
+    }
+
+    public var next: Int {
+        numericCast(layout.next)
+    }
+
+    public var isAuth: Bool { true }
+
+    public var keyName: String {
+        ["IA", "IB", "DA", "DB"][Int(layout.key)]
     }
 }
