@@ -361,15 +361,15 @@ extension LoadCommand {
                 .init(rawPointer.autoBoundPointee(), offset: offset)
             )
         case .functionVariants:
-            return .atomInfo(
+            return .functionVariants(
                 .init(rawPointer.autoBoundPointee(), offset: offset)
             )
         case .functionVariantFixups:
-            return .atomInfo(
+            return .functionVariantFixups(
                 .init(rawPointer.autoBoundPointee(), offset: offset)
             )
         case .targetTriple:
-            return .atomInfo(
+            return .targetTriple(
                 .init(rawPointer.autoBoundPointee(), offset: offset)
             )
         }
