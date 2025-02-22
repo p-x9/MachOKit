@@ -224,3 +224,18 @@ extension LoadCommandWrapper where Layout == fileset_entry_command {
         swap_fileset_entry_command(&layout, NXHostByteOrder())
     }
 }
+
+extension LoadCommandWrapper where Layout == target_triple_command {
+    public mutating func swap() {
+        swap_target_triple_command(&layout, NXHostByteOrder())
+    }
+}
+
+public func swap_target_triple_command(
+    _ dl: UnsafeMutablePointer<target_triple_command>!,
+    _ target_byte_sex: NXByteOrder
+) {
+    dl.pointee.cmd = dl.pointee.cmd.byteSwapped
+    dl.pointee.cmdsize = dl.pointee.cmdsize.byteSwapped
+    dl.pointee.triple.offset = dl.pointee.triple.offset.byteSwapped
+}
