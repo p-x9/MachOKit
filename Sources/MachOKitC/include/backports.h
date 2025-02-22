@@ -44,6 +44,41 @@
 #define PLATFORM_VISIONOSSIMULATOR 12
 #endif
 
+#ifndef LC_FUNCTION_VARIANTS
+#define LC_FUNCTION_VARIANTS 0x37 /* used with linkedit_data_command */
+#endif
+
+#ifndef LC_FUNCTION_VARIANT_FIXUPS
+#define LC_FUNCTION_VARIANT_FIXUPS 0x38 /* used with linkedit_data_command */
+#endif
+
+#ifndef LC_TARGET_TRIPLE
+#define LC_TARGET_TRIPLE 0x39 /* target triple used to compile */
+
+/*
+ * The target_triple_command contains a string which specifies the
+ * target triple (e.g. "arm64e-apple-macosx15.0.0") used to compile the code.
+ */
+struct target_triple_command {
+    uint32_t     cmd;        /* LC_TARGET_TRIPLE */
+    uint32_t     cmdsize;    /* including string */
+    union lc_str triple;    /* target triple string */
+};
+#endif
+
+#ifndef PLATFORM_MACOS_EXCLAVECORE
+#define PLATFORM_MACOS_EXCLAVECORE 15
+#define PLATFORM_MACOS_EXCLAVEKIT 16
+#define PLATFORM_IOS_EXCLAVECORE 17
+#define PLATFORM_IOS_EXCLAVEKIT 18
+#define PLATFORM_TVOS_EXCLAVECORE 19
+#define PLATFORM_TVOS_EXCLAVEKIT 20
+#define PLATFORM_WATCHOS_EXCLAVECORE 21
+#define PLATFORM_WATCHOS_EXCLAVEKIT 22
+#define PLATFORM_VISIONOS_EXCLAVECORE 23
+#define PLATFORM_VISIONOS_EXCLAVEKIT 24
+#endif
+
 #endif /* __linux__ */
 
 #endif /* backports_h */
