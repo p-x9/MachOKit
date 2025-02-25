@@ -87,11 +87,11 @@ extension DyldChainedFixupPointer {
 
             switch info {
             case .rebase(let rebase):
-                targetSegOffset = rebase.targetSegOffset
-                targetSegIndex = rebase.targetSegIndex
+                targetSegOffset = rebase.layout.targetSegOffset
+                targetSegIndex = rebase.layout.targetSegIndex
             case .authRebase(let rebase):
-                targetSegOffset = rebase.targetSegOffset
-                targetSegIndex = rebase.targetSegIndex
+                targetSegOffset = rebase.layout.targetSegOffset
+                targetSegIndex = rebase.layout.targetSegIndex
             }
             let segment = machO.segments[numericCast(targetSegIndex)]
             return numericCast(segment.virtualMemoryAddress) - preferedLoadAddress + numericCast(targetSegOffset)
