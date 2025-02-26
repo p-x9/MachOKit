@@ -13,7 +13,7 @@ jobs:
         id: release_info
         run: |
           VERSION="${{ github.event.release.tag_name }}"
-          RELEASE_BODY=${{ github.event.release.body }}"
+          RELEASE_BODY="${{ github.event.release.body }}"
           MAHCOKIT_CHECKSUM=$(echo "$RELEASE_BODY" | awk -v target="MachOKit" '
             found { print; exit }
             $0 == target { found=1 }
