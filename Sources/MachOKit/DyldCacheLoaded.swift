@@ -392,4 +392,14 @@ extension DyldCacheLoaded {
             .advanced(by: numericCast(header.swiftOptsOffset))
             .autoBoundPointee()
     }
+
+    public var dynamicData: DyldCacheDynamicData? {
+        guard mainCacheHeader.dynamicDataOffset > 0,
+              mainCacheHeader.hasProperty(\.dynamicDataMaxSize) else {
+            return nil
+        }
+        return ptr
+            .advanced(by: numericCast(header.dynamicDataOffset))
+            .autoBoundPointee()
+    }
 }

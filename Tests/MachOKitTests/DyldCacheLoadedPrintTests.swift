@@ -318,6 +318,14 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         print("Metadata Conformance Hash Table Cache Offset:", swiftOptimization.metadataConformanceHashTableCacheOffset)
         print("Foreign Type Conformance Hash Table Cache Offset:", swiftOptimization.foreignTypeConformanceHashTableCacheOffset)
     }
+
+    func testDynamicData() throws {
+        guard let dynamicData = cache.dynamicData else { return }
+        print("Magic:", dynamicData.magic)
+        print("fsId:", dynamicData.fsId)
+        print("fsObjId:", dynamicData.fsObjId)
+        print("path:", dynamicData.path)
+    }
 }
 
 #endif
