@@ -156,6 +156,15 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         }
     }
 
+    func testDyld() throws {
+        guard let dyld = cache.dyld else { return }
+        let sourceVersion = dyld.loadCommands.info(of: LoadCommand.sourceVersion)!
+        print("Dyld:", dyld.path ?? "unknown", "dyld-\(sourceVersion.version)")
+        for cmd in dyld.loadCommands {
+            print(" -", cmd.type)
+        }
+    }
+
     func testDylibIndices() {
         let cache = cache!
         let indices = cache.dylibIndices
