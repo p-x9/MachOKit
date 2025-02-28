@@ -203,6 +203,17 @@ extension DyldCache {
 
         return AnySequence(machOFiles)
     }
+
+    public var dyld: MachOFile? {
+        guard let offset = fileOffset(of: mainCacheHeader.dyldInCacheMH) else {
+            return nil
+        }
+        return try? MachOFile(
+            url: url,
+            imagePath: "/usr/lib/dyld",
+            headerStartOffsetInCache: numericCast(offset)
+        )
+    }
 }
 
 extension DyldCache {

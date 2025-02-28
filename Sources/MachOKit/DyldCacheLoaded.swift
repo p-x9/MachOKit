@@ -204,6 +204,15 @@ extension DyldCacheLoaded {
 
         return AnySequence(machOFiles)
     }
+
+    public var dyld: MachOImage? {
+        guard let slide,
+              let ptr = UnsafeRawPointer(bitPattern: Int(header.dyldInCacheMH) + slide) else {
+            return nil
+        }
+        
+        return .init(ptr: ptr.assumingMemoryBound(to: mach_header.self))
+    }
 }
 
 extension DyldCacheLoaded {
