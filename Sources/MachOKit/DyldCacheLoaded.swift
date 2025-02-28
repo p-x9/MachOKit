@@ -393,6 +393,16 @@ extension DyldCacheLoaded {
             .autoBoundPointee()
     }
 
+    public var dynamicData: DyldCacheDynamicData? {
+        guard mainCacheHeader.dynamicDataOffset > 0,
+              mainCacheHeader.hasProperty(\.dynamicDataMaxSize) else {
+            return nil
+        }
+        return ptr
+            .advanced(by: numericCast(header.dynamicDataOffset))
+            .autoBoundPointee()
+    }
+
     public var tproMappings: MemorySequence<DyldCacheTproMappingInfo>? {
         guard mainCacheHeader.tproMappingsOffset > 0,
               mainCacheHeader.hasProperty(\.tproMappingsCount) else {
