@@ -16,6 +16,7 @@ public protocol DyldCacheRepresentable {
     associatedtype SubCaches: RandomAccessCollection<DyldSubCacheEntry>
     associatedtype DylibsTrie: TrieTreeProtocol<DylibsTrieNodeContent>
     associatedtype ProgramsTrie: TrieTreeProtocol<ProgramsTrieNodeContent>
+    associatedtype TproMappingInfos: RandomAccessCollection<DyldCacheTproMappingInfo>
 
     /// Byte size of header
     var headerSize: Int { get }
@@ -96,6 +97,9 @@ public protocol DyldCacheRepresentable {
     ///
     /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/common/DyldSharedCache.cpp#L2088-L2098)
     var swiftOptimization: SwiftOptimization? { get }
+
+    /// Sequence of tpro mapping infos
+    var tproMappings: TproMappingInfos? { get }
 
     /// Get the prebuiltLoaderSet indicated by programOffset.
     /// - Parameter programOffset: program name and offset pair

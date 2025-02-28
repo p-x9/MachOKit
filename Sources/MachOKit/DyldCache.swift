@@ -390,6 +390,17 @@ extension DyldCache {
         }
         return fileHandle.read(offset: offset)
     }
+
+    public var tproMappings: DataSequence<DyldCacheTproMappingInfo>? {
+        guard mainCacheHeader.tproMappingsOffset > 0,
+              mainCacheHeader.hasProperty(\.tproMappingsCount) else {
+            return nil
+        }
+        return fileHandle.readDataSequence(
+            offset: numericCast(header.tproMappingsOffset),
+            numberOfElements: numericCast(header.tproMappingsCount)
+        )
+    }
 }
 
 extension DyldCache {

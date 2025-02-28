@@ -392,4 +392,17 @@ extension DyldCacheLoaded {
             .advanced(by: numericCast(header.swiftOptsOffset))
             .autoBoundPointee()
     }
+
+    public var tproMappings: MemorySequence<DyldCacheTproMappingInfo>? {
+        guard mainCacheHeader.tproMappingsOffset > 0,
+              mainCacheHeader.hasProperty(\.tproMappingsCount) else {
+            return nil
+        }
+        return .init(
+            basePointer: ptr
+                .advanced(by: numericCast(header.tproMappingsOffset))
+                .assumingMemoryBound(to: DyldCacheTproMappingInfo.self),
+            numberOfElements: numericCast(header.tproMappingsCount)
+        )
+    }
 }

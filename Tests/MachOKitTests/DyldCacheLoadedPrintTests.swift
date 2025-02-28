@@ -318,6 +318,13 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         print("Metadata Conformance Hash Table Cache Offset:", swiftOptimization.metadataConformanceHashTableCacheOffset)
         print("Foreign Type Conformance Hash Table Cache Offset:", swiftOptimization.foreignTypeConformanceHashTableCacheOffset)
     }
+
+    func testTproMappings() throws {
+        guard let mappings = cache.tproMappings else { return }
+        for mapping in mappings {
+            print("- 0x\(String(mapping.unslidAddress, radix: 16)), \(mapping.size)")
+        }
+    }
 }
 
 #endif
