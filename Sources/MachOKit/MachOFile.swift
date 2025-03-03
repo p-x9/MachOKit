@@ -604,6 +604,36 @@ extension MachOFile {
     }
 }
 
+
+extension MachOFile {
+    /// Convert raw vmaddr to fileoffset
+    ///
+    /// Properly handle PAC, objc tagged pointer, etc.
+    /// It does not deal with rebase/bind.
+    ///
+    /// - Parameter rawVMAddr:
+    /// - Returns: Raw vmaddr read from section etc.
+    public func fileOffset(of rawVMAddr: UInt64) -> UInt64 {
+        var vmaddr = rawVMAddr
+        if let vmaddrMask {
+            vmaddr &= vmaddrMask // PAC & objc tagged pointer
+        }
+        //        vmaddr &= ~3 // objc pointer union
+
+        for segment in self.segments {
+            if segment.virtualMemoryAddress <= vmaddr,
+               vmaddr < segment.virtualMemoryAddress + segment.virtualMemorySize {
+                return vmaddr + numericCast(segment.fileOffset) - numericCast(segment.virtualMemoryAddress)
+            }
+            if segment.segmentName == SEG_TEXT,
+               vmaddr < segment.virtualMemoryAddress {
+                return vmaddr
+            }
+        }
+        return vmaddr
+    }
+}
+
 extension MachOFile {
     /// Bitmask to get a valid range of vmaddr from raw vmaddr
     ///
