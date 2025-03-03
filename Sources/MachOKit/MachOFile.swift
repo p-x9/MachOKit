@@ -603,3 +603,77 @@ extension MachOFile {
         return nil
     }
 }
+
+extension MachOFile {
+    /// Bitmask to get a valid range of vmaddr from raw vmaddr
+    ///
+    /// | Arch | `MACH_VM_MAX_ADDRESS` | mask |
+    /// |---------|------------------|----------|
+    /// | **arm** | `0x80000000` | `0x7FFFFFFF` |
+    /// | **arm64 (mac or driver)** | `0x00007FFFFE000000` | `0x00007FFFFFFFFFFF` |
+    /// | **arm64 (other)** | `0x0000000FC0000000` | `0x0000000FFFFFFFFF` |
+    /// | **i386** | `0x00007FFFFFE00000` | `0x00007FFFFFFFFFFF` |
+    ///
+    /// [xnu implementation](https://github.com/apple-oss-distributions/xnu/blob/8d741a5de7ff4191bf97d57b9f54c2f6d4a15585/osfmk/mach/arm/vm_param.h#L126)
+    private var vmaddrMask: UInt64? {
+        switch header.cpuType {
+        case .x86:
+            return 0xFFFFFFFF
+        case .i386:
+            return 0xFFFFFFFF
+        case .x86_64:
+            return 0x00007FFFFFFFFFFF
+        case .arm:
+            return 0x7FFFFFFF
+        case .arm64:
+            if let platform = loadCommands.info(of: LoadCommand.buildVersion)?.platform {
+                if [
+                    .macOS,
+                    .driverKit
+                ].contains(platform) || isMacOS == true {
+                    return 0x00007FFFFFFFFFFF
+                } else {
+                    return 0x0000000FFFFFFFFF
+                }
+            }
+            return 0x0000000FFFFFFFFF // FIXME: fallback
+
+        case .arm64_32:
+            return 0x7FFFFFFF
+        default:
+            return nil
+        }
+    }
+}
+
+extension MachOFile {
+    private var isMacOS: Bool? {
+        let loadCommands = loadCommands
+        if let platform = loadCommands.info(of: LoadCommand.buildVersion)?.platform  {
+            return [
+                .macOS,
+                .macOSExclaveKit,
+                .macOSExclaveCore,
+                .macCatalyst
+            ].contains(
+                platform
+            )
+        }
+        if loadCommands.info(of: LoadCommand.versionMinMacosx) != nil {
+            return true
+        }
+
+        if loadCommands.info(of: LoadCommand.versionMinIphoneos) != nil ||
+            loadCommands.info(of: LoadCommand.versionMinWatchos) != nil ||
+            loadCommands.info(of: LoadCommand.versionMinTvos) != nil {
+            return false
+        }
+
+        if header.isInDyldCache,
+           let cache = try? DyldCache(url: url) {
+            return cache.header.platform == .macOS
+        }
+
+        return nil
+    }
+}
