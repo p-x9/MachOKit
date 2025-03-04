@@ -118,6 +118,38 @@ final class MachOPrintTests: XCTestCase {
         }
     }
 
+    func testClassicBindingSymbols() throws {
+        guard let bindingSymbols = machO.classicBindingSymbols else {
+            return
+        }
+        let symbols = machO.symbols
+
+        for bindingSymbol in bindingSymbols {
+            print("--")
+            let symbol = symbols[AnyIndex(bindingSymbol.symbolIndex)]
+            print("Address:", "0x" + String(bindingSymbol.address, radix: 16))
+            print("Type:", bindingSymbol.type)
+            print("Name:", symbol.name)
+            print("Addend:", "0x" + String(bindingSymbol.addend, radix: 16))
+        }
+    }
+
+    func testClassicLazyBindingSymbols() throws {
+        guard let bindingSymbols = machO.classicLazyBindingSymbols else {
+            return
+        }
+        let symbols = machO.symbols
+
+        for bindingSymbol in bindingSymbols {
+            print("--")
+            let symbol = symbols[AnyIndex(bindingSymbol.symbolIndex)]
+            print("Address:", "0x" + String(bindingSymbol.address, radix: 16))
+            print("Type:", bindingSymbol.type)
+            print("Name:", symbol.name)
+            print("Addend:", "0x" + String(bindingSymbol.addend, radix: 16))
+        }
+    }
+
     func testDependencies() throws {
         for dependency in machO.dependencies {
             let dylib = dependency.dylib
