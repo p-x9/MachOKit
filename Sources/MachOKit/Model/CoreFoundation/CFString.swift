@@ -87,10 +87,13 @@ extension CFString32 {
 
 extension CFStringProtocol {
     public func string(in machO: MachOFile) -> String? {
-        let offset = machO.headerStartOffset + stringOffset
+        let offset =  machO.fileOffset(
+            of: numericCast(stringOffset)
+        ) + numericCast(machO.headerStartOffset)
+
         if isUnicode {
             let data = machO.fileHandle.readData(
-                offset: UInt64(offset),
+                offset: offset,
                 size: numericCast(stringSize) * numericCast(MemoryLayout<UInt16/*UniChar*/>.size)
             )
             return String(bytes: data, encoding: .utf16LittleEndian)
