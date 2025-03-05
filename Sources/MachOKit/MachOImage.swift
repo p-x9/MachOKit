@@ -690,6 +690,16 @@ extension MachOImage {
             numberOfElements: numericCast(dysymtab.nextrel)
         )
     }
+
+    public var classicBindingSymbols: [ClassicBindingSymbol]? {
+        _classicBindingSymbols(
+            addendLoader: { address in
+                UnsafeRawPointer(bitPattern: UInt(address))?
+                    .assumingMemoryBound(to: Int64.self)
+                    .pointee ?? 0
+            }
+        )
+    }
 }
 
 extension MachOImage {

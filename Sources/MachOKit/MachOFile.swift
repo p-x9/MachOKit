@@ -463,6 +463,16 @@ extension MachOFile {
             }
         )
     }
+
+    public var classicBindingSymbols: [ClassicBindingSymbol]? {
+        _classicBindingSymbols(
+            addendLoader: { address in
+                fileHandle.read(
+                    offset: fileOffset(of: address) + numericCast(headerStartOffset)
+                )
+            }
+        )
+    }
 }
 
 extension MachOFile {

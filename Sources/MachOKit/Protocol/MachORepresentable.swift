@@ -151,6 +151,21 @@ public protocol MachORepresentable {
     /// Sequence of external relocation infos
     var externalRelocations: ExternalRelocations? { get }
 
+    /// Sequence of classic binding symbols
+    ///
+    /// It is retrieved from ``externalRelocations`` and ``indirectSymbols``.
+    ///
+    /// [ld64 implementation](https://github.com/apple-oss-distributions/ld64/blob/59a99ab60399c5e6c49e6945a9e1049c42b71135/src/other/dyldinfo.cpp#L2519)
+    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/b492ac15734277d89795b6f97f0e2feb1aa45595/common/MachOAnalyzer.cpp#L1707)
+    var classicBindingSymbols: [ClassicBindingSymbol]? { get }
+
+    /// Sequence of classic lazy binding symbols
+    ///
+    /// It is retrieved from ``indirectSymbols``.
+    ///
+    /// [ld64 implementation](https://github.com/apple-oss-distributions/ld64/blob/59a99ab60399c5e6c49e6945a9e1049c42b71135/src/other/dyldinfo.cpp#L2590)
+    var classicLazyBindingSymbols: [ClassicBindingSymbol]? { get }
+
     /// Code sign infos
     var codeSign: CodeSign? { get }
 
@@ -659,5 +674,157 @@ extension MachORepresentable {
         }
 
         return bestSymbol
+    }
+}
+
+extension MachORepresentable where IndirectSymbols.Index == Int {
+    public var classicLazyBindingSymbols: [ClassicBindingSymbol]? {
+        guard let indirectSymbols else { return nil }
+
+        var result: [ClassicBindingSymbol] = []
+
+        let symbols = self.symbols
+
+        for section in sections {
+            let type = section.flags.type
+            let attributes = section.flags.attributes
+            if type == .lazy_symbol_pointers {
+                guard let indirectSymbolIndex = section.indirectSymbolIndex,
+                      let count = section.numberOfIndirectSymbols else {
+                    continue
+                }
+                
+                let indirectSymbols = indirectSymbols[indirectSymbolIndex ..< indirectSymbolIndex + count]
+                for (i, indirectSymbol) in indirectSymbols.enumerated() {
+                    guard let index = indirectSymbol.index,
+                          0 <= index && index < symbols.count else {
+                        continue
+                    }
+                    let pointerSize = is64Bit ? 8 : 4
+                    let address = section.address + pointerSize * i
+                    result.append(
+                        .init(
+                            type: .pointer,
+                            address: numericCast(address),
+                            symbolIndex: index,
+                            addend: 0
+                        )
+                    )
+                }
+            } else if type == .symbol_stubs,
+                      attributes.contains(.self_modifying_code) {
+                guard let indirectSymbolIndex = section.indirectSymbolIndex,
+                      let count = section.numberOfIndirectSymbols,
+                      section.size / 5 == count /* reserved2 = 5 */ else {
+                    continue
+                }
+                let indirectSymbols = indirectSymbols[indirectSymbolIndex ..< indirectSymbolIndex + count]
+                    .filter { !$0.isAbsolute }
+                for (i, indirectSymbol) in indirectSymbols.enumerated() {
+                    guard let index = indirectSymbol.index,
+                          0 <= index && index < symbols.count else {
+                        continue
+                    }
+                    let address = section.address + 5 * i
+                    result.append(
+                        .init(
+                            type: .pointer,
+                            address: numericCast(address),
+                            symbolIndex: index,
+                            addend: 0
+                        )
+                    )
+                }
+            }
+        }
+
+        return result
+    }
+
+    internal func _classicBindingSymbols(
+        addendLoader: (_ address: UInt64) -> Int64
+    ) -> [ClassicBindingSymbol]? {
+        let loadCommands = self.loadCommands
+
+        guard let text: any SegmentCommandProtocol = loadCommands.text64 ?? loadCommands.text else {
+            return nil
+        }
+        // https://github.com/apple-oss-distributions/ld64/blob/59a99ab60399c5e6c49e6945a9e1049c42b71135/src/other/dyldinfo.cpp#L2199
+        let extRelocBase = if header.cpuType == .x86_64 {
+            if header.fileType == .kextBundle {
+                text.virtualMemoryAddress
+            } else {
+                segments.first(
+                    where: { $0.initialProtection.contains(.write) }
+                )!.virtualMemoryAddress
+            }
+        } else { 0 }
+
+        var result: [ClassicBindingSymbol] = []
+
+        let symbols = self.symbols
+
+        if let externalRelocations {
+            for relocation in externalRelocations {
+                guard case let .general(info) = relocation.info else { continue }
+                guard let symbolIndex = info.symbolIndex,
+                      0 <= symbolIndex && symbolIndex < symbols.count else {
+                    continue
+                }
+                guard let cpu = header.cpuType,
+                      let type = info.type(for: cpu) else {
+                    continue
+                }
+                let address: UInt64 = numericCast(info.r_address) + numericCast(extRelocBase)
+                var addend: Int64 = addendLoader(address)
+                let symbol = symbols[AnyIndex(symbolIndex)]
+                if info.layout.r_type == 0 /* GENERIC_RELOC_VANILLA (pointer)*/ {
+                    addend = 0
+                }
+                if header.flags.contains(.prebound) {
+                    addend -= numericCast(symbol.offset)
+                }
+                result.append(
+                    .init(
+                        type: .relocation(type),
+                        address: numericCast(address),
+                        symbolIndex: symbolIndex,
+                        addend: numericCast(addend)
+                    )
+                )
+            }
+        }
+
+        if let indirectSymbols {
+            let sections = sections.filter {
+                $0.flags.type == .non_lazy_symbol_pointers
+            }
+            for section in sections {
+                guard let indirectSymbolIndex = section.indirectSymbolIndex,
+                      let count = section.numberOfIndirectSymbols else {
+                    continue
+                }
+                let indirectSymbols = indirectSymbols[indirectSymbolIndex ..< indirectSymbolIndex + count]
+                    .filter { !$0.isLocal }
+                for (i, indirectSymbol) in indirectSymbols.enumerated() {
+                    guard let index = indirectSymbol.index,
+                          0 <= index && index < symbols.count else {
+                        continue
+                    }
+                    let pointerSize = is64Bit ? 8 : 4
+                    let address = section.address + pointerSize * i
+                    result.append(
+                        .init(
+                            type: .pointer,
+                            address: numericCast(address),
+                            symbolIndex: index,
+                            addend: 0
+                        )
+                    )
+                }
+            }
+        }
+
+        return result
     }
 }
