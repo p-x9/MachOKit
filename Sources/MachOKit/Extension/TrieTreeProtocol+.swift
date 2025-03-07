@@ -33,8 +33,8 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
             }
     }
 
-    public func search(for key: String) -> ExportedSymbol? {
-        guard let (_, content) = _search(for: key) else {
+    public func search(by key: String) -> ExportedSymbol? {
+        guard let (_, content) = _search(by: key) else {
             return nil
         }
         let symbolOffset: Int? = if let symbolOffset = content.symbolOffset {
@@ -65,8 +65,8 @@ extension TrieTreeProtocol where Content == DylibsTrieNodeContent {
         }
     }
 
-    public func search(for key: String) -> DylibIndex? {
-        guard let (_, content) = _search(for: key) else {
+    public func search(by key: String) -> DylibIndex? {
+        guard let (_, content) = _search(by: key) else {
             return nil
         }
         return.init(name: key, index: content.index)
@@ -85,8 +85,8 @@ extension TrieTreeProtocol where Content == ProgramsTrieNodeContent {
         }
     }
 
-    public func search(for key: String) -> ProgramOffset? {
-        guard let (_, content) = _search(for: key) else {
+    public func search(by key: String) -> ProgramOffset? {
+        guard let (_, content) = _search(by: key) else {
             return nil
         }
         return.init(name: key, offset: content.offset)

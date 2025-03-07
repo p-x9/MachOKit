@@ -85,7 +85,7 @@ extension TrieTreeProtocol {
     /// Search the trie tree by name to get terminal content and node offset
     /// - Parameter key: name
     /// - Returns: If found, retruns terminal content and node offset
-    public func _search(for key: String) -> (offset: Int, content: Content)? {
+    public func _search(by key: String) -> (offset: Int, content: Content)? {
         guard !key.isEmpty else { return nil }
 
         var currentLabel = ""
