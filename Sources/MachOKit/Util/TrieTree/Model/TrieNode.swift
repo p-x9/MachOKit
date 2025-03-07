@@ -38,6 +38,12 @@ public struct TrieNode<Content: TrieNodeContent> {
 }
 
 extension TrieNode {
+    public var isTerminal: Bool {
+        terminalSize != 0
+    }
+}
+
+extension TrieNode {
     public static func readNext(
         basePointer: UnsafePointer<UInt8>,
         trieSize: Int,

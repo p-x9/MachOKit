@@ -51,6 +51,26 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
             resolverOffset: content.resolver
         )
     }
+
+    public func search(byKeyPrefix prefix: String) -> [ExportedSymbol] {
+        let found = _search(byKeyPrefix: prefix)
+        return found.compactMap {
+            let content = $0.content
+            let symbolOffset: Int? = if let symbolOffset = content.symbolOffset {
+                .init(bitPattern: symbolOffset)
+            } else { nil }
+
+            return .init(
+                name: $0.name,
+                offset: symbolOffset,
+                flags: content.flags ?? [],
+                ordinal: content.ordinal,
+                importedName: content.importedName,
+                stub: content.stub,
+                resolverOffset: content.resolver
+            )
+        }
+    }
 }
 
 extension TrieTreeProtocol where Content == DylibsTrieNodeContent {
@@ -71,6 +91,13 @@ extension TrieTreeProtocol where Content == DylibsTrieNodeContent {
         }
         return.init(name: key, index: content.index)
     }
+
+    public func search(byKeyPrefix prefix: String) -> [DylibIndex] {
+        let found = _search(byKeyPrefix: prefix)
+        return found.compactMap {
+            return .init(name: $0.name, index: $0.content.index)
+        }
+    }
 }
 
 extension TrieTreeProtocol where Content == ProgramsTrieNodeContent {
@@ -90,5 +117,12 @@ extension TrieTreeProtocol where Content == ProgramsTrieNodeContent {
             return nil
         }
         return.init(name: key, offset: content.offset)
+    }
+
+    public func search(byKeyPrefix prefix: String) -> [ProgramOffset] {
+        let found = _search(byKeyPrefix: prefix)
+        return found.compactMap {
+            return .init(name: $0.name, offset: $0.content.offset)
+        }
     }
 }
