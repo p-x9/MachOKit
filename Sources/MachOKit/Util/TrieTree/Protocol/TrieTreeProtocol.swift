@@ -79,17 +79,42 @@ extension TrieTreeProtocol {
             )
         }
     }
+
+    /// Traverses the trie tree to obtain the names and node of all the terminals.
+    /// - Parameters:
+    ///   - currentName: current name
+    ///   - entry: Node element  that is the root to start scanning
+    ///   - result: All terminal names and terminal node of the `entry`.
+    public func _recurseTrieTerminal(
+        currentName: String,
+        entry: Element,
+        result: inout [(String, Element)]
+    ) {
+        if entry.isTerminal {
+            result.append((currentName, entry))
+        }
+        for child in entry.children {
+            guard let entry = element(atOffset: Int(child.offset)) else {
+                continue
+            }
+            _recurseTrieTerminal(
+                currentName: currentName + child.label,
+                entry: entry,
+                result: &result
+            )
+        }
+    }
 }
 
 extension TrieTreeProtocol {
     /// Search the trie tree by name to get terminal content and node offset
     /// - Parameter key: name
     /// - Returns: If found, retruns terminal content and node offset
-    public func _search(for key: String) -> (offset: Int, content: Content)? {
+    public func _search(by key: String) -> (offset: Int, content: Content)? {
         guard !key.isEmpty else { return nil }
 
         var currentLabel = ""
-        var current = self.first(where: { _ in true })
+        var current = element(atOffset: 0)
 
         while true {
             guard let child = current?.children.first(
@@ -108,5 +133,45 @@ extension TrieTreeProtocol {
             }
         }
         return nil
+    }
+}
+
+extension TrieTreeProtocol {
+    public func _search(
+        byKeyPrefix prefix: String
+    ) -> [(name: String, offset: Int, content: Content)] {
+        guard !prefix.isEmpty else { return [] }
+
+        var currentLabel = ""
+        var current = element(atOffset: 0)
+
+        while true {
+            guard let child = current?.children.first(
+                where: { child in
+                    let label = currentLabel + child.label
+                    return prefix.starts(with: label) || label.starts(with: prefix)
+                }
+            ) else { break }
+            currentLabel += child.label
+            current = element(atOffset: numericCast(child.offset))
+
+            if currentLabel.starts(with: prefix),
+               let current {
+                var result: [(String, Int, Content)] = []
+                if let content = current.content {
+                    result.append(
+                        (currentLabel, numericCast(current.offset), content)
+                    )
+                }
+                var terminals: [(String, Element)] = []
+                _recurseTrieTerminal(currentName: currentLabel, entry: current, result: &terminals)
+                result += terminals.compactMap {
+                    guard let content = $1.content else { return nil }
+                    return ($0, $1.offset, content)
+                }
+                return result
+            }
+        }
+        return []
     }
 }

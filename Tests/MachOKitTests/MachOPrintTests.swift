@@ -345,7 +345,7 @@ extension MachOPrintTests {
             print("----")
             print("0x" + String(symbol.offset ?? 0, radix: 16), symbol.name)
 
-            let found = machO.exportTrie?.search(for: symbol.name)
+            let found = machO.exportTrie?.search(by: symbol.name)
             XCTAssertNotNil(found)
             XCTAssertEqual(found?.offset, symbol.offset)
 
