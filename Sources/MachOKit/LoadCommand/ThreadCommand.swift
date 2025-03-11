@@ -74,7 +74,7 @@ extension ThreadCommand {
             return nil
         }
         let offset = machO.cmdsStartOffset + offset + layoutSize
-        var flavor: UInt32 = machO.fileHandle.read(
+        var flavor: UInt32 = try! machO.fileHandle.read(
             offset: numericCast(offset)
         )
         if machO.isSwapped { flavor = flavor.byteSwapped }
@@ -86,7 +86,7 @@ extension ThreadCommand {
             return nil
         }
         let offset = machO.cmdsStartOffset + offset + layoutSize + MemoryLayout<UInt32>.size
-        var count: UInt32 = machO.fileHandle.read(
+        var count: UInt32 = try! machO.fileHandle.read(
             offset: numericCast(offset)
         )
         if machO.isSwapped { count = count.byteSwapped }
