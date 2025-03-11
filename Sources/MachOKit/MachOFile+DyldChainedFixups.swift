@@ -178,6 +178,7 @@ extension MachOFile.DyldChainedFixups {
         in machO: MachOFile
     ) -> [DyldChainedFixupPointer] {
         let pages = pages(of: startsInSegment)
+        guard pages.count > 0, startsInSegment.page_size > 0 else { return [] }
 
         let pagesData = machO.fileHandle.readData(
             offset: numericCast(machO.headerStartOffset) + startsInSegment.segment_offset,
