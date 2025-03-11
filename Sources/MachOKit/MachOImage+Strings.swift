@@ -16,23 +16,18 @@ extension MachOImage {
         public let basePointer: UnsafePointer<Encoding.CodeUnit>
         public let tableSize: Int
 
-        public let isLittleEndian: Bool
-
         init(
             basePointer: UnsafePointer<Encoding.CodeUnit>,
-            tableSize: Int,
-            isLittleEndian: Bool = false
+            tableSize: Int
         ) {
             self.basePointer = basePointer
             self.tableSize = tableSize
-            self.isLittleEndian = isLittleEndian
         }
 
         public func makeIterator() -> Iterator {
             Iterator(
                 basePointer: basePointer,
-                tableSize: tableSize,
-                isLittleEndian: isLittleEndian
+                tableSize: tableSize
             )
         }
     }
@@ -43,8 +38,7 @@ extension MachOImage.UnicodeStrings {
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
         linkedit: SegmentCommand64,
-        symtab: LoadCommandInfo<symtab_command>,
-        isLittleEndian: Bool = false
+        symtab: LoadCommandInfo<symtab_command>
     ) {
         let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         self.basePointer = ptr
@@ -52,15 +46,13 @@ extension MachOImage.UnicodeStrings {
             .advanced(by: numericCast(fileSlide))
             .assumingMemoryBound(to: Encoding.CodeUnit.self)
         self.tableSize = Int(symtab.strsize)
-        self.isLittleEndian = isLittleEndian
     }
 
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand,
         linkedit: SegmentCommand,
-        symtab: LoadCommandInfo<symtab_command>,
-        isLittleEndian: Bool = false
+        symtab: LoadCommandInfo<symtab_command>
     ) {
         let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         self.basePointer = ptr
@@ -68,7 +60,6 @@ extension MachOImage.UnicodeStrings {
             .advanced(by: numericCast(fileSlide))
             .assumingMemoryBound(to: Encoding.CodeUnit.self)
         self.tableSize = Int(symtab.strsize)
-        self.isLittleEndian = isLittleEndian
     }
 }
 
@@ -78,18 +69,15 @@ extension MachOImage.UnicodeStrings {
 
         private let basePointer: UnsafePointer<Encoding.CodeUnit>
         private let tableSize: Int
-        private let isLittleEndian: Bool
 
         private var nextPointer: UnsafePointer<Encoding.CodeUnit>
 
         init(
             basePointer: UnsafePointer<Encoding.CodeUnit>,
-            tableSize: Int,
-            isLittleEndian: Bool
+            tableSize: Int
         ) {
             self.basePointer = basePointer
             self.tableSize = tableSize
-            self.isLittleEndian = isLittleEndian
             self.nextPointer = basePointer
         }
 
@@ -102,8 +90,9 @@ extension MachOImage.UnicodeStrings {
                 as: Encoding.self
             )
 
-            if isLittleEndian {
+            if shouldSwap(nextPointer) {
                 let data = Data(bytes: nextPointer, count: offset)
+                    .byteSwapped(Encoding.CodeUnit.self)
                 string = data.withUnsafeBytes {
                     let baseAddress = $0.baseAddress!
                         .assumingMemoryBound(to: Encoding.CodeUnit.self)
@@ -119,6 +108,22 @@ extension MachOImage.UnicodeStrings {
             )
 
             return .init(string: string, offset: offset)
+        }
+    }
+}
+
+extension MachOImage.UnicodeStrings.Iterator {
+    func shouldSwap(_ ptr: UnsafePointer<Encoding.CodeUnit>) -> Bool {
+        let size = MemoryLayout<Encoding.CodeUnit>.size
+        switch size {
+        case 1:
+            return false
+        case 2:
+            return ptr.pointee == 0xFFFE /* ZERO WIDTH NO-BREAK SPACE (swapped) */
+        case 4:
+            return ptr.pointee == 0xFFFE0000
+        default:
+            return false
         }
     }
 }

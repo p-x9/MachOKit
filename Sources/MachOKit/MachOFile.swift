@@ -229,7 +229,8 @@ extension MachOFile {
             return Strings(
                 machO: self,
                 offset: headerStartOffset + Int(symtab.stroff),
-                size: Int(symtab.strsize)
+                size: Int(symtab.strsize),
+                isSwapped: isSwapped
             )
         }
         return nil
@@ -292,7 +293,7 @@ extension MachOFile {
             machO: self,
             offset: offset,
             size: section.size,
-            isLittleEndian: true
+            isSwapped: isSwapped
         )
     }
 }

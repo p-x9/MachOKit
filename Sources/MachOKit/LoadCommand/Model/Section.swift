@@ -257,7 +257,8 @@ extension SectionProtocol {
         return MachOFile.Strings(
             machO: machO,
             offset: startOffset,
-            size: tableSize
+            size: tableSize,
+            isSwapped: machO.isSwapped
         )
     }
 }
