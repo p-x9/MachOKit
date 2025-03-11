@@ -7,11 +7,14 @@
 //
 
 import Foundation
+import FileIO
 
 public class DyldCache: DyldCacheRepresentable {
+    public typealias File = MemoryMappedFile
+
     /// URL of loaded dyld cache file
     public let url: URL
-    let fileHandle: FileHandle
+    let fileHandle: File
 
     public var headerSize: Int {
         header.actualSize
@@ -41,11 +44,14 @@ public class DyldCache: DyldCacheRepresentable {
     /// - Important: Use ``init(subcacheUrl:mainCacheHeader:)`` to load sub cache
     public init(url: URL) throws {
         self.url = url
-        let fileHandle = try FileHandle(forReadingFrom: url)
+        let fileHandle = try File.open(
+            url: url,
+            isWritable: false
+        )
         self.fileHandle = fileHandle
 
         // read header
-        self.header = fileHandle.read(
+        self.header = try! fileHandle.read(
             offset: 0
         )
 
@@ -74,10 +80,6 @@ public class DyldCache: DyldCacheRepresentable {
     ) throws {
         try self.init(url: subcacheUrl)
         self._mainCacheHeader = mainCacheHeader
-    }
-
-    deinit {
-        fileHandle.closeFile()
     }
 }
 
@@ -142,9 +144,9 @@ extension DyldCache {
               header.hasProperty(\.subCacheArrayCount) else {
             return nil
         }
-        fileHandle.seek(toFileOffset: numericCast(header.subCacheArrayOffset))
         let data = fileHandle.readData(
-            ofLength: DyldSubCacheEntryGeneral.layoutSize * numericCast(header.subCacheArrayCount)
+            offset: numericCast(header.subCacheArrayOffset),
+            size: DyldSubCacheEntryGeneral.layoutSize * numericCast(header.subCacheArrayCount)
         )
         return .init(
             data: data,
@@ -378,7 +380,9 @@ extension DyldCache {
         }
 
         let offset = __objc_opt_ro.offset + libobjc.headerStartOffset
-        let layout: OldObjCOptimization.Layout = fileHandle.read(offset: numericCast(offset))
+        let layout: OldObjCOptimization.Layout = try! fileHandle.read(
+            offset: numericCast(offset)
+        )
         guard let address = address(of: numericCast(offset)) else {
             return nil
         }
