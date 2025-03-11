@@ -7,8 +7,11 @@
 //
 
 import Foundation
+import FileIO
 
 public class MachOFile: MachORepresentable {
+    public typealias File = MemoryMappedFile
+
     /// URL of the file actually loaded
     public let url: URL
 
@@ -17,7 +20,7 @@ public class MachOFile: MachORepresentable {
     /// If read from dyld cache, may not match ``url`` value.
     public let imagePath: String
 
-    let fileHandle: FileHandle
+    let fileHandle: File
 
     /// A Boolean value that indicates whether the byte is swapped or not.
     ///
@@ -88,7 +91,10 @@ public class MachOFile: MachORepresentable {
     ) throws {
         self.url = url
         self.imagePath = imagePath
-        let fileHandle = try FileHandle(forReadingFrom: url)
+        let fileHandle = try File.open(
+            url: url,
+            isWritable: false
+        )
         self.fileHandle = fileHandle
 
         self.headerStartOffset = headerStartOffset
@@ -105,10 +111,6 @@ public class MachOFile: MachORepresentable {
 
         self.isSwapped = isSwapped
         self.header = header
-    }
-
-    deinit {
-        fileHandle.closeFile()
     }
 }
 
@@ -574,12 +576,12 @@ extension MachOFile {
             return nil
         }
         if is64Bit {
-            let value: UInt64 = fileHandle.read(
+            let value: UInt64 = try! fileHandle.read(
                 offset: numericCast(headerStartOffset + pointer.offset)
             )
             if value == 0 { return nil }
         } else {
-            let value: UInt32 = fileHandle.read(
+            let value: UInt32 = try! fileHandle.read(
                 offset: numericCast(headerStartOffset + pointer.offset)
             )
             if value == 0 { return nil }
