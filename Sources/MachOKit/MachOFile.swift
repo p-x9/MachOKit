@@ -495,12 +495,12 @@ extension MachOFile {
         guard let info = loadCommands.codeSignature else {
             return nil
         }
-        let data = fileHandle.readData(
-            offset: UInt64(headerStartOffset) + numericCast(info.dataoff),
-            size: numericCast(info.datasize)
+        return .init(
+            fileSice: try! fileHandle.fileSlice(
+                offset: numericCast(headerStartOffset) + numericCast(info.dataoff),
+                length: numericCast(info.datasize)
+            )
         )
-
-        return .init(data: data)
     }
 }
 

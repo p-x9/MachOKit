@@ -220,11 +220,12 @@ extension DyldCache {
 
 extension DyldCache {
     public var codeSign: MachOFile.CodeSign? {
-        let data = fileHandle.readData(
-            offset: header.codeSignatureOffset,
-            size: numericCast(header.codeSignatureSize)
+        .init(
+            fileSice: try! fileHandle.fileSlice(
+                offset: numericCast(header.codeSignatureOffset),
+                length: numericCast(header.codeSignatureSize)
+            )
         )
-        return .init(data: data)
     }
 }
 
