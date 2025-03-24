@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/swift-fileio.git",
       "state" : {
-        "revision" : "edc0fe23e8ad2673872a54a76d40b0f8f91b4a45",
-        "version" : "0.6.0"
+        "revision" : "d13e6a5115a3e8f6e5b435c6ab1453e153202e8b",
+        "version" : "0.7.0"
       }
     }
   ],
