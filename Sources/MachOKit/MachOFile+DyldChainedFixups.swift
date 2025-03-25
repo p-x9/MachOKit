@@ -7,54 +7,47 @@
 //
 
 import Foundation
+import FileIO
 import MachOKitC
 
 extension MachOFile {
     public struct DyldChainedFixups {
-        let data: Data
+        typealias FileSlice = File.FileSlice
+
+        let fileSice: FileSlice
         let isSwapped: Bool
     }
 }
 
 extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
     public var header: DyldChainedFixupsHeader? {
-        data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return nil }
-            let ptr = UnsafeRawPointer(basePtr)
-            let ret = ptr
-                .assumingMemoryBound(to: DyldChainedFixupsHeader.self)
-                .pointee
-            return isSwapped ? ret.swapped : ret
-        }
+        let ret = fileSice.ptr
+            .assumingMemoryBound(to: DyldChainedFixupsHeader.self)
+            .pointee
+        return isSwapped ? ret.swapped : ret
     }
 
     public var startsInImage: DyldChainedStartsInImage? {
         guard let header else { return nil }
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return nil }
-            let offset: Int = numericCast(header.starts_offset)
-            let ptr = UnsafeRawPointer(basePtr)
-                .advanced(by: offset)
-            let layout = ptr
-                .assumingMemoryBound(to: DyldChainedStartsInImage.Layout.self)
-                .pointee
-            let ret: DyldChainedStartsInImage = .init(
-                layout: layout,
-                offset: offset
-            )
-            return isSwapped ? ret.swapped : ret
-        }
+        let offset: Int = numericCast(header.starts_offset)
+        let ptr = fileSice.ptr
+            .advanced(by: offset)
+        let layout = ptr
+            .assumingMemoryBound(to: DyldChainedStartsInImage.Layout.self)
+            .pointee
+        let ret: DyldChainedStartsInImage = .init(
+            layout: layout,
+            offset: offset
+        )
+        return isSwapped ? ret.swapped : ret
     }
 
     public func startsInSegments(
         of startsInImage: DyldChainedStartsInImage?
     ) -> [DyldChainedStartsInSegment] {
-        guard let startsInImage else {
-            return []
-        }
-        let offsets: [Int] = data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return [] }
-            let ptr = UnsafeRawPointer(basePtr)
+        guard let startsInImage else { return [] }
+        let offsets: [Int] = {
+            let ptr = fileSice.ptr
                 .advanced(by: startsInImage.offset)
                 .advanced(by: DyldChainedStartsInImage.layoutOffset(of: \.seg_info_offset))
             return UnsafeBufferPointer(
@@ -63,24 +56,21 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             )
             .map { isSwapped ? $0.byteSwapped : $0 }
             .map { numericCast($0) }
-        }
+        }()
 
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return [] }
-            let ptr = UnsafeRawPointer(basePtr)
-                .advanced(by: startsInImage.offset)
-            return offsets.enumerated().map { index, offset in
-                let layout = ptr.advanced(by: offset)
-                    .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
-                    .pointee
-                let offset: Int = startsInImage.offset + offset
-                let ret: DyldChainedStartsInSegment = .init(
-                    layout: layout,
-                    offset: offset,
-                    segmentIndex: index
-                )
-                return isSwapped ? ret.swapped : ret
-            }
+        let ptr = fileSice.ptr
+            .advanced(by: startsInImage.offset)
+        return offsets.enumerated().map { index, offset in
+            let layout = ptr.advanced(by: offset)
+                .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
+                .pointee
+            let offset: Int = startsInImage.offset + offset
+            let ret: DyldChainedStartsInSegment = .init(
+                layout: layout,
+                offset: offset,
+                segmentIndex: index
+            )
+            return isSwapped ? ret.swapped : ret
         }
     }
 
@@ -88,27 +78,22 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
     public func pages(
         of startsInSegment: DyldChainedStartsInSegment?
     ) -> [DyldChainedPage] {
-        guard let startsInSegment else {
-            return []
-        }
+        guard let startsInSegment else { return [] }
 
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return [] }
-            let ptr = UnsafeRawPointer(basePtr)
-                .advanced(by: startsInSegment.offset)
-                .advanced(by: startsInSegment.layoutOffset(of: \.page_start))
-                .assumingMemoryBound(to: UInt16.self)
-            return UnsafeBufferPointer(
-                start: ptr,
-                count: numericCast(
-                    startsInSegment.page_count
-                )
+        let ptr = fileSice.ptr
+            .advanced(by: startsInSegment.offset)
+            .advanced(by: startsInSegment.layoutOffset(of: \.page_start))
+            .assumingMemoryBound(to: UInt16.self)
+        return UnsafeBufferPointer(
+            start: ptr,
+            count: numericCast(
+                startsInSegment.page_count
             )
-            .map {
-                isSwapped ? $0.byteSwapped : $0
-            }
-            .enumerated().map { .init(offset: $1, index: $0) }
+        )
+        .map {
+            isSwapped ? $0.byteSwapped : $0
         }
+        .enumerated().map { .init(offset: $1, index: $0) }
     }
 
     public var imports: [DyldChainedImport] {
@@ -116,56 +101,48 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
               let  importsFormat = header.importsFormat else {
             return []
         }
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return [] }
-            let offset: Int = numericCast(header.imports_offset)
-            let ptr = UnsafeRawPointer(basePtr)
-                .advanced(by: offset)
-            let count: Int = numericCast(header.imports_count)
+        let offset: Int = numericCast(header.imports_offset)
+        let ptr = fileSice.ptr
+            .advanced(by: offset)
+        let count: Int = numericCast(header.imports_count)
 
-            switch importsFormat {
-            case .general:
-                return UnsafeBufferPointer(
-                    start: ptr
-                        .assumingMemoryBound(to: DyldChainedImportGeneral.self),
-                    count: count
-                )
-                .map { isSwapped ? $0.swapped : $0 }
-                .map { .general($0) }
+        switch importsFormat {
+        case .general:
+            return UnsafeBufferPointer(
+                start: ptr
+                    .assumingMemoryBound(to: DyldChainedImportGeneral.self),
+                count: count
+            )
+            .map { isSwapped ? $0.swapped : $0 }
+            .map { .general($0) }
 
-            case .addend:
-                return UnsafeBufferPointer(
-                    start: ptr
-                        .assumingMemoryBound(to: DyldChainedImportAddend.self),
-                    count: count
-                )
-                .map { isSwapped ? $0.swapped : $0 }
-                .map { .addend($0) }
+        case .addend:
+            return UnsafeBufferPointer(
+                start: ptr
+                    .assumingMemoryBound(to: DyldChainedImportAddend.self),
+                count: count
+            )
+            .map { isSwapped ? $0.swapped : $0 }
+            .map { .addend($0) }
 
-            case .addend64:
-                return UnsafeBufferPointer(
-                    start: ptr
-                        .assumingMemoryBound(to: DyldChainedImportAddend64.self),
-                    count: count
-                )
-                .map { isSwapped ? $0.swapped : $0 }
-                .map { .addend64($0) }
-            }
+        case .addend64:
+            return UnsafeBufferPointer(
+                start: ptr
+                    .assumingMemoryBound(to: DyldChainedImportAddend64.self),
+                count: count
+            )
+            .map { isSwapped ? $0.swapped : $0 }
+            .map { .addend64($0) }
         }
     }
 
     public func symbolName(for nameOffset: Int) -> String? {
-        guard let header else {
-            return nil
-        }
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return nil }
-            let ptr = basePtr
-                .advanced(by: numericCast(header.symbols_offset))
-                .advanced(by: nameOffset)
-                .assumingMemoryBound(to: CChar.self)
-            return String(cString: ptr)
-        }
+        guard let header else { return nil }
+        let ptr = fileSice.ptr
+            .advanced(by: numericCast(header.symbols_offset))
+            .advanced(by: nameOffset)
+            .assumingMemoryBound(to: CChar.self)
+        return String(cString: ptr)
     }
 }
 

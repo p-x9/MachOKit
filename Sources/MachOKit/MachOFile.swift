@@ -435,13 +435,12 @@ extension MachOFile {
         guard let info = loadCommands.dyldChainedFixups else {
             return nil
         }
-        let data = fileHandle.readData(
-            offset: UInt64(headerStartOffset) + numericCast(info.dataoff),
-            size: numericCast(info.datasize)
-        )
 
         return .init(
-            data: data,
+            fileSice: try! fileHandle.fileSlice(
+                offset: headerStartOffset + numericCast(info.dataoff),
+                length: numericCast(info.datasize)
+            ),
             isSwapped: isSwapped
         )
     }
