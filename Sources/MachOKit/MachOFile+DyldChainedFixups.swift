@@ -157,9 +157,9 @@ extension MachOFile.DyldChainedFixups {
         let pages = pages(of: startsInSegment)
         guard pages.count > 0, startsInSegment.page_size > 0 else { return [] }
 
-        let pagesData = machO.fileHandle.readData(
-            offset: numericCast(machO.headerStartOffset) + startsInSegment.segment_offset,
-            size: pages.count * numericCast(startsInSegment.page_size)
+        let pagesFileSlice = try! machO.fileHandle.fileSlice(
+            offset: machO.headerStartOffset + numericCast(startsInSegment.segment_offset),
+            length: pages.count * numericCast(startsInSegment.page_size)
         )
 
         var pointers: [DyldChainedFixupPointer] = []
@@ -176,13 +176,13 @@ extension MachOFile.DyldChainedFixups {
                     offsetInPage = pages[overflowIndex].offset & ~UInt16(DYLD_CHAINED_PTR_START_LAST)
                     let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
                     let chainOffset = pageContentStart + numericCast(offsetInPage)
-                    walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, pointers: &pointers)
+                    walkChain(offset: chainOffset, pagesFileSlice: pagesFileSlice, of: startsInSegment, pointers: &pointers)
                     overflowIndex += 1
                 }
             } else {
                 let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
                 let chainOffset = pageContentStart + numericCast(offsetInPage)
-                walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, pointers: &pointers)
+                walkChain(offset: chainOffset, pagesFileSlice: pagesFileSlice, of: startsInSegment, pointers: &pointers)
             }
         }
 
@@ -191,7 +191,7 @@ extension MachOFile.DyldChainedFixups {
 
     private func walkChain(
         offset: Int,
-        data: Data,
+        pagesFileSlice: FileSlice,
         of startsInSegment: DyldChainedStartsInSegment,
         pointers: inout [DyldChainedFixupPointer]
     ) {
@@ -207,7 +207,7 @@ extension MachOFile.DyldChainedFixups {
         while !stop && !chainEnd {
             guard let fixupInfo = _fixupInfo(
                 at: offset,
-                in: data,
+                in: pagesFileSlice,
                 pointerFormat: pointerFormat
             ) else {
                 stop = true
@@ -244,9 +244,10 @@ extension MachOFile.DyldChainedFixups {
         }
 
         let pages = pages(of: startsInSegment)
-        let pagesData = machO.fileHandle.readData(
-            offset: numericCast(machO.headerStartOffset) + startsInSegment.segment_offset,
-            size: pages.count * numericCast(startsInSegment.page_size)
+
+        let pagesFileSlice = try! machO.fileHandle.fileSlice(
+            offset: machO.headerStartOffset + numericCast(startsInSegment.segment_offset),
+            length: pages.count * numericCast(startsInSegment.page_size)
         )
 
         for (index, page) in pages.enumerated() {
@@ -265,7 +266,7 @@ extension MachOFile.DyldChainedFixups {
                     if let pointer = walkChainAndFindPointer(
                         for: offset,
                         chainOffset: chainOffset,
-                        data: pagesData,
+                        pagesFileSlice: pagesFileSlice,
                         of: startsInSegment
                     ) {
                         return pointer
@@ -280,7 +281,7 @@ extension MachOFile.DyldChainedFixups {
                 if let pointer = walkChainAndFindPointer(
                     for: offset,
                     chainOffset: chainOffset,
-                    data: pagesData,
+                    pagesFileSlice: pagesFileSlice,
                     of: startsInSegment
                 ) {
                     return pointer
@@ -294,7 +295,7 @@ extension MachOFile.DyldChainedFixups {
     private func walkChainAndFindPointer(
         for targetOffset: UInt64,
         chainOffset: Int,
-        data: Data,
+        pagesFileSlice: FileSlice,
         of startsInSegment: DyldChainedStartsInSegment
     ) -> DyldChainedFixupPointer? {
         guard let pointerFormat = startsInSegment.pointerFormat else {
@@ -309,7 +310,7 @@ extension MachOFile.DyldChainedFixups {
         while !stop && !chainEnd {
             guard let fixupInfo = _fixupInfo(
                 at: chainOffset,
-                in: data,
+                in: pagesFileSlice,
                 pointerFormat: pointerFormat
             ) else {
                 stop = true
@@ -340,21 +341,22 @@ extension MachOFile.DyldChainedFixups {
     @inline(__always)
     private func _fixupInfo(
         at offset: Int,
-        in data: Data,
+        in pagesFileSlice: FileSlice,
         pointerFormat: DyldChainedFixupPointerFormat
     ) -> DyldChainedFixupPointerInfo? {
         var fixupInfo: DyldChainedFixupPointerInfo?
 
         if pointerFormat.is64Bit {
-            //            faster than below code
-            //            let rawValue = data.advanced(by: offset).withUnsafeBytes {
-            //                $0.load(as: UInt64.self)
-            //            }
-            guard let rawValue = data.withUnsafeBytes ({ bytes -> UInt64? in
-                guard let baseAddress = bytes.baseAddress else { return nil }
-                let ptr = baseAddress.advanced(by: offset)
-                return ptr.load(as: UInt64.self)
-            }) else { return nil }
+//            faster than below code
+//            let rawValue = data.advanced(by: offset).withUnsafeBytes {
+//                $0.load(as: UInt64.self)
+//            }
+            guard let rawValue: UInt64 = try? pagesFileSlice.read(
+                offset: offset,
+                as: UInt64.self
+            ) else {
+                return nil
+            }
 
             switch pointerFormat {
             case .arm64e, .arm64e_kernel, .arm64e_userland, .arm64e_firmware:
@@ -401,11 +403,11 @@ extension MachOFile.DyldChainedFixups {
                 break
             }
         } else {
-            guard let rawValue = data.withUnsafeBytes ({ bytes -> UInt32? in
-                guard let baseAddress = bytes.baseAddress else { return nil }
-                let ptr = baseAddress.advanced(by: offset)
-                return ptr.load(as: UInt32.self)
-            }) else { return nil }
+            guard let rawValue: UInt32 = try? pagesFileSlice.read(
+                offset: offset
+            ) else {
+                return nil
+            }
 
             switch pointerFormat {
             case ._32:
