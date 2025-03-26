@@ -430,6 +430,7 @@ extension _FileIOProtocol {
     }
 
     @_spi(Support)
+    @_disfavoredOverload
     public func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)? = nil
@@ -453,6 +454,7 @@ extension _FileIOProtocol {
     }
 
     @_spi(Support)
+    @_disfavoredOverload
     public func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)? = nil
