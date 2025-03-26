@@ -21,21 +21,22 @@ extension DyldCacheLocalSymbolsInfo {
     public func symbols64(in cache: DyldCache) -> MachOFile.Symbols64? {
         guard cache.cpu.is64Bit else { return nil }
 
-        let stringData = cache.fileHandle.readData(
-            offset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset),
-            size: numericCast(layout.stringsSize)
+        let stringData = try! cache.fileHandle.fileSlice(
+            offset: Int(cache.header.localSymbolsOffset) + numericCast(layout.stringsOffset),
+            length: numericCast(layout.stringsSize)
         )
 
-        let symbolData = cache.fileHandle.readData(
-            offset: cache.header.localSymbolsOffset + numericCast(layout.nlistOffset),
-            size: numericCast(Nlist64.layoutSize) * numericCast(layout.nlistCount)
+        let symbolData = try! cache.fileHandle.fileSlice(
+            offset: Int(cache.header.localSymbolsOffset) + numericCast(layout.nlistOffset),
+            length: numericCast(Nlist64.layoutSize) * numericCast(layout.nlistCount)
         )
 
         return MachOFile.Symbols64(
             symtab: nil,
-            stringData: stringData,
-            symbolsData: symbolData,
-            numberOfSymbols: numericCast(layout.nlistCount)
+            stringsSlice: stringData,
+            symbolsSlice: symbolData,
+            numberOfSymbols: numericCast(layout.nlistCount),
+            isSwapped: false
         )
     }
 
@@ -45,21 +46,22 @@ extension DyldCacheLocalSymbolsInfo {
     public func symbols32(in cache: DyldCache) -> MachOFile.Symbols? {
         guard !cache.cpu.is64Bit else { return nil }
 
-        let stringData = cache.fileHandle.readData(
-            offset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset),
-            size: numericCast(layout.stringsSize)
+        let stringData = try! cache.fileHandle.fileSlice(
+            offset: Int(cache.header.localSymbolsOffset) + numericCast(layout.stringsOffset),
+            length: numericCast(layout.stringsSize)
         )
 
-        let symbolData = cache.fileHandle.readData(
-            offset: cache.header.localSymbolsOffset + numericCast(layout.nlistOffset),
-            size: numericCast(Nlist.layoutSize) * numericCast(layout.nlistCount)
+        let symbolData = try! cache.fileHandle.fileSlice(
+            offset: Int(cache.header.localSymbolsOffset) + numericCast(layout.nlistOffset),
+            length: numericCast(Nlist.layoutSize) * numericCast(layout.nlistCount)
         )
 
         return MachOFile.Symbols(
             symtab: nil,
-            stringData: stringData,
-            symbolsData: symbolData,
-            numberOfSymbols: numericCast(layout.nlistCount)
+            stringsSlice: stringData,
+            symbolsSlice: symbolData,
+            numberOfSymbols: numericCast(layout.nlistCount),
+            isSwapped: false
         )
     }
 

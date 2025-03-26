@@ -47,7 +47,8 @@ extension LinkerOptionCommand {
         let strings = MachOFile.Strings(
             machO: machO,
             offset: offset,
-            size: size
+            size: size,
+            isSwapped: machO.isSwapped
         ).map(\.string)
 
         return Array(strings[0..<Int(layout.count)])

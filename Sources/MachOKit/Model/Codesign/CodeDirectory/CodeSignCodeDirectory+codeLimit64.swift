@@ -13,19 +13,13 @@ extension CodeSignCodeDirectory {
         guard isSupportsCodeLimit64 else {
             return nil
         }
-        let layout: CS_CodeDirectory_CodeLimit64? = signature.data.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else {
-                return nil
-            }
-            return baseAddress
-                .advanced(by: offset)
-                .advanced(by: layoutSize)
-                .advanced(by: ScatterOffset.layoutSize)
-                .advanced(by: TeamIdOffset.layoutSize)
-                .assumingMemoryBound(to: CS_CodeDirectory_CodeLimit64.self)
-                .pointee
-        }
-        guard let layout else { return nil }
+        let layout: CS_CodeDirectory_CodeLimit64 = signature.fileSice.ptr
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .advanced(by: ScatterOffset.layoutSize)
+            .advanced(by: TeamIdOffset.layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_CodeLimit64.self)
+            .pointee
         return .init(
             layout: signature.isSwapped ? layout.swapped : layout
         )

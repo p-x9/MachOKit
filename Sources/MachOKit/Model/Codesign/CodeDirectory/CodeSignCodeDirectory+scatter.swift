@@ -13,17 +13,11 @@ extension CodeSignCodeDirectory {
         guard isSupportsScatter else {
             return nil
         }
-        let layout: CS_CodeDirectory_Scatter? = signature.data.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else {
-                return nil
-            }
-            return baseAddress
-                .advanced(by: offset)
-                .advanced(by: layoutSize)
-                .assumingMemoryBound(to: CS_CodeDirectory_Scatter.self)
-                .pointee
-        }
-        guard let layout else { return nil }
+        let layout: CS_CodeDirectory_Scatter = signature.fileSice.ptr
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_Scatter.self)
+            .pointee
 
         return .init(
             layout: signature.isSwapped ? layout.swapped : layout

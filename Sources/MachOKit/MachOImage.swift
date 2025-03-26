@@ -333,8 +333,7 @@ extension MachOImage {
         return .init(
             basePointer: start
                 .assumingMemoryBound(to: UInt16.self),
-            tableSize: numericCast(section.size),
-            isLittleEndian: true
+            tableSize: numericCast(section.size)
         )
     }
 }

@@ -10,21 +10,13 @@ import Foundation
 
 extension CodeSignCodeDirectory {
     public func teamIdOffset(in signature: MachOFile.CodeSign) -> TeamIdOffset? {
-        guard isSupportsScatter else {
-            return nil
-        }
-        let layout: CS_CodeDirectory_TeamID? = signature.data.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else {
-                return nil
-            }
-            return baseAddress
-                .advanced(by: offset)
-                .advanced(by: layoutSize)
-                .advanced(by: ScatterOffset.layoutSize)
-                .assumingMemoryBound(to: CS_CodeDirectory_TeamID.self)
-                .pointee
-        }
-        guard let layout else { return nil }
+        guard isSupportsScatter else { return nil }
+        let layout: CS_CodeDirectory_TeamID = signature.fileSice.ptr
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .advanced(by: ScatterOffset.layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_TeamID.self)
+            .pointee
         return .init(
             layout: signature.isSwapped ? layout.swapped : layout
         )
@@ -35,14 +27,11 @@ extension CodeSignCodeDirectory {
               teamIdOffset.teamOffset != 0 else {
             return nil
         }
-        return signature.data.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else { return nil }
-            let ptr = baseAddress
-                .advanced(by: offset)
-                .advanced(by: Int(teamIdOffset.teamOffset))
-                .assumingMemoryBound(to: CChar.self)
-            return String(cString: ptr)
-        }
+        let ptr = signature.fileSice.ptr
+            .advanced(by: offset)
+            .advanced(by: Int(teamIdOffset.teamOffset))
+            .assumingMemoryBound(to: CChar.self)
+        return String(cString: ptr)
     }
 }
 

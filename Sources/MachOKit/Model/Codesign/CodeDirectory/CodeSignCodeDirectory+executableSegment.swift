@@ -13,20 +13,14 @@ extension CodeSignCodeDirectory {
         guard isSupportsExecSegment else {
             return nil
         }
-        let layout: CS_CodeDirectory_ExecSeg? = signature.data.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else {
-                return nil
-            }
-            return baseAddress
-                .advanced(by: offset)
-                .advanced(by: layoutSize)
-                .advanced(by: ScatterOffset.layoutSize)
-                .advanced(by: TeamIdOffset.layoutSize)
-                .advanced(by: CodeLimit64.layoutSize)
-                .assumingMemoryBound(to: CS_CodeDirectory_ExecSeg.self)
-                .pointee
-        }
-        guard let layout else { return nil }
+        let layout: CS_CodeDirectory_ExecSeg = signature.fileSice.ptr
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .advanced(by: ScatterOffset.layoutSize)
+            .advanced(by: TeamIdOffset.layoutSize)
+            .advanced(by: CodeLimit64.layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_ExecSeg.self)
+            .pointee
         return .init(
             layout: signature.isSwapped ? layout.swapped : layout
         )

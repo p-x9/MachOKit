@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@_spi(Core) import FileIO
 
 extension MachOFile {
     public struct Symbol: SymbolProtocol {
@@ -23,17 +24,23 @@ extension MachOFile {
 
 extension MachOFile {
     public struct Symbols64: Sequence {
+        public typealias FileSlice = File.FileSlice
+
         public let symtab: LoadCommandInfo<symtab_command>?
 
-        public let stringData: Data
-        public let symbolsData: Data
+        public let stringsSlice: FileSlice
+        public let symbolsSlice: FileSlice
         public let numberOfSymbols: Int
+
+        let isSwapped: Bool
+
 
         public func makeIterator() -> Iterator {
             .init(
-                stringData: stringData,
-                symbolsData: symbolsData,
-                numberOfSymbols: numberOfSymbols
+                stringsSlice: stringsSlice,
+                symbolsSlice: symbolsSlice,
+                numberOfSymbols: numberOfSymbols,
+                isSwapped: isSwapped
             )
         }
     }
@@ -44,33 +51,22 @@ extension MachOFile.Symbols64 {
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let stringData = machO.fileHandle.readData(
-            offset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff),
-            size: Int(symtab.strsize)
+        let stringsSlice = try! machO.fileHandle.fileSlice(
+            offset: machO.headerStartOffset + numericCast(symtab.stroff),
+            length: numericCast(symtab.strsize)
         )
 
-        let symbolsData = machO.fileHandle.readData(
-            offset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff),
-            size: Int(symtab.nsyms) * MemoryLayout<nlist_64>.size
+        let symbolsSlice = try! machO.fileHandle.fileSlice(
+            offset: machO.headerStartOffset + numericCast(symtab.symoff),
+            length: numericCast(symtab.nsyms) * MemoryLayout<nlist_64>.size
         )
 
-        if machO.isSwapped {
-            symbolsData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else { return }
-                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
-                    .assumingMemoryBound(to: nlist_64.self)
-                swap_nlist_64(
-                    ptr,
-                    symtab.nsyms,
-                    NXHostByteOrder()
-                )
-            }
-        }
         self.init(
             symtab: symtab,
-            stringData: stringData,
-            symbolsData: symbolsData,
-            numberOfSymbols: numericCast(symtab.nsyms)
+            stringsSlice: stringsSlice,
+            symbolsSlice: symbolsSlice,
+            numberOfSymbols: numericCast(symtab.nsyms),
+            isSwapped: machO.isSwapped
         )
     }
 }
@@ -79,59 +75,70 @@ extension MachOFile.Symbols64 {
     public struct Iterator: IteratorProtocol {
         public typealias Element = MachOFile.Symbol
 
-        let stringData: Data
-        let symbolsData: Data
+        let stringsSlice: FileSlice
+        let symbolsSlice: FileSlice
 
         public let numberOfSymbols: Int
+
+        let isSwapped: Bool
 
         private var nextIndex: Int = 0
 
         init(
-            stringData: Data,
-            symbolsData: Data,
-            numberOfSymbols: Int
+            stringsSlice: FileSlice,
+            symbolsSlice: FileSlice,
+            numberOfSymbols: Int,
+            isSwapped: Bool
         ) {
-            self.stringData = stringData
-            self.symbolsData = symbolsData
+            self.stringsSlice = stringsSlice
+            self.symbolsSlice = symbolsSlice
             self.numberOfSymbols = numberOfSymbols
+            self.isSwapped = isSwapped
         }
 
         public mutating func next() -> Element? {
             guard nextIndex < numberOfSymbols,
-                  !symbolsData.isEmpty,
-                  !stringData.isEmpty else {
+                  symbolsSlice.size != 0,
+                  stringsSlice.size != 0 else {
                 return nil
             }
 
-            let symbol: nlist_64 = symbolsData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else {
-                    fatalError("data is empty")
-                }
-                let ptr = baseAddress
-                    .assumingMemoryBound(to: nlist_64.self)
-
-                let symbol = ptr.advanced(by: nextIndex).pointee
-
-                nextIndex += 1
-
-                return symbol
+            var symbol: nlist_64 = try! symbolsSlice.read(
+                offset: Nlist64.layoutSize * nextIndex
+            )
+            if isSwapped {
+                swap_nlist_64(&symbol, 1, NXHostByteOrder())
             }
 
-            let string: String = stringData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else {
-                    fatalError("data is empty")
+            defer { nextIndex += 1 }
+
+#if false
+            let string = if let buffer = slice.buffer {
+                buffer.withUnsafeBytes {
+                    guard let baseAddress = $0.baseAddress else {
+                        fatalError("data is empty")
+                    }
+                    return String(
+                        cString: baseAddress
+                            .advanced(by: numericCast(symbol.n_un.n_strx))
+                            .assumingMemoryBound(to: CChar.self)
+                    )
                 }
-                let ptr = baseAddress
-                    .assumingMemoryBound(to: CChar.self)
-                    .advanced(by: Int(symbol.n_un.n_strx))
-                return String(
-                    cString: ptr
-                )
+            } else {
+                slice?.readString(offset: numericCast(numericCast(symbol.n_un.n_strx))) ?? ""
             }
+#endif
+
+            let string = String(
+                cString: stringsSlice.ptr
+                    .advanced(by: numericCast(symbol.n_un.n_strx))
+                    .assumingMemoryBound(to: CChar.self),
+                encoding: .utf8
+            ) ?? ""
 
             return .init(
                 name: string,
-                offset: Int(symbol.n_value),
+                offset: numericCast(symbol.n_value),
                 nlist: Nlist64(layout: symbol)
             )
         }
@@ -140,17 +147,22 @@ extension MachOFile.Symbols64 {
 
 extension MachOFile {
     public struct Symbols: Sequence {
+        public typealias FileSlice = File.FileSlice
+
         public let symtab: LoadCommandInfo<symtab_command>?
 
-        public let stringData: Data
-        public let symbolsData: Data
+        public let stringsSlice: FileSlice
+        public let symbolsSlice: FileSlice
         public let numberOfSymbols: Int
+
+        let isSwapped: Bool
 
         public func makeIterator() -> Iterator {
             .init(
-                stringData: stringData,
-                symbolsData: symbolsData,
-                numberOfSymbols: numberOfSymbols
+                stringsSlice: stringsSlice,
+                symbolsSlice: symbolsSlice,
+                numberOfSymbols: numberOfSymbols,
+                isSwapped: isSwapped
             )
         }
     }
@@ -161,34 +173,22 @@ extension MachOFile.Symbols {
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let stringData = machO.fileHandle.readData(
-            offset: UInt64(machO.headerStartOffset) + UInt64(symtab.stroff),
-            size: Int(symtab.strsize)
+        let stringsSlice = try! machO.fileHandle.fileSlice(
+            offset: machO.headerStartOffset + numericCast(symtab.stroff),
+            length: Int(symtab.strsize)
         )
 
-        let symbolsData = machO.fileHandle.readData(
-            offset: UInt64(machO.headerStartOffset) + UInt64(symtab.symoff),
-            size: Int(symtab.nsyms) * MemoryLayout<nlist>.size
+        let symbolsSlice = try! machO.fileHandle.fileSlice(
+            offset: machO.headerStartOffset + numericCast(symtab.symoff),
+            length: Int(symtab.nsyms) * MemoryLayout<nlist>.size
         )
-
-        if machO.isSwapped {
-            symbolsData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else { return }
-                let ptr = UnsafeMutableRawPointer(mutating: baseAddress)
-                    .assumingMemoryBound(to: nlist.self)
-                swap_nlist(
-                    ptr,
-                    symtab.nsyms,
-                    NXHostByteOrder()
-                )
-            }
-        }
 
         self.init(
             symtab: symtab,
-            stringData: stringData,
-            symbolsData: symbolsData,
-            numberOfSymbols: numericCast(symtab.nsyms)
+            stringsSlice: stringsSlice,
+            symbolsSlice: symbolsSlice,
+            numberOfSymbols: numericCast(symtab.nsyms),
+            isSwapped: machO.isSwapped
         )
     }
 }
@@ -197,55 +197,46 @@ extension MachOFile.Symbols {
     public struct Iterator: IteratorProtocol {
         public typealias Element = MachOFile.Symbol
 
-        let stringData: Data
-        let symbolsData: Data
+        let stringsSlice: FileSlice
+        let symbolsSlice: FileSlice
 
         public let numberOfSymbols: Int
 
         private var nextIndex: Int = 0
 
+        let isSwapped: Bool
+
         init(
-            stringData: Data,
-            symbolsData: Data,
-            numberOfSymbols: Int
+            stringsSlice: FileSlice,
+            symbolsSlice: FileSlice,
+            numberOfSymbols: Int,
+            isSwapped: Bool
         ) {
-            self.stringData = stringData
-            self.symbolsData = symbolsData
+            self.stringsSlice = stringsSlice
+            self.symbolsSlice = symbolsSlice
             self.numberOfSymbols = numberOfSymbols
+            self.isSwapped = isSwapped
         }
 
         public mutating func next() -> Element? {
             guard nextIndex < numberOfSymbols,
-                  !symbolsData.isEmpty,
-                  !stringData.isEmpty else {
+                  symbolsSlice.size != 0,
+                  stringsSlice.size != 0 else {
                 return nil
             }
 
-            let symbol: nlist = symbolsData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else {
-                    fatalError("data is empty")
-                }
-                let ptr = baseAddress
-                    .assumingMemoryBound(to: nlist.self)
-
-                let symbol = ptr.advanced(by: nextIndex).pointee
-
-                nextIndex += 1
-
-                return symbol
+            var symbol: nlist = try! symbolsSlice.read(
+                offset: Nlist.layoutSize * nextIndex
+            )
+            if isSwapped {
+                swap_nlist(&symbol, 1, NXHostByteOrder())
             }
 
-            let string: String = stringData.withUnsafeBytes {
-                guard let baseAddress = $0.baseAddress else {
-                    fatalError("data is empty")
-                }
-                let ptr = baseAddress
-                    .assumingMemoryBound(to: CChar.self)
-                    .advanced(by: Int(symbol.n_un.n_strx))
-                return String(
-                    cString: ptr
-                )
-            }
+            defer { nextIndex += 1 }
+
+            let string = stringsSlice.readString(
+                offset: numericCast(symbol.n_un.n_strx)
+            ) ?? ""
 
             return .init(
                 name: string,
@@ -268,28 +259,20 @@ extension MachOFile.Symbols64: Collection {
     }
 
     public subscript(position: Int) -> MachOFile.Symbol {
-        let symbol: nlist_64 = symbolsData.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else {
-                fatalError("data is empty")
-            }
-            let ptr = baseAddress
-                .assumingMemoryBound(to: nlist_64.self)
-            return ptr.advanced(by: position).pointee
+        var symbol: nlist_64 = try! symbolsSlice.read(
+            offset: Nlist64.layoutSize * position
+        )
+        if isSwapped {
+            swap_nlist_64(&symbol, 1, NXHostByteOrder())
         }
 
-        let string: String = stringData.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else {
-                fatalError("data is empty")
-            }
-            let ptr = baseAddress
-                .assumingMemoryBound(to: CChar.self)
-                .advanced(by: Int(symbol.n_un.n_strx))
-            return String(cString: ptr)
-        }
+        let string = stringsSlice.readString(
+            offset: numericCast(symbol.n_un.n_strx)
+        ) ?? ""
 
         return .init(
             name: string,
-            offset: Int(symbol.n_value),
+            offset: numericCast(symbol.n_value),
             nlist: Nlist64(layout: symbol)
         )
     }
@@ -306,28 +289,20 @@ extension MachOFile.Symbols: Collection {
     }
 
     public subscript(position: Int) -> MachOFile.Symbol {
-        let symbol: nlist = symbolsData.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else {
-                fatalError("data is empty")
-            }
-            let ptr = baseAddress
-                .assumingMemoryBound(to: nlist.self)
-            return ptr.advanced(by: position).pointee
+        var symbol: nlist = try! symbolsSlice.read(
+            offset: Nlist.layoutSize * position
+        )
+        if isSwapped {
+            swap_nlist(&symbol, 1, NXHostByteOrder())
         }
 
-        let string: String = stringData.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else {
-                fatalError("data is empty")
-            }
-            let ptr = baseAddress
-                .assumingMemoryBound(to: CChar.self)
-                .advanced(by: Int(symbol.n_un.n_strx))
-            return String(cString: ptr)
-        }
+        let string = stringsSlice.readString(
+            offset: numericCast(symbol.n_un.n_strx)
+        ) ?? ""
 
         return .init(
             name: string,
-            offset: Int(symbol.n_value),
+            offset: numericCast(symbol.n_value),
             nlist: Nlist(layout: symbol)
         )
     }

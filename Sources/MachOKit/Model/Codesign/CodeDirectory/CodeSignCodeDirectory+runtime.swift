@@ -13,21 +13,15 @@ extension CodeSignCodeDirectory {
         guard isSupportsRuntime else {
             return nil
         }
-        let layout: CS_CodeDirectory_Runtime? = signature.data.withUnsafeBytes {
-            guard let baseAddress = $0.baseAddress else {
-                return nil
-            }
-            return baseAddress
-                .advanced(by: offset)
-                .advanced(by: layoutSize)
-                .advanced(by: ScatterOffset.layoutSize)
-                .advanced(by: TeamIdOffset.layoutSize)
-                .advanced(by: CodeLimit64.layoutSize)
-                .advanced(by: ExecutableSegment.layoutSize)
-                .assumingMemoryBound(to: CS_CodeDirectory_Runtime.self)
-                .pointee
-        }
-        guard let layout else { return nil }
+        let layout: CS_CodeDirectory_Runtime = signature.fileSice.ptr
+            .advanced(by: offset)
+            .advanced(by: layoutSize)
+            .advanced(by: ScatterOffset.layoutSize)
+            .advanced(by: TeamIdOffset.layoutSize)
+            .advanced(by: CodeLimit64.layoutSize)
+            .advanced(by: ExecutableSegment.layoutSize)
+            .assumingMemoryBound(to: CS_CodeDirectory_Runtime.self)
+            .pointee
         return .init(
             layout: signature.isSwapped ? layout.swapped : layout
         )
@@ -68,7 +62,10 @@ extension CodeSignCodeDirectory {
         let offset = offset
         + numericCast(runtime.preEncryptOffset)
         + index * size
-        return signature.data[offset ..< offset + size]
+        return signature.fileSice.readData(
+            offset: numericCast(offset),
+            size: size
+        )
     }
 
     public func preEncryptHash(
