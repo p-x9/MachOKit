@@ -37,4 +37,4 @@ jobs:
               --arg version "$VERSION" \
               --arg machOKitChecksum "$MACHOKIT_CHECKSUM" \
               --arg machOKitCChecksum "$MACHOKITC_CHECKSUM" \
-              '{event_type: "update_binary_version", client_payload: {version: $version, mach-o_kit_checksum: $machOKitChecksum, mach-o_kit_c_checksum: $machOKitCChecksum}}')"
+              '{event_type: "update_binary_version", client_payload: {version: $version, "mach-o_kit_checksum": $machOKitChecksum, "mach-o_kit_c_checksum": $machOKitCChecksum}}')"
