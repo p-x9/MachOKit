@@ -11,9 +11,10 @@ jobs:
     steps:
       - name: Extract Release Information
         id: release_info
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+          RELEASE_BODY: ${{ github.event.release.body }}
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          RELEASE_BODY="${{ github.event.release.body }}"
           MACHOKIT_CHECKSUM=$(echo "$RELEASE_BODY" | awk -v target="MachOKit" '
             found { print; exit }
             $0 == target { found=1 }
@@ -36,4 +37,4 @@ jobs:
               --arg version "$VERSION" \
               --arg machOKitChecksum "$MACHOKIT_CHECKSUM" \
               --arg machOKitCChecksum "$MACHOKITC_CHECKSUM" \
-              '{event_type: "update_binary_version", client_payload: {version: $version, mach-o_kit_checksum: $machOKitChecksum, mach-o_kit_c_checksum: $machOKitCChecksum}}')"
+              '{event_type: "update_binary_version", client_payload: {version: $version, "mach-o_kit_checksum": $machOKitChecksum, "mach-o_kit_c_checksum": $machOKitCChecksum}}')"
