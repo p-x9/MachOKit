@@ -283,13 +283,13 @@ extension MachOImage {
                 $0.sectionName == "__cstring"
             }
             guard let cstrings else { return nil }
-            return cstrings.strings(in: text, vmaddrSlide: vmaddrSlide)
+            return cstrings.strings(vmaddrSlide: vmaddrSlide)
         } else if let text = loadCommands.text {
             let cstrings = text.sections(cmdsStart: cmdsStartPtr).first {
                 $0.sectionName == "__cstring"
             }
             guard let cstrings else { return nil }
-            return cstrings.strings(in: text, vmaddrSlide: vmaddrSlide)
+            return cstrings.strings(vmaddrSlide: vmaddrSlide)
         }
         return nil
     }
@@ -301,7 +301,7 @@ extension MachOImage {
             return segments.flatMap { segment in
                 segment.sections(cmdsStart: cmdsStartPtr)
                     .compactMap { section in
-                        section.strings(in: segment, vmaddrSlide: vmaddrSlide)
+                        section.strings(vmaddrSlide: vmaddrSlide)
                     }
             }
         } else {
@@ -309,7 +309,7 @@ extension MachOImage {
             return segments.flatMap { segment in
                 segment.sections(cmdsStart: cmdsStartPtr)
                     .compactMap { section in
-                        section.strings(in: segment, vmaddrSlide: vmaddrSlide)
+                        section.strings(vmaddrSlide: vmaddrSlide)
                     }
             }
         }
@@ -318,6 +318,24 @@ extension MachOImage {
     /// All strings in `__TEXT` segment
     public var allCStrings: [String] {
         allCStringTables.flatMap { $0.map(\.string) }
+    }
+
+    public var uStrings: UTF16Strings? {
+        guard let vmaddrSlide else { return nil }
+        guard let section = sections64.first(where: {
+            $0.sectionName == "__ustring"
+        }) else { return nil }
+
+        guard let start = section.startPtr(vmaddrSlide: vmaddrSlide) else {
+            return nil
+        }
+
+        return .init(
+            basePointer: start
+                .assumingMemoryBound(to: UInt16.self),
+            tableSize: numericCast(section.size),
+            isLittleEndian: true
+        )
     }
 }
 
@@ -672,6 +690,16 @@ extension MachOImage {
             numberOfElements: numericCast(dysymtab.nextrel)
         )
     }
+
+    public var classicBindingSymbols: [ClassicBindingSymbol]? {
+        _classicBindingSymbols(
+            addendLoader: { address in
+                UnsafeRawPointer(bitPattern: UInt(address))?
+                    .assumingMemoryBound(to: Int64.self)
+                    .pointee ?? 0
+            }
+        )
+    }
 }
 
 extension MachOImage {
@@ -696,5 +724,43 @@ extension MachOImage {
             )
         }
         return nil
+    }
+}
+
+extension MachOImage {
+    public var cfStrings64: MemorySequence<CFString64>? {
+        guard let section = sections64.first(where: {
+            $0.sectionName == "__cfstring"
+        }) else { return nil }
+        guard let vmaddrSlide else { return nil }
+
+        guard let ptr = section.startPtr(vmaddrSlide: vmaddrSlide) else {
+            return nil
+        }
+        let count = section.size / CFString64.layoutSize
+
+        return .init(
+            basePointer: ptr
+                .assumingMemoryBound(to: CFString64.self),
+            numberOfElements: count
+        )
+    }
+
+    public var cfStrings32: MemorySequence<CFString32>? {
+        guard let section = sections32.first(where: {
+            $0.sectionName == "__cfstring"
+        }) else { return nil }
+        guard let vmaddrSlide else { return nil }
+
+        guard let ptr = section.startPtr(vmaddrSlide: vmaddrSlide) else {
+            return nil
+        }
+        let count = section.size / CFString32.layoutSize
+
+        return .init(
+            basePointer: ptr
+                .assumingMemoryBound(to: CFString32.self),
+            numberOfElements: count
+        )
     }
 }

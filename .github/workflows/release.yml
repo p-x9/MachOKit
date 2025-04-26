@@ -67,6 +67,8 @@ jobs:
           echo -e "MachOKitC\n$machokitc_checksum" >> release_body.txt
 
       - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         uses: softprops/action-gh-release@v1
         with:
           body_path: "./release_body.txt"

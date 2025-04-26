@@ -278,6 +278,21 @@ extension MachOFile {
     public var allCStrings: [String] {
         allCStringTables.flatMap { $0.map(\.string) }
     }
+
+    public var uStrings: UTF16Strings? {
+        guard let section = sections.first(where: {
+            $0.sectionName == "__ustring"
+        }) else { return nil }
+
+        let offset = headerStartOffset + section.offset
+
+        return .init(
+            machO: self,
+            offset: offset,
+            size: section.size,
+            isLittleEndian: true
+        )
+    }
 }
 
 extension MachOFile {
@@ -448,6 +463,16 @@ extension MachOFile {
             }
         )
     }
+
+    public var classicBindingSymbols: [ClassicBindingSymbol]? {
+        _classicBindingSymbols(
+            addendLoader: { address in
+                fileHandle.read(
+                    offset: fileOffset(of: address) + numericCast(headerStartOffset)
+                )
+            }
+        )
+    }
 }
 
 extension MachOFile {
@@ -480,6 +505,36 @@ extension MachOFile {
     /// A Boolean value that indicates whether this machO file was loaded from dyld cache
     public var isLoadedFromDyldCache: Bool {
         headerStartOffsetInCache > 0
+    }
+}
+
+extension MachOFile {
+    public var cfStrings64: DataSequence<CFString64>? {
+        guard let section = sections64.first(where: {
+            $0.sectionName == "__cfstring"
+        }) else { return nil }
+
+        let offset = headerStartOffset + section.offset
+        let count = section.size / CFString64.layoutSize
+
+        return fileHandle.readDataSequence(
+            offset: numericCast(offset),
+            numberOfElements: count
+        )
+    }
+
+    public var cfStrings32: DataSequence<CFString32>? {
+        guard let section = sections32.first(where: {
+            $0.sectionName == "__cfstring"
+        }) else { return nil }
+
+        let offset = headerStartOffset + section.offset
+        let count = section.size / CFString32.layoutSize
+
+        return fileHandle.readDataSequence(
+            offset: numericCast(offset),
+            numberOfElements: count
+        )
     }
 }
 
@@ -555,6 +610,110 @@ extension MachOFile {
             }
             return (chainedFixup.imports[ordinal], addend)
         }
+        return nil
+    }
+}
+
+
+extension MachOFile {
+    /// Convert raw vmaddr to fileoffset
+    ///
+    /// Properly handle PAC, objc tagged pointer, etc.
+    /// It does not deal with rebase/bind.
+    ///
+    /// - Parameter rawVMAddr:
+    /// - Returns: Raw vmaddr read from section etc.
+    public func fileOffset(of rawVMAddr: UInt64) -> UInt64 {
+        var vmaddr = rawVMAddr
+        if let vmaddrMask {
+            vmaddr &= vmaddrMask // PAC & objc tagged pointer
+        }
+        //        vmaddr &= ~3 // objc pointer union
+
+        for segment in self.segments {
+            if segment.virtualMemoryAddress <= vmaddr,
+               vmaddr < segment.virtualMemoryAddress + segment.virtualMemorySize {
+                return vmaddr + numericCast(segment.fileOffset) - numericCast(segment.virtualMemoryAddress)
+            }
+            if segment.segmentName == SEG_TEXT,
+               vmaddr < segment.virtualMemoryAddress {
+                return vmaddr
+            }
+        }
+        return vmaddr
+    }
+}
+
+extension MachOFile {
+    /// Bitmask to get a valid range of vmaddr from raw vmaddr
+    ///
+    /// | Arch | `MACH_VM_MAX_ADDRESS` | mask |
+    /// |---------|------------------|----------|
+    /// | **arm** | `0x80000000` | `0x7FFFFFFF` |
+    /// | **arm64 (mac or driver)** | `0x00007FFFFE000000` | `0x00007FFFFFFFFFFF` |
+    /// | **arm64 (other)** | `0x0000000FC0000000` | `0x0000000FFFFFFFFF` |
+    /// | **i386** | `0x00007FFFFFE00000` | `0x00007FFFFFFFFFFF` |
+    ///
+    /// [xnu implementation](https://github.com/apple-oss-distributions/xnu/blob/8d741a5de7ff4191bf97d57b9f54c2f6d4a15585/osfmk/mach/arm/vm_param.h#L126)
+    private var vmaddrMask: UInt64? {
+        switch header.cpuType {
+        case .x86:
+            return 0xFFFFFFFF
+        case .i386:
+            return 0xFFFFFFFF
+        case .x86_64:
+            return 0x00007FFFFFFFFFFF
+        case .arm:
+            return 0x7FFFFFFF
+        case .arm64:
+            if let platform = loadCommands.info(of: LoadCommand.buildVersion)?.platform {
+                if [
+                    .macOS,
+                    .driverKit
+                ].contains(platform) || isMacOS == true {
+                    return 0x00007FFFFFFFFFFF
+                } else {
+                    return 0x0000000FFFFFFFFF
+                }
+            }
+            return 0x0000000FFFFFFFFF // FIXME: fallback
+
+        case .arm64_32:
+            return 0x7FFFFFFF
+        default:
+            return nil
+        }
+    }
+}
+
+extension MachOFile {
+    private var isMacOS: Bool? {
+        let loadCommands = loadCommands
+        if let platform = loadCommands.info(of: LoadCommand.buildVersion)?.platform  {
+            return [
+                .macOS,
+                .macOSExclaveKit,
+                .macOSExclaveCore,
+                .macCatalyst
+            ].contains(
+                platform
+            )
+        }
+        if loadCommands.info(of: LoadCommand.versionMinMacosx) != nil {
+            return true
+        }
+
+        if loadCommands.info(of: LoadCommand.versionMinIphoneos) != nil ||
+            loadCommands.info(of: LoadCommand.versionMinWatchos) != nil ||
+            loadCommands.info(of: LoadCommand.versionMinTvos) != nil {
+            return false
+        }
+
+        if header.isInDyldCache,
+           let cache = try? DyldCache(url: url) {
+            return cache.header.platform == .macOS
+        }
+
         return nil
     }
 }

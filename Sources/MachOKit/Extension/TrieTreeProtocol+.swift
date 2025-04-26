@@ -33,8 +33,8 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
             }
     }
 
-    public func search(for key: String) -> ExportedSymbol? {
-        guard let (_, content) = _search(for: key) else {
+    public func search(by key: String) -> ExportedSymbol? {
+        guard let (_, content) = _search(by: key) else {
             return nil
         }
         let symbolOffset: Int? = if let symbolOffset = content.symbolOffset {
@@ -51,6 +51,26 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
             resolverOffset: content.resolver
         )
     }
+
+    public func search(byKeyPrefix prefix: String) -> [ExportedSymbol] {
+        let found = _search(byKeyPrefix: prefix)
+        return found.compactMap {
+            let content = $0.content
+            let symbolOffset: Int? = if let symbolOffset = content.symbolOffset {
+                .init(bitPattern: symbolOffset)
+            } else { nil }
+
+            return .init(
+                name: $0.name,
+                offset: symbolOffset,
+                flags: content.flags ?? [],
+                ordinal: content.ordinal,
+                importedName: content.importedName,
+                stub: content.stub,
+                resolverOffset: content.resolver
+            )
+        }
+    }
 }
 
 extension TrieTreeProtocol where Content == DylibsTrieNodeContent {
@@ -65,11 +85,18 @@ extension TrieTreeProtocol where Content == DylibsTrieNodeContent {
         }
     }
 
-    public func search(for key: String) -> DylibIndex? {
-        guard let (_, content) = _search(for: key) else {
+    public func search(by key: String) -> DylibIndex? {
+        guard let (_, content) = _search(by: key) else {
             return nil
         }
         return.init(name: key, index: content.index)
+    }
+
+    public func search(byKeyPrefix prefix: String) -> [DylibIndex] {
+        let found = _search(byKeyPrefix: prefix)
+        return found.compactMap {
+            return .init(name: $0.name, index: $0.content.index)
+        }
     }
 }
 
@@ -85,10 +112,17 @@ extension TrieTreeProtocol where Content == ProgramsTrieNodeContent {
         }
     }
 
-    public func search(for key: String) -> ProgramOffset? {
-        guard let (_, content) = _search(for: key) else {
+    public func search(by key: String) -> ProgramOffset? {
+        guard let (_, content) = _search(by: key) else {
             return nil
         }
         return.init(name: key, offset: content.offset)
+    }
+
+    public func search(byKeyPrefix prefix: String) -> [ProgramOffset] {
+        let found = _search(byKeyPrefix: prefix)
+        return found.compactMap {
+            return .init(name: $0.name, offset: $0.content.offset)
+        }
     }
 }

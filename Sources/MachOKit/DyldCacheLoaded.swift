@@ -204,6 +204,15 @@ extension DyldCacheLoaded {
 
         return AnySequence(machOFiles)
     }
+
+    public var dyld: MachOImage? {
+        guard let slide,
+              let ptr = UnsafeRawPointer(bitPattern: Int(header.dyldInCacheMH) + slide) else {
+            return nil
+        }
+        
+        return .init(ptr: ptr.assumingMemoryBound(to: mach_header.self))
+    }
 }
 
 extension DyldCacheLoaded {
@@ -350,7 +359,6 @@ extension DyldCacheLoaded {
             return nil
         }
 
-        let text: any SegmentCommandProtocol
         let __objc_opt_ro: any SectionProtocol
 
         if libobjc.is64Bit {
@@ -360,7 +368,6 @@ extension DyldCacheLoaded {
                   }) else {
                 return nil
             }
-            text = _text
             __objc_opt_ro = section
         } else {
             guard let _text = libobjc.loadCommands.text,
@@ -369,16 +376,16 @@ extension DyldCacheLoaded {
                   }) else {
                 return nil
             }
-            text = _text
             __objc_opt_ro = section
         }
 
         guard let start = __objc_opt_ro.startPtr(
-            in: text,
             vmaddrSlide: vmaddrSlide
         ) else { return nil }
+
         let layout: OldObjCOptimization.Layout = start
                 .autoBoundPointee()
+
         return .init(
             layout: layout,
             offset: Int(bitPattern: start) - Int(bitPattern: ptr)
@@ -393,5 +400,28 @@ extension DyldCacheLoaded {
         return ptr
             .advanced(by: numericCast(header.swiftOptsOffset))
             .autoBoundPointee()
+    }
+
+    public var dynamicData: DyldCacheDynamicData? {
+        guard mainCacheHeader.dynamicDataOffset > 0,
+              mainCacheHeader.hasProperty(\.dynamicDataMaxSize) else {
+            return nil
+        }
+        return ptr
+            .advanced(by: numericCast(header.dynamicDataOffset))
+            .autoBoundPointee()
+    }
+
+    public var tproMappings: MemorySequence<DyldCacheTproMappingInfo>? {
+        guard mainCacheHeader.tproMappingsOffset > 0,
+              mainCacheHeader.hasProperty(\.tproMappingsCount) else {
+            return nil
+        }
+        return .init(
+            basePointer: ptr
+                .advanced(by: numericCast(header.tproMappingsOffset))
+                .assumingMemoryBound(to: DyldCacheTproMappingInfo.self),
+            numberOfElements: numericCast(header.tproMappingsCount)
+        )
     }
 }

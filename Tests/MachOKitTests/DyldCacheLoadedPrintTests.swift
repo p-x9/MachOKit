@@ -156,6 +156,15 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         }
     }
 
+    func testDyld() throws {
+        guard let dyld = cache.dyld else { return }
+        let sourceVersion = dyld.loadCommands.info(of: LoadCommand.sourceVersion)!
+        print("Dyld:", dyld.path ?? "unknown", "dyld-\(sourceVersion.version)")
+        for cmd in dyld.loadCommands {
+            print(" -", cmd.type)
+        }
+    }
+
     func testDylibIndices() {
         let cache = cache!
         let indices = cache.dylibIndices
@@ -164,7 +173,7 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
             })
         let trie = cache.dylibsTrie
         for index in indices {
-            let found = trie?.search(for: index.name)
+            let found = trie?.search(by: index.name)
             XCTAssertNotNil(found)
             XCTAssertEqual(found?.index, index.index)
 
@@ -177,7 +186,7 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         let programOffsets = cache.programOffsets
         let trie = cache.programsTrie
         for programOffset in programOffsets {
-            let found = trie?.search(for: programOffset.name)
+            let found = trie?.search(by: programOffset.name)
             XCTAssertNotNil(found)
             XCTAssertEqual(found?.offset, programOffset.offset)
 
@@ -317,6 +326,22 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         print("Type Conformance Hash Table Cache Offset:", swiftOptimization.typeConformanceHashTableCacheOffset)
         print("Metadata Conformance Hash Table Cache Offset:", swiftOptimization.metadataConformanceHashTableCacheOffset)
         print("Foreign Type Conformance Hash Table Cache Offset:", swiftOptimization.foreignTypeConformanceHashTableCacheOffset)
+    }
+
+
+    func testDynamicData() throws {
+        guard let dynamicData = cache.dynamicData else { return }
+        print("Magic:", dynamicData.magic)
+        print("fsId:", dynamicData.fsId)
+        print("fsObjId:", dynamicData.fsObjId)
+        print("path:", dynamicData.path)
+    }
+
+    func testTproMappings() throws {
+        guard let mappings = cache.tproMappings else { return }
+        for mapping in mappings {
+            print("- 0x\(String(mapping.unslidAddress, radix: 16)), \(mapping.size)")
+        }
     }
 }
 

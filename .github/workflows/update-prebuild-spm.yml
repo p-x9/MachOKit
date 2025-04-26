@@ -1,0 +1,40 @@
+name: Update Prebuilt SPM
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-binary-target:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Release Information
+        id: release_info
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          MACHOKIT_CHECKSUM=$(echo "$RELEASE_BODY" | awk -v target="MachOKit" '
+            found { print; exit }
+            $0 == target { found=1 }
+          ')
+          MACHOKITC_CHECKSUM=$(echo "$RELEASE_BODY" | awk -v target="MachOKitC" '
+            found { print; exit }
+            $0 == target { found=1 }
+          ')
+
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "MACHOKIT_CHECKSUM=${MACHOKIT_CHECKSUM}" >> $GITHUB_ENV
+          echo "MACHOKITC_CHECKSUM=${MACHOKITC_CHECKSUM}" >> $GITHUB_ENV
+
+      - name: Send repository_dispatch event
+        run: |
+          curl -X POST -H "Accept: application/vnd.github.v3+json" \
+             -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+             https://api.github.com/repos/p-x9/MachOKit-SPM/dispatches \
+             --data "$(jq -n \
+              --arg version "$VERSION" \
+              --arg machOKitChecksum "$MACHOKIT_CHECKSUM" \
+              --arg machOKitCChecksum "$MACHOKITC_CHECKSUM" \
+              '{event_type: "update_binary_version", client_payload: {version: $version, "mach-o_kit_checksum": $machOKitChecksum, "mach-o_kit_c_checksum": $machOKitCChecksum}}')"

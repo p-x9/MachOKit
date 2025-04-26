@@ -17,7 +17,9 @@ public struct PrebuiltLoaderSet: LayoutWrapper {
 
 extension PrebuiltLoaderSet {
     public func loaders(in cache: DyldCache) -> [PrebuiltLoader]? {
-        guard isLatestVersion else { return nil }
+        if let version, version.isPre1165_3 {
+            return nil
+        }
 
         guard let offset = cache.fileOffset(of: numericCast(address)) else {
             return nil
@@ -47,7 +49,9 @@ extension PrebuiltLoaderSet {
 
     public func loaders(in cache: DyldCacheLoaded) -> [PrebuiltLoader]? {
         // swiftlint:disable:previous unused_parameter
-        guard isLatestVersion else { return nil }
+        if let version, version.isPre1165_3 {
+            return nil
+        }
 
         guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
             return nil
@@ -129,8 +133,8 @@ extension PrebuiltLoaderSet {
     public func dyldCacheUUID(in cache: DyldCache) -> UUID? {
         guard layout.dyldCacheUUIDOffset != 0,
               let offset = cache.fileOffset(
-            of: numericCast(address) + numericCast(layout.dyldCacheUUIDOffset)
-        ) else {
+                of: numericCast(address) + numericCast(layout.dyldCacheUUIDOffset)
+              ) else {
             return nil
         }
         let data: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) = cache.fileHandle.read(offset: offset)
@@ -228,9 +232,11 @@ extension PrebuiltLoaderSet {
         case v0x9a661060 = 0x9a661060
         /// from dyld-1231.3
         case v0x173a676e = 0x173a676e
+        /// from dyld-1241.17
+        case v0x18cf6421 = 0x18cf6421
 
         public var isLatest: Bool {
-            self == .v0x173a676e
+            self == .v0x18cf6421
         }
 
         public var isPre1165_3: Bool {

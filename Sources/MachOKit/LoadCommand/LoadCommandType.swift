@@ -119,6 +119,12 @@ public enum LoadCommandType {
     case filesetEntry
     /// LC_ATOM_INFO
     case atomInfo
+    /// LC_FUNCTION_VARIANTS
+    case functionVariants
+    /// LC_FUNCTION_VARIANT_FIXUPS
+    case functionVariantFixups
+    /// LC_TARGET_TRIPLE
+    case targetTriple
 }
 
 extension LoadCommandType: RawRepresentable {
@@ -179,6 +185,9 @@ extension LoadCommandType: RawRepresentable {
         case UInt32(LC_DYLD_CHAINED_FIXUPS): self = .dyldChainedFixups
         case UInt32(LC_FILESET_ENTRY): self = .filesetEntry
         case UInt32(LC_ATOM_INFO): self = .atomInfo
+        case UInt32(LC_FUNCTION_VARIANTS): self = .functionVariants
+        case UInt32(LC_FUNCTION_VARIANT_FIXUPS): self = .functionVariantFixups
+        case UInt32(LC_TARGET_TRIPLE): self = .targetTriple
         default: return nil
         }
     }
@@ -242,6 +251,9 @@ extension LoadCommandType {
         case .dyldChainedFixups: UInt32(LC_DYLD_CHAINED_FIXUPS)
         case .filesetEntry: UInt32(LC_FILESET_ENTRY)
         case .atomInfo: UInt32(LC_ATOM_INFO)
+        case .functionVariants: UInt32(LC_FUNCTION_VARIANTS)
+        case .functionVariantFixups: UInt32(LC_FUNCTION_VARIANT_FIXUPS)
+        case .targetTriple: UInt32(LC_TARGET_TRIPLE)
         }
     }
 }
@@ -304,6 +316,9 @@ extension LoadCommandType: CustomStringConvertible {
         case .dyldChainedFixups: "LC_DYLD_CHAINED_FIXUPS"
         case .filesetEntry: "LC_FILESET_ENTRY"
         case .atomInfo: "LC_ATOM_INFO"
+        case .functionVariants: "LC_FUNCTION_VARIANTS"
+        case .functionVariantFixups: "LC_FUNCTION_VARIANT_FIXUPS"
+        case .targetTriple: "LC_TARGET_TRIPLE"
         }
     }
 }

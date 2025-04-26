@@ -58,8 +58,15 @@ extension MachOFile.ExportTrie {
     /// Search the trie tree by symbol name to get the expoted symbol
     /// - Parameter key: symbol name
     /// - Returns: If found, retruns exported symbol
-    public func search(for key: String) -> ExportedSymbol? {
-        wrapped.search(for: key)
+    public func search(by key: String) -> ExportedSymbol? {
+        wrapped.search(by: key)
+    }
+
+    /// Search the trie tree by prefix of symbol name to get the expoted symbol
+    /// - Parameter prefix: prefix of symbol name
+    /// - Returns: If found, retruns exported symbol
+    public func search(byKeyPrefix prefix: String) -> [ExportedSymbol] {
+        wrapped.search(byKeyPrefix: prefix)
     }
 }
 

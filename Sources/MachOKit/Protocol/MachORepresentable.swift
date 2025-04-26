@@ -14,10 +14,13 @@ public protocol MachORepresentable {
     associatedtype Symbols64: RandomAccessCollection<Symbol>
     associatedtype Symbols: RandomAccessCollection<Symbol>
     associatedtype IndirectSymbols: RandomAccessCollection<IndirectSymbol>
+    associatedtype CFStrings32: RandomAccessCollection<CFString32>
+    associatedtype CFStrings64: RandomAccessCollection<CFString64>
     associatedtype RebaseOperations: Sequence<RebaseOperation>
     associatedtype BindOperations: Sequence<BindOperation>
     associatedtype ExportTrie: Sequence<ExportTrieEntry>
-    associatedtype Strings: Sequence<StringTableEntry>
+    associatedtype Strings: StringTable<UTF8>
+    associatedtype UTF16Strings: StringTable<UTF16>
     associatedtype FunctionStarts: Sequence<FunctionStart>
     associatedtype DataInCode: RandomAccessCollection<DataInCodeEntry>
     associatedtype DyldChainedFixups: DyldChainedFixupsProtocol
@@ -82,6 +85,16 @@ public protocol MachORepresentable {
     /// Symbol strings is not included.
     var allCStrings: [String] { get }
 
+    /// Sequence of utf16 strings in `__TEXT, __ustring` section
+    var uStrings: UTF16Strings? { get }
+
+    /// List of CFStrings in all segments
+    var cfStrings: [any CFStringProtocol]? { get }
+    /// List of CFStrings in 64-bit architecture segments
+    var cfStrings64: CFStrings64? { get }
+    /// List of CFStrings in 32-bit architecture segments
+    var cfStrings32: CFStrings32? { get }
+
     /// Sequence of rebase operations
     var rebaseOperations: RebaseOperations? { get }
 
@@ -138,6 +151,21 @@ public protocol MachORepresentable {
     /// Sequence of external relocation infos
     var externalRelocations: ExternalRelocations? { get }
 
+    /// Sequence of classic binding symbols
+    ///
+    /// It is retrieved from ``externalRelocations`` and ``indirectSymbols``.
+    ///
+    /// [ld64 implementation](https://github.com/apple-oss-distributions/ld64/blob/59a99ab60399c5e6c49e6945a9e1049c42b71135/src/other/dyldinfo.cpp#L2519)
+    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/b492ac15734277d89795b6f97f0e2feb1aa45595/common/MachOAnalyzer.cpp#L1707)
+    var classicBindingSymbols: [ClassicBindingSymbol]? { get }
+
+    /// Sequence of classic lazy binding symbols
+    ///
+    /// It is retrieved from ``indirectSymbols``.
+    ///
+    /// [ld64 implementation](https://github.com/apple-oss-distributions/ld64/blob/59a99ab60399c5e6c49e6945a9e1049c42b71135/src/other/dyldinfo.cpp#L2590)
+    var classicLazyBindingSymbols: [ClassicBindingSymbol]? { get }
+
     /// Code sign infos
     var codeSign: CodeSign? { get }
 
@@ -150,6 +178,8 @@ public protocol MachORepresentable {
     /// Find the symbol closest to the address at the specified offset.
     ///
     /// Behaves almost identically to the `dladdr` function
+    ///
+    /// If sectionNumber is 0, search in all sections
     ///
     /// - Parameters:
     ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
@@ -166,6 +196,8 @@ public protocol MachORepresentable {
     ///
     /// Different from ``closestSymbol(at:inSection:isGlobalOnly:)`` multiple symbols with the same offset may be found.
     ///
+    /// If sectionNumber is 0, search in all sections
+    ///
     /// - Parameters:
     ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
     ///   - sectionNumber: Section number to be searched.
@@ -178,21 +210,36 @@ public protocol MachORepresentable {
     ) -> [Symbol]
 
     /// Find the symbol matching the specified offset.
+    ///
+    /// If sectionNumber is 0, search in all sections
+    ///
     /// - Parameters:
     ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
-    func symbol(for offset: Int, isGlobalOnly: Bool) -> Symbol?
+    func symbol(
+        for offset: Int,
+        inSection sectionNumber: Int,
+        isGlobalOnly: Bool
+    ) -> Symbol?
 
     /// Find the symbols matching the specified offset.
     ///
     /// Different from ``symbol(for:isGlobalOnly:)`` multiple symbols with the same offset may be found.
     ///
+    /// If sectionNumber is 0, search in all sections
+    ///
     /// - Parameters:
     ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbols
-    func symbols(for offset: Int, isGlobalOnly: Bool) -> [Symbol]
+    func symbols(
+        for offset: Int,
+        inSection sectionNumber: Int,
+        isGlobalOnly: Bool
+    ) -> [Symbol]
 
     /// Find the symbol matching the given name.
     /// - Parameters:
@@ -203,12 +250,21 @@ public protocol MachORepresentable {
 
     /// Find the symbol matching the given name
     /// Search only for symbols defined within this mach-o
+    ///
+    /// If sectionNumber is 0, search in all sections
+    ///
     /// - Parameters:
     ///   - name: Symbol name to find
     ///   - mangled: A boolean value that indicates whether the specified name is mangled with Swift
+    ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
-    func symbol(named name: String, mangled: Bool, isGlobalOnly: Bool) -> Symbol?
+    func symbol(
+        named name: String,
+        mangled: Bool,
+        inSection sectionNumber: Int,
+        isGlobalOnly: Bool
+    ) -> Symbol?
 }
 
 extension MachORepresentable {
@@ -247,6 +303,16 @@ extension MachORepresentable {
             AnyRandomAccessCollection(symbols32)
         } else {
             AnyRandomAccessCollection([])
+        }
+    }
+}
+
+extension MachORepresentable {
+    public var cfStrings: [any CFStringProtocol]? {
+        if is64Bit {
+            cfStrings64?.map { $0 as (any CFStringProtocol) }
+        } else {
+            cfStrings32?.map { $0 as (any CFStringProtocol) }
         }
     }
 }
@@ -446,10 +512,12 @@ extension MachORepresentable {
 extension MachORepresentable {
     public func symbol(
         for offset: Int,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> Symbol? {
         let best = closestSymbol(
             at: offset,
+            inSection: sectionNumber,
             isGlobalOnly: isGlobalOnly
         )
         return best?.offset == offset ? best : nil
@@ -457,10 +525,12 @@ extension MachORepresentable {
 
     public func symbols(
         for offset: Int,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> [Symbol] {
         let best = closestSymbols(
             at: offset,
+            inSection: sectionNumber,
             isGlobalOnly: isGlobalOnly
         )
         return best.first?.offset == offset ? best : []
@@ -483,10 +553,12 @@ extension MachORepresentable where Symbol == MachOFile.Symbol {
     public func symbol(
         named name: String,
         mangled: Bool = true,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> Symbol? {
         _symbol(
             named: name,
+            inSection: sectionNumber,
             isGlobalOnly: isGlobalOnly,
             matchesName: { nameC, symbol in
                 if strcmp(nameC, symbol.name) == 0 || strcmp(nameC, "_" + symbol.name) == 0 {
@@ -517,10 +589,12 @@ extension MachORepresentable where Symbol == MachOImage.Symbol {
     public func symbol(
         named name: String,
         mangled: Bool = true,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> Symbol? {
         _symbol(
             named: name,
+            inSection: sectionNumber,
             isGlobalOnly: isGlobalOnly,
             matchesName: { nameC, symbol in
                 if strcmp(nameC, symbol.nameC) == 0 || strcmp(nameC, symbol.nameC + 1) == 0 {
@@ -538,6 +612,7 @@ extension MachORepresentable where Symbol == MachOImage.Symbol {
 extension MachORepresentable {
     private func _symbol(
         named name: String,
+        inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false,
         matchesName: ([CChar], Symbol) -> Bool
     ) -> Symbol? { // swiftlint:disable:this cyclomatic_complexity
@@ -555,7 +630,10 @@ extension MachORepresentable {
             for i in globalStart ..< globalStart + globalCount {
                 let symbol = symbols[AnyIndex(i)]
                 let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
                 guard nlist.flags?.type == .sect,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
                       matchesName(nameC, symbol) else {
                     continue
                 }
@@ -569,8 +647,11 @@ extension MachORepresentable {
             for i in localStart ..< localStart + localCount {
                 let symbol = symbols[AnyIndex(i)]
                 let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
+
                 guard nlist.flags?.type == .sect,
                       nlist.flags?.stab == nil,
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
                       matchesName(nameC, symbol) else {
                     continue
                 }
@@ -580,10 +661,12 @@ extension MachORepresentable {
             // find closest match in locals
             for symbol in symbols {
                 let nlist = symbol.nlist
+                let symbolSectionNumber = symbol.nlist.sectionNumber
                 guard nlist.flags?.type == .sect,
                       nlist.flags?.stab == nil,
-                      matchesName(nameC, symbol),
-                      !isGlobalOnly || nlist.flags?.contains(.ext) ?? false else {
+                      sectionNumber == 0 || symbolSectionNumber == sectionNumber,
+                      !isGlobalOnly || nlist.flags?.contains(.ext) ?? false,
+                      matchesName(nameC, symbol) else {
                     continue
                 }
                 bestSymbol = symbol
@@ -591,5 +674,157 @@ extension MachORepresentable {
         }
 
         return bestSymbol
+    }
+}
+
+extension MachORepresentable where IndirectSymbols.Index == Int {
+    public var classicLazyBindingSymbols: [ClassicBindingSymbol]? {
+        guard let indirectSymbols else { return nil }
+
+        var result: [ClassicBindingSymbol] = []
+
+        let symbols = self.symbols
+
+        for section in sections {
+            let type = section.flags.type
+            let attributes = section.flags.attributes
+            if type == .lazy_symbol_pointers {
+                guard let indirectSymbolIndex = section.indirectSymbolIndex,
+                      let count = section.numberOfIndirectSymbols else {
+                    continue
+                }
+                
+                let indirectSymbols = indirectSymbols[indirectSymbolIndex ..< indirectSymbolIndex + count]
+                for (i, indirectSymbol) in indirectSymbols.enumerated() {
+                    guard let index = indirectSymbol.index,
+                          0 <= index && index < symbols.count else {
+                        continue
+                    }
+                    let pointerSize = is64Bit ? 8 : 4
+                    let address = section.address + pointerSize * i
+                    result.append(
+                        .init(
+                            type: .pointer,
+                            address: numericCast(address),
+                            symbolIndex: index,
+                            addend: 0
+                        )
+                    )
+                }
+            } else if type == .symbol_stubs,
+                      attributes.contains(.self_modifying_code) {
+                guard let indirectSymbolIndex = section.indirectSymbolIndex,
+                      let count = section.numberOfIndirectSymbols,
+                      section.size / 5 == count /* reserved2 = 5 */ else {
+                    continue
+                }
+                let indirectSymbols = indirectSymbols[indirectSymbolIndex ..< indirectSymbolIndex + count]
+                    .filter { !$0.isAbsolute }
+                for (i, indirectSymbol) in indirectSymbols.enumerated() {
+                    guard let index = indirectSymbol.index,
+                          0 <= index && index < symbols.count else {
+                        continue
+                    }
+                    let address = section.address + 5 * i
+                    result.append(
+                        .init(
+                            type: .pointer,
+                            address: numericCast(address),
+                            symbolIndex: index,
+                            addend: 0
+                        )
+                    )
+                }
+            }
+        }
+
+        return result
+    }
+
+    internal func _classicBindingSymbols(
+        addendLoader: (_ address: UInt64) -> Int64
+    ) -> [ClassicBindingSymbol]? {
+        let loadCommands = self.loadCommands
+
+        guard let text: any SegmentCommandProtocol = loadCommands.text64 ?? loadCommands.text else {
+            return nil
+        }
+        // https://github.com/apple-oss-distributions/ld64/blob/59a99ab60399c5e6c49e6945a9e1049c42b71135/src/other/dyldinfo.cpp#L2199
+        let extRelocBase = if header.cpuType == .x86_64 {
+            if header.fileType == .kextBundle {
+                text.virtualMemoryAddress
+            } else {
+                segments.first(
+                    where: { $0.initialProtection.contains(.write) }
+                )!.virtualMemoryAddress
+            }
+        } else { 0 }
+
+        var result: [ClassicBindingSymbol] = []
+
+        let symbols = self.symbols
+
+        if let externalRelocations {
+            for relocation in externalRelocations {
+                guard case let .general(info) = relocation.info else { continue }
+                guard let symbolIndex = info.symbolIndex,
+                      0 <= symbolIndex && symbolIndex < symbols.count else {
+                    continue
+                }
+                guard let cpu = header.cpuType,
+                      let type = info.type(for: cpu) else {
+                    continue
+                }
+                let address: UInt64 = numericCast(info.r_address) + numericCast(extRelocBase)
+                var addend: Int64 = addendLoader(address)
+                let symbol = symbols[AnyIndex(symbolIndex)]
+                if info.layout.r_type == 0 /* GENERIC_RELOC_VANILLA (pointer)*/ {
+                    addend = 0
+                }
+                if header.flags.contains(.prebound) {
+                    addend -= numericCast(symbol.offset)
+                }
+                result.append(
+                    .init(
+                        type: .relocation(type),
+                        address: numericCast(address),
+                        symbolIndex: symbolIndex,
+                        addend: numericCast(addend)
+                    )
+                )
+            }
+        }
+
+        if let indirectSymbols {
+            let sections = sections.filter {
+                $0.flags.type == .non_lazy_symbol_pointers
+            }
+            for section in sections {
+                guard let indirectSymbolIndex = section.indirectSymbolIndex,
+                      let count = section.numberOfIndirectSymbols else {
+                    continue
+                }
+                let indirectSymbols = indirectSymbols[indirectSymbolIndex ..< indirectSymbolIndex + count]
+                    .filter { !$0.isLocal }
+                for (i, indirectSymbol) in indirectSymbols.enumerated() {
+                    guard let index = indirectSymbol.index,
+                          0 <= index && index < symbols.count else {
+                        continue
+                    }
+                    let pointerSize = is64Bit ? 8 : 4
+                    let address = section.address + pointerSize * i
+                    result.append(
+                        .init(
+                            type: .pointer,
+                            address: numericCast(address),
+                            symbolIndex: index,
+                            addend: 0
+                        )
+                    )
+                }
+            }
+        }
+
+        return result
     }
 }

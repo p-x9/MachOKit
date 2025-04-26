@@ -43,6 +43,27 @@ public enum Platform {
     case firmware
     /// PLATFORM_SEPOS
     case sepOS
+
+    /// PLATFORM_MACOS_EXCLAVECORE
+    case macOSExclaveCore
+    /// PLATFORM_MACOS_EXCLAVEKIT
+    case macOSExclaveKit
+    /// PLATFORM_IOS_EXCLAVECORE
+    case iOSExclaveCore
+    /// PLATFORM_IOS_EXCLAVEKIT
+    case iOSExclaveKit
+    /// PLATFORM_TVOS_EXCLAVECORE
+    case tvOSExclaveCore
+    /// PLATFORM_TVOS_EXCLAVEKIT
+    case tvOSExclaveKit
+    /// PLATFORM_WATCHOS_EXCLAVECORE
+    case watchOSExclaveCore
+    /// PLATFORM_WATCHOS_EXCLAVEKIT
+    case watchOSExclaveKit
+    /// PLATFORM_VISIONOS_EXCLAVECORE
+    case visionOSExclaveCore
+    /// PLATFORM_VISIONOS_EXCLAVEKIT
+    case visionOSExclaveKit
 }
 
 extension Platform: RawRepresentable {
@@ -66,6 +87,16 @@ extension Platform: RawRepresentable {
         case UInt32(PLATFORM_VISIONOSSIMULATOR): self = .visionOSSimulator
         case UInt32(PLATFORM_FIRMWARE): self = .firmware
         case UInt32(PLATFORM_SEPOS): self = .sepOS
+        case UInt32(PLATFORM_MACOS_EXCLAVECORE): self = .macOSExclaveCore
+        case UInt32(PLATFORM_MACOS_EXCLAVEKIT): self = .macOSExclaveKit
+        case UInt32(PLATFORM_IOS_EXCLAVECORE): self = .iOSExclaveCore
+        case UInt32(PLATFORM_IOS_EXCLAVEKIT): self = .iOSExclaveKit
+        case UInt32(PLATFORM_TVOS_EXCLAVECORE): self = .tvOSExclaveCore
+        case UInt32(PLATFORM_TVOS_EXCLAVEKIT): self = .tvOSExclaveKit
+        case UInt32(PLATFORM_WATCHOS_EXCLAVECORE): self = .watchOSExclaveCore
+        case UInt32(PLATFORM_WATCHOS_EXCLAVEKIT): self = .watchOSExclaveKit
+        case UInt32(PLATFORM_VISIONOS_EXCLAVECORE): self = .visionOSExclaveCore
+        case UInt32(PLATFORM_VISIONOS_EXCLAVEKIT): self = .visionOSExclaveKit
         default:
             return nil
         }
@@ -89,6 +120,16 @@ extension Platform: RawRepresentable {
         case .visionOSSimulator: UInt32(PLATFORM_VISIONOSSIMULATOR)
         case .firmware: UInt32(PLATFORM_FIRMWARE)
         case .sepOS: UInt32(PLATFORM_SEPOS)
+        case .macOSExclaveCore: UInt32(PLATFORM_MACOS_EXCLAVECORE)
+        case .macOSExclaveKit: UInt32(PLATFORM_MACOS_EXCLAVEKIT)
+        case .iOSExclaveCore: UInt32(PLATFORM_IOS_EXCLAVECORE)
+        case .iOSExclaveKit: UInt32(PLATFORM_IOS_EXCLAVEKIT)
+        case .tvOSExclaveCore: UInt32(PLATFORM_TVOS_EXCLAVECORE)
+        case .tvOSExclaveKit: UInt32(PLATFORM_TVOS_EXCLAVEKIT)
+        case .watchOSExclaveCore: UInt32(PLATFORM_WATCHOS_EXCLAVECORE)
+        case .watchOSExclaveKit: UInt32(PLATFORM_WATCHOS_EXCLAVEKIT)
+        case .visionOSExclaveCore: UInt32(PLATFORM_VISIONOS_EXCLAVECORE)
+        case .visionOSExclaveKit: UInt32(PLATFORM_VISIONOS_EXCLAVEKIT)
         }
     }
 }
@@ -112,6 +153,16 @@ extension Platform: CustomStringConvertible {
         case .visionOSSimulator: "PLATFORM_VISIONOSSIMULATOR"
         case .firmware: "PLATFORM_FIRMWARE"
         case .sepOS: "PLATFORM_SEPOS"
+        case .macOSExclaveCore: "PLATFORM_MACOS_EXCLAVECORE"
+        case .macOSExclaveKit: "PLATFORM_MACOS_EXCLAVEKIT"
+        case .iOSExclaveCore: "PLATFORM_IOS_EXCLAVECORE"
+        case .iOSExclaveKit: "PLATFORM_IOS_EXCLAVEKIT"
+        case .tvOSExclaveCore: "PLATFORM_TVOS_EXCLAVECORE"
+        case .tvOSExclaveKit: "PLATFORM_TVOS_EXCLAVEKIT"
+        case .watchOSExclaveCore: "PLATFORM_WATCHOS_EXCLAVECORE"
+        case .watchOSExclaveKit: "PLATFORM_WATCHOS_EXCLAVEKIT"
+        case .visionOSExclaveCore: "PLATFORM_VISIONOS_EXCLAVECORE"
+        case .visionOSExclaveKit: "PLATFORM_VISIONOS_EXCLAVEKIT"
         }
     }
 }

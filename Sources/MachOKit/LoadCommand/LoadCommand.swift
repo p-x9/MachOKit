@@ -119,6 +119,12 @@ public enum LoadCommand {
     case filesetEntry(LoadCommandInfo<fileset_entry_command>)
     /// LC_ATOM_INFO
     case atomInfo(LoadCommandInfo<linkedit_data_command>)
+    /// LC_FUNCTION_VARIANTS
+    case functionVariants(LoadCommandInfo<linkedit_data_command>)
+    /// LC_FUNCTION_VARIANT_FIXUPS
+    case functionVariantFixups(LoadCommandInfo<linkedit_data_command>)
+    /// LC_TARGET_TRIPLE
+    case targetTriple(TargetTripleCommand)
 }
 
 extension LoadCommand {
@@ -354,6 +360,18 @@ extension LoadCommand {
             return .atomInfo(
                 .init(rawPointer.autoBoundPointee(), offset: offset)
             )
+        case .functionVariants:
+            return .functionVariants(
+                .init(rawPointer.autoBoundPointee(), offset: offset)
+            )
+        case .functionVariantFixups:
+            return .functionVariantFixups(
+                .init(rawPointer.autoBoundPointee(), offset: offset)
+            )
+        case .targetTriple:
+            return .targetTriple(
+                .init(rawPointer.autoBoundPointee(), offset: offset)
+            )
         }
     }
 }
@@ -416,6 +434,9 @@ extension LoadCommand {
         case .dyldChainedFixups: .dyldChainedFixups
         case .filesetEntry: .filesetEntry
         case .atomInfo: .atomInfo
+        case .functionVariants: .functionVariants
+        case .functionVariantFixups: .functionVariantFixups
+        case .targetTriple: .targetTriple
         }
     }
 }
@@ -478,6 +499,9 @@ extension LoadCommand {
         case let .dyldChainedFixups(info): info
         case let .filesetEntry(info): info
         case let .atomInfo(info): info
+        case let .functionVariants(info): info
+        case let .functionVariantFixups(info): info
+        case let .targetTriple(info): info
         }
     }
 }
@@ -722,6 +746,18 @@ extension LoadCommand {
             var info = info
             info.swap()
             return .atomInfo(info)
+        case let .functionVariants(info):
+            var info = info
+            info.swap()
+            return .functionVariants(info)
+        case let .functionVariantFixups(info):
+            var info = info
+            info.swap()
+            return .functionVariantFixups(info)
+        case let .targetTriple(info):
+            var info = info
+            info.swap()
+            return .targetTriple(info)
         }
     }
 }

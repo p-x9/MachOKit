@@ -118,6 +118,38 @@ final class MachOPrintTests: XCTestCase {
         }
     }
 
+    func testClassicBindingSymbols() throws {
+        guard let bindingSymbols = machO.classicBindingSymbols else {
+            return
+        }
+        let symbols = machO.symbols
+
+        for bindingSymbol in bindingSymbols {
+            print("--")
+            let symbol = symbols[AnyIndex(bindingSymbol.symbolIndex)]
+            print("Address:", "0x" + String(bindingSymbol.address, radix: 16))
+            print("Type:", bindingSymbol.type)
+            print("Name:", symbol.name)
+            print("Addend:", "0x" + String(bindingSymbol.addend, radix: 16))
+        }
+    }
+
+    func testClassicLazyBindingSymbols() throws {
+        guard let bindingSymbols = machO.classicLazyBindingSymbols else {
+            return
+        }
+        let symbols = machO.symbols
+
+        for bindingSymbol in bindingSymbols {
+            print("--")
+            let symbol = symbols[AnyIndex(bindingSymbol.symbolIndex)]
+            print("Address:", "0x" + String(bindingSymbol.address, radix: 16))
+            print("Type:", bindingSymbol.type)
+            print("Name:", symbol.name)
+            print("Addend:", "0x" + String(bindingSymbol.addend, radix: 16))
+        }
+    }
+
     func testDependencies() throws {
         for dependency in machO.dependencies {
             let dylib = dependency.dylib
@@ -216,6 +248,23 @@ final class MachOPrintTests: XCTestCase {
             print(i, cstring)
         }
     }
+
+    func testUStrings() throws {
+        guard let cstrings = machO.uStrings else { return }
+        for (i, cstring) in cstrings.enumerated() {
+            let ptr = cstrings.basePointer.advanced(by: cstring.offset)
+            print(i, "0x" + String(Int(bitPattern: ptr), radix: 16), cstring.string)
+        }
+    }
+
+    func testCFStrings() {
+        guard let cfStrings = machO.cfStrings else { return }
+        for (i, cfString) in cfStrings.enumerated() {
+            let string = cfString.string(in: machO) ?? ""
+            let type = cfString.isUnicode ? "Unicode" : "8-bit"
+            print(i, type, cfString.stringSize, string)
+        }
+    }
 }
 
 extension MachOPrintTests {
@@ -296,7 +345,7 @@ extension MachOPrintTests {
             print("----")
             print("0x" + String(symbol.offset ?? 0, radix: 16), symbol.name)
 
-            let found = machO.exportTrie?.search(for: symbol.name)
+            let found = machO.exportTrie?.search(by: symbol.name)
             XCTAssertNotNil(found)
             XCTAssertEqual(found?.offset, symbol.offset)
 
