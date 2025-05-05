@@ -29,9 +29,9 @@ extension MachOFile.BindOperations {
         let bindOffset = Int(kind.bindOffset(of: info))
         let bindSize = Int(kind.bindSize(of: info))
         let offset = machO.headerStartOffset + bindOffset
-        let data = machO.fileHandle.readData(
-            offset: numericCast(offset),
-            size: bindSize
+        let data = try! machO.fileHandle.readData(
+            offset: offset,
+            length: bindSize
         )
         self.init(data: data, bindOffset: bindOffset, bindSize: bindSize)
     }

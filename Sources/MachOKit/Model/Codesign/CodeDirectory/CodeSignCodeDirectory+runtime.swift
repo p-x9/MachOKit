@@ -62,9 +62,9 @@ extension CodeSignCodeDirectory {
         let offset = offset
         + numericCast(runtime.preEncryptOffset)
         + index * size
-        return signature.fileSice.readData(
+        return try! signature.fileSice.readData(
             offset: numericCast(offset),
-            size: size
+            length: size
         )
     }
 

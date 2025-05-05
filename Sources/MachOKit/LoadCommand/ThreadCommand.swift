@@ -106,9 +106,9 @@ extension ThreadCommand {
 
         let offset = machO.cmdsStartOffset + offset + layoutSize + 2 * MemoryLayout<UInt32>.size
 
-        return machO.fileHandle.readData(
-            offset: numericCast(offset),
-            size: stateSizeExpected
+        return try! machO.fileHandle.readData(
+            offset: offset,
+            length: stateSizeExpected
         )
     }
 }

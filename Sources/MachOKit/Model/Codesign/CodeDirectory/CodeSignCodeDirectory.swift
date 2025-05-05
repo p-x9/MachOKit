@@ -62,9 +62,9 @@ extension CodeSignCodeDirectory {
     public func hash(
         in signature: MachOFile.CodeSign
     ) -> Data? {
-        let data = signature.fileSice.readData(
-            offset: numericCast(offset),
-            size: numericCast(layout.length)
+        let data = try! signature.fileSice.readData(
+            offset: offset,
+            length: numericCast(layout.length)
         )
         return _hash(for: data)
     }
@@ -132,9 +132,9 @@ extension CodeSignCodeDirectory {
         }
         let size: Int = numericCast(layout.hashSize)
         let offset = offset + numericCast(layout.hashOffset) + index * size
-        return signature.fileSice.readData(
-            offset: numericCast(offset),
-            size: size
+        return try! signature.fileSice.readData(
+            offset: offset,
+            length: size
         )
     }
 

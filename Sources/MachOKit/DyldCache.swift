@@ -144,9 +144,9 @@ extension DyldCache {
               header.hasProperty(\.subCacheArrayCount) else {
             return nil
         }
-        let data = fileHandle.readData(
+        let data = try! fileHandle.readData(
             offset: numericCast(header.subCacheArrayOffset),
-            size: DyldSubCacheEntryGeneral.layoutSize * numericCast(header.subCacheArrayCount)
+            length: DyldSubCacheEntryGeneral.layoutSize * numericCast(header.subCacheArrayCount)
         )
         return .init(
             data: data,
@@ -246,7 +246,10 @@ extension DyldCache {
         let size = mainCacheHeader.dylibsTrieSize
 
         return DataTrieTree<DylibsTrieNodeContent>(
-            data: fileHandle.readData(offset: offset, size: Int(size))
+            data: try! fileHandle.readData(
+                offset: numericCast(offset),
+                length: numericCast(size)
+            )
         )
     }
 
@@ -284,7 +287,10 @@ extension DyldCache {
         let size = mainCacheHeader.programTrieSize
 
         return ProgramsTrie(
-            data: fileHandle.readData(offset: offset, size: Int(size))
+            data: try! fileHandle.readData(
+                offset: numericCast(offset),
+                length: numericCast(size)
+            )
         )
     }
 

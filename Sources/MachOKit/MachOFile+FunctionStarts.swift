@@ -32,9 +32,9 @@ extension MachOFile.FunctionStarts {
         functionStartBase: UInt
     ) {
         let offset = machO.headerStartOffset + functionStartsOffset
-        let data = machO.fileHandle.readData(
-            offset: numericCast(offset),
-            size: functionStartsSize
+        let data = try! machO.fileHandle.readData(
+            offset: offset,
+            length: functionStartsSize
         )
 
         self.init(
