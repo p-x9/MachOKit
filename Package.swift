@@ -21,7 +21,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/p-x9/swift-fileio.git", from: "0.8.0")
+        .package(url: "https://github.com/p-x9/swift-fileio.git", from: "0.9.0")
     ],
     targets: [
         .target(
