@@ -34,9 +34,9 @@ extension PrebuiltLoaderSet {
             ) else {
                 return nil
             }
-            return cache.fileHandle.readData(
+            return try! cache.fileHandle.readData(
                 offset: numericCast(offset),
-                size: PrebuiltLoader.layoutSize
+                length: PrebuiltLoader.layoutSize
             ).withUnsafeBytes {
                 let loader = $0.load(as: PrebuiltLoader.Layout.self)
                 return .init(
@@ -91,9 +91,9 @@ extension PrebuiltLoaderSet {
             ) else {
                 return nil
             }
-            return cache.fileHandle.readData(
+            return try! cache.fileHandle.readData(
                 offset: numericCast(offset),
-                size: PrebuiltLoader_Pre1165_3.layoutSize
+                length: PrebuiltLoader_Pre1165_3.layoutSize
             ).withUnsafeBytes {
                 let loader = $0.load(as: PrebuiltLoader_Pre1165_3.Layout.self)
                 return .init(

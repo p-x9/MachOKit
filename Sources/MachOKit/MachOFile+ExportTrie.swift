@@ -114,9 +114,9 @@ extension MachOFile.ExportTrie {
         ldVersion: Version?
     ) {
         let offset = machO.headerStartOffset + exportOffset
-        let data = machO.fileHandle.readData(
-            offset: numericCast(offset),
-            size: exportSize
+        let data = try! machO.fileHandle.readData(
+            offset: offset,
+            length: exportSize
         )
 
         self.init(

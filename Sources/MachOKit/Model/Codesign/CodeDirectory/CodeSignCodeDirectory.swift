@@ -40,17 +40,12 @@ extension CodeSignCodeDirectory {
 }
 extension CodeSignCodeDirectory {
     public func identifier(in signature: MachOFile.CodeSign) -> String {
-        signature.data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress else {
-                return ""
-            }
-            return String(
-                cString: baseAddress
-                    .advanced(by: offset)
-                    .advanced(by: numericCast(layout.identOffset))
-                    .assumingMemoryBound(to: CChar.self)
-            )
-        }
+        String(
+            cString: signature.fileSice.ptr
+                .advanced(by: offset)
+                .advanced(by: numericCast(layout.identOffset))
+                .assumingMemoryBound(to: CChar.self)
+        )
     }
 
     public func identifier(in signature: MachOImage.CodeSign) -> String {
@@ -67,7 +62,10 @@ extension CodeSignCodeDirectory {
     public func hash(
         in signature: MachOFile.CodeSign
     ) -> Data? {
-        let data = signature.data[offset ..< offset + numericCast(layout.length)]
+        let data = try! signature.fileSice.readData(
+            offset: offset,
+            length: numericCast(layout.length)
+        )
         return _hash(for: data)
     }
 
@@ -134,7 +132,10 @@ extension CodeSignCodeDirectory {
         }
         let size: Int = numericCast(layout.hashSize)
         let offset = offset + numericCast(layout.hashOffset) + index * size
-        return signature.data[offset ..< offset + size]
+        return try! signature.fileSice.readData(
+            offset: offset,
+            length: size
+        )
     }
 
     public func hash(

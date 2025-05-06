@@ -7,8 +7,11 @@
 //
 
 import Foundation
+import FileIO
 
 public class MachOFile: MachORepresentable {
+    public typealias File = MemoryMappedFile
+
     /// URL of the file actually loaded
     public let url: URL
 
@@ -17,7 +20,7 @@ public class MachOFile: MachORepresentable {
     /// If read from dyld cache, may not match ``url`` value.
     public let imagePath: String
 
-    let fileHandle: FileHandle
+    let fileHandle: File
 
     /// A Boolean value that indicates whether the byte is swapped or not.
     ///
@@ -43,14 +46,14 @@ public class MachOFile: MachORepresentable {
     }
 
     public var loadCommands: LoadCommands {
-        let data = fileHandle.readData(
-            offset: UInt64(cmdsStartOffset),
-            size: Int(header.sizeofcmds)
+        let data = try! fileHandle.readData(
+            offset: cmdsStartOffset,
+            length: numericCast(header.sizeofcmds)
         )
 
         return .init(
             data: data,
-            numberOfCommands: Int(header.ncmds),
+            numberOfCommands: numericCast(header.ncmds),
             isSwapped: isSwapped
         )
     }
@@ -88,7 +91,10 @@ public class MachOFile: MachORepresentable {
     ) throws {
         self.url = url
         self.imagePath = imagePath
-        let fileHandle = try FileHandle(forReadingFrom: url)
+        let fileHandle = try File.open(
+            url: url,
+            isWritable: false
+        )
         self.fileHandle = fileHandle
 
         self.headerStartOffset = headerStartOffset
@@ -105,10 +111,6 @@ public class MachOFile: MachORepresentable {
 
         self.isSwapped = isSwapped
         self.header = header
-    }
-
-    deinit {
-        fileHandle.closeFile()
     }
 }
 
@@ -227,7 +229,8 @@ extension MachOFile {
             return Strings(
                 machO: self,
                 offset: headerStartOffset + Int(symtab.stroff),
-                size: Int(symtab.strsize)
+                size: Int(symtab.strsize),
+                isSwapped: isSwapped
             )
         }
         return nil
@@ -290,7 +293,7 @@ extension MachOFile {
             machO: self,
             offset: offset,
             size: section.size,
-            isLittleEndian: true
+            isSwapped: isSwapped
         )
     }
 }
@@ -432,13 +435,12 @@ extension MachOFile {
         guard let info = loadCommands.dyldChainedFixups else {
             return nil
         }
-        let data = fileHandle.readData(
-            offset: UInt64(headerStartOffset) + numericCast(info.dataoff),
-            size: numericCast(info.datasize)
-        )
 
         return .init(
-            data: data,
+            fileSice: try! fileHandle.fileSlice(
+                offset: headerStartOffset + numericCast(info.dataoff),
+                length: numericCast(info.datasize)
+            ),
             isSwapped: isSwapped
         )
     }
@@ -492,12 +494,12 @@ extension MachOFile {
         guard let info = loadCommands.codeSignature else {
             return nil
         }
-        let data = fileHandle.readData(
-            offset: UInt64(headerStartOffset) + numericCast(info.dataoff),
-            size: numericCast(info.datasize)
+        return .init(
+            fileSice: try! fileHandle.fileSlice(
+                offset: headerStartOffset + numericCast(info.dataoff),
+                length: numericCast(info.datasize)
+            )
         )
-
-        return .init(data: data)
     }
 }
 
@@ -574,12 +576,12 @@ extension MachOFile {
             return nil
         }
         if is64Bit {
-            let value: UInt64 = fileHandle.read(
+            let value: UInt64 = try! fileHandle.read(
                 offset: numericCast(headerStartOffset + pointer.offset)
             )
             if value == 0 { return nil }
         } else {
-            let value: UInt32 = fileHandle.read(
+            let value: UInt32 = try! fileHandle.read(
                 offset: numericCast(headerStartOffset + pointer.offset)
             )
             if value == 0 { return nil }
