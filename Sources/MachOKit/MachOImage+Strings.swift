@@ -121,7 +121,7 @@ extension MachOImage.UnicodeStrings.Iterator {
         case 2:
             return ptr.pointee == 0xFFFE /* ZERO WIDTH NO-BREAK SPACE (swapped) */
         case 4:
-            return ptr.pointee == 0xFFFE0000 // avoid overflows in 32bit env
+            return ptr.pointee == UInt32(0xFFFE0000) // avoid overflows in 32bit env
         default:
             return false
         }
