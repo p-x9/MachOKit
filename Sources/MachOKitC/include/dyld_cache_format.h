@@ -23,14 +23,12 @@
  */
 
 // ref: https://github.com/apple-oss-distributions/dyld/blob/25174f1accc4d352d9e7e6294835f9e6e9b3c7bf/cache-builder/dyld_cache_format.h
+// ref: https://github.com/apple-oss-distributions/dyld/blob/031f1c6ffb240a094f3f2f85f20dfd9e3f15b664/include/mach-o/dyld_cache_format.h
 
 #ifndef __DYLD_CACHE_FORMAT__
 #define __DYLD_CACHE_FORMAT__
 
 #include <stdint.h>
-
-//#include <uuid/uuid.h>
-typedef uint8_t uuid_t[16];
 
 //#include <mach-o/fixup-chains.h>
 #include "fixup-chains.h"
@@ -71,7 +69,8 @@ struct dyld_cache_header
                 simulator              : 1,  // for simulator of specified platform
                 locallyBuiltCache      : 1,  // 0 for B&I built cache, 1 for locally built cache
                 builtFromChainedFixups : 1,  // some dylib in cache was built using chained fixups, so patch tables must be used for overrides
-                padding                : 20; // TBD
+                newFormatTLVs          : 1,  // TLVs have been set by cache builder as new format (not needing runtime side table)
+                padding                : 19; // TBD
     uint64_t    sharedRegionStart;      // base load address of cache if not slid
     uint64_t    sharedRegionSize;       // overall size required to map the cache and all subCaches, if any
     uint64_t    maxSlide;               // runtime slide of cache can be between zero and this value
@@ -114,6 +113,10 @@ struct dyld_cache_header
     uint64_t    dynamicDataMaxSize;     // maximum size of space reserved from dynamic data
     uint32_t    tproMappingsOffset;     // file offset to first dyld_cache_tpro_mapping_info
     uint32_t    tproMappingsCount;      // number of dyld_cache_tpro_mapping_info entries
+    uint64_t    functionVariantInfoAddr;// (unslid) address of dyld_cache_function_variant_info
+    uint64_t    functionVariantInfoSize;// Size of all of the variant information pointed to via the dyld_cache_function_variant_info
+    uint64_t    prewarmingDataOffset;   // file offset to dyld_prewarming_header
+    uint64_t    prewarmingDataSize;     // byte size of prewarming data
 };
 
 // Uncomment this and check the build errors for the current mapping offset to check against when adding new fields.
@@ -218,7 +221,7 @@ struct dyld_cache_accelerator_dof
 
 struct dyld_cache_image_text_info
 {
-    uuid_t      uuid;
+    uint8_t     uuid[16];
     uint64_t    loadAddress;            // unslid address of start of __TEXT
     uint32_t    textSegmentSize;
     uint32_t    pathOffset;             // offset from start of cache file
@@ -593,6 +596,46 @@ struct dyld_cache_dynamic_data_header
     char        magic[16];              // e.g. "dyld_data    v0"
     uint64_t    fsId;                   // The fsid_t of the shared cache being used by a process
     uint64_t    fsObjId;                // The fs_obj_id_t of the shared cache being used by a process
+};
+
+struct dyld_cache_function_variant_entry
+{
+    uint64_t    fixupLocVmAddr;             // location of pointer that needs to be re-bound (unslid)
+    uint64_t    functionVariantTableVmAddr; // location of FunctionVariants in LINKEDIT (unslid)
+    uint64_t    dylibHeaderVmAddr;          // location of mach_heaer of dylib that implements this function variant
+    uint32_t    variantIndex        : 12,   // index into FunctionVariants (target of this fixup)
+                pacAuth             :  1,   // PAC signed or not
+                pacAddress          :  1,
+                pacKey              :  2,
+                pacDiversity        : 16;
+    uint16_t    targetDylibIndex;             // which dylib has the function variant
+    uint16_t    functionVariantTableSizeDiv4; // size of FunctionVariants in LINKEDIT (unslid) divided by 4
+};
+
+struct dyld_cache_function_variant_info
+{
+    uint32_t                                    version;              // == 1 for now
+    uint32_t                                    count;                // number of elements in entries array
+    struct dyld_cache_function_variant_entry    entries[0];
+};
+
+#define DYLD_CACHE_PREWARMING_DATA_PAGE_SIZE    0x4000    // 16k pages
+
+// Prewarming data entries for hot pages
+struct dyld_prewarming_entry
+{
+    uint64_t cacheVMOffset : 40;    // up to 1TB caches
+    uint64_t numPages : 24;         // assumes 16k pages (DYLD_CACHE_PREWARMING_DATA_PAGE_SIZE)
+};
+
+// Prewarming data header for hot pages
+struct dyld_prewarming_header
+{
+    uint32_t version;
+    uint32_t count;
+
+    // Followed by an array of dyld_prewarming_entry
+    struct dyld_prewarming_entry entries[0];
 };
 
 // This is the  location of the macOS shared cache on macOS 11.0 and later
