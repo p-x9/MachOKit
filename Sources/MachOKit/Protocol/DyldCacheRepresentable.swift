@@ -101,6 +101,8 @@ public protocol DyldCacheRepresentable {
     /// Sequence of tpro mapping infos
     var tproMappings: TproMappingInfos? { get }
 
+    var functionVariantInfo: DyldCacheFunctionVariantInfo? { get }
+
     /// Get the prebuiltLoaderSet indicated by programOffset.
     /// - Parameter programOffset: program name and offset pair
     /// - Returns: prebuiltLoaderSet

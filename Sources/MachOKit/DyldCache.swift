@@ -423,6 +423,21 @@ extension DyldCache {
             numberOfElements: numericCast(header.tproMappingsCount)
         )
     }
+
+    public var functionVariantInfo: DyldCacheFunctionVariantInfo? {
+        guard mainCacheHeader.functionVariantInfoAddr > 0,
+              mainCacheHeader.hasProperty(\.functionVariantInfoSize) else {
+            return nil
+        }
+        let address: Int = numericCast(mainCacheHeader.functionVariantInfoAddr)
+        guard let offset = fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        let layout: dyld_cache_function_variant_info = fileHandle.read(
+            offset: offset
+        )
+        return .init(layout: layout, address: address)
+    }
 }
 
 extension DyldCache {

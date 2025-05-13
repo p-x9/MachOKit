@@ -332,7 +332,7 @@ extension DyldCacheLoaded {
         }
         let layout: prebuilt_loader_set = basePointer
             .autoBoundPointee()
-        return .init(layout: layout, address: .init(bitPattern: basePointer))
+        return .init(layout: layout, address: address)
     }
 }
 
@@ -423,5 +423,20 @@ extension DyldCacheLoaded {
                 .assumingMemoryBound(to: DyldCacheTproMappingInfo.self),
             numberOfElements: numericCast(header.tproMappingsCount)
         )
+    }
+
+    public var functionVariantInfo: DyldCacheFunctionVariantInfo? {
+        guard header.functionVariantInfoAddr > 0,
+              header.hasProperty(\.functionVariantInfoSize),
+              let slide else {
+            return nil
+        }
+        let address: Int = numericCast(header.functionVariantInfoAddr) + slide
+        guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        let layout: dyld_cache_function_variant_info = basePointer
+            .autoBoundPointee()
+        return .init(layout: layout, address: address)
     }
 }
