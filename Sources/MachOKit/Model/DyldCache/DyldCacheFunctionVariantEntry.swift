@@ -19,4 +19,8 @@ extension DyldCacheFunctionVariantEntry {
     public var isPACSigned: Bool {
         layout.pacAuth != 0
     }
+
+    public var sizeOfFunctionVariantTable: Int {
+        numericCast(layout.functionVariantTableSizeDiv4) * 4
+    }
 }
