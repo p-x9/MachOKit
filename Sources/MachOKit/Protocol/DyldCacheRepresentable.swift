@@ -103,6 +103,8 @@ public protocol DyldCacheRepresentable {
 
     var functionVariantInfo: DyldCacheFunctionVariantInfo? { get }
 
+    var prewarmingData: DyldCachePrewarming? { get }
+
     /// Get the prebuiltLoaderSet indicated by programOffset.
     /// - Parameter programOffset: program name and offset pair
     /// - Returns: prebuiltLoaderSet

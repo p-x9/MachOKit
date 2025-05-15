@@ -439,4 +439,18 @@ extension DyldCacheLoaded {
             .autoBoundPointee()
         return .init(layout: layout, address: address)
     }
+
+    public var prewarmingData: DyldCachePrewarming? {
+        guard mainCacheHeader.prewarmingDataOffset > 0,
+              mainCacheHeader.hasProperty(\.prewarmingDataSize) else {
+            return nil
+        }
+        return .init(
+            layout: ptr
+                .advanced(by: numericCast(header.prewarmingDataOffset))
+                .assumingMemoryBound(to: dyld_prewarming_header.self)
+                .pointee,
+            offset: numericCast(header.prewarmingDataOffset)
+        )
+    }
 }

@@ -438,6 +438,20 @@ extension DyldCache {
         )
         return .init(layout: layout, address: address)
     }
+
+    public var prewarmingData: DyldCachePrewarming? {
+        guard mainCacheHeader.prewarmingDataOffset > 0,
+              mainCacheHeader.hasProperty(\.prewarmingDataSize) else {
+            return nil
+        }
+        let layout: dyld_prewarming_header = try! fileHandle.read(
+            offset: numericCast(header.prewarmingDataOffset)
+        )
+        return .init(
+            layout: layout,
+            offset: numericCast(header.prewarmingDataOffset)
+        )
+    }
 }
 
 extension DyldCache {
