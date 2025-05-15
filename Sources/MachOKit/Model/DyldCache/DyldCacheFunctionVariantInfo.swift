@@ -39,3 +39,9 @@ extension DyldCacheFunctionVariantInfo {
         )
     }
 }
+
+extension DyldCacheFunctionVariantInfo {
+    public var size: Int {
+        layoutSize + DyldCacheFunctionVariantEntry.layoutSize * numericCast(layout.count)
+    }
+}
