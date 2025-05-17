@@ -314,6 +314,36 @@ final class DyldCachePrintTests: XCTestCase {
             print("- 0x\(String(mapping.unslidAddress, radix: 16)), \(mapping.size)")
         }
     }
+
+    func testFunctionVariantInfo() throws {
+        guard let variantInfo = cache1.functionVariantInfo else { return }
+        print("Version:", variantInfo.layout.version)
+        print("Count:", variantInfo.layout.count)
+        guard let entries = variantInfo.entries(in: cache) else {
+            if variantInfo.layout.count > 0 {
+                XCTFail()
+            }
+            return
+        }
+        for entry in entries {
+            print(" ", entry.layout)
+        }
+    }
+
+    func testPrewarmingData() throws {
+        guard let prewarmingData = cache.prewarmingData else { return }
+        print("Version:", prewarmingData.layout.version)
+        print("Count:", prewarmingData.layout.count)
+        guard let entries = prewarmingData.entries(in: cache) else {
+            if prewarmingData.layout.count > 0 {
+                XCTFail()
+            }
+            return
+        }
+        for entry in entries {
+            print(" ", entry.layout)
+        }
+    }
 }
 
 extension DyldCachePrintTests {
