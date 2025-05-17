@@ -15,6 +15,9 @@ public struct PrebuiltLoaderSet: LayoutWrapper {
     public var address: Int
 }
 
+// TODO: ObjC Flags (from dyld-1284.13)
+// https://github.com/apple-oss-distributions/dyld/blob/031f1c6ffb240a094f3f2f85f20dfd9e3f15b664/dyld/PrebuiltLoader.h#L338
+
 extension PrebuiltLoaderSet {
     public func loaders(in cache: DyldCache) -> [PrebuiltLoader]? {
         if let version, version.isPre1165_3 {

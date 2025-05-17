@@ -29,13 +29,16 @@ struct prebuilt_loader_set {
     uint32_t    objcSelectorHashTableOffset;
     uint32_t    objcClassHashTableOffset;
     uint32_t    objcProtocolHashTableOffset;
-    uint32_t    reserved;
+    uint32_t    objcFlags; // (from dyld-1284.13) (reserved)
     uint64_t    objcProtocolClassCacheOffset;
 
     // Swift prebuilt data (from dyld-1160.6)
     uint32_t    swiftTypeConformanceTableOffset;
     uint32_t    swiftMetadataConformanceTableOffset;
     uint32_t    swiftForeignTypeConformanceTableOffset;
+
+    // (from dyld-1284.13)
+    uint32_t    padding1;
 };
 
 struct loader_ref {
