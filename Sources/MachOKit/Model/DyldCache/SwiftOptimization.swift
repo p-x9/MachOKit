@@ -14,3 +14,16 @@ public struct SwiftOptimization: LayoutWrapper {
 
     public var layout: Layout
 }
+
+extension SwiftOptimization {
+    public func hasProperty<Value>(_ keyPath: KeyPath<Layout, Value>) -> Bool {
+        switch keyPath {
+        case \.prespecializationDataCacheOffset:
+            return layout.version >= 2
+        case \.prespecializedMetadataHashTableCacheOffsets:
+            return layout.version >= 3
+        default:
+            return true
+        }
+    }
+}

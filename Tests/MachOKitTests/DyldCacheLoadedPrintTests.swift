@@ -326,6 +326,8 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         print("Type Conformance Hash Table Cache Offset:", swiftOptimization.typeConformanceHashTableCacheOffset)
         print("Metadata Conformance Hash Table Cache Offset:", swiftOptimization.metadataConformanceHashTableCacheOffset)
         print("Foreign Type Conformance Hash Table Cache Offset:", swiftOptimization.foreignTypeConformanceHashTableCacheOffset)
+        print("Prespecialized Data Cache Offset:", swiftOptimization.prespecializationDataCacheOffset)
+        print("Prespecialized Metadata Hash Table Cache Offset:", swiftOptimization.prespecializedMetadataHashTableCacheOffsets)
     }
 
 
