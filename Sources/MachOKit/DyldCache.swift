@@ -461,10 +461,7 @@ extension DyldCache {
     ///
     /// [dyld Implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/MetadataVisitor.cpp#L265)
     public func resolveRebase(at offset: UInt64) -> UInt64? {
-        guard let mappingInfos,
-              let unslidLoadAddress = mappingInfos.first?.address else {
-            return nil
-        }
+        guard let mappingInfos else { return nil }
         guard let mapping = mappingAndSlideInfo(forFileOffset: offset) else {
             return nil
         }
@@ -482,6 +479,8 @@ extension DyldCache {
                 return nil
             }
         }
+
+        let unslidLoadAddress = mainCacheHeader.sharedRegionStart
 
         let runtimeOffset: UInt64
         let onDiskDylibChainedPointerBaseAddress: UInt64
@@ -548,10 +547,7 @@ extension DyldCache {
     /// `resolveOptionalRebase` differs from `resolveRebase` in that rebasing may or may not actually take place.
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
         // swiftlint:disable:previous cyclomatic_complexity
-        guard let mappingInfos,
-              let unslidLoadAddress = mappingInfos.first?.address else {
-            return nil
-        }
+        guard let mappingInfos else { return nil }
         guard let mapping = mappingAndSlideInfo(forFileOffset: offset) else {
             return nil
         }
@@ -571,6 +567,8 @@ extension DyldCache {
                 return nil
             }
         }
+
+        let unslidLoadAddress = mainCacheHeader.sharedRegionStart
 
         let runtimeOffset: UInt64
         let onDiskDylibChainedPointerBaseAddress: UInt64
