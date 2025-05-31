@@ -227,17 +227,19 @@ fileprivate extension MachOImage {
         from ptr: UnsafeRawPointer
     ) -> Int? {
         let slide = vmaddrSlide ?? 0
-        let address = Int(bitPattern: ptr) - slide
+        let address = Int(bitPattern: ptr)
+        if slide > address { return nil }
+
+        let unslidAddress = address - slide
 
         var bestDistance: Int?
         for segment in segments {
-            if segment.virtualMemoryAddress <= address,
-               address < segment.virtualMemoryAddress + segment.virtualMemorySize {
+            if segment.contains(unslidAddress: numericCast(unslidAddress)) {
                 return 0
             }
             let distance = min(
-                abs(segment.virtualMemoryAddress - address),
-                abs(segment.virtualMemoryAddress + segment.virtualMemorySize - address)
+                abs(segment.virtualMemoryAddress - unslidAddress),
+                abs(segment.virtualMemoryAddress + segment.virtualMemorySize - unslidAddress)
             )
             if distance < bestDistance ?? .max {
                 bestDistance = distance

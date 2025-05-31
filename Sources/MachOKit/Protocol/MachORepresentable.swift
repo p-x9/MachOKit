@@ -838,12 +838,10 @@ extension MachORepresentable where IndirectSymbols.Index == Int {
 
 extension MachORepresentable {
     public func contains(unslidAddress address: UInt64) -> Bool {
-        for segment in self.segments {
-            if segment.virtualMemoryAddress <= address,
-               address < segment.virtualMemoryAddress + segment.virtualMemorySize {
-                return true
+        segments.contains(
+            where: {
+                $0.contains(unslidAddress: address)
             }
-        }
-        return false
+        )
     }
 }
