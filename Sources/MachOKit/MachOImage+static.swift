@@ -69,7 +69,7 @@ extension MachOImage {
         at address: UnsafeRawPointer,
         isGlobalOnly: Bool = false
     ) -> (MachOImage, Symbol)? {
-        for image in images where image.contains(address) {
+        for image in images where image.contains(ptr: address) {
             if let symbol = image.closestSymbol(
                 at: address,
                 isGlobalOnly: isGlobalOnly
@@ -98,7 +98,7 @@ extension MachOImage {
         at address: UnsafeRawPointer,
         isGlobalOnly: Bool = false
     ) -> (MachOImage, [Symbol])? {
-        for image in images where image.contains(address) {
+        for image in images where image.contains(ptr: address) {
             let symbols = image.closestSymbols(
                 at: address,
                 isGlobalOnly: isGlobalOnly
@@ -131,7 +131,7 @@ extension MachOImage {
         for address: UnsafeRawPointer,
         isGlobalOnly: Bool = false
     ) -> (MachOImage, Symbol)? {
-        for image in images where image.contains(address) {
+        for image in images where image.contains(ptr: address) {
             if let symbol = image.symbol(
                 for: address,
                 isGlobalOnly: isGlobalOnly
@@ -193,56 +193,57 @@ extension MachOImage {
 }
 
 fileprivate extension MachOImage {
-    static func closestImage(
-        at address: UnsafeRawPointer
-    ) -> MachOImage? {
-        var closestImage: MachOImage?
-        var leastDistance: Int?
+    static func image(containing ptr: UnsafeRawPointer) -> MachOImage? {
         for image in images {
-            let address = Int(bitPattern: address)
-            guard let distance = leastDistance else {
-                if let range = image.addressRange {
-                    closestImage = image
-                    leastDistance = min(
-                        abs(range.lowerBound - address),
-                        abs(range.upperBound - address)
-                    )
-                }
-                continue
-            }
-
-            guard let range = image.addressRange else {
-                continue
-            }
-
-            let newDistance = min(
-                abs(range.lowerBound - address),
-                abs(range.upperBound - address)
-            )
-            if newDistance < distance {
-                leastDistance = newDistance
-                closestImage = image
+            if image.contains(ptr: ptr) {
+                return image
             }
         }
-        return closestImage
+        return nil
+    }
+
+    static func closestImage(
+        at ptr: UnsafeRawPointer
+    ) -> MachOImage? {
+        var bestDistance: Int?
+        var result: MachOImage?
+
+        for image in images {
+            guard let distance = image.distanceToClosestSegment(from: ptr) else {
+                continue
+            }
+            if distance < bestDistance ?? .max {
+                bestDistance = distance
+                result = image
+            }
+        }
+        return result
     }
 }
 
 fileprivate extension MachOImage {
-    var addressRange: ClosedRange<Int>? {
-        let segments = self.segments
-        guard let slide = vmaddrSlide,
-              let start = segments.first?.startPtr(vmaddrSlide: slide),
-              let end = segments.last?.endPtr(vmaddrSlide: slide) else {
-            return nil
+    func distanceToClosestSegment(
+        from ptr: UnsafeRawPointer
+    ) -> Int? {
+        let slide = vmaddrSlide ?? 0
+        let address = Int(bitPattern: ptr) - slide
+
+        var bestDistance: Int?
+        for segment in segments {
+            if segment.virtualMemoryAddress <= address,
+               address < segment.virtualMemoryAddress + segment.virtualMemorySize {
+                return 0
+            }
+            let distance = min(
+                abs(segment.virtualMemoryAddress - address),
+                abs(segment.virtualMemoryAddress + segment.virtualMemorySize - address)
+            )
+            if distance < bestDistance ?? .max {
+                bestDistance = distance
+            }
         }
-        return Int(bitPattern: start) ... Int(bitPattern: end)
+        return bestDistance
     }
 
-    func contains(_ address: UnsafeRawPointer) -> Bool {
-        guard let addressRange else { return false }
-        let address = Int(bitPattern: address)
-        return addressRange.contains(address)
-    }
 }
 #endif
