@@ -763,3 +763,15 @@ extension MachOImage {
         )
     }
 }
+
+extension MachOImage {
+    /// Determines whether the specified pointer is contained within any segment of the Mach-O binary.
+    ///
+    /// - Parameter ptr: The pointer to check.
+    /// - Returns: `true` if the address is within any segment; otherwise, `false`.
+    public func contains(ptr: UnsafeRawPointer) -> Bool {
+        let slide = vmaddrSlide ?? 0
+        let address = Int(bitPattern: ptr) - slide
+        return contains(unslidAddress: numericCast(address))
+    }
+}

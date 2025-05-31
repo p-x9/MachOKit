@@ -265,6 +265,12 @@ public protocol MachORepresentable {
         inSection sectionNumber: Int,
         isGlobalOnly: Bool
     ) -> Symbol?
+
+    /// Determines whether the specified unslid address is contained within any segment of the Mach-O binary.
+    ///
+    /// - Parameter address: The unslid address to check.
+    /// - Returns: `true` if the address is within any segment; otherwise, `false`.
+    func contains(unslidAddress address: UInt64) -> Bool
 }
 
 extension MachORepresentable {
@@ -357,6 +363,7 @@ extension MachORepresentable {
 }
 
 extension MachORepresentable {
+    // ref: https://github.com/apple-oss-distributions/dyld/blob/93bd81f9d7fcf004fcebcb66ec78983882b41e71/common/MachOLoaded.cpp#L606
     public func closestSymbol( // swiftlint:disable:this cyclomatic_complexity
         at offset: Int,
         inSection sectionNumber: Int = 0,
@@ -826,5 +833,17 @@ extension MachORepresentable where IndirectSymbols.Index == Int {
         }
 
         return result
+    }
+}
+
+extension MachORepresentable {
+    public func contains(unslidAddress address: UInt64) -> Bool {
+        for segment in self.segments {
+            if segment.virtualMemoryAddress <= address,
+               address < segment.virtualMemoryAddress + segment.virtualMemorySize {
+                return true
+            }
+        }
+        return false
     }
 }
