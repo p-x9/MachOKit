@@ -20,7 +20,7 @@ extension MachOFile {
     public struct UnicodeStrings<Encoding: _UnicodeEncoding>: StringTable {
         typealias FileSlice = File.FileSlice
 
-        private let fileSice: FileSlice
+        private let fileSlice: FileSlice
 
         /// file offset of string table start
         public let offset: Int
@@ -31,7 +31,7 @@ extension MachOFile {
         public let isSwapped: Bool
 
         public func makeIterator() -> Iterator {
-            .init(fileSlice: fileSice, isSwapped: isSwapped)
+            .init(fileSlice: fileSlice, isSwapped: isSwapped)
         }
     }
 }
@@ -48,7 +48,7 @@ extension MachOFile.UnicodeStrings {
             length: size
         )
         self.init(
-            fileSice: fileSlice,
+            fileSlice: fileSlice,
             offset: offset,
             size: size,
             isSwapped: isSwapped
@@ -58,7 +58,7 @@ extension MachOFile.UnicodeStrings {
 
 extension MachOFile.UnicodeStrings {
     public var data: Data? {
-        try? fileSice.readData(offset: 0, length: fileSice.size)
+        try? fileSlice.readData(offset: 0, length: fileSlice.size)
     }
 }
 
