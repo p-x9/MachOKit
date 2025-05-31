@@ -771,7 +771,11 @@ extension MachOImage {
     /// - Returns: `true` if the address is within any segment; otherwise, `false`.
     public func contains(ptr: UnsafeRawPointer) -> Bool {
         let slide = vmaddrSlide ?? 0
-        let address = Int(bitPattern: ptr) - slide
-        return contains(unslidAddress: numericCast(address))
+        let address = Int(bitPattern: ptr)
+
+        if slide > address { return false }
+
+        let unslidAddress = address - slide
+        return contains(unslidAddress: numericCast(unslidAddress))
     }
 }
