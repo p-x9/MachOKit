@@ -69,13 +69,12 @@ extension MachOImage {
         at address: UnsafeRawPointer,
         isGlobalOnly: Bool = false
     ) -> (MachOImage, Symbol)? {
-        for image in images where image.contains(ptr: address) {
-            if let symbol = image.closestSymbol(
-                at: address,
-                isGlobalOnly: isGlobalOnly
-            ) {
-                return (image, symbol)
-            }
+        if let image = image(containing: address),
+           let symbol = image.closestSymbol(
+            at: address,
+            isGlobalOnly: isGlobalOnly
+           ) {
+            return (image, symbol)
         }
         guard let closestImage = closestImage(at: address),
               let symbol = closestImage.closestSymbol(
@@ -98,7 +97,7 @@ extension MachOImage {
         at address: UnsafeRawPointer,
         isGlobalOnly: Bool = false
     ) -> (MachOImage, [Symbol])? {
-        for image in images where image.contains(ptr: address) {
+        if let image = image(containing: address) {
             let symbols = image.closestSymbols(
                 at: address,
                 isGlobalOnly: isGlobalOnly
@@ -107,6 +106,7 @@ extension MachOImage {
                 return (image, symbols)
             }
         }
+
         guard let closestImage = closestImage(at: address) else {
             return nil
         }
@@ -131,13 +131,14 @@ extension MachOImage {
         for address: UnsafeRawPointer,
         isGlobalOnly: Bool = false
     ) -> (MachOImage, Symbol)? {
-        for image in images where image.contains(ptr: address) {
-            if let symbol = image.symbol(
-                for: address,
-                isGlobalOnly: isGlobalOnly
-            ) {
-                return (image, symbol)
-            }
+        guard let image = image(containing: address) else {
+            return nil
+        }
+        if let symbol = image.symbol(
+            for: address,
+            isGlobalOnly: isGlobalOnly
+        ) {
+            return (image, symbol)
         }
         return nil
     }
