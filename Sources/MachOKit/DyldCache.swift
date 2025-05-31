@@ -7,10 +7,14 @@
 //
 
 import Foundation
-import FileIO
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 
 public class DyldCache: DyldCacheRepresentable {
-    public typealias File = MemoryMappedFile
+    typealias File = MemoryMappedFile
 
     /// URL of loaded dyld cache file
     public let url: URL

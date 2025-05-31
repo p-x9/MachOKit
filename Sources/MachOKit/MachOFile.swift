@@ -7,10 +7,14 @@
 //
 
 import Foundation
-import FileIO
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 
 public class MachOFile: MachORepresentable {
-    public typealias File = MemoryMappedFile
+    typealias File = MemoryMappedFile
 
     /// URL of the file actually loaded
     public let url: URL

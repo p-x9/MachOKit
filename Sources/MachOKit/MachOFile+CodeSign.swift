@@ -8,14 +8,18 @@
 
 import CoreFoundation
 import Foundation
-import FileIO
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 import MachOKitC
 
 extension MachOFile {
     public struct CodeSign {
-        public typealias FileSlice = File.FileSlice
+        typealias FileSlice = File.FileSlice
 
-        public let fileSice: FileSlice
+        internal let fileSice: FileSlice
         public let isSwapped: Bool // bigEndian => false
     }
 }
@@ -24,6 +28,12 @@ extension MachOFile.CodeSign {
     init(fileSice: FileSlice) {
         self.fileSice = fileSice
         self.isSwapped = CFByteOrderGetCurrent() != CFByteOrderBigEndian.rawValue
+    }
+}
+
+extension MachOFile.CodeSign {
+    public var data: Data? {
+        try? fileSice.readData(offset: 0, length: fileSice.size)
     }
 }
 

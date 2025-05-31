@@ -7,16 +7,20 @@
 //
 
 import Foundation
-import FileIO
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 
 extension MachOFile {
     public typealias Strings = UnicodeStrings<UTF8>
     public typealias UTF16Strings = UnicodeStrings<UTF16>
 
     public struct UnicodeStrings<Encoding: _UnicodeEncoding>: StringTable {
-        public typealias FileSlice = File.FileSlice
+        typealias FileSlice = File.FileSlice
 
-        public let fileSice: FileSlice
+        private let fileSlice: FileSlice
 
         /// file offset of string table start
         public let offset: Int
@@ -27,7 +31,7 @@ extension MachOFile {
         public let isSwapped: Bool
 
         public func makeIterator() -> Iterator {
-            .init(fileSlice: fileSice, isSwapped: isSwapped)
+            .init(fileSlice: fileSlice, isSwapped: isSwapped)
         }
     }
 }
@@ -44,11 +48,17 @@ extension MachOFile.UnicodeStrings {
             length: size
         )
         self.init(
-            fileSice: fileSlice,
+            fileSlice: fileSlice,
             offset: offset,
             size: size,
             isSwapped: isSwapped
         )
+    }
+}
+
+extension MachOFile.UnicodeStrings {
+    public var data: Data? {
+        try? fileSlice.readAllData()
     }
 }
 

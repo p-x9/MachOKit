@@ -7,7 +7,11 @@
 //
 
 import Foundation
-@_spi(Core) import FileIO
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+@_spi(Core) internal import FileIO
+#else
+@_spi(Core) @_implementationOnly import FileIO
+#endif
 
 extension MachOFile {
     public struct Symbol: SymbolProtocol {
@@ -24,16 +28,29 @@ extension MachOFile {
 
 extension MachOFile {
     public struct Symbols64: Sequence {
-        public typealias FileSlice = File.FileSlice
+        typealias FileSlice = File.FileSlice
 
         public let symtab: LoadCommandInfo<symtab_command>?
 
-        public let stringsSlice: FileSlice
-        public let symbolsSlice: FileSlice
+        private let stringsSlice: FileSlice
+        private let symbolsSlice: FileSlice
         public let numberOfSymbols: Int
 
         let isSwapped: Bool
 
+        init(
+            symtab: LoadCommandInfo<symtab_command>?,
+            stringsSlice: FileSlice,
+            symbolsSlice: FileSlice,
+            numberOfSymbols: Int,
+            isSwapped: Bool
+        ) {
+            self.symtab = symtab
+            self.stringsSlice = stringsSlice
+            self.symbolsSlice = symbolsSlice
+            self.numberOfSymbols = numberOfSymbols
+            self.isSwapped = isSwapped
+        }
 
         public func makeIterator() -> Iterator {
             .init(
@@ -68,6 +85,16 @@ extension MachOFile.Symbols64 {
             numberOfSymbols: numericCast(symtab.nsyms),
             isSwapped: machO.isSwapped
         )
+    }
+}
+
+extension MachOFile.Symbols64 {
+    public var stringsData: Data? {
+        try? stringsSlice.readAllData()
+    }
+
+    public var symbolsData: Data? {
+        try? symbolsSlice.readAllData()
     }
 }
 
@@ -147,15 +174,29 @@ extension MachOFile.Symbols64 {
 
 extension MachOFile {
     public struct Symbols: Sequence {
-        public typealias FileSlice = File.FileSlice
+        typealias FileSlice = File.FileSlice
 
         public let symtab: LoadCommandInfo<symtab_command>?
 
-        public let stringsSlice: FileSlice
-        public let symbolsSlice: FileSlice
+        private let stringsSlice: FileSlice
+        private let symbolsSlice: FileSlice
         public let numberOfSymbols: Int
 
         let isSwapped: Bool
+
+        init(
+            symtab: LoadCommandInfo<symtab_command>?,
+            stringsSlice: FileSlice,
+            symbolsSlice: FileSlice,
+            numberOfSymbols: Int,
+            isSwapped: Bool
+        ) {
+            self.symtab = symtab
+            self.stringsSlice = stringsSlice
+            self.symbolsSlice = symbolsSlice
+            self.numberOfSymbols = numberOfSymbols
+            self.isSwapped = isSwapped
+        }
 
         public func makeIterator() -> Iterator {
             .init(
@@ -190,6 +231,16 @@ extension MachOFile.Symbols {
             numberOfSymbols: numericCast(symtab.nsyms),
             isSwapped: machO.isSwapped
         )
+    }
+}
+
+extension MachOFile.Symbols {
+    public var stringsData: Data? {
+        try? stringsSlice.readAllData()
+    }
+
+    public var symbolsData: Data? {
+        try? symbolsSlice.readAllData()
     }
 }
 
