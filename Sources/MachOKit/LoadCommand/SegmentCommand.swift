@@ -43,6 +43,12 @@ extension SegmentCommandProtocol {
     }
 }
 
+extension SegmentCommandProtocol {
+    public func contains(unslidAddress address: UInt64) -> Bool {
+        virtualMemoryAddress <= address && address < virtualMemoryAddress + virtualMemorySize
+    }
+}
+
 public struct SegmentCommand: SegmentCommandProtocol {
     public typealias Layout = segment_command
     public typealias SectionType = Section
