@@ -93,8 +93,8 @@ extension MachOFile.Symbols64 {
         try? stringsSlice.readAllData()
     }
 
-    public var symbolssData: Data? {
-        try? stringsSlice.readAllData()
+    public var symbolsData: Data? {
+        try? symbolsSlice.readAllData()
     }
 }
 
@@ -239,8 +239,8 @@ extension MachOFile.Symbols {
         try? stringsSlice.readAllData()
     }
 
-    public var symbolssData: Data? {
-        try? stringsSlice.readAllData()
+    public var symbolsData: Data? {
+        try? symbolsSlice.readAllData()
     }
 }
 
