@@ -58,7 +58,7 @@ extension MachOFile.UnicodeStrings {
 
 extension MachOFile.UnicodeStrings {
     public var data: Data? {
-        try? fileSlice.readData(offset: 0, length: fileSlice.size)
+        try? fileSlice.readAllData()
     }
 }
 
