@@ -3,15 +3,18 @@
 //  MachOKit
 //
 //  Created by p-x9 on 2025/05/06
-//  
+//
 //
 
 import Foundation
-import FileIO
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+private import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 
 extension _FileIOProtocol {
-    @_spi(Support)
-    public func readDataSequence<Element>(
+    func readDataSequence<Element>(
         offset: UInt64,
         numberOfElements: Int,
         swapHandler: ((inout Data) -> Void)? = nil
@@ -36,9 +39,8 @@ extension _FileIOProtocol {
         )
     }
 
-    @_spi(Support)
     @_disfavoredOverload
-    public func readDataSequence<Element>(
+    func readDataSequence<Element>(
         offset: UInt64,
         numberOfElements: Int,
         swapHandler: ((inout Data) -> Void)? = nil
@@ -59,8 +61,8 @@ extension _FileIOProtocol {
         )
     }
 
-    @_spi(Support)
-    public func readDataSequence<Element>(
+
+    func readDataSequence<Element>(
         offset: UInt64,
         entrySize: Int,
         numberOfElements: Int,
@@ -86,9 +88,9 @@ extension _FileIOProtocol {
         )
     }
 
-    @_spi(Support)
+
     @_disfavoredOverload
-    public func readDataSequence<Element>(
+    func readDataSequence<Element>(
         offset: UInt64,
         entrySize: Int,
         numberOfElements: Int,
@@ -112,9 +114,8 @@ extension _FileIOProtocol {
 }
 
 extension _FileIOProtocol {
-    @_spi(Support)
-    @inlinable @inline(__always)
-    public func read<Element>(
+    @inline(__always)
+    func read<Element>(
         offset: UInt64
     ) -> Optional<Element> where Element: LayoutWrapper {
         precondition(
@@ -124,18 +125,17 @@ extension _FileIOProtocol {
         return try! read(offset: numericCast(offset), as: Element.self)
     }
 
-    @_spi(Support)
-    @inlinable @inline(__always)
-    public func read<Element>(
+    @inline(__always)
+    func read<Element>(
         offset: UInt64
     ) -> Optional<Element> {
         try! read(offset: numericCast(offset), as: Element.self)
     }
 
-    @_spi(Support)
+
     @_disfavoredOverload
-    @inlinable @inline(__always)
-    public func read<Element>(
+    @inline(__always)
+    func read<Element>(
         offset: UInt64
     ) -> Element where Element: LayoutWrapper {
         precondition(
@@ -145,10 +145,9 @@ extension _FileIOProtocol {
         return try! read(offset: numericCast(offset), as: Element.self)
     }
 
-    @_spi(Support)
     @_disfavoredOverload
-    @inlinable @inline(__always)
-    public func read<Element>(
+    @inline(__always)
+    func read<Element>(
         offset: UInt64
     ) -> Element {
         try! read(offset: numericCast(offset), as: Element.self)
@@ -156,8 +155,7 @@ extension _FileIOProtocol {
 }
 
 extension _FileIOProtocol {
-    @_spi(Support)
-    public func read<Element>(
+    func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)?
     ) -> Optional<Element> where Element: LayoutWrapper {
@@ -179,8 +177,7 @@ extension _FileIOProtocol {
         }
     }
 
-    @_spi(Support)
-    public func read<Element>(
+    func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)?
     ) -> Optional<Element> {
@@ -198,9 +195,8 @@ extension _FileIOProtocol {
         }
     }
 
-    @_spi(Support)
     @_disfavoredOverload
-    public func read<Element>(
+    func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)?
     ) -> Element where Element: LayoutWrapper {
@@ -222,9 +218,8 @@ extension _FileIOProtocol {
         }
     }
 
-    @_spi(Support)
     @_disfavoredOverload
-    public func read<Element>(
+    func read<Element>(
         offset: UInt64,
         swapHandler: ((inout Data) -> Void)?
     ) -> Element {
@@ -244,10 +239,9 @@ extension _FileIOProtocol {
 }
 
 extension _FileIOProtocol {
-    @_spi(Support)
     @_disfavoredOverload
-    @inlinable @inline(__always)
-    public func readString(
+    @inline(__always)
+    func readString(
         offset: UInt64,
         size: Int
     ) -> String? {
@@ -258,10 +252,9 @@ extension _FileIOProtocol {
         return String(cString: data)
     }
 
-    @_spi(Support)
     @_disfavoredOverload
-    @inlinable @inline(__always)
-    public func readString(
+    @inline(__always)
+    func readString(
         offset: UInt64,
         step: Int = 10
     ) -> String? {
@@ -283,9 +276,8 @@ extension _FileIOProtocol {
 }
 
 extension MemoryMappedFile {
-    @_spi(Support)
-    @inlinable @inline(__always)
-    public func readString(
+    @inline(__always)
+    func readString(
         offset: UInt64
     ) -> String? {
         String(
@@ -295,21 +287,26 @@ extension MemoryMappedFile {
         )
     }
 
-    @_spi(Support)
-    @inlinable @inline(__always)
-    public func readString(
+    @inline(__always)
+    func readString(
         offset: UInt64,
         size: Int // ignored
     ) -> String? {
         readString(offset: offset)
     }
 
-    @_spi(Support)
-    @inlinable @inline(__always)
-    public func readString(
+    @inline(__always)
+    func readString(
         offset: UInt64,
         step: Int = 10 // ignored
     ) -> String? {
         readString(offset: offset)
+    }
+}
+
+extension _FileIOProtocol {
+    @inline(__always)
+    func readAllData() throws -> Data {
+        try readData(offset: 0, length: size)
     }
 }
