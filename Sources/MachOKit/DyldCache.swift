@@ -422,9 +422,15 @@ extension DyldCache {
               mainCacheHeader.hasProperty(\.tproMappingsCount) else {
             return nil
         }
+        let sharedRegionStart = mainCacheHeader.sharedRegionStart
+        guard let offset = fileOffset(
+            of: sharedRegionStart + numericCast(mainCacheHeader.tproMappingsOffset)
+        ) else {
+            return nil
+        }
         return fileHandle.readDataSequence(
-            offset: numericCast(header.tproMappingsOffset),
-            numberOfElements: numericCast(header.tproMappingsCount)
+            offset: offset,
+            numberOfElements: numericCast(mainCacheHeader.tproMappingsCount)
         )
     }
 
@@ -448,12 +454,18 @@ extension DyldCache {
               mainCacheHeader.hasProperty(\.prewarmingDataSize) else {
             return nil
         }
-        let layout: dyld_prewarming_header = try! fileHandle.read(
-            offset: numericCast(header.prewarmingDataOffset)
+        let sharedRegionStart = mainCacheHeader.sharedRegionStart
+        guard let fileOffset = fileOffset(
+            of: sharedRegionStart + numericCast(mainCacheHeader.prewarmingDataOffset)
+        ) else {
+            return nil
+        }
+        let layout: dyld_prewarming_header = fileHandle.read(
+            offset: fileOffset
         )
         return .init(
             layout: layout,
-            offset: numericCast(header.prewarmingDataOffset)
+            offset: numericCast(mainCacheHeader.prewarmingDataOffset)
         )
     }
 }
@@ -465,7 +477,6 @@ extension DyldCache {
     ///
     /// [dyld Implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/MetadataVisitor.cpp#L265)
     public func resolveRebase(at offset: UInt64) -> UInt64? {
-        guard let mappingInfos else { return nil }
         guard let mapping = mappingAndSlideInfo(forFileOffset: offset) else {
             return nil
         }
@@ -551,7 +562,6 @@ extension DyldCache {
     /// `resolveOptionalRebase` differs from `resolveRebase` in that rebasing may or may not actually take place.
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
         // swiftlint:disable:previous cyclomatic_complexity
-        guard let mappingInfos else { return nil }
         guard let mapping = mappingAndSlideInfo(forFileOffset: offset) else {
             return nil
         }

@@ -13,6 +13,7 @@ public struct DyldCachePrewarming: LayoutWrapper {
     public typealias Layout = dyld_prewarming_header
 
     public var layout: Layout
+    /// offset from start address of main cache
     public let offset: Int
 }
 
@@ -28,8 +29,15 @@ extension DyldCachePrewarming {
     }
 
     public func entries(in cache: DyldCache) -> DataSequence<DyldCachePrewarmingEntry>? {
+        let offset = offset + layoutOffset(of: \.entries)
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + numericCast(offset)
+        ) else {
+            return nil
+        }
         return cache.fileHandle.readDataSequence(
-            offset: numericCast(offset + layoutOffset(of: \.entries)),
+            offset: resolvedOffset,
             numberOfElements: numericCast(layout.count)
         )
     }

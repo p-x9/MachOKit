@@ -333,17 +333,27 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testPrewarmingData() throws {
-        guard let prewarmingData = cache.prewarmingData else { return }
-        print("Version:", prewarmingData.layout.version)
-        print("Count:", prewarmingData.layout.count)
-        guard let entries = prewarmingData.entries(in: cache) else {
-            if prewarmingData.layout.count > 0 {
-                XCTFail()
+        let caches = [cache!] + cache.subCaches!
+            .compactMap {
+                try! $0.subcache(for: cache)
             }
-            return
-        }
-        for entry in entries {
-            print(" ", entry.layout)
+        for cache in caches {
+            guard let prewarmingData = cache.prewarmingData else { continue }
+            print("Version:", prewarmingData.layout.version)
+            print("Count:", prewarmingData.layout.count)
+            guard let entries = prewarmingData.entries(in: cache) else {
+                if prewarmingData.layout.count > 0 {
+                    XCTFail()
+                }
+                return
+            }
+            for entry in entries {
+                print(
+                    " ",
+                    "cacheVMOffset:", entry.layout.cacheVMOffset,
+                    "pages:", entry.layout.numPages
+                )
+            }
         }
     }
 }
