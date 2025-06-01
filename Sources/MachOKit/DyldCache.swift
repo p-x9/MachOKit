@@ -430,7 +430,7 @@ extension DyldCache {
         }
         return fileHandle.readDataSequence(
             offset: offset,
-            numberOfElements: numericCast(header.tproMappingsCount)
+            numberOfElements: numericCast(mainCacheHeader.tproMappingsCount)
         )
     }
 
@@ -465,7 +465,7 @@ extension DyldCache {
         )
         return .init(
             layout: layout,
-            offset: numericCast(mainCacheHeader.prewarmingDataOffset)
+            offset: numericCast(offset)
         )
     }
 }
