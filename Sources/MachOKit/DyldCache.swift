@@ -455,17 +455,17 @@ extension DyldCache {
             return nil
         }
         let sharedRegionStart = mainCacheHeader.sharedRegionStart
-        guard let offset = fileOffset(
+        guard let fileOffset = fileOffset(
             of: sharedRegionStart + numericCast(mainCacheHeader.prewarmingDataOffset)
         ) else {
             return nil
         }
         let layout: dyld_prewarming_header = fileHandle.read(
-            offset: offset
+            offset: fileOffset
         )
         return .init(
             layout: layout,
-            offset: numericCast(offset)
+            offset: numericCast(mainCacheHeader.prewarmingDataOffset)
         )
     }
 }

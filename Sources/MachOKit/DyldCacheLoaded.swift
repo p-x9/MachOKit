@@ -419,9 +419,9 @@ extension DyldCacheLoaded {
         }
         return .init(
             basePointer: ptr
-                .advanced(by: numericCast(header.tproMappingsOffset))
+                .advanced(by: numericCast(mainCacheHeader.tproMappingsOffset))
                 .assumingMemoryBound(to: DyldCacheTproMappingInfo.self),
-            numberOfElements: numericCast(header.tproMappingsCount)
+            numberOfElements: numericCast(mainCacheHeader.tproMappingsCount)
         )
     }
 
@@ -447,10 +447,10 @@ extension DyldCacheLoaded {
         }
         return .init(
             layout: ptr
-                .advanced(by: numericCast(header.prewarmingDataOffset))
+                .advanced(by: numericCast(mainCacheHeader.prewarmingDataOffset))
                 .assumingMemoryBound(to: dyld_prewarming_header.self)
                 .pointee,
-            offset: numericCast(header.prewarmingDataOffset)
+            offset: numericCast(mainCacheHeader.prewarmingDataOffset)
         )
     }
 }
