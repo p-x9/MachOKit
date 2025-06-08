@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct CPU {
+public struct CPU: Equatable {
     public let typeRawValue: cpu_type_t
     public let subtypeRawValue: cpu_subtype_t
 
