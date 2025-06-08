@@ -1070,7 +1070,7 @@ extension CPUARM64_32SubType: CustomStringConvertible {
 #if canImport(Darwin)
 extension CPUSubType {
     /// CPU subtype of host pc
-    static var current: CPUSubType? {
+    public static var current: CPUSubType? {
         guard let cpuType: CPUType = .current else {
             return nil
         }

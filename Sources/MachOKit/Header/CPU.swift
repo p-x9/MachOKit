@@ -47,7 +47,7 @@ extension CPU {
 #if canImport(Darwin)
 extension CPU {
     /// CPU type and subtype of host pc
-    static var current: CPU? {
+    public static var current: CPU? {
         guard let type: CPUType = .current,
               let subtype: CPUSubType = .current else {
             return nil
