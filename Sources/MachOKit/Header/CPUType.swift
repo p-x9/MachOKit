@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum CPUType: CaseIterable {
+public enum CPUType: Equatable, CaseIterable {
     /// CPU_TYPE_ANY
     case any
     /// CPU_TYPE_VAX

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum CPUSubType {
+public enum CPUSubType: Equatable {
     case any(CPUAnySubType)
     case vax(CPUVAXSubType)
     case mc680x0(CPUMC680x0SubType)
@@ -179,7 +179,7 @@ extension CPUSubType: CustomStringConvertible {
 }
 
 // MARK: - Any
-public enum CPUAnySubType {
+public enum CPUAnySubType: Equatable {
     /// CPU_SUBTYPE_MULTIPLE
     case multiple
     /// CPU_SUBTYPE_LITTLE_ENDIAN
@@ -221,7 +221,7 @@ extension CPUAnySubType: CustomStringConvertible {
 }
 
 // MARK: - VAX
-public enum CPUVAXSubType {
+public enum CPUVAXSubType: Equatable {
     /// CPU_SUBTYPE_VAX_ALL
     case vax_all
     /// CPU_SUBTYPE_VAX780
@@ -313,7 +313,7 @@ extension CPUVAXSubType: CustomStringConvertible {
 }
 
 // MARK: - MC680x0
-public enum CPUMC680x0SubType {
+public enum CPUMC680x0SubType: Equatable {
     /// CPU_SUBTYPE_MC680x0_ALL
     case mc680x0_all
     /// CPU_SUBTYPE_MC68030
@@ -360,7 +360,7 @@ extension CPUMC680x0SubType: CustomStringConvertible {
 }
 
 // MARK: - I386
-public enum CPUI386SubType {
+public enum CPUI386SubType: Equatable {
     /// CPU_SUBTYPE_I386_ALL
     case i386_all
     /// CPU_SUBTYPE_386
@@ -497,7 +497,7 @@ extension CPUI386SubType: CustomStringConvertible {
 }
 
 // MARK: - X86
-public enum CPUX86SubType {
+public enum CPUX86SubType: Equatable {
     /// CPU_SUBTYPE_X86_ALL
     case x86_all
     /// CPU_SUBTYPE_X86_64_ALL
@@ -544,7 +544,7 @@ extension CPUX86SubType: CustomStringConvertible {
 }
 
 // MARK: - Mips
-public enum CPUMipsSubType {
+public enum CPUMipsSubType: Equatable {
     /// CPU_SUBTYPE_MIPS_ALL
     case mips_all
     /// CPU_SUBTYPE_MIPS_R2300
@@ -611,7 +611,7 @@ extension CPUMipsSubType: CustomStringConvertible {
 }
 
 // MARK: - MC98000
-public enum CPUMC98000SubType {
+public enum CPUMC98000SubType: Equatable {
     /// CPU_SUBTYPE_MC98000_ALL
     case mc98000_all
     /// CPU_SUBTYPE_MC98601
@@ -648,7 +648,7 @@ extension CPUMC98000SubType: CustomStringConvertible {
 }
 
 // MARK: - HPPA
-public enum CPUHPPASubType {
+public enum CPUHPPASubType: Equatable {
     /// CPU_SUBTYPE_HPPA_ALL
     case hppa_all
     /// CPU_SUBTYPE_HPPA_7100
@@ -690,7 +690,7 @@ extension CPUHPPASubType: CustomStringConvertible {
 }
 
 // MARK: - MC88000
-public enum CPUMC88000SubType {
+public enum CPUMC88000SubType: Equatable {
     /// CPU_SUBTYPE_MC88000_ALL
     case mc88000_all
     /// CPU_SUBTYPE_MC88100
@@ -732,7 +732,7 @@ extension CPUMC88000SubType: CustomStringConvertible {
 }
 
 // MARK: - SPARC
-public enum CPUSPARCSubType {
+public enum CPUSPARCSubType: Equatable {
     /// CPU_SUBTYPE_SPARC_ALL
     case sparc_all
 }
@@ -764,7 +764,7 @@ extension CPUSPARCSubType: CustomStringConvertible {
 }
 
 // MARK: - I860
-public enum CPUI860SubType {
+public enum CPUI860SubType: Equatable {
     /// CPU_SUBTYPE_I860_ALL
     case i860_all
     /// CPU_SUBTYPE_I860_860
@@ -801,7 +801,7 @@ extension CPUI860SubType: CustomStringConvertible {
 }
 
 // MARK: - PowerPC
-public enum CPUPowerPCSubType {
+public enum CPUPowerPCSubType: Equatable {
     /// CPU_SUBTYPE_POWERPC_ALL
     case powerpc_all
     /// CPU_SUBTYPE_POWERPC_601
@@ -893,7 +893,7 @@ extension CPUPowerPCSubType: CustomStringConvertible {
 }
 
 // MARK: - ARM
-public enum CPUARMSubType {
+public enum CPUARMSubType: Equatable {
     /// CPU_SUBTYPE_ARM_ALL
     case arm_all
     /// CPU_SUBTYPE_ARM_V4T
@@ -990,7 +990,7 @@ extension CPUARMSubType: CustomStringConvertible {
 }
 
 // MARK: - ARM64
-public enum CPUARM64SubType {
+public enum CPUARM64SubType: Equatable {
     /// CPU_SUBTYPE_ARM64_ALL
     case arm64_all
     /// CPU_SUBTYPE_ARM64_V8
@@ -1032,7 +1032,7 @@ extension CPUARM64SubType: CustomStringConvertible {
 }
 
 // MARK: - ARM64_32
-public enum CPUARM64_32SubType {
+public enum CPUARM64_32SubType: Equatable {
     /// CPU_SUBTYPE_ARM64_32_ALL
     case arm64_32_all
     /// CPU_SUBTYPE_ARM64_32_V8
