@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct CPU {
+public struct CPU: Equatable {
     public let typeRawValue: cpu_type_t
     public let subtypeRawValue: cpu_subtype_t
 
@@ -47,7 +47,7 @@ extension CPU {
 #if canImport(Darwin)
 extension CPU {
     /// CPU type and subtype of host pc
-    static var current: CPU? {
+    public static var current: CPU? {
         guard let type: CPUType = .current,
               let subtype: CPUSubType = .current else {
             return nil

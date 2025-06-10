@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum CPUType: CaseIterable {
+public enum CPUType: Equatable, CaseIterable {
     /// CPU_TYPE_ANY
     case any
     /// CPU_TYPE_VAX
@@ -127,7 +127,7 @@ extension CPUType {
 #if canImport(Darwin)
 extension CPUType {
     /// CPU type of host pc
-    static var current: CPUType? {
+    public static var current: CPUType? {
         var type: cpu_type_t = 0
         var size = MemoryLayout<cpu_type_t>.size
         let ret = sysctlbyname("hw.cputype", &type, &size, nil, 0)
