@@ -187,8 +187,9 @@ extension DyldCache {
 extension DyldCache {
     public var mainCache: DyldCache? {
         if url.lastPathComponent.contains(".") {
-            var url = url
-            url.deletePathExtension()
+            let url = url
+                .deletingPathExtension()
+                .deletingPathExtension()
             return try? .init(url: url)
         } else {
             return self
