@@ -9,7 +9,7 @@
 #ifndef dyld_cache_h
 #define dyld_cache_h
 
-#ifndef __linux__
+#if defined(__APPLE__)
 
 #include <stddef.h>
 #include <mach-o/loader.h>
