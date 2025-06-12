@@ -185,16 +185,35 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    public var mainCache: DyldCache? {
+        if url.lastPathComponent.contains(".") {
+            let url = url
+                .deletingPathExtension()
+                .deletingPathExtension()
+            return try? .init(url: url)
+        } else {
+            return self
+        }
+    }
+
     /// Sequence of MachO information contained in this cache
     public func machOFiles() -> AnySequence<MachOFile> {
-        guard let imageInfos else {
+        let effectiveDyldCache: DyldCache
+        let imageInfos: DataSequence<DyldCacheImageInfo>
+        if let mainCache, let mainCacheImageInfos = mainCache.imageInfos {
+            effectiveDyldCache = mainCache
+            imageInfos = mainCacheImageInfos
+        } else if let currentCacheImageInfos = self.imageInfos {
+            effectiveDyldCache = self
+            imageInfos = currentCacheImageInfos
+        } else {
             return AnySequence([])
         }
         let machOFiles = imageInfos
             .lazy
             .compactMap { info in
                 guard let fileOffset = self.fileOffset(of: info.address),
-                      let imagePath = info.path(in: self) else {
+                      let imagePath = info.path(in: effectiveDyldCache) else {
                     return nil
                 }
                 return (imagePath, fileOffset)
