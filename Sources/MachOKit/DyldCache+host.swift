@@ -2,7 +2,7 @@ import Foundation
 import MachOKitC
 
 extension DyldCache {
-    public var host: DyldCache? {
+    public static var host: DyldCache? {
         #if canImport(Darwin)
         guard let ptr = dyld_shared_cache_file_path() else {
             return nil
