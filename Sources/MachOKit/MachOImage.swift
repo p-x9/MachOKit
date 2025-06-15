@@ -765,6 +765,38 @@ extension MachOImage {
 }
 
 extension MachOImage {
+    public var embeddedInfoPlist: [String: Any]? {
+        func plist(in section: any SectionProtocol) throws -> [String: Any]? {
+            guard let vmaddrSlide else { return nil }
+            guard let ptr = section.startPtr(vmaddrSlide: vmaddrSlide) else {
+                return nil
+            }
+            let data = Data(bytes: ptr, count: section.size)
+            guard let infoPlist = try? PropertyListSerialization.propertyList(
+                from: data,
+                format: nil
+            ) else {
+                return nil
+            }
+            return infoPlist as? [String: Any]
+        }
+
+        if let text = loadCommands.text64 {
+            guard let __info_plist = text.sections(cmdsStart: cmdsStartPtr).first(
+                where: { $0.sectionName == "__info_plist" }
+            ) else { return nil }
+            return try? plist(in: __info_plist)
+        } else if let text = loadCommands.text {
+            guard let __info_plist = text.sections(cmdsStart: cmdsStartPtr).first(
+                where: { $0.sectionName == "__info_plist" }
+            ) else { return nil }
+            return try? plist(in: __info_plist)
+        }
+        return nil
+    }
+}
+
+extension MachOImage {
     /// Determines whether the specified pointer is contained within any segment of the Mach-O binary.
     ///
     /// - Parameter ptr: The pointer to check.
