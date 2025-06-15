@@ -95,6 +95,9 @@ public protocol MachORepresentable {
     /// List of CFStrings in 32-bit architecture segments
     var cfStrings32: CFStrings32? { get }
 
+    /// Info.plist embedded in the MachO binary (__TEXT,__info_plist)
+    var embeddedInfoPlist: [String: Any]? { get }
+
     /// Sequence of rebase operations
     var rebaseOperations: RebaseOperations? { get }
 
