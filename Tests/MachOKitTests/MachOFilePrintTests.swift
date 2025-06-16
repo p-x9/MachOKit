@@ -701,6 +701,15 @@ extension MachOFilePrintTests {
 }
 
 extension MachOFilePrintTests {
+    func testEmbeddedInfoPlist() throws {
+        guard let infoPlist = machO.embeddedInfoPlist else {
+            throw XCTSkip("No embedded Info.plist found")
+        }
+        print(infoPlist)
+    }
+}
+
+extension MachOFilePrintTests {
     func testCodeSign() {
         guard let codeSign = machO.codeSign else {
             return

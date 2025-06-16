@@ -545,6 +545,39 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    /// Info.plist embedded in the MachO binary (__TEXT,__info_plist)
+    public var embeddedInfoPlist: [String: Any]? {
+        func plist(in section: any SectionProtocol) throws -> [String: Any]? {
+            let offset = headerStartOffset + section.offset
+            let data = try fileHandle.readData(
+                offset: offset,
+                length: section.size
+            )
+            guard let infoPlist = try? PropertyListSerialization.propertyList(
+                from: data,
+                format: nil
+            ) else {
+                return nil
+            }
+            return infoPlist as? [String: Any]
+        }
+
+        if let text = loadCommands.text64 {
+            guard let __info_plist = text.sections(in: self).first(
+                where: { $0.sectionName == "__info_plist" }
+            ) else { return nil }
+            return try? plist(in: __info_plist)
+        } else if let text = loadCommands.text {
+            guard let __info_plist = text.sections(in: self).first(
+                where: { $0.sectionName == "__info_plist" }
+            ) else { return nil }
+            return try? plist(in: __info_plist)
+        }
+        return nil
+    }
+}
+
+extension MachOFile {
     // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MetadataVisitor.cpp#L262
     public func resolveRebase(at offset: UInt64) -> UInt64? {
         if isLoadedFromDyldCache,
