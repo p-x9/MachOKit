@@ -146,6 +146,19 @@ extension MachOImage {
 }
 
 extension MachOImage {
+    public var endian: Endian {
+        switch CFByteOrderGetCurrent() {
+        case numericCast(CFByteOrderLittleEndian.rawValue):
+            return .little
+        case numericCast(CFByteOrderBigEndian.rawValue):
+            return .big
+        default:
+            fatalError()
+        }
+    }
+}
+
+extension MachOImage {
     public var dependencies: [DependedDylib] {
         var dependencies = [DependedDylib]()
         for cmd in loadCommands {

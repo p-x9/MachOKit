@@ -119,6 +119,15 @@ public class MachOFile: MachORepresentable {
 }
 
 extension MachOFile {
+    public var endian: Endian {
+        let hostIsLittleEndian = CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
+        return hostIsLittleEndian
+        ? (isSwapped ? .big : .little)
+        : (isSwapped ? .little : .big)
+    }
+}
+
+extension MachOFile {
     public var rpaths: [String] {
         loadCommands
             .compactMap { cmd in
