@@ -6,6 +6,7 @@
 //
 //
 
+import CoreFoundation // for CFByteOrderGetCurrent (Linux)
 import Foundation
 #if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
 internal import FileIO

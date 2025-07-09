@@ -6,6 +6,7 @@
 //  
 //
 
+import CoreFoundation // for CFByteOrderGetCurrent (Linux)
 import Foundation
 
 /// Structure for `MachO` representation loaded from memory.
