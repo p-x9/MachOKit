@@ -39,6 +39,9 @@ public protocol MachORepresentable {
     /// Sequence of load commands
     var loadCommands: LoadCommands { get }
 
+    /// Byte Order of this binary
+    var endian: Endian { get }
+
     /// List of runpaths
     var rpaths: [String] { get }
     /// List of depended dynamic libraries
