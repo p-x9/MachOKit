@@ -154,7 +154,7 @@ extension MachOImage {
         case numericCast(CFByteOrderBigEndian.rawValue):
             return .big
         default:
-            fatalError()
+            fatalError("Unexpected byte order value: \(CFByteOrderGetCurrent())")
         }
     }
 }
