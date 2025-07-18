@@ -52,7 +52,7 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
         }
         // Warning: HeaderInfo.layoutSize and entrySize are different.
         return AnyRandomAccessCollection(
-            cache.fileHandle.readDataSequence<HeaderInfo.Layout>(
+            cache.fileHandle.readDataSequence(
                 offset: resolvedOffset,
                 entrySize: entrySize,
                 numberOfElements: count,
@@ -120,7 +120,7 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
             return nil
         }
         return AnyRandomAccessCollection(
-            cache.fileHandle.readDataSequence<HeaderInfo.Layout>(
+            cache.fileHandle.readDataSequence(
                 offset: resolvedOffset,
                 entrySize: entrySize,
                 numberOfElements: count,
@@ -136,7 +136,8 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
     }
 
     public func headerInfos(
-        in cache: DyldCacheLoaded)
+        in cache: DyldCacheLoaded
+    )
     -> AnyRandomAccessCollection<HeaderInfo> {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
