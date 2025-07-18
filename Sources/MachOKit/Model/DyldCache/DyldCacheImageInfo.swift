@@ -35,3 +35,14 @@ extension DyldCacheImageInfo {
         )
     }
 }
+
+extension DyldCacheImageInfo {
+    /// Path for image
+    /// - Parameter cache: FullDyldCache to which this image belongs
+    /// - Returns: Path for image
+    public func path(in cache: FullDyldCache) -> String? {
+        cache.fileHandle.readString(
+            offset: numericCast(layout.pathFileOffset)
+        )
+    }
+}
