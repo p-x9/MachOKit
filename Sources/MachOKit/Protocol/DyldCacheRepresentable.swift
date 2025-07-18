@@ -150,6 +150,22 @@ public protocol DyldCacheRepresentable {
 }
 
 extension DyldCacheRepresentable {
+    public var dylibIndices: [DylibIndex] {
+        guard let dylibsTrie else {
+            return []
+        }
+        return dylibsTrie.dylibIndices
+    }
+
+    public var programOffsets: [ProgramOffset] {
+        guard let programsTrie else {
+            return []
+        }
+        return programsTrie.programOffsets
+    }
+}
+
+extension DyldCacheRepresentable {
     public var expectedCacheFileSize: Int? {
         guard let map = mappingAndSlideInfos?.max(
             by: { lhs, rhs in lhs.fileOffset < rhs.fileOffset }
