@@ -174,8 +174,8 @@ extension FullDyldCache {
         let machOFiles = imageInfos
             .lazy
             .compactMap { info in
-                let fileOffset = info.address - self.header.sharedRegionStart
-                guard let imagePath = info.path(in: self) else {
+                guard let fileOffset = self.fileOffset(of: info.address),
+                      let imagePath = info.path(in: self) else {
                     return nil
                 }
                 return (imagePath, fileOffset)
