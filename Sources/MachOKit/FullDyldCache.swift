@@ -82,11 +82,11 @@ extension FullDyldCache {
     }
 
     public var subCaches: [DyldCache] {
-        zip(urls, fileHandle._files)
+        zip(subCacheSuffixes, fileHandle._files[1...])
             .map {
                 .init(
                     unsafeFileHandle: $1._file,
-                    url: $0,
+                    url: .init(string: url.path + $0)!,
                     cpu: cpu,
                     mainCacheHeader: header
                 )
