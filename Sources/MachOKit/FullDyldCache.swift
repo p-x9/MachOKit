@@ -101,8 +101,13 @@ extension FullDyldCache {
 extension FullDyldCache {
     /// Sequence of mapping infos
     public var mappingInfos: [DyldCacheMappingInfo]? {
-        allCaches.compactMap {
-            $0.mappingInfos
+        zip(fileHandle._files, allCaches).compactMap { file, cache in
+            cache.mappingInfos?
+                .map {
+                    $0.withFileOffset(
+                        $0.fileOffset + numericCast(file.offset)
+                    )
+                }
         }.flatMap { $0 }
     }
 
@@ -111,7 +116,10 @@ extension FullDyldCache {
         zip(fileHandle._files, allCaches).compactMap { file, cache in
             cache.mappingAndSlideInfos?
                 .map {
-                    $0.withSlideInfoFileOffset(
+                    $0.withFileOffset(
+                        $0.fileOffset + numericCast(file.offset)
+                    )
+                    .withSlideInfoFileOffset(
                         $0.slideInfoFileSize + numericCast(file.offset)
                     )
                 }

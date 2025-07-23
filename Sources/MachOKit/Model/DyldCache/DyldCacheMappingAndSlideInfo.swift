@@ -40,27 +40,31 @@ extension DyldCacheMappingAndSlideInfo {
     public func slideInfoVersion(
         in cache: DyldCache
     ) -> DyldCacheSlideInfo.Version? {
-        guard layout.slideInfoFileOffset > 0 else { return nil }
-        let _version: UInt32 = cache.fileHandle.read(
-            offset: layout.slideInfoFileOffset
-        )
-        return .init(rawValue: numericCast(_version))
+        _slideInfoVersion(in: cache)
     }
 
-    public func slideInfo(in cache: DyldCache) -> DyldCacheSlideInfo? {
-        guard let version = slideInfoVersion(in: cache) else {
-            return nil
-        }
-        return _slideInfo(
-            version: version,
-            fileHandle: cache.fileHandle
-        )
+    public func slideInfo(
+        in cache: DyldCache
+    ) -> DyldCacheSlideInfo? {
+        _slideInfo(in: cache)
+    }
+
+    public func slideInfoVersion(
+        in cache: FullDyldCache
+    ) -> DyldCacheSlideInfo.Version? {
+        _slideInfoVersion(in: cache)
+    }
+
+    public func slideInfo(
+        in cache: FullDyldCache
+    ) -> DyldCacheSlideInfo? {
+        _slideInfo(in: cache)
     }
 }
 
 extension DyldCacheMappingAndSlideInfo {
-    public func slideInfoVersion(
-        in cache: FullDyldCache
+    internal func _slideInfoVersion<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
     ) -> DyldCacheSlideInfo.Version? {
         guard layout.slideInfoFileOffset > 0 else { return nil }
         let _version: UInt32 = cache.fileHandle.read(
@@ -69,8 +73,10 @@ extension DyldCacheMappingAndSlideInfo {
         return .init(rawValue: numericCast(_version))
     }
 
-    public func slideInfo(in cache: FullDyldCache) -> DyldCacheSlideInfo? {
-        guard let version = slideInfoVersion(in: cache) else {
+    internal func _slideInfo<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DyldCacheSlideInfo? {
+        guard let version = _slideInfoVersion(in: cache) else {
             return nil
         }
         return _slideInfo(
@@ -165,6 +171,12 @@ extension DyldCacheMappingAndSlideInfo {
 }
 
 extension DyldCacheMappingAndSlideInfo {
+    internal func withFileOffset(_ value: UInt64) -> Self {
+        var layout = layout
+        layout.fileOffset = value
+        return .init(layout: layout)
+    }
+
     internal func withSlideInfoFileOffset(_ value: UInt64) -> Self {
         var layout = layout
         layout.slideInfoFileOffset = value

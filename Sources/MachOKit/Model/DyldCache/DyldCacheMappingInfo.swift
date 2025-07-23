@@ -25,3 +25,11 @@ extension DyldCacheMappingInfo {
         .init(rawValue: VMProtection.RawValue(bitPattern: layout.maxProt))
     }
 }
+
+extension DyldCacheMappingInfo {
+    internal func withFileOffset(_ value: UInt64) -> Self {
+        var layout = layout
+        layout.fileOffset = value
+        return .init(layout: layout)
+    }
+}
