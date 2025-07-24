@@ -193,8 +193,12 @@ extension DyldCache {
               header.hasProperty(\.localSymbolsSize) else {
             return nil
         }
-        return fileHandle.read(
-            offset: header.localSymbolsOffset
+        let offset = header.localSymbolsOffset
+        return .init(
+            layout: fileHandle.read(
+                offset: header.localSymbolsOffset
+            ),
+            offset: numericCast(offset)
         )
     }
 }

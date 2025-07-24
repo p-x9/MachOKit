@@ -159,9 +159,12 @@ extension FullDyldCache {
 
     /// Local symbol info
     public var localSymbolsInfo: DyldCacheLocalSymbolsInfo? {
-        allCaches.lazy
-            .compactMap {
-                $0.localSymbolsInfo
+        zip(allCaches, fileHandle._files)
+            .lazy
+            .compactMap { cache, file in
+                var info = cache.localSymbolsInfo
+                info?.offset += file.offset
+                return info
             }
             .first
     }

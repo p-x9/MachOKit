@@ -20,34 +20,7 @@ public struct PrebuiltLoaderSet: LayoutWrapper {
 
 extension PrebuiltLoaderSet {
     public func loaders(in cache: DyldCache) -> [PrebuiltLoader]? {
-        if let version, version.isPre1165_3 {
-            return nil
-        }
-
-        guard let offset = cache.fileOffset(of: numericCast(address)) else {
-            return nil
-        }
-        let offsets: DataSequence<UInt32> = cache.fileHandle.readDataSequence(
-            offset: offset + numericCast(layout.loadersArrayOffset),
-            numberOfElements: numericCast(layout.loadersArrayCount)
-        )
-        return offsets.compactMap { _offset -> PrebuiltLoader? in
-            guard let offset = cache.fileOffset(
-                of: numericCast(address) + numericCast(_offset)
-            ) else {
-                return nil
-            }
-            return try! cache.fileHandle.readData(
-                offset: numericCast(offset),
-                length: PrebuiltLoader.layoutSize
-            ).withUnsafeBytes {
-                let loader = $0.load(as: PrebuiltLoader.Layout.self)
-                return .init(
-                    layout: loader,
-                    address: address + numericCast(_offset)
-                )
-            }
-        }
+        _loaders(in: cache)
     }
 
     public func loaders(in cache: DyldCacheLoaded) -> [PrebuiltLoader]? {
@@ -75,36 +48,15 @@ extension PrebuiltLoaderSet {
             )
         }
     }
+
+    public func loaders(in cache: FullDyldCache) -> [PrebuiltLoader]? {
+        _loaders(in: cache)
+    }
 }
 
 extension PrebuiltLoaderSet {
     public func loaders_pre1165_3(in cache: DyldCache) -> [PrebuiltLoader_Pre1165_3]? {
-        guard let version, version.isPre1165_3 else { return nil }
-
-        guard let offset = cache.fileOffset(of: numericCast(address)) else {
-            return nil
-        }
-        let offsets: DataSequence<UInt32> = cache.fileHandle.readDataSequence(
-            offset: offset + numericCast(layout.loadersArrayOffset),
-            numberOfElements: numericCast(layout.loadersArrayCount)
-        )
-        return offsets.compactMap { _offset -> PrebuiltLoader_Pre1165_3? in
-            guard let offset = cache.fileOffset(
-                of: numericCast(address) + numericCast(_offset)
-            ) else {
-                return nil
-            }
-            return try! cache.fileHandle.readData(
-                offset: numericCast(offset),
-                length: PrebuiltLoader_Pre1165_3.layoutSize
-            ).withUnsafeBytes {
-                let loader = $0.load(as: PrebuiltLoader_Pre1165_3.Layout.self)
-                return .init(
-                    layout: loader,
-                    address: address + numericCast(_offset)
-                )
-            }
-        }
+        _loaders_pre1165_3(in: cache)
     }
 
     public func loaders_pre1165_3(in cache: DyldCacheLoaded) -> [PrebuiltLoader_Pre1165_3]? {
@@ -130,40 +82,19 @@ extension PrebuiltLoaderSet {
             )
         }
     }
+
+    public func loaders_pre1165_3(in cache: FullDyldCache) -> [PrebuiltLoader_Pre1165_3]? {
+        _loaders_pre1165_3(in: cache)
+    }
 }
 
 extension PrebuiltLoaderSet {
     public func dyldCacheUUID(in cache: DyldCache) -> UUID? {
-        guard layout.dyldCacheUUIDOffset != 0,
-              let offset = cache.fileOffset(
-                of: numericCast(address) + numericCast(layout.dyldCacheUUIDOffset)
-              ) else {
-            return nil
-        }
-        let data: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) = cache.fileHandle.read(offset: offset)
-        return .init(uuid: data)
+        _dyldCacheUUID(in: cache)
     }
 
     public func mustBeMissingPaths(in cache: DyldCache) -> [String]? {
-        guard layout.mustBeMissingPathsOffset != 0,
-              layout.mustBeMissingPathsCount != 0 else {
-            return nil
-        }
-        guard layout.mustBeMissingPathsOffset != 0,
-              var offset = cache.fileOffset(
-                of: numericCast(address) + numericCast(layout.mustBeMissingPathsOffset)
-              ) else {
-            return nil
-        }
-        var strings: [String] = []
-        for _ in 0 ..< layout.mustBeMissingPathsCount {
-            guard let string = cache.fileHandle.readString(offset: offset) else {
-                break
-            }
-            strings.append(string)
-            offset += UInt64(string.utf8.count) + 1 // \0
-        }
-        return strings
+        _mustBeMissingPaths(in: cache)
     }
 }
 
@@ -205,6 +136,16 @@ extension PrebuiltLoaderSet {
             offset += numericCast(string.utf8.count) + 1 // \0
         }
         return strings
+    }
+}
+
+extension PrebuiltLoaderSet {
+    public func dyldCacheUUID(in cache: FullDyldCache) -> UUID? {
+        _dyldCacheUUID(in: cache)
+    }
+
+    public func mustBeMissingPaths(in cache: FullDyldCache) -> [String]? {
+        _mustBeMissingPaths(in: cache)
     }
 }
 
@@ -263,5 +204,108 @@ extension PrebuiltLoaderSet {
 
     public var isLatestVersion: Bool {
         version?.isLatest ?? false
+    }
+}
+
+extension PrebuiltLoaderSet {
+    internal func _loaders<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> [PrebuiltLoader]? {
+        if let version, version.isPre1165_3 {
+            return nil
+        }
+
+        guard let offset = cache.fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        let offsets: DataSequence<UInt32> = cache.fileHandle.readDataSequence(
+            offset: offset + numericCast(layout.loadersArrayOffset),
+            numberOfElements: numericCast(layout.loadersArrayCount)
+        )
+        return offsets.compactMap { _offset -> PrebuiltLoader? in
+            guard let offset = cache.fileOffset(
+                of: numericCast(address) + numericCast(_offset)
+            ) else {
+                return nil
+            }
+            return try! cache.fileHandle.readData(
+                offset: numericCast(offset),
+                length: PrebuiltLoader.layoutSize
+            ).withUnsafeBytes {
+                let loader = $0.load(as: PrebuiltLoader.Layout.self)
+                return .init(
+                    layout: loader,
+                    address: address + numericCast(_offset)
+                )
+            }
+        }
+    }
+
+    internal func _loaders_pre1165_3<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> [PrebuiltLoader_Pre1165_3]? {
+        guard let version, version.isPre1165_3 else { return nil }
+
+        guard let offset = cache.fileOffset(of: numericCast(address)) else {
+            return nil
+        }
+        let offsets: DataSequence<UInt32> = cache.fileHandle.readDataSequence(
+            offset: offset + numericCast(layout.loadersArrayOffset),
+            numberOfElements: numericCast(layout.loadersArrayCount)
+        )
+        return offsets.compactMap { _offset -> PrebuiltLoader_Pre1165_3? in
+            guard let offset = cache.fileOffset(
+                of: numericCast(address) + numericCast(_offset)
+            ) else {
+                return nil
+            }
+            return try! cache.fileHandle.readData(
+                offset: numericCast(offset),
+                length: PrebuiltLoader_Pre1165_3.layoutSize
+            ).withUnsafeBytes {
+                let loader = $0.load(as: PrebuiltLoader_Pre1165_3.Layout.self)
+                return .init(
+                    layout: loader,
+                    address: address + numericCast(_offset)
+                )
+            }
+        }
+    }
+
+    internal func _dyldCacheUUID<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> UUID? {
+        guard layout.dyldCacheUUIDOffset != 0,
+              let offset = cache.fileOffset(
+                of: numericCast(address) + numericCast(layout.dyldCacheUUIDOffset)
+              ) else {
+            return nil
+        }
+        let data: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) = cache.fileHandle.read(offset: offset)
+        return .init(uuid: data)
+    }
+
+    internal func _mustBeMissingPaths<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> [String]? {
+        guard layout.mustBeMissingPathsOffset != 0,
+              layout.mustBeMissingPathsCount != 0 else {
+            return nil
+        }
+        guard layout.mustBeMissingPathsOffset != 0,
+              var offset = cache.fileOffset(
+                of: numericCast(address) + numericCast(layout.mustBeMissingPathsOffset)
+              ) else {
+            return nil
+        }
+        var strings: [String] = []
+        for _ in 0 ..< layout.mustBeMissingPathsCount {
+            guard let string = cache.fileHandle.readString(offset: offset) else {
+                break
+            }
+            strings.append(string)
+            offset += UInt64(string.utf8.count) + 1 // \0
+        }
+        return strings
     }
 }

@@ -60,4 +60,21 @@ public protocol PrebuiltLoaderProtocol {
     /// - Parameter cache: DyldCacheLoaded to which `self` belongs
     /// - Returns: binary info for objc
     func objcBinaryInfo(in cache: DyldCacheLoaded) -> ObjCBinaryInfo?
+
+    /// path for target mach-o image
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: path name
+    func path(in cache: FullDyldCache) -> String?
+    /// alternative path for target mach-o image if install_name does not match real path
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: path name
+    func altPath(in cache: FullDyldCache) -> String?
+    /// loader reference list of target 's dependencies
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: sequence of loader reference
+    func dependentLoaderRefs(in cache: FullDyldCache) -> DataSequence<LoaderRef>?
+    /// Stores information about the layout of the objc sections in a binary
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: binary info for objc
+    func objcBinaryInfo(in cache: FullDyldCache) -> ObjCBinaryInfo?
 }

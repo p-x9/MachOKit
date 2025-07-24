@@ -139,6 +139,7 @@ extension _DyldCacheFileRepresentable {
         let layout: OldObjCOptimization.Layout = try! fileHandle.read(
             offset: numericCast(offset)
         )
+        // `libobjc` exists only in main cache.
         guard let address = address(of: numericCast(offset)) else {
             return nil
         }

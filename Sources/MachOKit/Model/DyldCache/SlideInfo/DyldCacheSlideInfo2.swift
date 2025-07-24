@@ -60,6 +60,18 @@ extension DyldCacheSlideInfo2 {
     }
 
     public func pageStarts(in cache: DyldCache) -> DataSequence<PageStart>? {
+        _pageStarts(in: cache)
+    }
+
+    public func pageStarts(in cache: FullDyldCache) -> DataSequence<PageStart>? {
+        _pageStarts(in: cache)
+    }
+}
+
+extension DyldCacheSlideInfo2 {
+    internal func _pageStarts<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<PageStart>? {
         guard layout.page_starts_offset > 0 else { return nil }
         return cache.fileHandle.readDataSequence(
             offset: numericCast(offset) + numericCast(layout.page_starts_offset),
@@ -74,6 +86,18 @@ extension DyldCacheSlideInfo2 {
     }
 
     public func pageExtras(in cache: DyldCache) -> DataSequence<PageExtra>? {
+        _pageExtras(in: cache)
+    }
+
+    public func pageExtras(in cache: FullDyldCache) -> DataSequence<PageExtra>? {
+        _pageExtras(in: cache)
+    }
+}
+
+extension DyldCacheSlideInfo2 {
+    internal func _pageExtras<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<PageExtra>? {
         guard layout.page_extras_offset > 0 else { return nil }
         return cache.fileHandle.readDataSequence(
             offset: numericCast(offset) + numericCast(layout.page_extras_offset),

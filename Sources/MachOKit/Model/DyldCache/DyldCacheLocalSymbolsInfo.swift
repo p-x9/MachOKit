@@ -12,6 +12,7 @@ public struct DyldCacheLocalSymbolsInfo: LayoutWrapper {
     public typealias Layout = dyld_cache_local_symbols_info
 
     public var layout: Layout
+    public var offset: Int // file offset from cache file starts
 }
 
 extension DyldCacheLocalSymbolsInfo {
@@ -69,6 +70,45 @@ extension DyldCacheLocalSymbolsInfo {
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of symbols
     public func symbols(in cache: DyldCache) -> AnyRandomAccessCollection<MachOFile.Symbol> {
+        if let symbols64 = symbols64(in: cache) {
+            return AnyRandomAccessCollection(symbols64)
+        } else if let symbols32 = symbols32(in: cache) {
+            return AnyRandomAccessCollection(symbols32)
+        } else {
+            return AnyRandomAccessCollection([])
+        }
+    }
+}
+
+extension DyldCacheLocalSymbolsInfo {
+    /// Sequence of 64-bit architecture symbols
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of symbols
+    public func symbols64(in cache: FullDyldCache) -> MachOFile.Symbols64? {
+        guard let cache = cache.cache(
+            forOffset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset)
+        ) else {
+            return nil
+        }
+        return symbols64(in: cache)
+    }
+
+    /// Sequence of 32-bit architecture symbols
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of symbols
+    public func symbols32(in cache: FullDyldCache) -> MachOFile.Symbols? {
+        guard let cache = cache.cache(
+            forOffset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset)
+        ) else {
+            return nil
+        }
+        return symbols32(in: cache)
+    }
+
+    /// Sequence of symbols
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of symbols
+    public func symbols(in cache: FullDyldCache) -> AnyRandomAccessCollection<MachOFile.Symbol> {
         if let symbols64 = symbols64(in: cache) {
             return AnyRandomAccessCollection(symbols64)
         } else if let symbols32 = symbols32(in: cache) {
@@ -141,6 +181,61 @@ extension DyldCacheLocalSymbolsInfo {
     public func entries64(
         in cache: DyldCache
     ) -> DataSequence<DyldCacheLocalSymbolsEntry64>? {
+        _entries64(in: cache)
+    }
+
+    /// Sequence of 32-bit architecture symbols entries
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of  symbols entries
+    public func entries32(
+        in cache: DyldCache
+    ) -> DataSequence<DyldCacheLocalSymbolsEntry>? {
+        _entries32(in: cache)
+    }
+
+    /// Sequence of symbols entries
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of  symbols entries
+    public func entries(
+        in cache: DyldCache
+    ) -> AnyRandomAccessCollection<any DyldCacheLocalSymbolsEntryProtocol> {
+        _entries(in: cache)
+    }
+}
+
+extension DyldCacheLocalSymbolsInfo {
+    /// Sequence of 64-bit architecture symbols entries
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of  symbols entries
+    public func entries64(
+        in cache: FullDyldCache
+    ) -> DataSequence<DyldCacheLocalSymbolsEntry64>? {
+        _entries64(in: cache)
+    }
+
+    /// Sequence of 32-bit architecture symbols entries
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of  symbols entries
+    public func entries32(
+        in cache: FullDyldCache
+    ) -> DataSequence<DyldCacheLocalSymbolsEntry>? {
+        _entries32(in: cache)
+    }
+
+    /// Sequence of symbols entries
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: Sequence of  symbols entries
+    public func entries(
+        in cache: FullDyldCache
+    ) -> AnyRandomAccessCollection<any DyldCacheLocalSymbolsEntryProtocol> {
+        _entries(in: cache)
+    }
+}
+
+extension DyldCacheLocalSymbolsInfo {
+    internal func _entries64<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<DyldCacheLocalSymbolsEntry64>? {
         guard cache.cpu.is64Bit else { return nil }
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
@@ -150,11 +245,8 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
-    /// Sequence of 32-bit architecture symbols entries
-    /// - Parameter cache: DyldCache to which `self` belongs
-    /// - Returns: Sequence of  symbols entries
-    public func entries32(
-        in cache: DyldCache
+    internal func _entries32<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
     ) -> DataSequence<DyldCacheLocalSymbolsEntry>? {
         guard !cache.cpu.is64Bit else { return nil }
 
@@ -166,23 +258,20 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
-    /// Sequence of symbols entries
-    /// - Parameter cache: DyldCache to which `self` belongs
-    /// - Returns: Sequence of  symbols entries
-    public func entries(
-        in cache: DyldCache
+    internal func _entries<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
     ) -> AnyRandomAccessCollection<any DyldCacheLocalSymbolsEntryProtocol> {
-        if let entries = entries64(in: cache) {
+        if let entries = _entries64(in: cache) {
             return AnyRandomAccessCollection(
                 entries
                     .lazy
-                    .map { $0 as (any DyldCacheLocalSymbolsEntryProtocol) }
+                    .map { $0 }
             )
-        } else if let entries = entries32(in: cache) {
+        } else if let entries = _entries32(in: cache) {
             return AnyRandomAccessCollection(
                 entries
                     .lazy
-                    .map { $0 as (any DyldCacheLocalSymbolsEntryProtocol) }
+                    .map { $0 }
             )
         } else {
             return AnyRandomAccessCollection([])

@@ -39,6 +39,41 @@ extension OldObjCOptimization {
     public func headerOptimizationRW64(
         in cache: DyldCache
     ) -> ObjCHeaderOptimizationRW64? {
+        _headerOptimizationRW64(in: cache)
+    }
+
+    /// Header optimization rw info for 32bit
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: header optimization rw
+    public func headerOptimizationRW32(
+        in cache: DyldCache
+    ) -> ObjCHeaderOptimizationRW32? {
+        _headerOptimizationRW32(in: cache)
+    }
+
+    /// Header optimization rw info for 64bit
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: header optimization rw
+    public func headerOptimizationRW64(
+        in cache: FullDyldCache
+    ) -> ObjCHeaderOptimizationRW64? {
+        _headerOptimizationRW64(in: cache)
+    }
+
+    /// Header optimization rw info for 32bit
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: header optimization rw
+    public func headerOptimizationRW32(
+        in cache: FullDyldCache
+    ) -> ObjCHeaderOptimizationRW32? {
+        _headerOptimizationRW32(in: cache)
+    }
+}
+
+extension OldObjCOptimization {
+    internal func _headerOptimizationRW64<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> ObjCHeaderOptimizationRW64? {
         guard layout.headeropt_rw_offset > 0 else {
             return nil
         }
@@ -56,11 +91,8 @@ extension OldObjCOptimization {
         )
     }
 
-    /// Header optimization rw info for 32bit
-    /// - Parameter cache: DyldCache to which `self` belongs
-    /// - Returns: header optimization rw
-    public func headerOptimizationRW32(
-        in cache: DyldCache
+    internal func _headerOptimizationRW32<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
     ) -> ObjCHeaderOptimizationRW32? {
         guard layout.headeropt_rw_offset > 0 else {
             return nil
@@ -127,6 +159,41 @@ extension OldObjCOptimization {
     public func headerOptimizationRO64(
         in cache: DyldCache
     ) -> ObjCHeaderOptimizationRO64? {
+        _headerOptimizationRO64(in: cache)
+    }
+
+    /// Header optimization ro info for 32bit
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: header optimization ro
+    public func headerOptimizationRO32(
+        in cache: DyldCache
+    ) -> ObjCHeaderOptimizationRO32? {
+        _headerOptimizationRO32(in: cache)
+    }
+
+    /// Header optimization ro info for 64bit
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: header optimization ro
+    public func headerOptimizationRO64(
+        in cache: FullDyldCache
+    ) -> ObjCHeaderOptimizationRO64? {
+        _headerOptimizationRO64(in: cache)
+    }
+
+    /// Header optimization ro info for 32bit
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: header optimization ro
+    public func headerOptimizationRO32(
+        in cache: FullDyldCache
+    ) -> ObjCHeaderOptimizationRO32? {
+        _headerOptimizationRO32(in: cache)
+    }
+}
+
+extension OldObjCOptimization {
+    internal func _headerOptimizationRO64<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> ObjCHeaderOptimizationRO64? {
         guard layout.headeropt_ro_offset > 0 else {
             return nil
         }
@@ -144,11 +211,8 @@ extension OldObjCOptimization {
         )
     }
 
-    /// Header optimization ro info for 32bit
-    /// - Parameter cache: DyldCache to which `self` belongs
-    /// - Returns: header optimization ro
-    public func headerOptimizationRO32(
-        in cache: DyldCache
+    internal func _headerOptimizationRO32<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
     ) -> ObjCHeaderOptimizationRO32? {
         guard layout.headeropt_ro_offset > 0 else {
             return nil

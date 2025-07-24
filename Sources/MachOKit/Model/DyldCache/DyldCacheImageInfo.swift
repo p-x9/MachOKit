@@ -19,9 +19,7 @@ extension DyldCacheImageInfo {
     /// - Parameter cache: DyldCache to which this image belongs
     /// - Returns: Path for image
     public func path(in cache: DyldCache) -> String? {
-        cache.fileHandle.readString(
-            offset: numericCast(layout.pathFileOffset)
-        )
+        _path(in: cache)
     }
 
     /// Path for image
@@ -34,13 +32,17 @@ extension DyldCacheImageInfo {
                 .assumingMemoryBound(to: CChar.self)
         )
     }
-}
 
-extension DyldCacheImageInfo {
     /// Path for image
     /// - Parameter cache: FullDyldCache to which this image belongs
     /// - Returns: Path for image
     public func path(in cache: FullDyldCache) -> String? {
+        _path(in: cache)
+    }
+}
+
+extension DyldCacheImageInfo {
+    internal func _path<Cache: _DyldCacheFileRepresentable>(in cache: Cache) -> String? {
         cache.fileHandle.readString(
             offset: numericCast(layout.pathFileOffset)
         )

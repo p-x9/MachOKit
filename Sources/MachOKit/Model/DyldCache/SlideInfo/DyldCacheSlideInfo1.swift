@@ -30,6 +30,18 @@ extension DyldCacheSlideInfo1 {
     }
 
     public func toc(in cache: DyldCache) -> DataSequence<UInt16>? {
+        _toc(in: cache)
+    }
+
+    public func toc(in cache: FullDyldCache) -> DataSequence<UInt16>? {
+        _toc(in: cache)
+    }
+}
+
+extension DyldCacheSlideInfo1 {
+    internal func _toc<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<UInt16>? {
         guard layout.toc_offset > 0 else { return nil }
         return cache.fileHandle.readDataSequence(
             offset: numericCast(offset) + numericCast(layout.toc_offset),
@@ -44,6 +56,18 @@ extension DyldCacheSlideInfo1 {
     }
 
     public func entries(in cache: DyldCache) -> DataSequence<Entry>? {
+        _entries(in: cache)
+    }
+
+    public func entries(in cache: FullDyldCache) -> DataSequence<Entry>? {
+        _entries(in: cache)
+    }
+}
+
+extension DyldCacheSlideInfo1 {
+    internal func _entries<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<Entry>? {
         precondition(layout.entries_size == Entry.layoutSize)
         guard layout.entries_offset > 0 else { return nil }
         return cache.fileHandle.readDataSequence(
