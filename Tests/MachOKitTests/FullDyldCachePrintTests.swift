@@ -1,8 +1,8 @@
 //
-//  DyldCachePrintTests.swift
+//  FullDyldCachePrintTests.swift
 //
 //
-//  Created by p-x9 on 2024/01/13.
+//  Created by p-x9 on 2025/07/25.
 //
 //
 
@@ -10,9 +10,8 @@ import XCTest
 @testable import MachOKit
 import FileIO
 
-final class DyldCachePrintTests: XCTestCase {
-    private var cache: DyldCache!
-    private var cache1: DyldCache!
+final class FullDyldCachePrintTests: XCTestCase {
+    private var cache: FullDyldCache!
 
     override func setUp() {
         print("----------------------------------------------------")
@@ -23,29 +22,7 @@ final class DyldCachePrintTests: XCTestCase {
 //        let path = "/System/Volumes/Preboot/Cryptexes/OS/System/DriverKit/System/Library/dyld/dyld_shared_cache_\(arch).symbols"
         let url = URL(fileURLWithPath: path)
 
-        self.cache = try! DyldCache(url: url)
-        self.cache1 = try! DyldCache(
-            subcacheUrl: URL(fileURLWithPath: path + ".01"),
-            mainCacheHeader: cache.header
-        )
-    }
-
-    func test() throws {
-        let urls = [cache.url] + cache.subCaches!.map {
-            URL(fileURLWithPath: cache.url.path + $0.fileSuffix)
-        }
-        let fileHandle = try ConcatenatedMemoryMappedFile.open(
-            urls: urls,
-            isWritable: false
-        )
-        let lcache = try DyldCacheLoaded(ptr: fileHandle.ptr)
-        print(lcache)
-    }
-
-    func test2() throws {
-        let cache = try FullDyldCache(url: cache.url)
-        print(cache.machOFiles().map(\.imagePath))
-        print(cache)
+        self.cache = try! FullDyldCache(url: url)
     }
 
     func testHeader() throws {
@@ -179,6 +156,12 @@ final class DyldCachePrintTests: XCTestCase {
                 machO.imagePath,
                 machO.header.ncmds
             )
+            if machO.imagePath != "/usr/lib/dyld" {
+                XCTAssertEqual(
+                    machO.imagePath,
+                    machO.loadCommands.info(of: LoadCommand.idDylib)?.dylib(in: machO).name
+                )
+            }
         }
     }
 
@@ -192,7 +175,6 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testDylibIndices() {
-        let cache = self.cache1!
         let indices = cache.dylibIndices
             .sorted(by: { lhs, rhs in
                 lhs.index < rhs.index
@@ -208,7 +190,6 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testProgramOffsets() {
-        let cache = self.cache1!
         let programOffsets = cache.programOffsets
         let trie = cache.programsTrie
         for programOffset in programOffsets {
@@ -220,7 +201,6 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testProgramPreBuildLoaderSet() {
-        let cache = self.cache1!
         let programOffsets = cache.programOffsets
         for programOffset in programOffsets {
             guard !programOffset.name.starts(with: "/cdhash") else {
@@ -248,7 +228,6 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testDylibsPreBuildLoaderSet() {
-        let cache = self.cache1!
         guard let loaderSet = cache.dylibsPrebuiltLoaderSet else {
             return
         }
@@ -310,6 +289,14 @@ final class DyldCachePrintTests: XCTestCase {
                 continue
             }
 
+            XCTAssertEqual(
+                machO.imagePath,
+                machO.loadCommands
+                    .info(of: LoadCommand.idDylib)?
+                    .dylib(in: machO)
+                    .name
+            )
+
             let _info = ro.headerInfo(in: cache, for: machO)!
             XCTAssertEqual(info.mhdr_offset, _info.mhdr_offset)
             XCTAssertEqual(info.info_offset, _info.info_offset)
@@ -337,7 +324,7 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testFunctionVariantInfo() throws {
-        guard let variantInfo = cache1.functionVariantInfo else { return }
+        guard let variantInfo = cache.functionVariantInfo else { return }
         print("Version:", variantInfo.layout.version)
         print("Count:", variantInfo.layout.count)
         guard let entries = variantInfo.entries(in: cache) else {
@@ -352,118 +339,21 @@ final class DyldCachePrintTests: XCTestCase {
     }
 
     func testPrewarmingData() throws {
-        let caches = [cache!] + cache.subCaches!
-            .compactMap {
-                try! $0.subcache(for: cache)
+        guard let prewarmingData = cache.prewarmingData else { return }
+        print("Version:", prewarmingData.layout.version)
+        print("Count:", prewarmingData.layout.count)
+        guard let entries = prewarmingData.entries(in: cache) else {
+            if prewarmingData.layout.count > 0 {
+                XCTFail()
             }
-        for cache in caches {
-            guard let prewarmingData = cache.prewarmingData else { continue }
-            print("Version:", prewarmingData.layout.version)
-            print("Count:", prewarmingData.layout.count)
-            guard let entries = prewarmingData.entries(in: cache) else {
-                if prewarmingData.layout.count > 0 {
-                    XCTFail()
-                }
-                return
-            }
-            for entry in entries {
-                print(
-                    " ",
-                    "cacheVMOffset:", entry.layout.cacheVMOffset,
-                    "pages:", entry.layout.numPages
-                )
-            }
-        }
-    }
-}
-
-extension DyldCachePrintTests {
-    func testCodeSign() {
-        guard let codeSign = cache.codeSign else {
             return
         }
-        guard let superBlob = codeSign.superBlob else {
-            return
+        for entry in entries {
+            print(
+                " ",
+                "cacheVMOffset:", entry.layout.cacheVMOffset,
+                "pages:", entry.layout.numPages
+            )
         }
-        let indices = superBlob.blobIndices(in: codeSign)
-        print(
-            indices.compactMap(\.type)
-        )
-    }
-
-    func testCodeSignCodeDirectories() {
-        guard let codeSign = cache.codeSign else {
-            return
-        }
-        let directories = codeSign.codeDirectories
-
-        /* Identifier */
-        let identifiers = directories
-            .compactMap {
-                $0.identifier(in: codeSign)
-            }
-        print(
-            "identifier:",
-            identifiers
-        )
-
-        /* CD Hash */
-        let cdHashes = directories
-            .compactMap {
-                $0.hash(in: codeSign)
-            }.map {
-                $0.map { String(format: "%02x", $0) }.joined()
-            }
-        print(
-            "CDHash:",
-            cdHashes
-        )
-
-        /* Page Hashes*/
-        //        let pageHashes = directories
-        //            .map { directory in
-        //                (-Int(directory.nSpecialSlots)..<Int(directory.nCodeSlots))
-        //                    .map {
-        //                        if let hash = directory.hash(forSlot: $0, in: codeSign) {
-        //                            return "\($0) " + hash.map { String(format: "%02x", $0) }.joined()
-        //                        } else {
-        //                            return "\($0) unknown"
-        //                        }
-        //                    }
-        //            }
-        //        print(
-        //            "PageHashes:",
-        //            pageHashes
-        //        )
-
-        /* Team IDs */
-        let teamIDs = directories
-            .compactMap {
-                $0.teamId(in: codeSign)
-            }
-        print(
-            "TeamID:",
-            teamIDs
-        )
-
-        /* Exec Segment */
-        let execSeg = directories
-            .compactMap {
-                $0.executableSegment(in: codeSign)
-            }
-        print(
-            "ExecSeg:",
-            execSeg
-        )
-
-        /* Runtime */
-        let runtime = directories
-            .compactMap {
-                $0.runtime(in: codeSign)
-            }
-        print(
-            "Runtime:",
-            runtime
-        )
     }
 }
