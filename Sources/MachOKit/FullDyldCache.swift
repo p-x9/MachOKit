@@ -120,7 +120,7 @@ extension FullDyldCache {
                         $0.fileOffset + numericCast(file.offset)
                     )
                     .withSlideInfoFileOffset(
-                        $0.slideInfoFileSize + numericCast(file.offset)
+                        $0.slideInfoFileOffset + numericCast(file.offset)
                     )
                 }
         }.flatMap { $0 }
@@ -199,7 +199,9 @@ extension FullDyldCache {
     }
 
     public var dyld: MachOFile? {
-        let fileOffset = header.dyldInCacheMH - header.sharedRegionStart
+        guard let fileOffset = fileOffset(of: header.dyldInCacheMH) else {
+            return nil
+        }
         guard let (url, segment) = self.urlAndFileSegment(forOffset: fileOffset) else {
             return nil
         }
