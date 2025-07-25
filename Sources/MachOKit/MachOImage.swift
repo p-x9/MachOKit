@@ -112,13 +112,13 @@ extension MachOImage {
     ///
     /// It is the same value that can be obtained by `Dl_info.dli_fname` or `_dyld_get_image_name`.
     public var path: String? {
-        #if canImport(Darwin)
-        var info = Dl_info()
-        dladdr(ptr, &info)
-        return String(cString: info.dli_fname)
-        #else
+        if let idDylib = loadCommands.info(of: LoadCommand.idDylib) {
+            return idDylib.dylib(cmdsStart: cmdsStartPtr).name
+        }
+        if let idDylinker = loadCommands.info(of: LoadCommand.idDylinker) {
+            return idDylinker.name(cmdsStart: cmdsStartPtr)
+        }
         return nil
-        #endif
     }
 
     /// virtual memory address slide of machO image.
