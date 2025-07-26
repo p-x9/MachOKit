@@ -107,6 +107,28 @@ for machO in machOs {
 // ...
 ```
 
+#### Full Dyld Cache (File)
+
+In addition to `DyldCache`, `FullDyldCache` can be used to handle multiple dyld cache files (main cache and subcaches) as a single unified cache.
+
+```swift
+let path = "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e"
+let url = URL(fileURLWithPath: path)
+
+let fullCache = try! FullDyldCache(url: url)
+
+// Access all Mach-O files across main and subcaches
+let machOs = fullCache.machOFiles()
+for machO in machOs {
+    print(
+        String(machO.headerStartOffsetInCache, radix: 16),
+        machO.imagePath,
+        machO.header.ncmds
+    )
+}
+```
+The `FullDyldCache` type provides properties like `mainCache`, `subCaches`, `allCaches`, and `urls` to access each component cache file.
+
 #### Dyld Cache (on memory)
 
 On the Apple platform, the dyld cache is deployed in memory.
