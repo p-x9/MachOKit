@@ -30,6 +30,18 @@ extension DyldCacheFunctionVariantInfo {
     }
 
     public func entries(in cache: DyldCache) -> DataSequence<DyldCacheFunctionVariantEntry>? {
+        _entries(in: cache)
+    }
+
+    public func entries(in cache: FullDyldCache) -> DataSequence<DyldCacheFunctionVariantEntry>? {
+        _entries(in: cache)
+    }
+}
+
+extension DyldCacheFunctionVariantInfo {
+    internal func _entries<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<DyldCacheFunctionVariantEntry>? {
         guard let offset = cache.fileOffset(of: numericCast(address)) else {
             return nil
         }

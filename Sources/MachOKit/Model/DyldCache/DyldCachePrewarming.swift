@@ -29,6 +29,18 @@ extension DyldCachePrewarming {
     }
 
     public func entries(in cache: DyldCache) -> DataSequence<DyldCachePrewarmingEntry>? {
+        _entries(in: cache)
+    }
+
+    public func entries(in cache: FullDyldCache) -> DataSequence<DyldCachePrewarmingEntry>? {
+        _entries(in: cache)
+    }
+}
+
+extension DyldCachePrewarming {
+    internal func _entries<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<DyldCachePrewarmingEntry>? {
         let offset = offset + layoutOffset(of: \.entries)
         let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
         guard let resolvedOffset = cache.fileOffset(

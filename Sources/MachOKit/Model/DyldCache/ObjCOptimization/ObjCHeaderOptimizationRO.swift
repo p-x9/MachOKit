@@ -24,6 +24,10 @@ public protocol ObjCHeaderOptimizationROProtocol {
     /// - Parameter cache: DyldCacheLoaded to which `self` belongs
     /// - Returns: header infos
     func headerInfos(in cache: DyldCacheLoaded) -> AnyRandomAccessCollection<HeaderInfo>
+    /// Sequence of header infos
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: header infos
+    func headerInfos(in cache: FullDyldCache) -> AnyRandomAccessCollection<HeaderInfo>?
 }
 
 public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationROProtocol {
@@ -39,32 +43,7 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
     public func headerInfos(
         in cache: DyldCache
     ) -> AnyRandomAccessCollection<HeaderInfo>? {
-        precondition(
-            layout.entsize >= HeaderInfo.layoutSize,
-            "entsize is smaller than HeaderInfo"
-        )
-        let offset = offset + layoutSize
-        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        guard let resolvedOffset = cache.fileOffset(
-            of: sharedRegionStart + numericCast(offset)
-        ) else {
-            return nil
-        }
-        // Warning: HeaderInfo.layoutSize and entrySize are different.
-        return AnyRandomAccessCollection(
-            cache.fileHandle.readDataSequence<HeaderInfo.Layout>(
-                offset: resolvedOffset,
-                entrySize: entrySize,
-                numberOfElements: count,
-                swapHandler: { _ in }
-            ).enumerated().map({
-                HeaderInfo(
-                    layout: $1,
-                    offset: offset + entrySize * $0,
-                    index: $0
-                )
-            })
-        )
+        _headerInfos(in: cache)
     }
 
     public func headerInfos(
@@ -93,6 +72,45 @@ public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationR
                 }
         )
     }
+
+    public func headerInfos(
+        in cache: FullDyldCache
+    ) -> AnyRandomAccessCollection<HeaderInfo>? {
+        _headerInfos(in: cache)
+    }
+}
+
+extension ObjCHeaderOptimizationRO64 {
+    internal func _headerInfos<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> AnyRandomAccessCollection<HeaderInfo>? {
+        precondition(
+            layout.entsize >= HeaderInfo.layoutSize,
+            "entsize is smaller than HeaderInfo"
+        )
+        let offset = offset + layoutSize
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + numericCast(offset)
+        ) else {
+            return nil
+        }
+        // Warning: HeaderInfo.layoutSize and entrySize are different.
+        return AnyRandomAccessCollection(
+            cache.fileHandle.readDataSequence(
+                offset: resolvedOffset,
+                entrySize: entrySize,
+                numberOfElements: count,
+                swapHandler: { _ in }
+            ).enumerated().map({
+                HeaderInfo(
+                    layout: $1,
+                    offset: offset + entrySize * $0,
+                    index: $0
+                )
+            })
+        )
+    }
 }
 
 public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationROProtocol {
@@ -108,36 +126,12 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
     public func headerInfos(
         in cache: DyldCache
     ) -> AnyRandomAccessCollection<HeaderInfo>? {
-        precondition(
-            layout.entsize >= HeaderInfo.layoutSize,
-            "entsize is smaller than HeaderInfo"
-        )
-        let offset = offset + layoutSize
-        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
-        guard let resolvedOffset = cache.fileOffset(
-            of: sharedRegionStart + numericCast(offset)
-        ) else {
-            return nil
-        }
-        return AnyRandomAccessCollection(
-            cache.fileHandle.readDataSequence<HeaderInfo.Layout>(
-                offset: resolvedOffset,
-                entrySize: entrySize,
-                numberOfElements: count,
-                swapHandler: { _ in }
-            ).enumerated().map({
-                HeaderInfo(
-                    layout: $1,
-                    offset: offset + entrySize * $0,
-                    index: $0
-                )
-            })
-        )
+        _headerInfos(in: cache)
     }
 
     public func headerInfos(
-        in cache: DyldCacheLoaded)
-    -> AnyRandomAccessCollection<HeaderInfo> {
+        in cache: DyldCacheLoaded
+    ) -> AnyRandomAccessCollection<HeaderInfo> {
         precondition(
             layout.entsize >= HeaderInfo.layoutSize,
             "entsize is smaller than HeaderInfo"
@@ -161,6 +155,44 @@ public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationR
                 }
         )
     }
+
+    public func headerInfos(
+        in cache: FullDyldCache
+    ) -> AnyRandomAccessCollection<HeaderInfo>? {
+        _headerInfos(in: cache)
+    }
+}
+
+extension ObjCHeaderOptimizationRO32 {
+    internal func _headerInfos<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> AnyRandomAccessCollection<HeaderInfo>? {
+        precondition(
+            layout.entsize >= HeaderInfo.layoutSize,
+            "entsize is smaller than HeaderInfo"
+        )
+        let offset = offset + layoutSize
+        let sharedRegionStart = cache.mainCacheHeader.sharedRegionStart
+        guard let resolvedOffset = cache.fileOffset(
+            of: sharedRegionStart + numericCast(offset)
+        ) else {
+            return nil
+        }
+        return AnyRandomAccessCollection(
+            cache.fileHandle.readDataSequence(
+                offset: resolvedOffset,
+                entrySize: entrySize,
+                numberOfElements: count,
+                swapHandler: { _ in }
+            ).enumerated().map({
+                HeaderInfo(
+                    layout: $1,
+                    offset: offset + entrySize * $0,
+                    index: $0
+                )
+            })
+        )
+    }
 }
 
 extension ObjCHeaderOptimizationROProtocol {
@@ -182,6 +214,31 @@ extension ObjCHeaderOptimizationROProtocol {
                         return false
                     }
                     return machO.headerStartOffsetInCache == offset
+                }
+            )
+    }
+
+    /// Optimisation info of the specified machO
+    /// - Parameters:
+    ///   - cache: DyldCache to which `self` belongs
+    ///   - machO: target machO file
+    /// - Returns: objc ro optimization info for specified machO
+    public func headerInfo(
+        in cache: FullDyldCache, for machO: MachOFile
+    ) -> HeaderInfo? {
+        guard machO.headerStartOffsetInCache > 0 else {
+            return nil
+        }
+        return headerInfos(in: cache)?
+            .first(
+                where: {
+                    guard let offset = $0.resolvedMachOHeaderOffset(
+                        in: cache
+                    ),
+                          let (url, segment) = cache.urlAndFileSegment(forOffset: offset) else {
+                        return false
+                    }
+                    return machO.headerStartOffsetInCache == Int(offset) - segment.offset && machO.url == url
                 }
             )
     }

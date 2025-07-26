@@ -3,11 +3,21 @@
 //
 //
 //  Created by p-x9 on 2024/10/09
-//  
+//
 //
 
 import Foundation
 
+/// `DyldCacheLoaded` represents a dyld shared cache that is already loaded into memory.
+///
+/// It provides access to Mach-O images, mapping information, symbol data, and other
+/// metadata directly from a memory-mapped dyld shared cache. This type is particularly
+/// useful when analyzing the in-memory state of the dyld cache on Apple platforms.
+///
+/// - Note: ``DyldCacheLoaded`` works with a pointer to the start of the dyld shared cache
+///   obtained by system APIs such as `_dyld_get_shared_cache_range`.
+///
+/// - SeeAlso: ``DyldCache``, ``FullDyldCache``
 public struct DyldCacheLoaded: DyldCacheRepresentable {
     /// Address of dyld cache header start
     public let ptr: UnsafeRawPointer

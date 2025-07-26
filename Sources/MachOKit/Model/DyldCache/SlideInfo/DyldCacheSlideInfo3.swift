@@ -40,6 +40,18 @@ extension DyldCacheSlideInfo3 {
     }
 
     public func pageStarts(in cache: DyldCache) -> DataSequence<PageStart>? {
+        _pageStarts(in: cache)
+    }
+
+    public func pageStarts(in cache: FullDyldCache) -> DataSequence<PageStart>? {
+        _pageStarts(in: cache)
+    }
+}
+
+extension DyldCacheSlideInfo3 {
+    internal func _pageStarts<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<PageStart>? {
         let pageStartsOffset = layoutSize
         return cache.fileHandle.readDataSequence(
             offset: numericCast(offset) + numericCast(pageStartsOffset),
