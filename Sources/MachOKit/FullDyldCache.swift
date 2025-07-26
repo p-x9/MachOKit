@@ -13,6 +13,17 @@ internal import FileIO
 @_implementationOnly import FileIO
 #endif
 
+/// `FullDyldCache` is a high-level abstraction that represents a complete dyld shared cache
+/// composed of a main cache file and all its associated subcaches.
+///
+/// It allows unified access to Mach-O files and metadata across all cache segments,
+/// combining them into a single virtual view. This class is useful for analyzing
+/// or extracting information from the entire dyld shared cache as if it were a single file.
+///
+/// - Important: The ``FullDyldCache`` requires the path to the main cache file.
+///   It automatically detects and opens all related subcache files.
+///
+/// - SeeAlso: ``DyldCache``, ``DyldCacheRepresentable``
 public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
     typealias File = ConcatenatedMemoryMappedFile
 

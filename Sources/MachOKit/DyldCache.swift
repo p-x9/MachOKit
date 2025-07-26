@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2024/01/13.
-//  
+//
 //
 
 import Foundation
@@ -12,6 +12,19 @@ internal import FileIO
 #else
 @_implementationOnly import FileIO
 #endif
+
+/// `DyldCache` represents a single dyld shared cache file.
+///
+/// It provides access to Mach-O binaries and metadata contained in a dyld shared cache,
+/// enabling parsing of load commands, symbol tables, mappings, and other information.
+///
+/// This class is intended to work with a single cache file. For handling multiple subcaches
+/// as one logical cache, see ``FullDyldCache``.
+///
+/// - Note: `DyldCache` automatically verifies the file's magic header and CPU type
+///   when initialized.
+///
+/// - SeeAlso: ``DyldCacheRepresentable``, ``FullDyldCache``
 
 public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
     typealias File = MemoryMappedFile
