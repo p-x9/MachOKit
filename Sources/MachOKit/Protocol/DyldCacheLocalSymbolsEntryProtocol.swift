@@ -18,3 +18,9 @@ public protocol DyldCacheLocalSymbolsEntryProtocol {
     /// Number of local symbols for this dylib
     var nlistCount: Int { get }
 }
+
+extension DyldCacheLocalSymbolsEntryProtocol {
+    public var nlistRange: Range<Int> {
+        nlistStartIndex ..< nlistStartIndex + nlistCount
+    }
+}

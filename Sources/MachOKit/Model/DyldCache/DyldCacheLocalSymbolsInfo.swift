@@ -338,3 +338,92 @@ extension DyldCacheLocalSymbolsInfo {
         }
     }
 }
+
+extension DyldCacheLocalSymbolsInfo {
+    public func entry64(
+        for machO: MachOFile,
+        in cache: DyldCache
+    ) -> DyldCacheLocalSymbolsEntry64? {
+        guard let offset = machO.textOffset(in: cache) else { return nil }
+        return entries64(in: cache)?.first(
+            where: {
+                $0.dylibOffset == offset
+            }
+        )
+    }
+
+    public func entry32(
+        for machO: MachOFile,
+        in cache: DyldCache
+    ) -> DyldCacheLocalSymbolsEntry? {
+        guard let offset = machO.textOffset(in: cache) else { return nil }
+        return entries32(in: cache)?.first(
+            where: {
+                $0.dylibOffset == offset
+            }
+        )
+    }
+
+    public func entry(
+        for machO: MachOFile,
+        in cache: DyldCache
+    ) -> (any DyldCacheLocalSymbolsEntryProtocol)? {
+        guard let offset = machO.textOffset(in: cache) else { return nil }
+        return entries(in: cache).first(
+            where: {
+                $0.dylibOffset == offset
+            }
+        )
+    }
+}
+
+extension DyldCacheLocalSymbolsInfo {
+    public func entry64(
+        for machO: MachOFile,
+        in cache: FullDyldCache
+    ) -> DyldCacheLocalSymbolsEntry64? {
+        guard let offset = machO.textOffset(in: cache) else { return nil }
+        return entries64(in: cache)?.first(
+            where: {
+                $0.dylibOffset == offset
+            }
+        )
+    }
+
+    public func entry32(
+        for machO: MachOFile,
+        in cache: FullDyldCache
+    ) -> DyldCacheLocalSymbolsEntry? {
+        guard let offset = machO.textOffset(in: cache) else { return nil }
+        return entries32(in: cache)?.first(
+            where: {
+                $0.dylibOffset == offset
+            }
+        )
+    }
+
+    public func entry(
+        for machO: MachOFile,
+        in cache: FullDyldCache
+    ) -> (any DyldCacheLocalSymbolsEntryProtocol)? {
+        guard let offset = machO.textOffset(in: cache) else { return nil }
+        return entries(in: cache).first(
+            where: {
+                $0.dylibOffset == offset
+            }
+        )
+    }
+}
+
+fileprivate extension MachOFile {
+    func textOffset(in cache: DyldCache) -> UInt64? {
+        let loadCommands = loadCommands
+        let text: (any SegmentCommandProtocol)? = loadCommands.text64 ?? loadCommands.text
+        guard let text else { return nil }
+        return numericCast(text.virtualMemoryAddress) - cache.mainCacheHeader.sharedRegionStart
+    }
+
+    func textOffset(in cache: FullDyldCache) -> UInt64? {
+        textOffset(in: cache.mainCache)
+    }
+}

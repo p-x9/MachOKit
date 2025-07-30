@@ -152,6 +152,28 @@ final class DyldCachePrintTests: XCTestCase {
         }
     }
 
+    func testLocalSymbolsInSymbolCache() throws {
+        guard let symbolCache = try cache.symbolCache else {
+            return
+        }
+        guard let info = symbolCache.localSymbolsInfo else {
+            return
+        }
+        let machO = cache.machOFiles().first(
+            where: {
+                $0.imagePath.contains("/SwiftUICore")
+            }
+        )!
+        guard let entry = info.entry(for: machO, in: symbolCache) else {
+            XCTFail("No entry found")
+            return
+        }
+        let symbols = Array(info.symbols(in: symbolCache))[entry.nlistRange]
+        for symbol in symbols.prefix(100) {
+            print(symbol.name)
+        }
+    }
+
     func testMachOFiles() throws {
         let machOs = cache.machOFiles()
         for machO in machOs {
