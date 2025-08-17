@@ -660,6 +660,16 @@ extension MachOFile {
         }
     }
 
+    /// Reads the data in the linkedit segment appropriately.
+    ///
+    /// The linkedit data in the machO file obtained from the dyld cache may be separated in a separate sub cache file.
+    /// (e.g. dyld cache in iOS except Simulator)
+    ///
+    /// The data related to the following load command exists in linkedit.
+    ///   - symtab
+    ///   - dysymtab
+    ///   - linkedit_data_command
+    ///   - exports trie
     public func _readLinkEditData(
         offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
         length: Int
