@@ -116,6 +116,26 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
 }
 
 extension DyldCache {
+    public var mainCache: DyldCache? {
+        if url.lastPathComponent.contains(".") {
+            let url = url
+                .deletingPathExtension()
+                .deletingPathExtension()
+            return try? .init(url: url)
+        } else {
+            return self
+        }
+    }
+
+    public var fullCache: FullDyldCache? {
+        let url = url
+            .deletingPathExtension()
+            .deletingPathExtension()
+        return try? .init(url: url)
+    }
+}
+
+extension DyldCache {
     /// Sequence of mapping infos
     public var mappingInfos: DataSequence<DyldCacheMappingInfo>? {
         guard header.mappingCount > 0 else { return nil }
@@ -220,17 +240,6 @@ extension DyldCache {
 }
 
 extension DyldCache {
-    public var mainCache: DyldCache? {
-        if url.lastPathComponent.contains(".") {
-            let url = url
-                .deletingPathExtension()
-                .deletingPathExtension()
-            return try? .init(url: url)
-        } else {
-            return self
-        }
-    }
-
     /// Sequence of MachO information contained in this cache
     public func machOFiles() -> AnySequence<MachOFile> {
         _machOFiles(mainCache: mainCache)
