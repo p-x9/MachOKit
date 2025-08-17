@@ -244,15 +244,20 @@ extension MachOFile {
 
 extension MachOFile {
     public var symbolStrings: Strings? {
-        if let symtab = loadCommands.symtab {
-            return Strings(
-                machO: self,
-                offset: headerStartOffset + Int(symtab.stroff),
-                size: Int(symtab.strsize),
-                isSwapped: isSwapped
-            )
+        guard let symtab = loadCommands.symtab else {
+            return nil
         }
-        return nil
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: numericCast(symtab.stroff),
+            length: numericCast(symtab.strsize)
+        ) else { return nil }
+
+        return .init(
+            fileSlice: fileSlice,
+            offset: numericCast(symtab.stroff),
+            size: numericCast(symtab.strsize),
+            isSwapped: isSwapped
+        )
     }
 }
 

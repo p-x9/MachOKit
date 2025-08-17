@@ -30,6 +30,18 @@ extension MachOFile {
 
         public let isSwapped: Bool
 
+        init(
+            fileSlice: FileSlice,
+            offset: Int,
+            size: Int,
+            isSwapped: Bool
+        ) {
+            self.fileSlice = fileSlice
+            self.offset = offset
+            self.size = size
+            self.isSwapped = isSwapped
+        }
+
         public func makeIterator() -> Iterator {
             .init(fileSlice: fileSlice, isSwapped: isSwapped)
         }
