@@ -31,11 +31,10 @@ extension MachOFile.FunctionStarts {
         functionStartsSize: Int,
         functionStartBase: UInt
     ) {
-        let offset = machO.headerStartOffset + functionStartsOffset
-        let data = try! machO.fileHandle.readData(
-            offset: offset,
+        let data = machO._readLinkEditData(
+            offset: functionStartsOffset,
             length: functionStartsSize
-        )
+        )!
 
         self.init(
             data: data,

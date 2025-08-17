@@ -421,8 +421,13 @@ extension MachOFile {
             return nil
         }
 
-        let entries: DataSequence<DataInCodeEntry> = fileHandle.readDataSequence(
-            offset: numericCast(headerStartOffset) + numericCast(dataInCode.dataoff),
+        guard let data = _readLinkEditData(
+            offset: numericCast(dataInCode.dataoff),
+            length: numericCast(dataInCode.datasize)
+        ) else { return nil }
+
+        let entries: DataSequence<DataInCodeEntry> = .init(
+            data: data,
             numberOfElements: numericCast(dataInCode.datasize) / DataInCodeEntry.layoutSize
         )
 
@@ -449,12 +454,13 @@ extension MachOFile {
         guard let info = loadCommands.dyldChainedFixups else {
             return nil
         }
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: numericCast(info.dataoff),
+            length: numericCast(info.datasize)
+        ) else { return nil }
 
         return .init(
-            fileSice: try! fileHandle.fileSlice(
-                offset: headerStartOffset + numericCast(info.dataoff),
-                length: numericCast(info.datasize)
-            ),
+            fileSice: fileSlice,
             isSwapped: isSwapped
         )
     }
@@ -508,11 +514,13 @@ extension MachOFile {
         guard let info = loadCommands.codeSignature else {
             return nil
         }
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: numericCast(info.dataoff),
+            length: numericCast(info.datasize)
+        ) else { return nil }
+
         return .init(
-            fileSice: try! fileHandle.fileSlice(
-                offset: headerStartOffset + numericCast(info.dataoff),
-                length: numericCast(info.datasize)
-            )
+            fileSice: fileSlice
         )
     }
 }
@@ -600,10 +608,10 @@ extension MachOFile {
 }
 
 extension MachOFile {
-    internal func _readLinkEditData(
+    internal func _fileSliceForLinkEditData(
         offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
         length: Int
-    ) -> Data? {
+    ) -> File.FileSlice? {
         let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
         guard let linkedit else { return nil }
         guard linkedit.fileOffset + linkedit.fileSize >= offset + length else { return nil }
@@ -621,16 +629,27 @@ extension MachOFile {
                   ) else {
                 return nil
             }
-            return try? segment._file.readData(
+            return try? segment._file.fileSlice(
                 offset: numericCast(fileOffset) - segment.offset,
                 length: length
             )
         } else {
-            return try? fileHandle.readData(
+            return try? fileHandle.fileSlice(
                 offset: headerStartOffset + offset,
                 length: length
             )
         }
+    }
+
+    internal func _readLinkEditData(
+        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        length: Int
+    ) -> Data? {
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: offset,
+            length: length
+        ) else { return nil }
+        return try? fileSlice.readAllData()
     }
 }
 
