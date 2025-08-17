@@ -68,15 +68,15 @@ extension MachOFile.Symbols64 {
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let stringsSlice = try! machO.fileHandle.fileSlice(
-            offset: machO.headerStartOffset + numericCast(symtab.stroff),
+        let stringsSlice = machO._fileSliceForLinkEditData(
+            offset: numericCast(symtab.stroff),
             length: numericCast(symtab.strsize)
-        )
+        )!
 
-        let symbolsSlice = try! machO.fileHandle.fileSlice(
-            offset: machO.headerStartOffset + numericCast(symtab.symoff),
+        let symbolsSlice = machO._fileSliceForLinkEditData(
+            offset: numericCast(symtab.symoff),
             length: numericCast(symtab.nsyms) * MemoryLayout<nlist_64>.size
-        )
+        )!
 
         self.init(
             symtab: symtab,
@@ -214,15 +214,15 @@ extension MachOFile.Symbols {
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let stringsSlice = try! machO.fileHandle.fileSlice(
-            offset: machO.headerStartOffset + numericCast(symtab.stroff),
-            length: Int(symtab.strsize)
-        )
+        let stringsSlice = machO._fileSliceForLinkEditData(
+            offset: numericCast(symtab.stroff),
+            length: numericCast(symtab.strsize)
+        )!
 
-        let symbolsSlice = try! machO.fileHandle.fileSlice(
-            offset: machO.headerStartOffset + numericCast(symtab.symoff),
-            length: Int(symtab.nsyms) * MemoryLayout<nlist>.size
-        )
+        let symbolsSlice = machO._fileSliceForLinkEditData(
+            offset: numericCast(symtab.symoff),
+            length: numericCast(symtab.nsyms) * MemoryLayout<nlist>.size
+        )!
 
         self.init(
             symtab: symtab,
