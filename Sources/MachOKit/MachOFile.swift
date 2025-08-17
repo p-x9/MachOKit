@@ -522,6 +522,18 @@ extension MachOFile {
     public var isLoadedFromDyldCache: Bool {
         headerStartOffsetInCache > 0
     }
+
+    internal var cache: DyldCache? {
+        try? .init(url: url)
+    }
+
+    internal var fullCache: FullDyldCache? {
+        try? .init(
+            url: url
+                .deletingPathExtension()
+                .deletingPathExtension()
+        )
+    }
 }
 
 extension MachOFile {
@@ -588,10 +600,45 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    internal func _readLinkEditData(
+        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        length: Int
+    ) -> Data? {
+        let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
+        guard let linkedit else { return nil }
+        guard linkedit.fileOffset + linkedit.fileSize >= offset + length else { return nil }
+
+        // The linkeditdata in iOS is stored together in a separate, independent cache.
+        // (.0x.linkeditdata)
+        if isLoadedFromDyldCache {
+            let offset = offset - numericCast(linkedit.fileOffset)
+            guard let fullCache = self.fullCache,
+                  let fileOffset = fullCache.fileOffset(
+                    of: numericCast(linkedit.virtualMemoryAddress + offset)
+                  ),
+                  let (_, segment) = fullCache.urlAndFileSegment(
+                    forOffset: fileOffset
+                  ) else {
+                return nil
+            }
+            return try? segment._file.readData(
+                offset: numericCast(fileOffset) - segment.offset,
+                length: length
+            )
+        } else {
+            return try? fileHandle.readData(
+                offset: headerStartOffset + offset,
+                length: length
+            )
+        }
+    }
+}
+
+extension MachOFile {
     // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MetadataVisitor.cpp#L262
     public func resolveRebase(at offset: UInt64) -> UInt64? {
         if isLoadedFromDyldCache,
-           let cache = try? DyldCache(url: url) {
+           let cache = self.cache {
             return cache.resolveRebase(at: offset)
         }
 
@@ -609,7 +656,7 @@ extension MachOFile {
 
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
         if isLoadedFromDyldCache,
-           let cache = try? DyldCache(url: url) {
+           let cache = self.cache {
             return cache.resolveOptionalRebase(at: offset)
         }
 
@@ -759,7 +806,7 @@ extension MachOFile {
         }
 
         if header.isInDyldCache,
-           let cache = try? DyldCache(url: url) {
+           let cache = self.cache {
             return cache.header.platform == .macOS
         }
 
