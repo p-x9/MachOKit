@@ -641,7 +641,7 @@ extension MachOFile {
         }
     }
 
-    internal func _readLinkEditData(
+    public func _readLinkEditData(
         offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
         length: Int
     ) -> Data? {
