@@ -81,4 +81,8 @@ struct target_triple_command {
 
 #endif /* __linux__ */
 
+#ifndef EXPORT_SYMBOL_FLAGS_FUNCTION_VARIANT
+#define EXPORT_SYMBOL_FLAGS_FUNCTION_VARIANT  0x20
+#endif
+
 #endif /* backports_h */
