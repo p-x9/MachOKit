@@ -178,9 +178,11 @@ extension PrebuiltLoaderSet {
         case v0x173a676e = 0x173a676e
         /// from dyld-1241.17
         case v0x18cf6421 = 0x18cf6421
+        // from dyld-1285.19
+        case v0x2fa25b43 = 0x2fa25b43
 
         public var isLatest: Bool {
-            self == .v0x18cf6421
+            self == .v0x2fa25b43
         }
 
         public var isPre1165_3: Bool {
