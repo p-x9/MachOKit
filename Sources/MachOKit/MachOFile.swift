@@ -218,36 +218,46 @@ extension MachOFile {
     public var indirectSymbols: IndirectSymbols? {
         guard let dysymtab = loadCommands.dysymtab else { return nil }
 
-        let offset: UInt64 = numericCast(headerStartOffset) + numericCast(dysymtab.indirectsymoff)
+        let offset: UInt64 = numericCast(dysymtab.indirectsymoff)
         let numberOfElements: Int = numericCast(dysymtab.nindirectsyms)
 
-        return fileHandle.readDataSequence(
-            offset: offset,
-            numberOfElements: numberOfElements,
-            swapHandler: { data in
-                guard self.isSwapped else { return }
-                data.withUnsafeMutableBytes {
-                    let buffer = $0.assumingMemoryBound(to: UInt32.self)
-                    for i in 0 ..< numberOfElements {
-                        buffer[i] = buffer[i].byteSwapped
-                    }
+        guard var data = _readLinkEditData(
+            offset: numericCast(offset),
+            length: MemoryLayout<UInt32>.size * numberOfElements
+        ) else { return nil }
+
+        if isSwapped {
+            data.withUnsafeMutableBytes {
+                let buffer = $0.assumingMemoryBound(to: UInt32.self)
+                for i in 0 ..< numberOfElements {
+                    buffer[i] = buffer[i].byteSwapped
                 }
             }
+        }
+
+        return .init(
+            data: data,
+            numberOfElements: numberOfElements
         )
     }
 }
 
 extension MachOFile {
     public var symbolStrings: Strings? {
-        if let symtab = loadCommands.symtab {
-            return Strings(
-                machO: self,
-                offset: headerStartOffset + Int(symtab.stroff),
-                size: Int(symtab.strsize),
-                isSwapped: isSwapped
-            )
+        guard let symtab = loadCommands.symtab else {
+            return nil
         }
-        return nil
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: numericCast(symtab.stroff),
+            length: numericCast(symtab.strsize)
+        ) else { return nil }
+
+        return .init(
+            fileSlice: fileSlice,
+            offset: numericCast(symtab.stroff),
+            size: numericCast(symtab.strsize),
+            isSwapped: isSwapped
+        )
     }
 }
 
@@ -421,8 +431,13 @@ extension MachOFile {
             return nil
         }
 
-        let entries: DataSequence<DataInCodeEntry> = fileHandle.readDataSequence(
-            offset: numericCast(headerStartOffset) + numericCast(dataInCode.dataoff),
+        guard let data = _readLinkEditData(
+            offset: numericCast(dataInCode.dataoff),
+            length: numericCast(dataInCode.datasize)
+        ) else { return nil }
+
+        let entries: DataSequence<DataInCodeEntry> = .init(
+            data: data,
             numberOfElements: numericCast(dataInCode.datasize) / DataInCodeEntry.layoutSize
         )
 
@@ -449,12 +464,13 @@ extension MachOFile {
         guard let info = loadCommands.dyldChainedFixups else {
             return nil
         }
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: numericCast(info.dataoff),
+            length: numericCast(info.datasize)
+        ) else { return nil }
 
         return .init(
-            fileSice: try! fileHandle.fileSlice(
-                offset: headerStartOffset + numericCast(info.dataoff),
-                length: numericCast(info.datasize)
-            ),
+            fileSice: fileSlice,
             isSwapped: isSwapped
         )
     }
@@ -465,18 +481,27 @@ extension MachOFile {
         guard let dysymtab = loadCommands.dysymtab else {
             return nil
         }
-        return fileHandle.readDataSequence(
-            offset: numericCast(dysymtab.extreloff),
-            numberOfElements: numericCast(dysymtab.nextrel),
-            swapHandler: { data in
-                guard self.isSwapped else { return }
-                data.withUnsafeMutableBytes {
-                    guard let baseAddress = $0.baseAddress else { return }
-                    let ptr = baseAddress
-                        .assumingMemoryBound(to: relocation_info.self)
-                    swap_relocation_info(ptr, dysymtab.nextrel, NXHostByteOrder())
-                }
+
+        let offset: UInt64 = numericCast(dysymtab.extreloff)
+        let numberOfElements: Int = numericCast(dysymtab.nextrel)
+
+        guard var data = _readLinkEditData(
+            offset: numericCast(offset),
+            length: MemoryLayout<UInt64>.size * numberOfElements
+        ) else { return nil }
+
+        if isSwapped {
+            data.withUnsafeMutableBytes {
+                guard let baseAddress = $0.baseAddress else { return }
+                let ptr = baseAddress
+                    .assumingMemoryBound(to: relocation_info.self)
+                swap_relocation_info(ptr, dysymtab.nextrel, NXHostByteOrder())
             }
+        }
+
+        return .init(
+            data: data,
+            numberOfElements: numberOfElements
         )
     }
 
@@ -508,11 +533,13 @@ extension MachOFile {
         guard let info = loadCommands.codeSignature else {
             return nil
         }
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: numericCast(info.dataoff),
+            length: numericCast(info.datasize)
+        ) else { return nil }
+
         return .init(
-            fileSice: try! fileHandle.fileSlice(
-                offset: headerStartOffset + numericCast(info.dataoff),
-                length: numericCast(info.datasize)
-            )
+            fileSice: fileSlice
         )
     }
 }
@@ -521,6 +548,18 @@ extension MachOFile {
     /// A Boolean value that indicates whether this machO file was loaded from dyld cache
     public var isLoadedFromDyldCache: Bool {
         headerStartOffsetInCache > 0
+    }
+
+    internal var cache: DyldCache? {
+        try? .init(url: url)
+    }
+
+    internal var fullCache: FullDyldCache? {
+        try? .init(
+            url: url
+                .deletingPathExtension()
+                .deletingPathExtension()
+        )
     }
 }
 
@@ -588,10 +627,66 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    internal func _fileSliceForLinkEditData(
+        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        length: Int
+    ) -> File.FileSlice? {
+        let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
+        guard let linkedit else { return nil }
+        guard linkedit.fileOffset + linkedit.fileSize >= offset + length else { return nil }
+
+        // The linkeditdata in iOS is stored together in a separate, independent cache.
+        // (.0x.linkeditdata)
+        if isLoadedFromDyldCache {
+            let offset = offset - numericCast(linkedit.fileOffset)
+            guard let fullCache = self.fullCache,
+                  let fileOffset = fullCache.fileOffset(
+                    of: numericCast(linkedit.virtualMemoryAddress + offset)
+                  ),
+                  let (_, segment) = fullCache.urlAndFileSegment(
+                    forOffset: fileOffset
+                  ) else {
+                return nil
+            }
+            return try? segment._file.fileSlice(
+                offset: numericCast(fileOffset) - segment.offset,
+                length: length
+            )
+        } else {
+            return try? fileHandle.fileSlice(
+                offset: headerStartOffset + offset,
+                length: length
+            )
+        }
+    }
+
+    /// Reads the data in the linkedit segment appropriately.
+    ///
+    /// The linkedit data in the machO file obtained from the dyld cache may be separated in a separate sub cache file.
+    /// (e.g. dyld cache in iOS except Simulator)
+    ///
+    /// The data related to the following load command exists in linkedit.
+    ///   - symtab
+    ///   - dysymtab
+    ///   - linkedit_data_command
+    ///   - exports trie
+    public func _readLinkEditData(
+        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        length: Int
+    ) -> Data? {
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: offset,
+            length: length
+        ) else { return nil }
+        return try? fileSlice.readAllData()
+    }
+}
+
+extension MachOFile {
     // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MetadataVisitor.cpp#L262
     public func resolveRebase(at offset: UInt64) -> UInt64? {
         if isLoadedFromDyldCache,
-           let cache = try? DyldCache(url: url) {
+           let cache = self.cache {
             return cache.resolveRebase(at: offset)
         }
 
@@ -609,7 +704,7 @@ extension MachOFile {
 
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
         if isLoadedFromDyldCache,
-           let cache = try? DyldCache(url: url) {
+           let cache = self.cache {
             return cache.resolveOptionalRebase(at: offset)
         }
 
@@ -759,7 +854,7 @@ extension MachOFile {
         }
 
         if header.isInDyldCache,
-           let cache = try? DyldCache(url: url) {
+           let cache = self.cache {
             return cache.header.platform == .macOS
         }
 
