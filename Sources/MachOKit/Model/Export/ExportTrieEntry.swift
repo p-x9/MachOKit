@@ -19,6 +19,8 @@ public struct ExportTrieNodeContent {
     public var stub: UInt?
     public var resolver: UInt?
 
+    public var functionVariantTableIndex: UInt?
+
     public var symbolOffset: UInt?
 }
 
@@ -67,6 +69,18 @@ extension ExportTrieNodeContent: TrieNodeContent {
 
             content.stub = stub
             content.resolver = resolver
+        } else if flags.contains(.function_variant) {
+            let (symbolOffset, ulebOffset) = basePointer
+                .advanced(by: nextOffset)
+                .readULEB128()
+            nextOffset += ulebOffset
+            let (functionVariantTableIndex, ulebOffset2) = basePointer
+                .advanced(by: nextOffset)
+                .readULEB128()
+            nextOffset += ulebOffset2
+
+            content.symbolOffset = symbolOffset
+            content.functionVariantTableIndex = functionVariantTableIndex
         } else {
             let (value, ulebOffset) = basePointer
                 .advanced(by: nextOffset)

@@ -28,7 +28,8 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
                     ordinal: content.ordinal,
                     importedName: content.importedName,
                     stub: content.stub,
-                    resolverOffset: content.resolver
+                    resolverOffset: content.resolver,
+                    functionVariantTableIndex: content.functionVariantTableIndex
                 )
             }
     }
@@ -48,7 +49,8 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
             ordinal: content.ordinal,
             importedName: content.importedName,
             stub: content.stub,
-            resolverOffset: content.resolver
+            resolverOffset: content.resolver,
+            functionVariantTableIndex: content.functionVariantTableIndex
         )
     }
 
@@ -67,7 +69,8 @@ extension TrieTreeProtocol where Content == ExportTrieNodeContent {
                 ordinal: content.ordinal,
                 importedName: content.importedName,
                 stub: content.stub,
-                resolverOffset: content.resolver
+                resolverOffset: content.resolver,
+                functionVariantTableIndex: content.functionVariantTableIndex
             )
         }
     }

@@ -21,6 +21,8 @@ public struct ExportedSymbol {
 
     public var stub: UInt?
     public var resolverOffset: UInt?
+
+    public var functionVariantTableIndex: UInt?
 }
 
 extension ExportedSymbol {
