@@ -631,19 +631,30 @@ extension MachOFile {
         offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
         length: Int
     ) -> File.FileSlice? {
+        let text: (any SegmentCommandProtocol)? = loadCommands.text64 ?? loadCommands.text
         let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
-        guard let linkedit else { return nil }
+        guard let text, let linkedit else { return nil }
         guard linkedit.fileOffset + linkedit.fileSize >= offset + length else { return nil }
+
+        let maxFileOffsetToCheck = text.fileOffset + linkedit.virtualMemoryAddress - text.virtualMemoryAddress
+        let isWithinFileRange: Bool = fileHandle.size >= maxFileOffsetToCheck
+
+        // 1) text.vmaddr < linkedit.vmaddr
+        // 2) fileoff_diff <= vmaddr_diff
+        // 3) If both exist in the same file
+        //    text.fileoff < linkedit.fileoff <= text.fileoff + vmaddr_diff
+        // 4) if fileHandle.size < text.fileoff + vmaddr_diff
+        //    both exist in the same file
 
         // The linkeditdata in iOS is stored together in a separate, independent cache.
         // (.0x.linkeditdata)
-        if isLoadedFromDyldCache {
+        if isLoadedFromDyldCache && !isWithinFileRange {
             let offset = offset - numericCast(linkedit.fileOffset)
             guard let fullCache = self.fullCache,
                   let fileOffset = fullCache.fileOffset(
                     of: numericCast(linkedit.virtualMemoryAddress + offset)
                   ),
-                  let (_, segment) = fullCache.urlAndFileSegment(
+                  let segment = fullCache.fileSegment(
                     forOffset: fileOffset
                   ) else {
                 return nil
