@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct DyldChainedFixupsHeader: LayoutWrapper {
+public struct DyldChainedFixupsHeader: LayoutWrapper, Sendable {
     public typealias Layout = dyld_chained_fixups_header
 
     public var layout: Layout

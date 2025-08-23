@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public enum DyldChainedImport {
+public enum DyldChainedImport: Sendable {
     case general(DyldChainedImportGeneral)
     case addend(DyldChainedImportAddend)
     case addend64(DyldChainedImportAddend64)

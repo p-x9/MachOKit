@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum BindOperation {
+public enum BindOperation: Sendable {
     /// BIND_OPCODE_DONE
     case done
     /// BIND_OPCODE_SET_DYLIB_ORDINAL_IMM
@@ -95,7 +95,7 @@ extension BindOperation: CustomStringConvertible {
     }
 }
 
-public enum BindSubOperation {
+public enum BindSubOperation: Sendable {
     case threaded_set_bind_ordinal_table_size_uleb(size: Int)
     case threaded_apply
 }

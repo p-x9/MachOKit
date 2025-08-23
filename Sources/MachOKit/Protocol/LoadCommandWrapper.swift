@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol LoadCommandWrapper: LayoutWrapper {
+public protocol LoadCommandWrapper: LayoutWrapper, Sendable {
     var offset: Int { get }
 
     mutating func swap()

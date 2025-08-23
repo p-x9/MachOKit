@@ -10,7 +10,7 @@ import Foundation
 
 public typealias ExportTrieEntry = TrieNode<ExportTrieNodeContent>
 
-public struct ExportTrieNodeContent {
+public struct ExportTrieNodeContent: Sendable {
     public var flags: ExportSymbolFlags? // null when terminalSize == 0
 
     public var ordinal: UInt?

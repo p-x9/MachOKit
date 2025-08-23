@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ObjCBinaryInfo: LayoutWrapper {
+public struct ObjCBinaryInfo: LayoutWrapper, Sendable {
     public typealias Layout = objc_binary_info
 
     public var layout: Layout

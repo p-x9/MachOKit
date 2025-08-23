@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public enum CodeSignSlot {
+public enum CodeSignSlot: Sendable {
     /// CSSLOT_CODEDIRECTORY
     case codedirectory
     /// CSSLOT_INFOSLOT

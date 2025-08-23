@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct DyldCacheSlideInfo4: LayoutWrapper {
+public struct DyldCacheSlideInfo4: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_slide_info4
 
     public var layout: Layout

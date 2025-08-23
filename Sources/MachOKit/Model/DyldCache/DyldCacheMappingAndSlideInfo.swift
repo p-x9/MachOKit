@@ -13,7 +13,7 @@ internal import FileIO
 @_implementationOnly import FileIO
 #endif
 
-public struct DyldCacheMappingAndSlideInfo: LayoutWrapper {
+public struct DyldCacheMappingAndSlideInfo: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_mapping_and_slide_info
 
     public var layout: Layout

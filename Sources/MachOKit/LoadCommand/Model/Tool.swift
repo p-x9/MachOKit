@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum Tool {
+public enum Tool: Sendable {
     ///  TOOL_CLANG
     case clang
     /// TOOL_SWIFT

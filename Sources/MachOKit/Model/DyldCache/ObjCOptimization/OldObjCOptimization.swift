@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct OldObjCOptimization: LayoutWrapper {
+public struct OldObjCOptimization: LayoutWrapper, Sendable {
     public typealias Layout = objc_opt_t
 
     public var layout: Layout

@@ -38,7 +38,7 @@ extension DylibUseFlags {
 }
 
 extension DylibUseFlags {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// DYLIB_USE_WEAK_LINK
         case weak_link
         /// DYLIB_USE_REEXPORT

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum LoadCommand {
+public enum LoadCommand: Sendable {
     /// LC_SEGMENT
     case segment(SegmentCommand)
     /// LC_SYMTAB

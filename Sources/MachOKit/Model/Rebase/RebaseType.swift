@@ -1,14 +1,14 @@
 //
 //  RebaseType.swift
-//  
+//
 //
 //  Created by p-x9 on 2023/12/03.
-//  
+//
 //
 
 import Foundation
 
-public enum RebaseType {
+public enum RebaseType: Sendable {
     /// REBASE_TYPE_POINTER
     case pointer
     /// REBASE_TYPE_TEXT_ABSOLUTE32

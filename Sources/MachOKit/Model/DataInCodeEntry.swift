@@ -3,12 +3,12 @@
 //
 //
 //  Created by p-x9 on 2024/01/07.
-//  
+//
 //
 
 import Foundation
 
-public struct DataInCodeEntry: LayoutWrapper {
+public struct DataInCodeEntry: LayoutWrapper, Sendable {
     public typealias Layout = data_in_code_entry
 
     public var layout: Layout
@@ -21,7 +21,7 @@ extension DataInCodeEntry {
 }
 
 extension DataInCodeEntry {
-    public enum Kind {
+    public enum Kind: Sendable {
         case data
         case jumpTable8
         case jumpTable16

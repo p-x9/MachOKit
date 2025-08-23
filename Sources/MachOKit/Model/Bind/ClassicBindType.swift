@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ClassicBindType {
+public enum ClassicBindType: Sendable {
     case relocation(RelocationType)
     case pointer
 }

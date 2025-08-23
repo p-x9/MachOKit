@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public protocol CFStringProtocol {
+public protocol CFStringProtocol: Sendable {
     /// Offset at which string data is stored
     var stringOffset: Int { get }
     /// Number (in terms of UTF-16 code pairs) of Unicode characters in a string.

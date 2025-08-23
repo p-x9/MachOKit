@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum BindOpcode {
+public enum BindOpcode: Sendable {
     /// BIND_OPCODE_DONE
     case done
     /// BIND_OPCODE_SET_DYLIB_ORDINAL_IMM

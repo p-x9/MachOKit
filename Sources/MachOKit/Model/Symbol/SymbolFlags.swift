@@ -40,7 +40,7 @@ extension SymbolFlags {
 }
 
 extension SymbolFlags {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// N_PEXT
         /// private external symbol bit
         case pext

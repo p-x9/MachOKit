@@ -21,7 +21,7 @@ private import Crypto
 #endif
 #endif /* canImport(CommonCrypto) */
 
-public struct CodeSignCodeDirectory: LayoutWrapper {
+public struct CodeSignCodeDirectory: LayoutWrapper, Sendable {
     public typealias Layout = CS_CodeDirectory
 
     public var layout: Layout

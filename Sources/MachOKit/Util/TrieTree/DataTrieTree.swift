@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DataTrieTree<Content: TrieNodeContent>: TrieTreeProtocol {
+public struct DataTrieTree<Content: TrieNodeContent>: TrieTreeProtocol, Sendable {
     public let data: Data
 
     public var size: Int { data.count }

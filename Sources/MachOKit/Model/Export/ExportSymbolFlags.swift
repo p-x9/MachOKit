@@ -46,7 +46,7 @@ extension ExportSymbolFlags {
 }
 
 extension ExportSymbolFlags {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION
         case weak_definition
         /// EXPORT_SYMBOL_FLAGS_REEXPORT

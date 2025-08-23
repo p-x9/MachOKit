@@ -51,7 +51,7 @@ extension CodeSignExecSegmentFlags {
 }
 
 extension CodeSignExecSegmentFlags {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// CS_EXECSEG_MAIN_BINARY
         case main_binary
         /// CS_EXECSEG_ALLOW_UNSIGNED

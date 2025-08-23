@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct FatArch: LayoutWrapper {
+public struct FatArch: LayoutWrapper, Sendable {
     public var layout: fat_arch
 
     public var cpuType: CPUType? {

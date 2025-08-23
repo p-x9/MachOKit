@@ -3,13 +3,13 @@
 //
 //
 //  Created by p-x9 on 2024/02/03.
-//  
+//
 //
 
 import Foundation
 
-public struct DependedDylib {
-    public enum DependType {
+public struct DependedDylib: Sendable {
+    public enum DependType: Sendable {
         case load
         case weakLoad
         case reexport

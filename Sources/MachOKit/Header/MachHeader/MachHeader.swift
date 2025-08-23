@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct MachHeader: LayoutWrapper {
+public struct MachHeader: LayoutWrapper, Sendable {
     public var layout: mach_header
 
     public var magic: Magic! {

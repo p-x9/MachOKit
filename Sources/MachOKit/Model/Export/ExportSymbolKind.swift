@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ExportSymbolKind {
+public enum ExportSymbolKind: Sendable {
     /// EXPORT_SYMBOL_FLAGS_KIND_REGULAR
     case regular
     /// EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL

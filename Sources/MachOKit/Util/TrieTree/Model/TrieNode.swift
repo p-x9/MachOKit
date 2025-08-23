@@ -10,7 +10,7 @@ import Foundation
 
 @dynamicMemberLookup
 public struct TrieNode<Content: TrieNodeContent> {
-    public struct Child {
+    public struct Child: Sendable {
         public let label: String
         public let offset: UInt
     }
@@ -110,3 +110,5 @@ extension TrieNode {
         content?[keyPath: keyPath]
     }
 }
+
+extension TrieNode: Sendable where Content: Sendable {}

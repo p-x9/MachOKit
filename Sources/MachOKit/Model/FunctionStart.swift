@@ -3,12 +3,12 @@
 //
 //
 //  Created by p-x9 on 2024/01/07.
-//  
+//
 //
 
 import Foundation
 
-public struct FunctionStart {
+public struct FunctionStart: Sendable {
     /// Offset from start of mach header (`MachO`)
     /// File offset from mach header (`MachOFile`)
     public let offset: UInt

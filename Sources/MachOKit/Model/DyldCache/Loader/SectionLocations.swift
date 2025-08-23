@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SectionLocations: LayoutWrapper {
+public struct SectionLocations: LayoutWrapper, Sendable {
     public typealias Layout = section_locations
 
     public var layout: Layout
@@ -16,7 +16,7 @@ public struct SectionLocations: LayoutWrapper {
 
 extension SectionLocations {
     // [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/include/mach-o/dyld_priv.h#L62)
-    public enum SectionKind: Int, CaseIterable {
+    public enum SectionKind: Int, Sendable, CaseIterable {
         // TEXT:
         case text_swift5_protos
         case text_swift5_proto
@@ -47,7 +47,7 @@ extension SectionLocations {
 }
 
 extension SectionLocations {
-    public struct Section {
+    public struct Section: Sendable {
         public let offset: Int
         public let size: Int
         public let kind: SectionKind

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum DyldChainedImportFormat: UInt32 {
+public enum DyldChainedImportFormat: UInt32, Sendable {
     /// DYLD_CHAINED_IMPORT
     case general = 1
     /// DYLD_CHAINED_IMPORT_ADDEND

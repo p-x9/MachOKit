@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum SymbolLibraryOrdinalType {
+public enum SymbolLibraryOrdinalType: Sendable {
     /// SELF_LIBRARY_ORDINAL
     case `self`
     /// DYNAMIC_LOOKUP_ORDINAL

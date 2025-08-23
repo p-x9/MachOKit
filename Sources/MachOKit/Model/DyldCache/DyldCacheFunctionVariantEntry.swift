@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct DyldCacheFunctionVariantEntry: LayoutWrapper {
+public struct DyldCacheFunctionVariantEntry: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_function_variant_entry
 
     public var layout: Layout

@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public enum CodeSignHashType {
+public enum CodeSignHashType: Sendable {
     case sha1
     case sha256
     case sha256_truncated

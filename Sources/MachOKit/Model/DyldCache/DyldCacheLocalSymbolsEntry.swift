@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldCacheLocalSymbolsEntry: LayoutWrapper {
+public struct DyldCacheLocalSymbolsEntry: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_local_symbols_entry
 
     public var layout: Layout
@@ -28,7 +28,7 @@ extension DyldCacheLocalSymbolsEntry: DyldCacheLocalSymbolsEntryProtocol {
     }
 }
 
-public struct DyldCacheLocalSymbolsEntry64: LayoutWrapper {
+public struct DyldCacheLocalSymbolsEntry64: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_local_symbols_entry_64
 
     public var layout: Layout

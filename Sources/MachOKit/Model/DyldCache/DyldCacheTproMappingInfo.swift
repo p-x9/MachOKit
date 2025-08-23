@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldCacheTproMappingInfo: LayoutWrapper {
+public struct DyldCacheTproMappingInfo: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_tpro_mapping_info
 
     public var layout: Layout

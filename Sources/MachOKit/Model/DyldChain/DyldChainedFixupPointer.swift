@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldChainedFixupPointer {
+public struct DyldChainedFixupPointer: Sendable {
     public let offset: Int
     public let fixupInfo: DyldChainedFixupPointerInfo
 }

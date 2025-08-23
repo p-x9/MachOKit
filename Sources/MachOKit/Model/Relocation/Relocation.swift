@@ -8,8 +8,8 @@
 
 import Foundation
 
-public struct Relocation {
-    public enum Info {
+public struct Relocation: Sendable {
+    public enum Info: Sendable {
         case general(RelocationInfo)
         case scattered(ScatteredRelocationInfo)
     }

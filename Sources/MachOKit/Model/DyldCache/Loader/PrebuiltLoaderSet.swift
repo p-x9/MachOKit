@@ -163,7 +163,7 @@ extension PrebuiltLoaderSet {
 }
 
 extension PrebuiltLoaderSet {
-    public enum KnownVersion: UInt32, CaseIterable {
+    public enum KnownVersion: UInt32, Sendable, CaseIterable {
         /// from dyld-940
         case v0x041c09d6 = 0x041c09d6
         /// from dyld-955

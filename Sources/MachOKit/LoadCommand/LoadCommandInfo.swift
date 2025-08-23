@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct LoadCommandInfo<Layout>: LoadCommandWrapper {
+public struct LoadCommandInfo<Layout: Sendable>: LoadCommandWrapper {
     public var layout: Layout
     public var offset: Int // offset from mach header trailing
 

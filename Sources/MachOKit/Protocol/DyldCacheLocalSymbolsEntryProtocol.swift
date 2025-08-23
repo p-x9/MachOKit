@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol DyldCacheLocalSymbolsEntryProtocol {
+public protocol DyldCacheLocalSymbolsEntryProtocol: Sendable {
     /// Offset in cache file of start of dylib
     var dylibOffset: Int { get }
 

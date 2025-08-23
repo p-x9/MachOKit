@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct DyldChainedStartsOffsets: LayoutWrapper {
+public struct DyldChainedStartsOffsets: LayoutWrapper, Sendable {
     public typealias Layout = dyld_chained_starts_offsets
 
     public var layout: Layout

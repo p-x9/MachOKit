@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct BuildToolVersion: LayoutWrapper {
+public struct BuildToolVersion: LayoutWrapper, Sendable {
     public var layout: build_tool_version
 
     public var tool: Tool? {

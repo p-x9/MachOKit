@@ -3,12 +3,12 @@
 //
 //
 //  Created by p-x9 on 2023/12/15.
-//  
+//
 //
 
 import Foundation
 
-public struct Rebase {
+public struct Rebase: Sendable {
     public let type: RebaseType
     public let segmentIndex: Int
     public let segmentOffset: UInt

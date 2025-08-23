@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldCacheDynamicData: LayoutWrapper {
+public struct DyldCacheDynamicData: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_dynamic_data_header
 
     public var layout: Layout

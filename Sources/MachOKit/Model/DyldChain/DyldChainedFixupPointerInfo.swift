@@ -10,7 +10,7 @@ import Foundation
 
 // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/common/MachOLayout.cpp#L2094
 
-public enum DyldChainedFixupPointerInfo {
+public enum DyldChainedFixupPointerInfo: Sendable {
     /// DYLD_CHAINED_PTR_ARM64E
     case arm64e(ARM64E)
     /// DYLD_CHAINED_PTR_64
@@ -141,7 +141,7 @@ extension DyldChainedFixupPointerInfo {
 }
 
 extension DyldChainedFixupPointerInfo {
-    public enum ContentType {
+    public enum ContentType: Sendable {
         case bind
         case rebase
     }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum Stab {
+public enum Stab: Sendable {
     /// N_GSYM
     case gsym
     /// N_FNAME

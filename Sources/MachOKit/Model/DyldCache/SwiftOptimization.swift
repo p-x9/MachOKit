@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct SwiftOptimization: LayoutWrapper {
+public struct SwiftOptimization: LayoutWrapper, Sendable {
     public typealias Layout = swift_optimization
 
     public var layout: Layout

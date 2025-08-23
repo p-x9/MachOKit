@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum SymbolReferenceFlag {
+public enum SymbolReferenceFlag: Sendable {
     /// REFERENCE_FLAG_UNDEFINED_NON_LAZY
     case undefined_non_lazy
     /// REFERENCE_FLAG_UNDEFINED_LAZY

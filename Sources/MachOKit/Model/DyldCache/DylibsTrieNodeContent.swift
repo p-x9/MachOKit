@@ -10,7 +10,7 @@ import Foundation
 
 public typealias DylibsTrieEntry = TrieNode<DylibsTrieNodeContent>
 
-public struct DylibsTrieNodeContent {
+public struct DylibsTrieNodeContent: Sendable {
     public let index: UInt32
 }
 
