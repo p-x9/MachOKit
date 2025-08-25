@@ -9,7 +9,7 @@
 
 import Foundation
 
-public protocol PrebuiltLoaderProtocol {
+public protocol PrebuiltLoaderProtocol: Sendable {
     /// Address where this loader is located.
     ///
     /// Slides after loading are not included.

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol ObjCHeaderInfoRWProtocol {
+public protocol ObjCHeaderInfoRWProtocol: Sendable {
     /// A boolean value that indicates whether objc image is already loaded or not
     var isLoaded: Bool { get }
     /// A boolean value that indicates whether all objc classes contained in objc image are realized

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum BindSpecial {
+public enum BindSpecial: Sendable {
     /// BIND_SPECIAL_DYLIB_SELF
     case dylib_self
     /// BIND_SPECIAL_DYLIB_MAIN_EXECUTABLE

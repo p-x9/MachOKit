@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol NlistProtocol: LayoutWrapper {
+public protocol NlistProtocol: LayoutWrapper, Sendable {
     var flags: SymbolFlags? { get }
     var symbolDescription: SymbolDescription? { get }
     var sectionNumber: Int? { get }

@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct DyldCachePrewarming: LayoutWrapper {
+public struct DyldCachePrewarming: LayoutWrapper, Sendable {
     public typealias Layout = dyld_prewarming_header
 
     public var layout: Layout

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum FileType {
+public enum FileType: Sendable {
     /// MH_OBJECT
     case object
     /// MH_EXECUTE

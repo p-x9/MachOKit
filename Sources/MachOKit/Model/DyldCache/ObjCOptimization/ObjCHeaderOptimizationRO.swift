@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol ObjCHeaderOptimizationROProtocol {
+public protocol ObjCHeaderOptimizationROProtocol: Sendable {
     associatedtype HeaderInfo: ObjCHeaderInfoROProtocol
     /// offset from start address of main cache
     var offset: Int { get }

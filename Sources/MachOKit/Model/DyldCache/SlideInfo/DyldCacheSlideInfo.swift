@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public enum DyldCacheSlideInfo {
+public enum DyldCacheSlideInfo: Sendable {
     case v1(DyldCacheSlideInfo1)
     case v2(DyldCacheSlideInfo2)
     case v3(DyldCacheSlideInfo3)
@@ -18,7 +18,7 @@ public enum DyldCacheSlideInfo {
 }
 
 extension DyldCacheSlideInfo {
-    public enum Version: Int {
+    public enum Version: Int, Sendable {
         case none
         case v1 = 1, v2, v3, v4, v5
     }

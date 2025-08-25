@@ -64,7 +64,7 @@ extension VMProtection {
 }
 
 extension VMProtection {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// VM_PROT_READ
         case read
         /// VM_PROT_WRITE

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldCacheImageTextInfo: LayoutWrapper {
+public struct DyldCacheImageTextInfo: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_image_text_info
 
     public var layout: Layout

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum RelocationType {
+public enum RelocationType: Sendable {
     case x86(GenericRelocationType)
     case ppc(PPCRelocationType)
     case arm(ARMRelocationType)
@@ -55,7 +55,7 @@ extension RelocationType {
     }
 }
 
-public enum GenericRelocationType: UInt32 {
+public enum GenericRelocationType: UInt32, Sendable {
     /// GENERIC_RELOC_VANILLA
     case vanilla
     /// GENERIC_RELOC_PAIR
@@ -86,7 +86,7 @@ extension GenericRelocationType: CustomStringConvertible {
     }
 }
 
-public enum PPCRelocationType: UInt32 {
+public enum PPCRelocationType: UInt32, Sendable {
     /// PPC_RELOC_VANILLA
     case vanilla
     /// PPC_RELOC_PAIR
@@ -144,7 +144,7 @@ extension PPCRelocationType: CustomStringConvertible {
     }
 }
 
-public enum ARMRelocationType: UInt32 {
+public enum ARMRelocationType: UInt32, Sendable {
     /// ARM_RELOC_VANILLA
     case reloc_vanilla
     /// ARM_RELOC_PAIR
@@ -184,7 +184,7 @@ extension ARMRelocationType: CustomStringConvertible {
     }
 }
 
-public enum ARM64RelocationType: UInt32 {
+public enum ARM64RelocationType: UInt32, Sendable {
     /// ARM64_RELOC_UNSIGNED
     case unsigned
     /// ARM64_RELOC_SUBTRACTOR
@@ -230,7 +230,7 @@ extension ARM64RelocationType: CustomStringConvertible {
     }
 }
 
-public enum X86_64RelocationType: UInt32 {
+public enum X86_64RelocationType: UInt32, Sendable {
     /// X86_64_RELOC_UNSIGNED
     case unsigned
     /// X86_64_RELOC_SIGNED

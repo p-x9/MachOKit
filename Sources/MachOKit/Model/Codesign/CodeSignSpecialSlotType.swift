@@ -11,7 +11,7 @@ import Foundation
 /// Special slot in code directory
 ///
 /// https://github.com/apple-oss-distributions/Security/blob/ef677c3d667a44e1737c1b0245e9ed04d11c51c1/OSX/libsecurity_codesigning/lib/codedirectory.h#L86
-public enum CodeSignSpecialSlotType: Int {
+public enum CodeSignSpecialSlotType: Int, Sendable {
     /// Info.plist
     case infoSlot = 1
     /// internal requirements

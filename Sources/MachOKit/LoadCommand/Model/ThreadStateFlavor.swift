@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ThreadStateFlavor: CustomStringConvertible {
+public enum ThreadStateFlavor: Sendable, CustomStringConvertible {
     case arm(ARMThreadStateFlavor)
     case i386(i386ThreadStateFlavor)
     case x86_64(x86ThreadStateFlavor)
@@ -23,7 +23,7 @@ public enum ThreadStateFlavor: CustomStringConvertible {
 }
 
 // MARK: - x86
-public enum x86ThreadStateFlavor: UInt32, CaseIterable {
+public enum x86ThreadStateFlavor: UInt32, Sendable, CaseIterable {
     case thread_state32 = 1
     case float_state32
     case exception_state32
@@ -85,7 +85,7 @@ extension x86ThreadStateFlavor: CustomStringConvertible {
 }
 
 // MARK: - i386
-public enum i386ThreadStateFlavor: UInt32 {
+public enum i386ThreadStateFlavor: UInt32, Sendable {
     case thread_state = 1
     case float_state
     case exception_state
@@ -102,7 +102,7 @@ extension i386ThreadStateFlavor: CustomStringConvertible {
 }
 
 // MARK: - ARM
-public enum ARMThreadStateFlavor: UInt32 {
+public enum ARMThreadStateFlavor: UInt32, Sendable {
     case thread_state = 1
 //    case unified_thread_state = 1
     case vfp_state

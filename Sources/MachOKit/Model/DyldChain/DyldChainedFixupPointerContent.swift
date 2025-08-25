@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol DyldChainedFixupPointerContent {
+public protocol DyldChainedFixupPointerContent: Sendable {
     var type: DyldChainedFixupPointerInfo.ContentType { get }
     var next: Int { get }
 
@@ -387,7 +387,7 @@ extension DyldChainedFixupPointerInfo {
 
 // MARK: - Rebase & Bind Layout
 
-public protocol DyldChainedPointerContentRebase: LayoutWrapper {
+public protocol DyldChainedPointerContentRebase: LayoutWrapper, Sendable {
     var target: Int { get }
     var next: Int { get }
     var isAuth: Bool { get }
@@ -399,7 +399,7 @@ extension DyldChainedPointerContentRebase {
     public var unpackedTarget: UInt64 { numericCast(target) }
 }
 
-public protocol DyldChainedPointerContentBind: LayoutWrapper {
+public protocol DyldChainedPointerContentBind: LayoutWrapper, Sendable {
     var ordinal: Int { get }
     var next: Int { get }
     var addend: UInt64 { get }

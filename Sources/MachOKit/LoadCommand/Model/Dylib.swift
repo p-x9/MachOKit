@@ -3,12 +3,12 @@
 //
 //
 //  Created by p-x9 on 2023/11/29.
-//  
+//
 //
 
 import Foundation
 
-public struct Dylib {
+public struct Dylib: Sendable {
     /// library's path name
     public var name: String
 

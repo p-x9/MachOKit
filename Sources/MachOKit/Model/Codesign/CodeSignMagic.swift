@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public enum CodeSignMagic {
+public enum CodeSignMagic: Sendable {
     /// CSMAGIC_REQUIREMENT
     case requirement
     /// CSMAGIC_REQUIREMENTS

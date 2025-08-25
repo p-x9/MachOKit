@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol SectionProtocol: LayoutWrapper {
+public protocol SectionProtocol: LayoutWrapper, Sendable {
     /// Name of this section
     var sectionName: String { get }
     // Segment name this section goes in

@@ -10,7 +10,7 @@ import Foundation
 
 public typealias ProgramsTrieEntry = TrieNode<ProgramsTrieNodeContent>
 
-public struct ProgramsTrieNodeContent {
+public struct ProgramsTrieNodeContent: Sendable {
     public let offset: UInt32
 }
 

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ScatteredRelocationInfo: LayoutWrapper {
+public struct ScatteredRelocationInfo: LayoutWrapper, Sendable {
     public typealias Layout = scattered_relocation_info
 
     public var layout: Layout

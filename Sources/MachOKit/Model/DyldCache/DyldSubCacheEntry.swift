@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum DyldSubCacheEntryType {
+public enum DyldSubCacheEntryType: Sendable {
     case general
     case v1
 
@@ -22,7 +22,7 @@ public enum DyldSubCacheEntryType {
     }
 }
 
-public enum DyldSubCacheEntry {
+public enum DyldSubCacheEntry: Sendable {
     case general(DyldSubCacheEntryGeneral)
     case v1(DyldSubCacheEntryV1)
 
@@ -76,7 +76,7 @@ extension DyldSubCacheEntry {
     }
 }
 
-public struct DyldSubCacheEntryV1: LayoutWrapper {
+public struct DyldSubCacheEntryV1: LayoutWrapper, Sendable {
     public typealias Layout = dyld_subcache_entry_v1
 
     public var layout: Layout
@@ -97,7 +97,7 @@ extension DyldSubCacheEntryV1 {
     }
 }
 
-public struct DyldSubCacheEntryGeneral: LayoutWrapper {
+public struct DyldSubCacheEntryGeneral: LayoutWrapper, Sendable {
     public typealias Layout = dyld_subcache_entry
 
     public var layout: Layout

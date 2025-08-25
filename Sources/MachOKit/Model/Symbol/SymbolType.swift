@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum SymbolType {
+public enum SymbolType: Sendable {
     /// N_UNDF
     /// undefined, n_sect == NO_SECT
     case undf
