@@ -75,6 +75,18 @@ extension MachOFile.UnicodeStrings {
 }
 
 extension MachOFile.UnicodeStrings {
+    public func string(at offset: Int) -> Element? {
+        guard 0 <= offset, offset < fileSlice.size else { return nil }
+        let string = String(
+            cString: fileSlice.ptr
+                .advanced(by: offset)
+                .assumingMemoryBound(to: CChar.self)
+        )
+        return .init(string: string, offset: offset)
+    }
+}
+
+extension MachOFile.UnicodeStrings {
     public struct Iterator: IteratorProtocol {
         public typealias Element = StringTableEntry
 
