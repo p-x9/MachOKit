@@ -16,7 +16,8 @@ extension MachOImage {
         public let basePointer: UnsafePointer<Encoding.CodeUnit>
         public let tableSize: Int
 
-        init(
+        @_spi(Support)
+        public init(
             basePointer: UnsafePointer<Encoding.CodeUnit>,
             tableSize: Int
         ) {
@@ -60,6 +61,18 @@ extension MachOImage.UnicodeStrings {
             .advanced(by: numericCast(fileSlide))
             .assumingMemoryBound(to: Encoding.CodeUnit.self)
         self.tableSize = Int(symtab.strsize)
+    }
+}
+
+extension MachOImage.UnicodeStrings {
+    public func string(at offset: Int) -> Element? {
+        guard 0 <= offset, offset < tableSize else { return nil }
+        let string = String(
+            cString: UnsafeRawPointer(basePointer)
+                .advanced(by: offset)
+                .assumingMemoryBound(to: CChar.self)
+        )
+        return .init(string: string, offset: offset)
     }
 }
 
