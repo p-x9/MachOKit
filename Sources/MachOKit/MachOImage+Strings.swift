@@ -64,7 +64,7 @@ extension MachOImage.UnicodeStrings {
     }
 }
 
-extension MachOImage.Strings {
+extension MachOImage.UnicodeStrings {
     public func string(at offset: Int) -> Element? {
         guard 0 <= offset, offset < tableSize else { return nil }
         let string = String(
