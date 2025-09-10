@@ -16,7 +16,8 @@ extension MachOImage {
         public let basePointer: UnsafePointer<Encoding.CodeUnit>
         public let tableSize: Int
 
-        init(
+        @_spi(Support)
+        public init(
             basePointer: UnsafePointer<Encoding.CodeUnit>,
             tableSize: Int
         ) {

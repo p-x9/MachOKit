@@ -49,7 +49,8 @@ extension MachOFile {
 }
 
 extension MachOFile.UnicodeStrings {
-    init(
+    @_spi(Support)
+    public init(
         machO: MachOFile,
         offset: Int,
         size: Int,
