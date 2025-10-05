@@ -570,6 +570,15 @@ extension MachOFile {
         headerStartOffsetInCache > 0
     }
 
+    /// The `DyldCache` object associated with this Mach-O file, if available.
+    ///
+    /// This property attempts to lazily load the dyld cache based on the file URL.
+    /// - If `_cache` has already been set, that value is returned.
+    /// - If `fullCache` is available, the corresponding subcache for this file URL is returned.
+    /// - Otherwise, this attempts to initialize a new `DyldCache` using the file URL.
+    ///
+    /// This is mainly used when the Mach-O file originates from a dyld shared cache and requires
+    /// access to symbols, sections, or other data spread across subcaches.
     public var cache: DyldCache? {
         if let _cache { return _cache }
         if let fullCache {
@@ -579,6 +588,15 @@ extension MachOFile {
         return _cache
     }
 
+    /// The `FullDyldCache` object associated with this Mach-O file, if available.
+    ///
+    /// This property attempts to lazily load the corresponding full dyld cache based on the file URL.
+    /// - If `_fullCache` has already been set, that value is returned.
+    /// - If `_cache` exists and its `_fullCache` is available, that is returned.
+    /// - Otherwise, this tries to load a `FullDyldCache` from a path obtained by removing the last two path extensions of `url`.
+    ///
+    /// This is primarily used when the Mach-O file originates from a dyld shared cache and data in other
+    /// subcache files needs to be accessed.
     public var fullCache: FullDyldCache? {
         if let _fullCache { return _fullCache }
         if let _cache,
