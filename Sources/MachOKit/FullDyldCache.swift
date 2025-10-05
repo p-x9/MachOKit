@@ -84,23 +84,28 @@ extension FullDyldCache {
 
 extension FullDyldCache {
     public var mainCache: DyldCache {
-        .init(
+        let cache: DyldCache = .init(
             unsafeFileHandle: fileHandle._files[0]._file,
             url: url,
             cpu: cpu,
-            mainCacheHeader: nil
+            mainCache: nil
         )
+        cache._fullCache = self
+        return cache
     }
 
     public var subCaches: [DyldCache] {
-        zip(subCacheSuffixes, fileHandle._files[1...])
+        let mainCache = self.mainCache
+        return zip(subCacheSuffixes, fileHandle._files[1...])
             .map {
-                .init(
+                let cache: DyldCache = .init(
                     unsafeFileHandle: $1._file,
                     url: .init(string: url.path + $0)!,
                     cpu: cpu,
-                    mainCacheHeader: header
+                    mainCache: mainCache
                 )
+                cache._fullCache = self
+                return cache
             }
     }
 
@@ -185,6 +190,7 @@ extension FullDyldCache {
     /// Sequence of MachO information contained in this cache
     public func machOFiles() -> AnySequence<MachOFile> {
         guard let imageInfos else { return AnySequence([]) }
+        let mainCache = self.mainCache
         let machOFiles = imageInfos
             .lazy
             .compactMap { info in
@@ -199,10 +205,19 @@ extension FullDyldCache {
                 guard let (url, segment) = self.urlAndFileSegment(forOffset: fileOffset) else {
                     return nil
                 }
+                let cache: DyldCache = .init(
+                    unsafeFileHandle: segment._file,
+                    url: url,
+                    cpu: self.cpu,
+                    mainCache: segment.offset == 0 ? nil : mainCache
+                )
+                cache._fullCache = self
+
                 return try? .init(
                     url: url,
                     imagePath: imagePath,
-                    headerStartOffsetInCache: numericCast(fileOffset) - segment.offset
+                    headerStartOffsetInCache: numericCast(fileOffset) - segment.offset,
+                    cache: cache
                 )
             }
 
@@ -216,10 +231,19 @@ extension FullDyldCache {
         guard let (url, segment) = self.urlAndFileSegment(forOffset: fileOffset) else {
             return nil
         }
+        let cache: DyldCache = .init(
+            unsafeFileHandle: segment._file,
+            url: url,
+            cpu: self.cpu,
+            mainCache: segment.offset == 0 ? nil : mainCache
+        )
+        cache._fullCache = self
+
         return try? MachOFile(
             url: url,
             imagePath: "/usr/lib/dyld",
-            headerStartOffsetInCache: numericCast(fileOffset) - segment.offset
+            headerStartOffsetInCache: numericCast(fileOffset) - segment.offset,
+            cache: cache
         )
     }
 }
@@ -287,11 +311,26 @@ extension FullDyldCache {
         guard let (url, segment) = urlAndFileSegment(forOffset: offset) else {
             return nil
         }
-        return .init(
+        let cache: DyldCache = .init(
             unsafeFileHandle: segment._file,
             url: url,
             cpu: cpu,
-            mainCacheHeader: header
+            mainCache: segment.offset == 0 ? nil : mainCache
         )
+        cache._fullCache = self
+        return cache
+    }
+
+    public func cache(for url: URL) -> DyldCache? {
+        guard let index = urls.firstIndex(of: url) else { return nil }
+        let segment = fileHandle._files[index]
+        let cache: DyldCache = .init(
+            unsafeFileHandle: segment._file,
+            url: url,
+            cpu: cpu,
+            mainCache: segment.offset == 0 ? nil : mainCache
+        )
+        cache._fullCache = self
+        return cache
     }
 }

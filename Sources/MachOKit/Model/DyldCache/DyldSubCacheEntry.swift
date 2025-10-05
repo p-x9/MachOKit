@@ -64,7 +64,9 @@ public enum DyldSubCacheEntry: Sendable {
 extension DyldSubCacheEntry {
     public func subcache(for cache: DyldCache) throws -> DyldCache? {
         let url = URL(fileURLWithPath: cache.url.path + fileSuffix)
-        return try DyldCache(subcacheUrl: url, mainCacheHeader: cache.header)
+        let subcache = try DyldCache(subcacheUrl: url, mainCache: cache)
+        subcache._fullCache = cache._fullCache
+        return subcache
     }
 
     public func subcache(for cache: DyldCacheLoaded) throws -> DyldCacheLoaded? {

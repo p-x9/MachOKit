@@ -27,6 +27,10 @@ public class MachOFile: MachORepresentable {
 
     let fileHandle: File
 
+    // Retain the cache to which `self` belongs
+    private var _fullCache: FullDyldCache?
+    private var _cache: DyldCache?
+
     /// A Boolean value that indicates whether the byte is swapped or not.
     ///
     /// True if the endianness of the currently running CPU is different from the endianness of the target MachO file.
@@ -75,6 +79,22 @@ public class MachOFile: MachORepresentable {
         )
     }
 
+    public convenience init(
+        url: URL,
+        imagePath: String,
+        headerStartOffsetInCache: Int,
+        cache: DyldCache
+    ) throws {
+        try self.init(
+            url: url,
+            imagePath: imagePath,
+            headerStartOffset: 0,
+            headerStartOffsetInCache: headerStartOffsetInCache
+        )
+        self._cache = cache
+    }
+
+    @available(*, deprecated, renamed: "init(url:imagePath:headerStartOffsetInCache:cache:)")
     public convenience init(
         url: URL,
         imagePath: String,
@@ -550,16 +570,27 @@ extension MachOFile {
         headerStartOffsetInCache > 0
     }
 
-    internal var cache: DyldCache? {
-        try? .init(url: url)
+    public var cache: DyldCache? {
+        if let _cache { return _cache }
+        if let fullCache {
+            return fullCache.cache(for: url)
+        }
+        _cache = try? .init(url: url)
+        return _cache
     }
 
-    internal var fullCache: FullDyldCache? {
-        try? .init(
+    public var fullCache: FullDyldCache? {
+        if let _fullCache { return _fullCache }
+        if let _cache,
+           let _fullCache = _cache._fullCache {
+            return _cache._fullCache
+        }
+        _fullCache = try? .init(
             url: url
                 .deletingPathExtension()
                 .deletingPathExtension()
         )
+        return _fullCache
     }
 }
 
