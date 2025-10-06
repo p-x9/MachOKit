@@ -135,7 +135,9 @@ extension _DyldCacheFileRepresentable {
             __objc_opt_ro = section
         }
 
-        let offset = __objc_opt_ro.offset + libobjc.headerStartOffset
+        guard let offset = fileOffset(of: numericCast(__objc_opt_ro.address)) else {
+            return nil
+        }
         let layout: OldObjCOptimization.Layout = try! fileHandle.read(
             offset: numericCast(offset)
         )
