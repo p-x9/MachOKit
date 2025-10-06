@@ -18,6 +18,12 @@ public struct OldObjCOptimization: LayoutWrapper, Sendable {
 }
 
 extension OldObjCOptimization {
+    public var flags: ObjCOptimizationFlags {
+        .init(rawValue: layout.flags)
+    }
+}
+
+extension OldObjCOptimization {
     /// Relative method list selectors are offsets from this address
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: relative selector's base address
