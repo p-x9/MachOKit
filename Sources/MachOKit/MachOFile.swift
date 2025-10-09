@@ -779,12 +779,7 @@ extension MachOFile {
     /// - Parameter rawVMAddr:
     /// - Returns: Raw vmaddr read from section etc.
     public func fileOffset(of rawVMAddr: UInt64) -> UInt64 {
-        var vmaddr = rawVMAddr
-        if let vmaddrMask {
-            vmaddr &= vmaddrMask // PAC & objc tagged pointer
-        }
-        //        vmaddr &= ~3 // objc pointer union
-
+        var vmaddr = stripPointerTags(of: rawVMAddr)
         for segment in self.segments {
             if segment.virtualMemoryAddress <= vmaddr,
                vmaddr < segment.virtualMemoryAddress + segment.virtualMemorySize {
@@ -838,6 +833,22 @@ extension MachOFile {
         default:
             return nil
         }
+    }
+
+    /// Strips pointer authentication codes (PAC) and Objective-C tagged pointer bits from a raw virtual memory address.
+    ///
+    /// This method applies the appropriate architecture-specific bitmask to remove extra bits
+    /// used for pointer authentication or tagged pointers, returning the "clean" virtual memory address.
+    ///
+    /// - Parameter rawVMAddr: The raw virtual memory address, potentially containing PAC or tagged pointer bits.
+    /// - Returns: The virtual memory address with PAC and tagged pointer bits removed.
+    public func stripPointerTags(of rawVMAddr: UInt64) -> UInt64 {
+        var vmaddr = rawVMAddr
+        if let vmaddrMask {
+            vmaddr &= vmaddrMask // PAC & objc tagged pointer
+        }
+        // vmaddr &= ~3 // objc pointer union
+        return vmaddr
     }
 }
 
