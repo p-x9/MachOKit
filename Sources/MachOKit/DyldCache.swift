@@ -33,6 +33,11 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
     public let url: URL
     let fileHandle: File
 
+    // Retain the cache to which `self` belongs
+    internal var _fullCache: FullDyldCache?
+    // Retain the main cache
+    private var _mainCache: DyldCache?
+
     public var headerSize: Int {
         header.actualSize
     }
@@ -99,11 +104,24 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
         self._mainCacheHeader = mainCacheHeader
     }
 
+    /// Load sub dyld cache
+    /// - Parameters:
+    ///   - subcacheUrl: url for dyld cache
+    ///   - mainCache: main dyld cache
+    public convenience init(
+        subcacheUrl: URL,
+        mainCache: DyldCache
+    ) throws {
+        try self.init(url: subcacheUrl)
+        self._mainCache = mainCache
+        self._mainCacheHeader = mainCache.header
+    }
+
     internal init(
         unsafeFileHandle fileHandle: File,
         url: URL,
         cpu: CPU,
-        mainCacheHeader: DyldCacheHeader? = nil
+        mainCache: DyldCache? = nil
     ) {
         self.fileHandle = fileHandle
         self.url = url
@@ -111,27 +129,34 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
             offset: 0
         )
         self.cpu = cpu
-        self._mainCacheHeader = mainCacheHeader
+        self._mainCache = mainCache
+        self._mainCacheHeader = mainCache?.header
     }
 }
 
 extension DyldCache {
     public var mainCache: DyldCache? {
+        if let _mainCache { return _mainCache }
+        if let _fullCache { return _fullCache.mainCache }
         if url.lastPathComponent.contains(".") {
             let url = url
                 .deletingPathExtension()
                 .deletingPathExtension()
-            return try? .init(url: url)
+            _mainCache = try? .init(url: url)
+            _mainCache?._fullCache = _fullCache
+            return _mainCache
         } else {
             return self
         }
     }
 
     public var fullCache: FullDyldCache? {
+        if let _fullCache { return _fullCache }
         let url = url
             .deletingPathExtension()
             .deletingPathExtension()
-        return try? .init(url: url)
+        _fullCache = try? .init(url: url)
+        return _fullCache
     }
 }
 
@@ -273,7 +298,8 @@ extension DyldCache {
                 try? MachOFile(
                     url: self.url,
                     imagePath: imagePath,
-                    headerStartOffsetInCache: numericCast(fileOffset)
+                    headerStartOffsetInCache: numericCast(fileOffset),
+                    cache: self
                 )
             }
 
@@ -287,7 +313,8 @@ extension DyldCache {
         return try? MachOFile(
             url: url,
             imagePath: "/usr/lib/dyld",
-            headerStartOffsetInCache: numericCast(offset)
+            headerStartOffsetInCache: numericCast(offset),
+            cache: self
         )
     }
 }

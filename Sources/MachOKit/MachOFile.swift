@@ -27,6 +27,10 @@ public class MachOFile: MachORepresentable {
 
     let fileHandle: File
 
+    // Retain the cache to which `self` belongs
+    private var _fullCache: FullDyldCache?
+    private var _cache: DyldCache?
+
     /// A Boolean value that indicates whether the byte is swapped or not.
     ///
     /// True if the endianness of the currently running CPU is different from the endianness of the target MachO file.
@@ -75,6 +79,22 @@ public class MachOFile: MachORepresentable {
         )
     }
 
+    public convenience init(
+        url: URL,
+        imagePath: String,
+        headerStartOffsetInCache: Int,
+        cache: DyldCache
+    ) throws {
+        try self.init(
+            url: url,
+            imagePath: imagePath,
+            headerStartOffset: 0,
+            headerStartOffsetInCache: headerStartOffsetInCache
+        )
+        self._cache = cache
+    }
+
+    @available(*, deprecated, renamed: "init(url:imagePath:headerStartOffsetInCache:cache:)")
     public convenience init(
         url: URL,
         imagePath: String,
@@ -550,16 +570,47 @@ extension MachOFile {
         headerStartOffsetInCache > 0
     }
 
-    internal var cache: DyldCache? {
-        try? .init(url: url)
+    /// The `DyldCache` object associated with this Mach-O file, if available.
+    ///
+    /// This property attempts to lazily load the dyld cache based on the file URL.
+    /// - If `_cache` has already been set, that value is returned.
+    /// - If `fullCache` is available, the corresponding subcache for this file URL is returned.
+    /// - Otherwise, this attempts to initialize a new `DyldCache` using the file URL.
+    ///
+    /// This is mainly used when the Mach-O file originates from a dyld shared cache and requires
+    /// access to symbols, sections, or other data spread across subcaches.
+    public var cache: DyldCache? {
+        if let _cache { return _cache }
+        if let fullCache {
+            return fullCache.cache(for: url)
+        }
+        _cache = try? .init(url: url)
+        _cache?._fullCache = _fullCache
+        return _cache
     }
 
-    internal var fullCache: FullDyldCache? {
-        try? .init(
+    /// The `FullDyldCache` object associated with this Mach-O file, if available.
+    ///
+    /// This property attempts to lazily load the corresponding full dyld cache based on the file URL.
+    /// - If `_fullCache` has already been set, that value is returned.
+    /// - If `_cache` exists and its `_fullCache` is available, that is returned.
+    /// - Otherwise, this tries to load a `FullDyldCache` from a path obtained by removing the last two path extensions of `url`.
+    ///
+    /// This is primarily used when the Mach-O file originates from a dyld shared cache and data in other
+    /// subcache files needs to be accessed.
+    public var fullCache: FullDyldCache? {
+        if let _fullCache { return _fullCache }
+        if let _cache,
+           let _fullCache = _cache._fullCache {
+            return _fullCache
+        }
+        _fullCache = try? .init(
             url: url
                 .deletingPathExtension()
                 .deletingPathExtension()
         )
+        _cache?._fullCache = _fullCache
+        return _fullCache
     }
 }
 
