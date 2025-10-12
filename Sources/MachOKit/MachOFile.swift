@@ -585,6 +585,7 @@ extension MachOFile {
             return fullCache.cache(for: url)
         }
         _cache = try? .init(url: url)
+        _cache?._fullCache = _fullCache
         return _cache
     }
 
@@ -601,13 +602,14 @@ extension MachOFile {
         if let _fullCache { return _fullCache }
         if let _cache,
            let _fullCache = _cache._fullCache {
-            return _cache._fullCache
+            return _fullCache
         }
         _fullCache = try? .init(
             url: url
                 .deletingPathExtension()
                 .deletingPathExtension()
         )
+        _cache?._fullCache = _fullCache
         return _fullCache
     }
 }
