@@ -528,8 +528,11 @@ extension MachOFile {
     public var classicBindingSymbols: [ClassicBindingSymbol]? {
         _classicBindingSymbols(
             addendLoader: { address in
-                fileHandle.read(
-                    offset: fileOffset(of: address) + numericCast(headerStartOffset)
+                guard let fileOffset = fileOffset(of: address) else {
+                    return 0
+                }
+                return fileHandle.read(
+                    offset: fileOffset + numericCast(headerStartOffset)
                 )
             }
         )
@@ -829,8 +832,11 @@ extension MachOFile {
     ///
     /// - Parameter rawVMAddr:
     /// - Returns: Raw vmaddr read from section etc.
-    public func fileOffset(of rawVMAddr: UInt64) -> UInt64 {
-        var vmaddr = stripPointerTags(of: rawVMAddr)
+    public func fileOffset(of rawVMAddr: UInt64) -> UInt64? {
+        let vmaddr = stripPointerTags(of: rawVMAddr)
+        if let cache {
+            return cache.fileOffset(of: vmaddr)
+        }
         for segment in self.segments {
             if segment.virtualMemoryAddress <= vmaddr,
                vmaddr < segment.virtualMemoryAddress + segment.virtualMemorySize {
@@ -841,7 +847,7 @@ extension MachOFile {
                 return vmaddr
             }
         }
-        return vmaddr
+        return nil
     }
 }
 
