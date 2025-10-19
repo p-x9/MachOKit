@@ -528,8 +528,11 @@ extension MachOFile {
     public var classicBindingSymbols: [ClassicBindingSymbol]? {
         _classicBindingSymbols(
             addendLoader: { address in
-                fileHandle.read(
-                    offset: fileOffset(of: address) + numericCast(headerStartOffset)
+                guard let fileOffset = fileOffset(of: address) else {
+                    return 0
+                }
+                return fileHandle.read(
+                    offset: fileOffset + numericCast(headerStartOffset)
                 )
             }
         )
@@ -822,15 +825,25 @@ extension MachOFile {
 
 
 extension MachOFile {
-    /// Convert raw vmaddr to fileoffset
+    /// Converts a raw virtual memory address (VM address) into a file offset within the Mach-O file.
     ///
-    /// Properly handle PAC, objc tagged pointer, etc.
-    /// It does not deal with rebase/bind.
+    /// This method handles pointer authentication codes (PAC) and Objective-C tagged pointers,
+    /// returning the corresponding offset within the file that contains the Mach-O header.
+    /// It does **not** resolve addresses that rely on rebase or bind operations.
     ///
-    /// - Parameter rawVMAddr:
-    /// - Returns: Raw vmaddr read from section etc.
-    public func fileOffset(of rawVMAddr: UInt64) -> UInt64 {
-        var vmaddr = stripPointerTags(of: rawVMAddr)
+    /// - Note:
+    ///   When the Mach-O file originates from a **dyld shared cache**, segments such as `__LINKEDIT` or `__DATA`
+    ///   may reside in different subcache files. In such cases, this function returns `nil` if the address
+    ///   does not belong to the current subcache file.
+    ///
+    /// - Parameter rawVMAddr: The raw virtual memory address to convert.
+    /// - Returns: The file offset relative to the start of the file that contains the Mach-O header,
+    ///   or `nil` if the address does not exist within this file.
+    public func fileOffset(of rawVMAddr: UInt64) -> UInt64? {
+        let vmaddr = stripPointerTags(of: rawVMAddr)
+        if let cache {
+            return cache.fileOffset(of: vmaddr)
+        }
         for segment in self.segments {
             if segment.virtualMemoryAddress <= vmaddr,
                vmaddr < segment.virtualMemoryAddress + segment.virtualMemorySize {
@@ -841,7 +854,7 @@ extension MachOFile {
                 return vmaddr
             }
         }
-        return vmaddr
+        return nil
     }
 }
 
