@@ -63,6 +63,13 @@ public enum DyldSubCacheEntry: Sendable {
 // cache
 extension DyldSubCacheEntry {
     public func subcache(for cache: DyldCache) throws -> DyldCache? {
+        if let _fullCache = cache._fullCache {
+            return _fullCache.subCaches.first(
+                where: {
+                    $0.url.lastPathComponent.hasSuffix(fileSuffix)
+                }
+            )
+        }
         let url = URL(fileURLWithPath: cache.url.path + fileSuffix)
         let subcache = try DyldCache(subcacheUrl: url, mainCache: cache)
         subcache._fullCache = cache._fullCache
