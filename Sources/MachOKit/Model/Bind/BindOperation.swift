@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2023/12/03.
-//  
+//
 //
 
 import Foundation
@@ -142,7 +142,13 @@ extension BindOperation {
             return .done
 
         case .set_dylib_ordinal_imm:
-            return .set_dylib_ordinal_imm(ordinal: Int(imm))
+            let signedImm: Int32
+            if (imm & 0x8) == 0 {
+                signedImm = imm
+            } else {
+                signedImm = imm | ~Int32(BIND_IMMEDIATE_MASK)
+            }
+            return .set_dylib_ordinal_imm(ordinal: Int(signedImm))
 
         case .set_dylib_ordinal_uleb:
             let (value, ulebSize) = basePointer
@@ -154,9 +160,10 @@ extension BindOperation {
         case .set_dylib_special_imm:
             let libraryOrdinal: Int32
             if imm == 0 { libraryOrdinal = 0 } else {
-                let signExtended = BIND_OPCODE_MASK | imm
-                libraryOrdinal = signExtended
+                let signExtended = UInt8(BIND_OPCODE_MASK | imm)
+                libraryOrdinal = Int32(Int8(bitPattern: signExtended))
             }
+
             guard let special = BindSpecial(rawValue: libraryOrdinal) else {
                 fatalError("unknown bind special")
             }
