@@ -306,8 +306,37 @@ extension ObjCHeaderInfoROProtocol {
         return fileOffset
     }
 
-    internal func imagePath<Cache: _DyldCacheFileRepresentable>(
-        in cache: Cache
+    internal func imagePath(
+        in cache: DyldCache
+    ) -> String? {
+        let effectiveDyldCache: DyldCache
+        let imageInfos: DataSequence<DyldCacheImageInfo>
+
+        if let mainCache = cache.mainCache,
+           let mainCacheImageInfos = mainCache.imageInfos {
+            effectiveDyldCache = mainCache
+            imageInfos = mainCacheImageInfos
+        } else if let currentCacheImageInfos = cache.imageInfos {
+            effectiveDyldCache = cache
+            imageInfos = currentCacheImageInfos
+        } else {
+            return nil
+        }
+
+        let offset = offset + machOHeaderOffset
+        let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
+        guard let imageInfo = imageInfos.first(
+                where: {
+                    $0.address == address
+                }
+              ) else {
+            return nil
+        }
+        return imageInfo._path(in: effectiveDyldCache)
+    }
+
+    internal func imagePath(
+        in cache: FullDyldCache
     ) -> String? {
         let offset = offset + machOHeaderOffset
         let address = cache.mainCacheHeader.sharedRegionStart + numericCast(offset)
