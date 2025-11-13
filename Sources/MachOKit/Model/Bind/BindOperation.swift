@@ -142,13 +142,7 @@ extension BindOperation {
             return .done
 
         case .set_dylib_ordinal_imm:
-            let signedImm: Int32
-            if (imm & 0x8) == 0 {
-                signedImm = imm
-            } else {
-                signedImm = imm | ~Int32(BIND_IMMEDIATE_MASK)
-            }
-            return .set_dylib_ordinal_imm(ordinal: Int(signedImm))
+            return .set_dylib_ordinal_imm(ordinal: Int(imm))
 
         case .set_dylib_ordinal_uleb:
             let (value, ulebSize) = basePointer
