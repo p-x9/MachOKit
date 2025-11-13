@@ -132,7 +132,7 @@ extension ObjCHeaderInfoRO64 {
         let imagePath = imagePath(in: cache)
         return try? .init(
             url: cache.url,
-            imagePath: imagePath ?? "",
+            imagePath: imagePath,
             headerStartOffsetInCache: numericCast(offset),
             cache: cache
         )
@@ -169,7 +169,7 @@ extension ObjCHeaderInfoRO64 {
 
         return try? .init(
             url: url,
-            imagePath: imagePath ?? "",
+            imagePath: imagePath,
             headerStartOffsetInCache: numericCast(offset) - segment.offset,
             cache: _cache
         )
@@ -248,7 +248,7 @@ extension ObjCHeaderInfoRO32 {
         let imagePath = imagePath(in: cache)
         return try? .init(
             url: cache.url,
-            imagePath: imagePath ?? "",
+            imagePath: imagePath,
             headerStartOffsetInCache: numericCast(offset),
             cache: cache
         )
@@ -285,7 +285,7 @@ extension ObjCHeaderInfoRO32 {
 
         return try? .init(
             url: url,
-            imagePath: imagePath ?? "",
+            imagePath: imagePath,
             headerStartOffsetInCache: numericCast(offset) - segment.offset,
             cache: _cache
         )
