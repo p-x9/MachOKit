@@ -276,6 +276,7 @@ extension DyldCache {
     ) -> AnySequence<MachOFile> {
         let effectiveDyldCache: DyldCache
         let imageInfos: DataSequence<DyldCacheImageInfo>
+
         if let mainCache, let mainCacheImageInfos = mainCache.imageInfos {
             effectiveDyldCache = mainCache
             imageInfos = mainCacheImageInfos
@@ -285,6 +286,7 @@ extension DyldCache {
         } else {
             return AnySequence([])
         }
+
         let machOFiles = imageInfos
             .lazy
             .compactMap { info in

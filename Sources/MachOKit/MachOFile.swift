@@ -20,10 +20,7 @@ public class MachOFile: MachORepresentable {
     /// URL of the file actually loaded
     public let url: URL
 
-    /// Path of machO.
-    ///
-    /// If read from dyld cache, may not match ``url`` value.
-    public let imagePath: String
+    private let _imagePath: String?
 
     let fileHandle: File
 
@@ -73,7 +70,7 @@ public class MachOFile: MachORepresentable {
     ) throws {
         try self.init(
             url: url,
-            imagePath: url.path,
+            imagePath: nil,
             headerStartOffset: headerStartOffset,
             headerStartOffsetInCache: 0
         )
@@ -81,7 +78,7 @@ public class MachOFile: MachORepresentable {
 
     public convenience init(
         url: URL,
-        imagePath: String,
+        imagePath: String? = nil,
         headerStartOffsetInCache: Int,
         cache: DyldCache
     ) throws {
@@ -97,7 +94,7 @@ public class MachOFile: MachORepresentable {
     @available(*, deprecated, renamed: "init(url:imagePath:headerStartOffsetInCache:cache:)")
     public convenience init(
         url: URL,
-        imagePath: String,
+        imagePath: String? = nil,
         headerStartOffsetInCache: Int
     ) throws {
         try self.init(
@@ -110,12 +107,12 @@ public class MachOFile: MachORepresentable {
 
     private init(
         url: URL,
-        imagePath: String,
+        imagePath: String?,
         headerStartOffset: Int,
         headerStartOffsetInCache: Int
     ) throws {
         self.url = url
-        self.imagePath = imagePath
+        self._imagePath = imagePath
         let fileHandle = try File.open(
             url: url,
             isWritable: false
@@ -136,6 +133,26 @@ public class MachOFile: MachORepresentable {
 
         self.isSwapped = isSwapped
         self.header = header
+    }
+}
+
+extension MachOFile {
+    /// The path representing this Mach-O file.
+    ///
+    /// - For executable binaries, this usually matches the file's ``url`` path.
+    /// - For dynamic libraries, this may return the `LC_ID_DYLIB` or `LC_ID_DYLINKER` path embedded in the load commands.
+    ///
+    /// This property provides the logical path used by the system to identify the Mach-O image,
+    /// which can differ from the actual file system location if the file is part of a dyld shared cache.
+    public var imagePath: String {
+        if let _imagePath { return _imagePath }
+        if let idDylib = loadCommands.info(of: LoadCommand.idDylib) {
+            return idDylib.dylib(in: self).name
+        }
+        if let idDylinker = loadCommands.info(of: LoadCommand.idDylinker) {
+            return idDylinker.name(in: self)
+        }
+        return url.path
     }
 }
 

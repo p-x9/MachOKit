@@ -108,9 +108,14 @@ extension MachOImage {
 }
 
 extension MachOImage {
-    /// Path name of machO image.
+    /// The path representing this Mach-O image.
     ///
-    /// It is the same value that can be obtained by `Dl_info.dli_fname` or `_dyld_get_image_name`.
+    /// - For executable images, this may return `nil`.
+    /// - For dynamic libraries, this may return the `LC_ID_DYLIB` or `LC_ID_DYLINKER` path embedded in the load commands.
+    /// - If neither command is found, this property returns `nil`.
+    ///
+    /// This property provides the logical path used by the system to identify the loaded Mach-O image,
+    /// which may differ from its physical file system location when the image is loaded from a dyld shared cache.
     public var path: String? {
         if let idDylib = loadCommands.info(of: LoadCommand.idDylib) {
             return idDylib.dylib(cmdsStart: cmdsStartPtr).name
