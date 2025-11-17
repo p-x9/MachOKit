@@ -100,9 +100,9 @@ extension DyldSubCacheEntryV1 {
 
     /// File name suffix of the subCache file
     ///
-    /// e.g. ".01", ".02"
+    /// e.g. ".1", ".2"
     public var fileSuffix: String {
-        "." + String(format: "%02d", index)
+        "." + String(format: "%u", index + 1)
     }
 }
 
