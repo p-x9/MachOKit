@@ -10,6 +10,20 @@ import Foundation
 
 extension String {
     @_spi(Support)
+    public typealias CCharTuple8 = (CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar)
+
+    @_spi(Support)
+    public init(tuple: CCharTuple8) {
+        self = withUnsafePointer(to: tuple) {
+            let size = MemoryLayout<CCharTuple8>.size
+            let data = Data(bytes: $0, count: size) + [0]
+            return String(cString: data) ?? ""
+        }
+    }
+}
+
+extension String {
+    @_spi(Support)
     public typealias CCharTuple16 = (CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar)
 
     @_spi(Support)
