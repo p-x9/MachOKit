@@ -188,8 +188,8 @@ extension DyldCacheLocalSymbolsInfo {
     public func is64BitEntryFormat(in cache: any DyldCacheRepresentable) -> Bool {
         if cache.cpu.is64Bit { return true }
         // WORKAROUND: 
-        let entriesSize = numericCast(layout.entriesCount) * DyldCacheLocalSymbolsEntry.layoutSize
-        return layout.nlistOffset <= layout.entriesOffset + numericCast(entriesSize)
+        let entriesSize = numericCast(layout.entriesCount) * DyldCacheLocalSymbolsEntry64.layoutSize
+        return layout.nlistOffset >= layout.entriesOffset + numericCast(entriesSize)
     }
 }
 
