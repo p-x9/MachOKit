@@ -31,7 +31,7 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
     public let url: URL
     let fileHandle: File
 
-    // Reatin the symbol cache
+    // Retain the symbol cache
     private var _symbolCache: DyldCache?
 
     public var headerSize: Int {
