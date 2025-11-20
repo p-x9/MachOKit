@@ -37,6 +37,8 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
     internal var _fullCache: FullDyldCache?
     // Retain the main cache
     private var _mainCache: DyldCache?
+    // Reatin the symbol cache
+    private var _symbolCache: DyldCache?
 
     public var headerSize: Int {
         header.actualSize
@@ -235,16 +237,19 @@ extension DyldCache {
     /// DyldCache containing unmapped local symbols
     public var symbolCache: DyldCache? {
         get throws {
+            if let _symbolCache { return _symbolCache }
             guard header.hasProperty(\.symbolFileUUID),
                   header.symbolFileUUID != .zero else {
                 return nil
             }
             let suffix = ".symbols"
             let path = url.path + suffix
-            return try .init(
+            let symbolCache: DyldCache = try .init(
                 subcacheUrl: .init(fileURLWithPath: path),
                 mainCacheHeader: mainCacheHeader
             )
+            _symbolCache = symbolCache
+            return symbolCache
         }
     }
 
