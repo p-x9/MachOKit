@@ -409,7 +409,11 @@ extension DyldCacheLocalSymbolsInfo {
         for machO: MachOFile,
         in cache: DyldCache
     ) -> DyldCacheLocalSymbolsEntry? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard var offset = machO.textOffset(in: cache) else { return nil }
+        if !is64BitEntryFormat(in: cache) {
+            guard let _offset = machO.loadCommands.text?.fileOffset else { return nil }
+            offset = UInt64(_offset)
+        }
         return entries32(in: cache)?.first(
             where: {
                 $0.dylibOffset == offset
@@ -430,7 +434,11 @@ extension DyldCacheLocalSymbolsInfo {
         for machO: MachOFile,
         in cache: DyldCache
     ) -> (any DyldCacheLocalSymbolsEntryProtocol)? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard var offset = machO.textOffset(in: cache) else { return nil }
+        if !is64BitEntryFormat(in: cache) {
+            guard let _offset = machO.loadCommands.text?.fileOffset else { return nil }
+            offset = UInt64(_offset)
+        }
         return entries(in: cache).first(
             where: {
                 $0.dylibOffset == offset
@@ -476,7 +484,11 @@ extension DyldCacheLocalSymbolsInfo {
         for machO: MachOFile,
         in cache: FullDyldCache
     ) -> DyldCacheLocalSymbolsEntry? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard var offset = machO.textOffset(in: cache) else { return nil }
+        if !is64BitEntryFormat(in: cache) {
+            guard let _offset = machO.loadCommands.text?.fileOffset else { return nil }
+            offset = UInt64(_offset)
+        }
         return entries32(in: cache)?.first(
             where: {
                 $0.dylibOffset == offset
@@ -498,7 +510,11 @@ extension DyldCacheLocalSymbolsInfo {
         for machO: MachOFile,
         in cache: FullDyldCache
     ) -> (any DyldCacheLocalSymbolsEntryProtocol)? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard var offset = machO.textOffset(in: cache) else { return nil }
+        if !is64BitEntryFormat(in: cache) {
+            guard let _offset = machO.loadCommands.text?.fileOffset else { return nil }
+            offset = UInt64(_offset)
+        }
         return entries(in: cache).first(
             where: {
                 $0.dylibOffset == offset
