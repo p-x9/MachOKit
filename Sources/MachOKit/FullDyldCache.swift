@@ -31,6 +31,9 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
     public let url: URL
     let fileHandle: File
 
+    // Reatin the symbol cache
+    private var _symbolCache: DyldCache?
+
     public var headerSize: Int {
         header.actualSize
     }
@@ -105,6 +108,7 @@ extension FullDyldCache {
                     mainCache: mainCache
                 )
                 cache._fullCache = self
+                cache._symbolCache = _symbolCache
                 return cache
             }
     }
@@ -169,7 +173,10 @@ extension FullDyldCache {
     /// DyldCache containing unmapped local symbols
     public var symbolCache: DyldCache? {
         get throws {
-            try mainCache.symbolCache
+            if let _symbolCache = _symbolCache { return _symbolCache }
+            let symbolCache = try mainCache.symbolCache
+            _symbolCache = symbolCache
+            return symbolCache
         }
     }
 
