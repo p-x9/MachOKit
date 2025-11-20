@@ -17,6 +17,7 @@ public struct DyldCacheLocalSymbolsInfo: LayoutWrapper, Sendable {
 
 extension DyldCacheLocalSymbolsInfo {
     /// Sequence of 64-bit architecture symbols
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of symbols
     public func symbols64(in cache: DyldCache) -> MachOFile.Symbols64? {
@@ -374,6 +375,15 @@ extension DyldCacheLocalSymbolsInfo {
 }
 
 extension DyldCacheLocalSymbolsInfo {
+    /// Returns the 64-bit local symbols entry corresponding to the given Mach-O file.
+    ///
+    /// This searches the local symbols entries for one whose `dylibOffset` matches
+    /// the Mach-O file's text segment offset within the dyld cache.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The dyld cache containing the symbols info.
+    /// - Returns: The matching 64-bit entry, or `nil` if no match exists.
     public func entry64(
         for machO: MachOFile,
         in cache: DyldCache
@@ -386,6 +396,15 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
+    /// Returns the 32-bit local symbols entry corresponding to the given Mach-O file.
+    ///
+    /// This searches the 32-bit entry sequence for an entry whose `dylibOffset`
+    /// matches the text segment offset of the Mach-O file within the dyld cache.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The dyld cache containing the symbols info.
+    /// - Returns: The matching 32-bit entry, or `nil` if no match exists.
     public func entry32(
         for machO: MachOFile,
         in cache: DyldCache
@@ -398,6 +417,15 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
+    /// Returns the local symbols entry corresponding to the given Mach-O file.
+    ///
+    /// This resolves the Mach-O file's text segment offset and finds the first entry
+    /// whose `dylibOffset` matches it, regardless of entry format.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The dyld cache containing the symbols info.
+    /// - Returns: The matching entry, or `nil` if no match exists.
     public func entry(
         for machO: MachOFile,
         in cache: DyldCache
@@ -412,6 +440,16 @@ extension DyldCacheLocalSymbolsInfo {
 }
 
 extension DyldCacheLocalSymbolsInfo {
+    /// Returns the 64-bit local symbols entry corresponding to the given Mach-O file
+    /// within a full dyld cache.
+    ///
+    /// This searches the 64-bit entry sequence for one whose `dylibOffset` matches
+    /// the Mach-O file's text segment offset.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The full dyld cache containing the symbols info.
+    /// - Returns: The matching 64-bit entry, or `nil` if no match exists.
     public func entry64(
         for machO: MachOFile,
         in cache: FullDyldCache
@@ -424,6 +462,16 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
+    /// Returns the 32-bit local symbols entry corresponding to the given Mach-O file
+    /// within a full dyld cache.
+    ///
+    /// This searches the 32-bit entry sequence for an entry whose `dylibOffset`
+    /// matches the Mach-O file's text segment offset.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The full dyld cache containing the symbols info.
+    /// - Returns: The matching 32-bit entry, or `nil` if no match exists.
     public func entry32(
         for machO: MachOFile,
         in cache: FullDyldCache
@@ -436,6 +484,16 @@ extension DyldCacheLocalSymbolsInfo {
         )
     }
 
+    /// Returns the local symbols entry corresponding to the given Mach-O file
+    /// within a full dyld cache.
+    ///
+    /// This resolves the Mach-O file's text segment offset and finds the first entry
+    /// whose `dylibOffset` matches it, selecting the correct entry format automatically.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The full dyld cache containing the symbols info.
+    /// - Returns: The matching entry, or `nil` if no match exists.
     public func entry(
         for machO: MachOFile,
         in cache: FullDyldCache
