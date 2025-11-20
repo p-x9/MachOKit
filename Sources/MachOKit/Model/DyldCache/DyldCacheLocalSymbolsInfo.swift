@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2024/01/15.
-//  
+//
 //
 
 import Foundation
@@ -175,7 +175,28 @@ extension DyldCacheLocalSymbolsInfo {
 }
 
 extension DyldCacheLocalSymbolsInfo {
+    /// Determines whether the local symbols entry format is 64-bit.
+    ///
+    /// This checks whether entries use the 64-bit layout based on the architecture
+    /// of the provided cache and the layout boundaries of the symbol entries.
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
+    /// - Parameter cache: The cache used to evaluate the entry format.
+    /// - Returns: `true` if the entries are in 64-bit format, otherwise `false`.
+    public func is64BitEntryFormat(in cache: any DyldCacheRepresentable) -> Bool {
+        if cache.cpu.is64Bit { return true }
+        // WORKAROUND: 
+        let entriesSize = numericCast(layout.entriesCount) * DyldCacheLocalSymbolsEntry.layoutSize
+        return layout.nlistOffset <= layout.entriesOffset + numericCast(entriesSize)
+    }
+}
+
+extension DyldCacheLocalSymbolsInfo {
     /// Sequence of 64-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries64(
@@ -205,6 +226,9 @@ extension DyldCacheLocalSymbolsInfo {
 
 extension DyldCacheLocalSymbolsInfo {
     /// Sequence of 64-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries64(
@@ -214,6 +238,9 @@ extension DyldCacheLocalSymbolsInfo {
     }
 
     /// Sequence of 32-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries32(
@@ -236,7 +263,8 @@ extension DyldCacheLocalSymbolsInfo {
     internal func _entries64<Cache: _DyldCacheFileRepresentable>(
         in cache: Cache
     ) -> DataSequence<DyldCacheLocalSymbolsEntry64>? {
-        guard cache.cpu.is64Bit else { return nil }
+        // On new caches, the dylibOffset is 64-bits, and is a VM offset
+        guard is64BitEntryFormat(in: cache) else { return nil }
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
         return cache.fileHandle.readDataSequence(
@@ -248,7 +276,7 @@ extension DyldCacheLocalSymbolsInfo {
     internal func _entries32<Cache: _DyldCacheFileRepresentable>(
         in cache: Cache
     ) -> DataSequence<DyldCacheLocalSymbolsEntry>? {
-        guard !cache.cpu.is64Bit else { return nil }
+        guard !is64BitEntryFormat(in: cache) else { return nil }
 
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
@@ -281,12 +309,15 @@ extension DyldCacheLocalSymbolsInfo {
 
 extension DyldCacheLocalSymbolsInfo {
     /// Sequence of 64-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries64(
         in cache: DyldCacheLoaded
     ) -> MemorySequence<DyldCacheLocalSymbolsEntry64>? {
-        guard cache.cpu.is64Bit else { return nil }
+        guard is64BitEntryFormat(in: cache) else { return nil }
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
         return .init(
@@ -298,12 +329,15 @@ extension DyldCacheLocalSymbolsInfo {
     }
 
     /// Sequence of 32-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries32(
         in cache: DyldCacheLoaded
     ) -> MemorySequence<DyldCacheLocalSymbolsEntry>? {
-        guard !cache.cpu.is64Bit else { return nil }
+        guard !is64BitEntryFormat(in: cache) else { return nil }
 
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
