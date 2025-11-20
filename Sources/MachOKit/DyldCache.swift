@@ -37,7 +37,7 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
     internal var _fullCache: FullDyldCache?
     // Retain the main cache
     private var _mainCache: DyldCache?
-    // Reatin the symbol cache
+    // Retain the symbol cache
     internal var _symbolCache: DyldCache?
 
     public var headerSize: Int {
