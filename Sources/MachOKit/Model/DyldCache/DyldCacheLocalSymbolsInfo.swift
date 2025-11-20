@@ -183,6 +183,8 @@ extension DyldCacheLocalSymbolsInfo {
     ///
     /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
     ///
+    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/637911768f664e38e7e50b4fbf17e303e14fdc01/framework/LegacyAPIShims.mm#L412)
+    ///
     /// - Parameter cache: The cache used to evaluate the entry format.
     /// - Returns: `true` if the entries are in 64-bit format, otherwise `false`.
     public func is64BitEntryFormat(in cache: any DyldCacheRepresentable) -> Bool {
