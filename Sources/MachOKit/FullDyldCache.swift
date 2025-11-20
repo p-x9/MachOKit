@@ -94,6 +94,7 @@ extension FullDyldCache {
             mainCache: nil
         )
         cache._fullCache = self
+        cache._symbolCache = _symbolCache
         return cache
     }
 
@@ -108,7 +109,6 @@ extension FullDyldCache {
                     mainCache: mainCache
                 )
                 cache._fullCache = self
-                cache._symbolCache = _symbolCache
                 return cache
             }
     }
