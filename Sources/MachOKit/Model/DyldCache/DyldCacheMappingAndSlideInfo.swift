@@ -87,7 +87,7 @@ extension DyldCacheMappingAndSlideInfo {
 }
 
 extension DyldCacheMappingAndSlideInfo {
-    private func _slideInfo<File: FileIOProtocol>(
+    private func _slideInfo<File: MemoryMappedFileIOProtocol>(
         version: DyldCacheSlideInfo.Version,
         fileHandle: File
     ) -> DyldCacheSlideInfo? {
