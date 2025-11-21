@@ -238,6 +238,7 @@ extension _FileIOProtocol {
     }
 }
 
+#if false
 extension _FileIOProtocol {
     @_disfavoredOverload
     @inline(__always)
@@ -274,8 +275,38 @@ extension _FileIOProtocol {
         return String(cString: data)
     }
 }
+#endif
 
-extension MemoryMappedFile {
+extension MemoryMappedFileIOProtocol {
+    @inline(__always)
+    func readString(
+        offset: UInt64
+    ) -> String? {
+        String(
+            cString: ptr
+                .advanced(by: numericCast(offset))
+                .assumingMemoryBound(to: CChar.self)
+        )
+    }
+
+    @inline(__always)
+    func readString(
+        offset: UInt64,
+        size: Int // ignored
+    ) -> String? {
+        readString(offset: offset)
+    }
+
+    @inline(__always)
+    func readString(
+        offset: UInt64,
+        step: Int = 10 // ignored
+    ) -> String? {
+        readString(offset: offset)
+    }
+}
+
+extension MemoryMappedFile.FileSlice {
     @inline(__always)
     func readString(
         offset: UInt64

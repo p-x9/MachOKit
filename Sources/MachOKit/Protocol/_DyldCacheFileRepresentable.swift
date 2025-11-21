@@ -17,7 +17,7 @@ internal protocol _DyldCacheFileRepresentable: DyldCacheRepresentable
 where DylibsTrie == DataTrieTree<DylibsTrieNodeContent>,
       ProgramsTrie == DataTrieTree<ProgramsTrieNodeContent>
 {
-    associatedtype File: FileIOProtocol
+    associatedtype File: MemoryMappedFileIOProtocol
     var fileHandle: File { get }
 
     func machOFiles() -> AnySequence<MachOFile>
