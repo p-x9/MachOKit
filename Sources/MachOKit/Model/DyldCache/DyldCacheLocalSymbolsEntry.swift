@@ -15,6 +15,7 @@ public struct DyldCacheLocalSymbolsEntry: LayoutWrapper, Sendable {
 }
 
 extension DyldCacheLocalSymbolsEntry: DyldCacheLocalSymbolsEntryProtocol {
+    /// Offset in cache file of start of dylib
     public var dylibOffset: Int {
         numericCast(layout.dylibOffset)
     }
@@ -35,6 +36,7 @@ public struct DyldCacheLocalSymbolsEntry64: LayoutWrapper, Sendable {
 }
 
 extension DyldCacheLocalSymbolsEntry64: DyldCacheLocalSymbolsEntryProtocol {
+    /// Offset in cache buffer of start of dylib
     public var dylibOffset: Int {
         numericCast(layout.dylibOffset)
     }

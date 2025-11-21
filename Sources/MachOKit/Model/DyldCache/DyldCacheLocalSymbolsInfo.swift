@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2024/01/15.
-//  
+//
 //
 
 import Foundation
@@ -17,6 +17,7 @@ public struct DyldCacheLocalSymbolsInfo: LayoutWrapper, Sendable {
 
 extension DyldCacheLocalSymbolsInfo {
     /// Sequence of 64-bit architecture symbols
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of symbols
     public func symbols64(in cache: DyldCache) -> MachOFile.Symbols64? {
@@ -175,7 +176,30 @@ extension DyldCacheLocalSymbolsInfo {
 }
 
 extension DyldCacheLocalSymbolsInfo {
+    /// Determines whether the local symbols entry format is 64-bit.
+    ///
+    /// This checks whether entries use the 64-bit layout based on the architecture
+    /// of the provided cache and the layout boundaries of the symbol entries.
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
+    /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/637911768f664e38e7e50b4fbf17e303e14fdc01/framework/LegacyAPIShims.mm#L412)
+    ///
+    /// - Parameter cache: The cache used to evaluate the entry format.
+    /// - Returns: `true` if the entries are in 64-bit format, otherwise `false`.
+    public func is64BitEntryFormat(in cache: any DyldCacheRepresentable) -> Bool {
+        if cache.cpu.is64Bit { return true }
+        // WORKAROUND: 
+        let entriesSize = numericCast(layout.entriesCount) * DyldCacheLocalSymbolsEntry64.layoutSize
+        return layout.nlistOffset >= layout.entriesOffset + numericCast(entriesSize)
+    }
+}
+
+extension DyldCacheLocalSymbolsInfo {
     /// Sequence of 64-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries64(
@@ -205,6 +229,9 @@ extension DyldCacheLocalSymbolsInfo {
 
 extension DyldCacheLocalSymbolsInfo {
     /// Sequence of 64-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries64(
@@ -214,6 +241,9 @@ extension DyldCacheLocalSymbolsInfo {
     }
 
     /// Sequence of 32-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries32(
@@ -236,7 +266,8 @@ extension DyldCacheLocalSymbolsInfo {
     internal func _entries64<Cache: _DyldCacheFileRepresentable>(
         in cache: Cache
     ) -> DataSequence<DyldCacheLocalSymbolsEntry64>? {
-        guard cache.cpu.is64Bit else { return nil }
+        // On new caches, the dylibOffset is 64-bits, and is a VM offset
+        guard is64BitEntryFormat(in: cache) else { return nil }
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
         return cache.fileHandle.readDataSequence(
@@ -248,7 +279,7 @@ extension DyldCacheLocalSymbolsInfo {
     internal func _entries32<Cache: _DyldCacheFileRepresentable>(
         in cache: Cache
     ) -> DataSequence<DyldCacheLocalSymbolsEntry>? {
-        guard !cache.cpu.is64Bit else { return nil }
+        guard !is64BitEntryFormat(in: cache) else { return nil }
 
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
@@ -281,12 +312,15 @@ extension DyldCacheLocalSymbolsInfo {
 
 extension DyldCacheLocalSymbolsInfo {
     /// Sequence of 64-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries64(
         in cache: DyldCacheLoaded
     ) -> MemorySequence<DyldCacheLocalSymbolsEntry64>? {
-        guard cache.cpu.is64Bit else { return nil }
+        guard is64BitEntryFormat(in: cache) else { return nil }
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
         return .init(
@@ -298,12 +332,15 @@ extension DyldCacheLocalSymbolsInfo {
     }
 
     /// Sequence of 32-bit architecture symbols entries
+    ///
+    /// - Warning: In recent dyld caches, even those intended for 32-bit architectures utilize the 64-bit entry format.
+    ///
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: Sequence of  symbols entries
     public func entries32(
         in cache: DyldCacheLoaded
     ) -> MemorySequence<DyldCacheLocalSymbolsEntry>? {
-        guard !cache.cpu.is64Bit else { return nil }
+        guard !is64BitEntryFormat(in: cache) else { return nil }
 
         let offset: UInt64 = cache.header.localSymbolsOffset + numericCast(layout.entriesOffset)
 
@@ -340,78 +377,150 @@ extension DyldCacheLocalSymbolsInfo {
 }
 
 extension DyldCacheLocalSymbolsInfo {
+    /// Returns the 64-bit local symbols entry corresponding to the given Mach-O file.
+    ///
+    /// This searches the local symbols entries for one whose `dylibOffset` matches
+    /// the Mach-O file's text segment offset within the dyld cache.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The dyld cache containing the symbols info.
+    /// - Returns: The matching 64-bit entry, or `nil` if no match exists.
     public func entry64(
         for machO: MachOFile,
         in cache: DyldCache
     ) -> DyldCacheLocalSymbolsEntry64? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard let dylibOffset = dylibOffset(of: machO, in: cache) else { return nil }
         return entries64(in: cache)?.first(
             where: {
-                $0.dylibOffset == offset
+                $0.dylibOffset == dylibOffset
             }
         )
     }
 
+    /// Returns the 32-bit local symbols entry corresponding to the given Mach-O file.
+    ///
+    /// This searches the 32-bit entry sequence for an entry whose `dylibOffset`
+    /// matches the text segment offset of the Mach-O file within the dyld cache.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The dyld cache containing the symbols info.
+    /// - Returns: The matching 32-bit entry, or `nil` if no match exists.
     public func entry32(
         for machO: MachOFile,
         in cache: DyldCache
     ) -> DyldCacheLocalSymbolsEntry? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard let dylibOffset = dylibOffset(of: machO, in: cache) else { return nil }
         return entries32(in: cache)?.first(
             where: {
-                $0.dylibOffset == offset
+                $0.dylibOffset == dylibOffset
             }
         )
     }
 
+    /// Returns the local symbols entry corresponding to the given Mach-O file.
+    ///
+    /// This resolves the Mach-O file's text segment offset and finds the first entry
+    /// whose `dylibOffset` matches it, regardless of entry format.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The dyld cache containing the symbols info.
+    /// - Returns: The matching entry, or `nil` if no match exists.
     public func entry(
         for machO: MachOFile,
         in cache: DyldCache
     ) -> (any DyldCacheLocalSymbolsEntryProtocol)? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard let dylibOffset = dylibOffset(of: machO, in: cache) else { return nil }
         return entries(in: cache).first(
             where: {
-                $0.dylibOffset == offset
+                $0.dylibOffset == dylibOffset
             }
         )
     }
 }
 
 extension DyldCacheLocalSymbolsInfo {
+    /// Returns the 64-bit local symbols entry corresponding to the given Mach-O file
+    /// within a full dyld cache.
+    ///
+    /// This searches the 64-bit entry sequence for one whose `dylibOffset` matches
+    /// the Mach-O file's text segment offset.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The full dyld cache containing the symbols info.
+    /// - Returns: The matching 64-bit entry, or `nil` if no match exists.
     public func entry64(
         for machO: MachOFile,
         in cache: FullDyldCache
     ) -> DyldCacheLocalSymbolsEntry64? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard let dylibOffset = dylibOffset(of: machO, in: cache) else { return nil }
         return entries64(in: cache)?.first(
             where: {
-                $0.dylibOffset == offset
+                $0.dylibOffset == dylibOffset
             }
         )
     }
 
+    /// Returns the 32-bit local symbols entry corresponding to the given Mach-O file
+    /// within a full dyld cache.
+    ///
+    /// This searches the 32-bit entry sequence for an entry whose `dylibOffset`
+    /// matches the Mach-O file's text segment offset.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The full dyld cache containing the symbols info.
+    /// - Returns: The matching 32-bit entry, or `nil` if no match exists.
     public func entry32(
         for machO: MachOFile,
         in cache: FullDyldCache
     ) -> DyldCacheLocalSymbolsEntry? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard let dylibOffset = dylibOffset(of: machO, in: cache) else { return nil }
         return entries32(in: cache)?.first(
             where: {
-                $0.dylibOffset == offset
+                $0.dylibOffset == dylibOffset
             }
         )
     }
 
+    /// Returns the local symbols entry corresponding to the given Mach-O file
+    /// within a full dyld cache.
+    ///
+    /// This resolves the Mach-O file's text segment offset and finds the first entry
+    /// whose `dylibOffset` matches it, selecting the correct entry format automatically.
+    ///
+    /// - Parameters:
+    ///   - machO: The Mach-O file whose entry should be resolved.
+    ///   - cache: The full dyld cache containing the symbols info.
+    /// - Returns: The matching entry, or `nil` if no match exists.
     public func entry(
         for machO: MachOFile,
         in cache: FullDyldCache
     ) -> (any DyldCacheLocalSymbolsEntryProtocol)? {
-        guard let offset = machO.textOffset(in: cache) else { return nil }
+        guard let dylibOffset = dylibOffset(of: machO, in: cache) else { return nil }
         return entries(in: cache).first(
             where: {
-                $0.dylibOffset == offset
+                $0.dylibOffset == dylibOffset
             }
         )
+    }
+}
+
+extension DyldCacheLocalSymbolsInfo {
+    func dylibOffset(of machO: MachOFile, in cache: DyldCache) -> UInt64? {
+        guard var offset = machO.textOffset(in: cache) else { return nil }
+        if !is64BitEntryFormat(in: cache) {
+            guard let _offset = machO.loadCommands.text?.fileOffset else { return nil }
+            offset = UInt64(_offset)
+        }
+        return offset
+    }
+
+    func dylibOffset(of machO: MachOFile, in cache: FullDyldCache) -> UInt64? {
+        dylibOffset(of: machO, in: cache.mainCache)
     }
 }
 

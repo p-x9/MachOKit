@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol DyldCacheLocalSymbolsEntryProtocol: Sendable {
-    /// Offset in cache file of start of dylib
+    /// Offset in cache buffer of start of dylib
     var dylibOffset: Int { get }
 
     /// Start index of locals for this dylib
