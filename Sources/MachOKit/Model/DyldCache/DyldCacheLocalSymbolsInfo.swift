@@ -513,8 +513,7 @@ extension DyldCacheLocalSymbolsInfo {
     func dylibOffset(of machO: MachOFile, in cache: DyldCache) -> UInt64? {
         guard var offset = machO.textOffset(in: cache) else { return nil }
         if !is64BitEntryFormat(in: cache) {
-            guard let _offset = machO.loadCommands.text?.fileOffset else { return nil }
-            offset = UInt64(_offset)
+            offset = UInt64(machO.headerStartOffsetInCache)
         }
         return offset
     }
