@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2023/12/13.
-//  
+//
 //
 
 import Foundation
@@ -715,7 +715,7 @@ extension MachORepresentable where IndirectSymbols.Index == Int {
                       let count = section.numberOfIndirectSymbols else {
                     continue
                 }
-                
+
                 let indirectSymbols = indirectSymbols[indirectSymbolIndex ..< indirectSymbolIndex + count]
                 for (i, indirectSymbol) in indirectSymbols.enumerated() {
                     guard let index = indirectSymbol.index,
@@ -940,10 +940,12 @@ extension MachORepresentable {
                let cache = machOFile.cache {
                 return cache.header.platform == .macOS
             }
-            if self is MachOImage ,
+#if canImport(Darwin)
+            if self is MachOImage,
                let cache = DyldCacheLoaded.current {
                 return cache.header.platform == .macOS
             }
+#endif
         }
 
         return nil
