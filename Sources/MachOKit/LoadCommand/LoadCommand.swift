@@ -116,7 +116,7 @@ public enum LoadCommand: Sendable {
     /// LC_DYLD_CHAINED_FIXUPS
     case dyldChainedFixups(LoadCommandInfo<linkedit_data_command>)
     /// LC_FILESET_ENTRY
-    case filesetEntry(LoadCommandInfo<fileset_entry_command>)
+    case filesetEntry(FilesetEntryCommand)
     /// LC_ATOM_INFO
     case atomInfo(LoadCommandInfo<linkedit_data_command>)
     /// LC_FUNCTION_VARIANTS
