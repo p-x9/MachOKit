@@ -44,7 +44,7 @@ public enum LoadCommand: Sendable {
     /// LC_ROUTINES
     case routines(LoadCommandInfo<routines_command>)
     /// LC_SUB_FRAMEWORK
-    case subFramework(LoadCommandInfo<sub_framework_command>)
+    case subFramework(SubFrameworkCommand)
     /// LC_SUB_UMBRELLA
     case subUmbrella(LoadCommandInfo<sub_umbrella_command>)
     /// LC_SUB_CLIENT
