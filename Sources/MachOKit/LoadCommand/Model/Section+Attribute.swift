@@ -65,7 +65,7 @@ extension SectionAttributes {
 }
 
 extension SectionAttributes {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// S_ATTR_PURE_INSTRUCTIONS
         case pure_instructions
         /// S_ATTR_NO_TOC

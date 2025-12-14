@@ -7,54 +7,51 @@
 //
 
 import Foundation
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 import MachOKitC
 
 extension MachOFile {
     public struct DyldChainedFixups {
-        let data: Data
+        typealias FileSlice = File.FileSlice
+
+        let fileSice: FileSlice
         let isSwapped: Bool
     }
 }
 
 extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
     public var header: DyldChainedFixupsHeader? {
-        data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return nil }
-            let ptr = UnsafeRawPointer(basePtr)
-            let ret = ptr
-                .assumingMemoryBound(to: DyldChainedFixupsHeader.self)
-                .pointee
-            return isSwapped ? ret.swapped : ret
-        }
+        let ret = fileSice.ptr
+            .assumingMemoryBound(to: DyldChainedFixupsHeader.self)
+            .pointee
+        return isSwapped ? ret.swapped : ret
     }
 
     public var startsInImage: DyldChainedStartsInImage? {
         guard let header else { return nil }
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return nil }
-            let offset: Int = numericCast(header.starts_offset)
-            let ptr = UnsafeRawPointer(basePtr)
-                .advanced(by: offset)
-            let layout = ptr
-                .assumingMemoryBound(to: DyldChainedStartsInImage.Layout.self)
-                .pointee
-            let ret: DyldChainedStartsInImage = .init(
-                layout: layout,
-                offset: offset
-            )
-            return isSwapped ? ret.swapped : ret
-        }
+        let offset: Int = numericCast(header.starts_offset)
+        let ptr = fileSice.ptr
+            .advanced(by: offset)
+        let layout = ptr
+            .assumingMemoryBound(to: DyldChainedStartsInImage.Layout.self)
+            .pointee
+        let ret: DyldChainedStartsInImage = .init(
+            layout: layout,
+            offset: offset
+        )
+        return isSwapped ? ret.swapped : ret
     }
 
     public func startsInSegments(
         of startsInImage: DyldChainedStartsInImage?
     ) -> [DyldChainedStartsInSegment] {
-        guard let startsInImage else {
-            return []
-        }
-        let offsets: [Int] = data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return [] }
-            let ptr = UnsafeRawPointer(basePtr)
+        guard let startsInImage else { return [] }
+        let offsets: [Int] = {
+            let ptr = fileSice.ptr
                 .advanced(by: startsInImage.offset)
                 .advanced(by: DyldChainedStartsInImage.layoutOffset(of: \.seg_info_offset))
             return UnsafeBufferPointer(
@@ -63,24 +60,21 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             )
             .map { isSwapped ? $0.byteSwapped : $0 }
             .map { numericCast($0) }
-        }
+        }()
 
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return [] }
-            let ptr = UnsafeRawPointer(basePtr)
-                .advanced(by: startsInImage.offset)
-            return offsets.enumerated().map { index, offset in
-                let layout = ptr.advanced(by: offset)
-                    .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
-                    .pointee
-                let offset: Int = startsInImage.offset + offset
-                let ret: DyldChainedStartsInSegment = .init(
-                    layout: layout,
-                    offset: offset,
-                    segmentIndex: index
-                )
-                return isSwapped ? ret.swapped : ret
-            }
+        let ptr = fileSice.ptr
+            .advanced(by: startsInImage.offset)
+        return offsets.enumerated().map { index, offset in
+            let layout = ptr.advanced(by: offset)
+                .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
+                .pointee
+            let offset: Int = startsInImage.offset + offset
+            let ret: DyldChainedStartsInSegment = .init(
+                layout: layout,
+                offset: offset,
+                segmentIndex: index
+            )
+            return isSwapped ? ret.swapped : ret
         }
     }
 
@@ -88,27 +82,22 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
     public func pages(
         of startsInSegment: DyldChainedStartsInSegment?
     ) -> [DyldChainedPage] {
-        guard let startsInSegment else {
-            return []
-        }
+        guard let startsInSegment else { return [] }
 
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return [] }
-            let ptr = UnsafeRawPointer(basePtr)
-                .advanced(by: startsInSegment.offset)
-                .advanced(by: startsInSegment.layoutOffset(of: \.page_start))
-                .assumingMemoryBound(to: UInt16.self)
-            return UnsafeBufferPointer(
-                start: ptr,
-                count: numericCast(
-                    startsInSegment.page_count
-                )
+        let ptr = fileSice.ptr
+            .advanced(by: startsInSegment.offset)
+            .advanced(by: startsInSegment.layoutOffset(of: \.page_start))
+            .assumingMemoryBound(to: UInt16.self)
+        return UnsafeBufferPointer(
+            start: ptr,
+            count: numericCast(
+                startsInSegment.page_count
             )
-            .map {
-                isSwapped ? $0.byteSwapped : $0
-            }
-            .enumerated().map { .init(offset: $1, index: $0) }
+        )
+        .map {
+            isSwapped ? $0.byteSwapped : $0
         }
+        .enumerated().map { .init(offset: $1, index: $0) }
     }
 
     public var imports: [DyldChainedImport] {
@@ -116,56 +105,48 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
               let  importsFormat = header.importsFormat else {
             return []
         }
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return [] }
-            let offset: Int = numericCast(header.imports_offset)
-            let ptr = UnsafeRawPointer(basePtr)
-                .advanced(by: offset)
-            let count: Int = numericCast(header.imports_count)
+        let offset: Int = numericCast(header.imports_offset)
+        let ptr = fileSice.ptr
+            .advanced(by: offset)
+        let count: Int = numericCast(header.imports_count)
 
-            switch importsFormat {
-            case .general:
-                return UnsafeBufferPointer(
-                    start: ptr
-                        .assumingMemoryBound(to: DyldChainedImportGeneral.self),
-                    count: count
-                )
-                .map { isSwapped ? $0.swapped : $0 }
-                .map { .general($0) }
+        switch importsFormat {
+        case .general:
+            return UnsafeBufferPointer(
+                start: ptr
+                    .assumingMemoryBound(to: DyldChainedImportGeneral.self),
+                count: count
+            )
+            .map { isSwapped ? $0.swapped : $0 }
+            .map { .general($0) }
 
-            case .addend:
-                return UnsafeBufferPointer(
-                    start: ptr
-                        .assumingMemoryBound(to: DyldChainedImportAddend.self),
-                    count: count
-                )
-                .map { isSwapped ? $0.swapped : $0 }
-                .map { .addend($0) }
+        case .addend:
+            return UnsafeBufferPointer(
+                start: ptr
+                    .assumingMemoryBound(to: DyldChainedImportAddend.self),
+                count: count
+            )
+            .map { isSwapped ? $0.swapped : $0 }
+            .map { .addend($0) }
 
-            case .addend64:
-                return UnsafeBufferPointer(
-                    start: ptr
-                        .assumingMemoryBound(to: DyldChainedImportAddend64.self),
-                    count: count
-                )
-                .map { isSwapped ? $0.swapped : $0 }
-                .map { .addend64($0) }
-            }
+        case .addend64:
+            return UnsafeBufferPointer(
+                start: ptr
+                    .assumingMemoryBound(to: DyldChainedImportAddend64.self),
+                count: count
+            )
+            .map { isSwapped ? $0.swapped : $0 }
+            .map { .addend64($0) }
         }
     }
 
     public func symbolName(for nameOffset: Int) -> String? {
-        guard let header else {
-            return nil
-        }
-        return data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return nil }
-            let ptr = basePtr
-                .advanced(by: numericCast(header.symbols_offset))
-                .advanced(by: nameOffset)
-                .assumingMemoryBound(to: CChar.self)
-            return String(cString: ptr)
-        }
+        guard let header else { return nil }
+        let ptr = fileSice.ptr
+            .advanced(by: numericCast(header.symbols_offset))
+            .advanced(by: nameOffset)
+            .assumingMemoryBound(to: CChar.self)
+        return String(cString: ptr)
     }
 }
 
@@ -178,10 +159,11 @@ extension MachOFile.DyldChainedFixups {
         in machO: MachOFile
     ) -> [DyldChainedFixupPointer] {
         let pages = pages(of: startsInSegment)
+        guard pages.count > 0, startsInSegment.page_size > 0 else { return [] }
 
-        let pagesData = machO.fileHandle.readData(
-            offset: numericCast(machO.headerStartOffset) + startsInSegment.segment_offset,
-            size: pages.count * numericCast(startsInSegment.page_size)
+        let pagesFileSlice = try! machO.fileHandle.fileSlice(
+            offset: machO.headerStartOffset + numericCast(startsInSegment.segment_offset),
+            length: pages.count * numericCast(startsInSegment.page_size)
         )
 
         var pointers: [DyldChainedFixupPointer] = []
@@ -198,13 +180,13 @@ extension MachOFile.DyldChainedFixups {
                     offsetInPage = pages[overflowIndex].offset & ~UInt16(DYLD_CHAINED_PTR_START_LAST)
                     let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
                     let chainOffset = pageContentStart + numericCast(offsetInPage)
-                    walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, pointers: &pointers)
+                    walkChain(offset: chainOffset, pagesFileSlice: pagesFileSlice, of: startsInSegment, pointers: &pointers)
                     overflowIndex += 1
                 }
             } else {
                 let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
                 let chainOffset = pageContentStart + numericCast(offsetInPage)
-                walkChain(offset: chainOffset, data: pagesData, of: startsInSegment, pointers: &pointers)
+                walkChain(offset: chainOffset, pagesFileSlice: pagesFileSlice, of: startsInSegment, pointers: &pointers)
             }
         }
 
@@ -213,7 +195,7 @@ extension MachOFile.DyldChainedFixups {
 
     private func walkChain(
         offset: Int,
-        data: Data,
+        pagesFileSlice: FileSlice,
         of startsInSegment: DyldChainedStartsInSegment,
         pointers: inout [DyldChainedFixupPointer]
     ) {
@@ -229,7 +211,7 @@ extension MachOFile.DyldChainedFixups {
         while !stop && !chainEnd {
             guard let fixupInfo = _fixupInfo(
                 at: offset,
-                in: data,
+                in: pagesFileSlice,
                 pointerFormat: pointerFormat
             ) else {
                 stop = true
@@ -266,9 +248,10 @@ extension MachOFile.DyldChainedFixups {
         }
 
         let pages = pages(of: startsInSegment)
-        let pagesData = machO.fileHandle.readData(
-            offset: numericCast(machO.headerStartOffset) + startsInSegment.segment_offset,
-            size: pages.count * numericCast(startsInSegment.page_size)
+
+        let pagesFileSlice = try! machO.fileHandle.fileSlice(
+            offset: machO.headerStartOffset + numericCast(startsInSegment.segment_offset),
+            length: pages.count * numericCast(startsInSegment.page_size)
         )
 
         for (index, page) in pages.enumerated() {
@@ -287,7 +270,7 @@ extension MachOFile.DyldChainedFixups {
                     if let pointer = walkChainAndFindPointer(
                         for: offset,
                         chainOffset: chainOffset,
-                        data: pagesData,
+                        pagesFileSlice: pagesFileSlice,
                         of: startsInSegment
                     ) {
                         return pointer
@@ -302,7 +285,7 @@ extension MachOFile.DyldChainedFixups {
                 if let pointer = walkChainAndFindPointer(
                     for: offset,
                     chainOffset: chainOffset,
-                    data: pagesData,
+                    pagesFileSlice: pagesFileSlice,
                     of: startsInSegment
                 ) {
                     return pointer
@@ -316,7 +299,7 @@ extension MachOFile.DyldChainedFixups {
     private func walkChainAndFindPointer(
         for targetOffset: UInt64,
         chainOffset: Int,
-        data: Data,
+        pagesFileSlice: FileSlice,
         of startsInSegment: DyldChainedStartsInSegment
     ) -> DyldChainedFixupPointer? {
         guard let pointerFormat = startsInSegment.pointerFormat else {
@@ -331,7 +314,7 @@ extension MachOFile.DyldChainedFixups {
         while !stop && !chainEnd {
             guard let fixupInfo = _fixupInfo(
                 at: chainOffset,
-                in: data,
+                in: pagesFileSlice,
                 pointerFormat: pointerFormat
             ) else {
                 stop = true
@@ -362,21 +345,22 @@ extension MachOFile.DyldChainedFixups {
     @inline(__always)
     private func _fixupInfo(
         at offset: Int,
-        in data: Data,
+        in pagesFileSlice: FileSlice,
         pointerFormat: DyldChainedFixupPointerFormat
     ) -> DyldChainedFixupPointerInfo? {
         var fixupInfo: DyldChainedFixupPointerInfo?
 
         if pointerFormat.is64Bit {
-            //            faster than below code
-            //            let rawValue = data.advanced(by: offset).withUnsafeBytes {
-            //                $0.load(as: UInt64.self)
-            //            }
-            guard let rawValue = data.withUnsafeBytes ({ bytes -> UInt64? in
-                guard let baseAddress = bytes.baseAddress else { return nil }
-                let ptr = baseAddress.advanced(by: offset)
-                return ptr.load(as: UInt64.self)
-            }) else { return nil }
+//            faster than below code
+//            let rawValue = data.advanced(by: offset).withUnsafeBytes {
+//                $0.load(as: UInt64.self)
+//            }
+            guard let rawValue: UInt64 = try? pagesFileSlice.read(
+                offset: offset,
+                as: UInt64.self
+            ) else {
+                return nil
+            }
 
             switch pointerFormat {
             case .arm64e, .arm64e_kernel, .arm64e_userland, .arm64e_firmware:
@@ -423,11 +407,11 @@ extension MachOFile.DyldChainedFixups {
                 break
             }
         } else {
-            guard let rawValue = data.withUnsafeBytes ({ bytes -> UInt32? in
-                guard let baseAddress = bytes.baseAddress else { return nil }
-                let ptr = baseAddress.advanced(by: offset)
-                return ptr.load(as: UInt32.self)
-            }) else { return nil }
+            guard let rawValue: UInt32 = try? pagesFileSlice.read(
+                offset: offset
+            ) else {
+                return nil
+            }
 
             switch pointerFormat {
             case ._32:

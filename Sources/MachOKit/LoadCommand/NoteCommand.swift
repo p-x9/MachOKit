@@ -26,9 +26,9 @@ extension NoteCommand {
     }
 
     public func data(in machO: MachOFile) -> Data {
-        machO.fileHandle.readData(
-            offset: numericCast(machO.headerStartOffset) + layout.offset,
-            size: numericCast(layout.size)
+        try! machO.fileHandle.readData(
+            offset: machO.headerStartOffset + numericCast(layout.offset),
+            length: numericCast(layout.size)
         )
     }
 

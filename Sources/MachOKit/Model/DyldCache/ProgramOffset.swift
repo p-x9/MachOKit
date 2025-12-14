@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ProgramOffset {
+public struct ProgramOffset: Sendable {
     public let name: String
     public let offset: UInt32
 }

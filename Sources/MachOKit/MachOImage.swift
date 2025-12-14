@@ -6,6 +6,7 @@
 //  
 //
 
+import CoreFoundation // for CFByteOrderGetCurrent (Linux)
 import Foundation
 
 /// Structure for `MachO` representation loaded from memory.
@@ -107,17 +108,22 @@ extension MachOImage {
 }
 
 extension MachOImage {
-    /// Path name of machO image.
+    /// The path representing this Mach-O image.
     ///
-    /// It is the same value that can be obtained by `Dl_info.dli_fname` or `_dyld_get_image_name`.
+    /// - For executable images, this may return `nil`.
+    /// - For dynamic libraries, this may return the `LC_ID_DYLIB` or `LC_ID_DYLINKER` path embedded in the load commands.
+    /// - If neither command is found, this property returns `nil`.
+    ///
+    /// This property provides the logical path used by the system to identify the loaded Mach-O image,
+    /// which may differ from its physical file system location when the image is loaded from a dyld shared cache.
     public var path: String? {
-        #if canImport(Darwin)
-        var info = Dl_info()
-        dladdr(ptr, &info)
-        return String(cString: info.dli_fname)
-        #else
+        if let idDylib = loadCommands.info(of: LoadCommand.idDylib) {
+            return idDylib.dylib(cmdsStart: cmdsStartPtr).name
+        }
+        if let idDylinker = loadCommands.info(of: LoadCommand.idDylinker) {
+            return idDylinker.name(cmdsStart: cmdsStartPtr)
+        }
         return nil
-        #endif
     }
 
     /// virtual memory address slide of machO image.
@@ -142,6 +148,19 @@ extension MachOImage {
             .compactMap { cmd in
                 if case let .rpath(info) = cmd { info.path(cmdsStart: cmdsStartPtr) } else { nil }
             }
+    }
+}
+
+extension MachOImage {
+    public var endian: Endian {
+        switch CFByteOrderGetCurrent() {
+        case numericCast(CFByteOrderLittleEndian.rawValue):
+            return .little
+        case numericCast(CFByteOrderBigEndian.rawValue):
+            return .big
+        default:
+            fatalError("Unexpected byte order value: \(CFByteOrderGetCurrent())")
+        }
     }
 }
 
@@ -333,8 +352,7 @@ extension MachOImage {
         return .init(
             basePointer: start
                 .assumingMemoryBound(to: UInt16.self),
-            tableSize: numericCast(section.size),
-            isLittleEndian: true
+            tableSize: numericCast(section.size)
         )
     }
 }
@@ -762,5 +780,53 @@ extension MachOImage {
                 .assumingMemoryBound(to: CFString32.self),
             numberOfElements: count
         )
+    }
+}
+
+extension MachOImage {
+    public var embeddedInfoPlist: [String: Any]? {
+        func plist(in section: any SectionProtocol) throws -> [String: Any]? {
+            guard let vmaddrSlide else { return nil }
+            guard let ptr = section.startPtr(vmaddrSlide: vmaddrSlide) else {
+                return nil
+            }
+            let data = Data(bytes: ptr, count: section.size)
+            guard let infoPlist = try? PropertyListSerialization.propertyList(
+                from: data,
+                format: nil
+            ) else {
+                return nil
+            }
+            return infoPlist as? [String: Any]
+        }
+
+        if let text = loadCommands.text64 {
+            guard let __info_plist = text.sections(cmdsStart: cmdsStartPtr).first(
+                where: { $0.sectionName == "__info_plist" }
+            ) else { return nil }
+            return try? plist(in: __info_plist)
+        } else if let text = loadCommands.text {
+            guard let __info_plist = text.sections(cmdsStart: cmdsStartPtr).first(
+                where: { $0.sectionName == "__info_plist" }
+            ) else { return nil }
+            return try? plist(in: __info_plist)
+        }
+        return nil
+    }
+}
+
+extension MachOImage {
+    /// Determines whether the specified pointer is contained within any segment of the Mach-O binary.
+    ///
+    /// - Parameter ptr: The pointer to check.
+    /// - Returns: `true` if the address is within any segment; otherwise, `false`.
+    public func contains(ptr: UnsafeRawPointer) -> Bool {
+        let slide = vmaddrSlide ?? 0
+        let address = Int(bitPattern: ptr)
+
+        if slide > address { return false }
+
+        let unslidAddress = address - slide
+        return contains(unslidAddress: numericCast(unslidAddress))
     }
 }

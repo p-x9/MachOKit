@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldChainedPage {
+public struct DyldChainedPage: Sendable {
     public let offset: UInt16
     public let index: Int
 

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldChainedFixupPointer {
+public struct DyldChainedFixupPointer: Sendable {
     public let offset: Int
     public let fixupInfo: DyldChainedFixupPointerInfo
 }
@@ -20,6 +20,17 @@ extension DyldChainedFixupPointer {
     ) -> UInt64? {
         _rebaseTargetRuntimeOffset(
             cache: cache,
+            machO: nil,
+            preferedLoadAddress: preferedLoadAddress
+        )
+    }
+
+    public func rebaseTargetRuntimeOffset(
+        for cache: FullDyldCache, // dummy
+        preferedLoadAddress: UInt64
+    ) -> UInt64? {
+        _rebaseTargetRuntimeOffset(
+            cache: nil,
             machO: nil,
             preferedLoadAddress: preferedLoadAddress
         )

@@ -3,12 +3,12 @@
 //
 //
 //  Created by p-x9 on 2023/12/03.
-//  
+//
 //
 
 import Foundation
 
-public enum BindOperation {
+public enum BindOperation: Sendable {
     /// BIND_OPCODE_DONE
     case done
     /// BIND_OPCODE_SET_DYLIB_ORDINAL_IMM
@@ -95,7 +95,7 @@ extension BindOperation: CustomStringConvertible {
     }
 }
 
-public enum BindSubOperation {
+public enum BindSubOperation: Sendable {
     case threaded_set_bind_ordinal_table_size_uleb(size: Int)
     case threaded_apply
 }
@@ -154,9 +154,10 @@ extension BindOperation {
         case .set_dylib_special_imm:
             let libraryOrdinal: Int32
             if imm == 0 { libraryOrdinal = 0 } else {
-                let signExtended = BIND_OPCODE_MASK | imm
-                libraryOrdinal = signExtended
+                let signExtended = UInt8(BIND_OPCODE_MASK | imm)
+                libraryOrdinal = Int32(Int8(bitPattern: signExtended))
             }
+
             guard let special = BindSpecial(rawValue: libraryOrdinal) else {
                 fatalError("unknown bind special")
             }

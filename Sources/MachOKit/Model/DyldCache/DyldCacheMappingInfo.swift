@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DyldCacheMappingInfo: LayoutWrapper {
+public struct DyldCacheMappingInfo: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_mapping_info
 
     public var layout: Layout
@@ -23,5 +23,13 @@ extension DyldCacheMappingInfo {
     /// Initial vm protection of this mapping
     public var initialProtection: VMProtection {
         .init(rawValue: VMProtection.RawValue(bitPattern: layout.maxProt))
+    }
+}
+
+extension DyldCacheMappingInfo {
+    internal func withFileOffset(_ value: UInt64) -> Self {
+        var layout = layout
+        layout.fileOffset = value
+        return .init(layout: layout)
     }
 }

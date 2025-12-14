@@ -152,6 +152,28 @@ final class DyldCachePrintTests: XCTestCase {
         }
     }
 
+    func testLocalSymbolsInSymbolCache() throws {
+        guard let symbolCache = try cache.symbolCache else {
+            return
+        }
+        guard let info = symbolCache.localSymbolsInfo else {
+            return
+        }
+        let machO = cache.machOFiles().first(
+            where: {
+                $0.imagePath.contains("/SwiftUICore")
+            }
+        )!
+        guard let entry = info.entry(for: machO, in: symbolCache) else {
+            XCTFail("No entry found")
+            return
+        }
+        let symbols = Array(info.symbols(in: symbolCache))[entry.nlistRange]
+        for symbol in symbols.prefix(100) {
+            print(symbol.name)
+        }
+    }
+
     func testMachOFiles() throws {
         let machOs = cache.machOFiles()
         for machO in machOs {
@@ -212,7 +234,7 @@ final class DyldCachePrintTests: XCTestCase {
             }
             print("Name:", programOffset.name)
             print("Loaders:")
-            for loader in loaderSet.loaders(in: cache)! {
+            for loader in loaderSet.loaders(in: cache) ?? [] {
                 print("  \(loader.path(in: cache) ?? "unknown")")
             }
             for loader in loaderSet.loaders_pre1165_3(in: cache) ?? [] {
@@ -306,12 +328,54 @@ final class DyldCachePrintTests: XCTestCase {
         print("Type Conformance Hash Table Cache Offset:", swiftOptimization.typeConformanceHashTableCacheOffset)
         print("Metadata Conformance Hash Table Cache Offset:", swiftOptimization.metadataConformanceHashTableCacheOffset)
         print("Foreign Type Conformance Hash Table Cache Offset:", swiftOptimization.foreignTypeConformanceHashTableCacheOffset)
+        print("Prespecialized Data Cache Offset:", swiftOptimization.prespecializationDataCacheOffset)
+        print("Prespecialized Metadata Hash Table Cache Offset:", swiftOptimization.prespecializedMetadataHashTableCacheOffsets)
     }
 
     func testTproMappings() throws {
         guard let mappings = cache.tproMappings else { return }
         for mapping in mappings {
             print("- 0x\(String(mapping.unslidAddress, radix: 16)), \(mapping.size)")
+        }
+    }
+
+    func testFunctionVariantInfo() throws {
+        guard let variantInfo = cache1.functionVariantInfo else { return }
+        print("Version:", variantInfo.layout.version)
+        print("Count:", variantInfo.layout.count)
+        guard let entries = variantInfo.entries(in: cache) else {
+            if variantInfo.layout.count > 0 {
+                XCTFail()
+            }
+            return
+        }
+        for entry in entries {
+            print(" ", entry.layout)
+        }
+    }
+
+    func testPrewarmingData() throws {
+        let caches = [cache!] + cache.subCaches!
+            .compactMap {
+                try! $0.subcache(for: cache)
+            }
+        for cache in caches {
+            guard let prewarmingData = cache.prewarmingData else { continue }
+            print("Version:", prewarmingData.layout.version)
+            print("Count:", prewarmingData.layout.count)
+            guard let entries = prewarmingData.entries(in: cache) else {
+                if prewarmingData.layout.count > 0 {
+                    XCTFail()
+                }
+                return
+            }
+            for entry in entries {
+                print(
+                    " ",
+                    "cacheVMOffset:", entry.layout.cacheVMOffset,
+                    "pages:", entry.layout.numPages
+                )
+            }
         }
     }
 }

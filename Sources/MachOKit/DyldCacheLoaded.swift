@@ -3,11 +3,21 @@
 //
 //
 //  Created by p-x9 on 2024/10/09
-//  
+//
 //
 
 import Foundation
 
+/// `DyldCacheLoaded` represents a dyld shared cache that is already loaded into memory.
+///
+/// It provides access to Mach-O images, mapping information, symbol data, and other
+/// metadata directly from a memory-mapped dyld shared cache. This type is particularly
+/// useful when analyzing the in-memory state of the dyld cache on Apple platforms.
+///
+/// - Note: ``DyldCacheLoaded`` works with a pointer to the start of the dyld shared cache
+///   obtained by system APIs such as `_dyld_get_shared_cache_range`.
+///
+/// - SeeAlso: ``DyldCache``, ``FullDyldCache``
 public struct DyldCacheLoaded: DyldCacheRepresentable {
     /// Address of dyld cache header start
     public let ptr: UnsafeRawPointer
@@ -332,7 +342,7 @@ extension DyldCacheLoaded {
         }
         let layout: prebuilt_loader_set = basePointer
             .autoBoundPointee()
-        return .init(layout: layout, address: .init(bitPattern: basePointer))
+        return .init(layout: layout, address: address)
     }
 }
 
@@ -419,9 +429,38 @@ extension DyldCacheLoaded {
         }
         return .init(
             basePointer: ptr
-                .advanced(by: numericCast(header.tproMappingsOffset))
+                .advanced(by: numericCast(mainCacheHeader.tproMappingsOffset))
                 .assumingMemoryBound(to: DyldCacheTproMappingInfo.self),
-            numberOfElements: numericCast(header.tproMappingsCount)
+            numberOfElements: numericCast(mainCacheHeader.tproMappingsCount)
+        )
+    }
+
+    public var functionVariantInfo: DyldCacheFunctionVariantInfo? {
+        guard header.functionVariantInfoAddr > 0,
+              header.hasProperty(\.functionVariantInfoSize),
+              let slide else {
+            return nil
+        }
+        let address: Int = numericCast(header.functionVariantInfoAddr) + slide
+        guard let basePointer = UnsafeRawPointer(bitPattern: address) else {
+            return nil
+        }
+        let layout: dyld_cache_function_variant_info = basePointer
+            .autoBoundPointee()
+        return .init(layout: layout, address: address)
+    }
+
+    public var prewarmingData: DyldCachePrewarming? {
+        guard mainCacheHeader.prewarmingDataOffset > 0,
+              mainCacheHeader.hasProperty(\.prewarmingDataSize) else {
+            return nil
+        }
+        return .init(
+            layout: ptr
+                .advanced(by: numericCast(mainCacheHeader.prewarmingDataOffset))
+                .assumingMemoryBound(to: dyld_prewarming_header.self)
+                .pointee,
+            offset: numericCast(mainCacheHeader.prewarmingDataOffset)
         )
     }
 }

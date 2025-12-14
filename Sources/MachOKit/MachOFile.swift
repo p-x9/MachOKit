@@ -6,18 +6,27 @@
 //
 //
 
+import CoreFoundation // for CFByteOrderGetCurrent (Linux)
 import Foundation
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 
 public class MachOFile: MachORepresentable {
+    typealias File = MemoryMappedFile
+
     /// URL of the file actually loaded
     public let url: URL
 
-    /// Path of machO.
-    ///
-    /// If read from dyld cache, may not match ``url`` value.
-    public let imagePath: String
+    private let _imagePath: String?
 
-    let fileHandle: FileHandle
+    let fileHandle: File
+
+    // Retain the cache to which `self` belongs
+    private var _fullCache: FullDyldCache?
+    private var _cache: DyldCache?
 
     /// A Boolean value that indicates whether the byte is swapped or not.
     ///
@@ -43,14 +52,14 @@ public class MachOFile: MachORepresentable {
     }
 
     public var loadCommands: LoadCommands {
-        let data = fileHandle.readData(
-            offset: UInt64(cmdsStartOffset),
-            size: Int(header.sizeofcmds)
+        let data = try! fileHandle.readData(
+            offset: cmdsStartOffset,
+            length: numericCast(header.sizeofcmds)
         )
 
         return .init(
             data: data,
-            numberOfCommands: Int(header.ncmds),
+            numberOfCommands: numericCast(header.ncmds),
             isSwapped: isSwapped
         )
     }
@@ -61,7 +70,7 @@ public class MachOFile: MachORepresentable {
     ) throws {
         try self.init(
             url: url,
-            imagePath: url.path,
+            imagePath: nil,
             headerStartOffset: headerStartOffset,
             headerStartOffsetInCache: 0
         )
@@ -69,7 +78,23 @@ public class MachOFile: MachORepresentable {
 
     public convenience init(
         url: URL,
-        imagePath: String,
+        imagePath: String? = nil,
+        headerStartOffsetInCache: Int,
+        cache: DyldCache
+    ) throws {
+        try self.init(
+            url: url,
+            imagePath: imagePath,
+            headerStartOffset: 0,
+            headerStartOffsetInCache: headerStartOffsetInCache
+        )
+        self._cache = cache
+    }
+
+    @available(*, deprecated, renamed: "init(url:imagePath:headerStartOffsetInCache:cache:)")
+    public convenience init(
+        url: URL,
+        imagePath: String? = nil,
         headerStartOffsetInCache: Int
     ) throws {
         try self.init(
@@ -82,13 +107,16 @@ public class MachOFile: MachORepresentable {
 
     private init(
         url: URL,
-        imagePath: String,
+        imagePath: String?,
         headerStartOffset: Int,
         headerStartOffsetInCache: Int
     ) throws {
         self.url = url
-        self.imagePath = imagePath
-        let fileHandle = try FileHandle(forReadingFrom: url)
+        self._imagePath = imagePath
+        let fileHandle = try File.open(
+            url: url,
+            isWritable: false
+        )
         self.fileHandle = fileHandle
 
         self.headerStartOffset = headerStartOffset
@@ -106,9 +134,34 @@ public class MachOFile: MachORepresentable {
         self.isSwapped = isSwapped
         self.header = header
     }
+}
 
-    deinit {
-        fileHandle.closeFile()
+extension MachOFile {
+    /// The path representing this Mach-O file.
+    ///
+    /// - For executable binaries, this usually matches the file's ``url`` path.
+    /// - For dynamic libraries, this may return the `LC_ID_DYLIB` or `LC_ID_DYLINKER` path embedded in the load commands.
+    ///
+    /// This property provides the logical path used by the system to identify the Mach-O image,
+    /// which can differ from the actual file system location if the file is part of a dyld shared cache.
+    public var imagePath: String {
+        if let _imagePath { return _imagePath }
+        if let idDylib = loadCommands.info(of: LoadCommand.idDylib) {
+            return idDylib.dylib(in: self).name
+        }
+        if let idDylinker = loadCommands.info(of: LoadCommand.idDylinker) {
+            return idDylinker.name(in: self)
+        }
+        return url.path
+    }
+}
+
+extension MachOFile {
+    public var endian: Endian {
+        let hostIsLittleEndian = CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
+        return hostIsLittleEndian
+        ? (isSwapped ? .big : .little)
+        : (isSwapped ? .little : .big)
     }
 }
 
@@ -202,35 +255,46 @@ extension MachOFile {
     public var indirectSymbols: IndirectSymbols? {
         guard let dysymtab = loadCommands.dysymtab else { return nil }
 
-        let offset: UInt64 = numericCast(headerStartOffset) + numericCast(dysymtab.indirectsymoff)
+        let offset: UInt64 = numericCast(dysymtab.indirectsymoff)
         let numberOfElements: Int = numericCast(dysymtab.nindirectsyms)
 
-        return fileHandle.readDataSequence(
-            offset: offset,
-            numberOfElements: numberOfElements,
-            swapHandler: { data in
-                guard self.isSwapped else { return }
-                data.withUnsafeMutableBytes {
-                    let buffer = $0.assumingMemoryBound(to: UInt32.self)
-                    for i in 0 ..< numberOfElements {
-                        buffer[i] = buffer[i].byteSwapped
-                    }
+        guard var data = _readLinkEditData(
+            offset: numericCast(offset),
+            length: MemoryLayout<UInt32>.size * numberOfElements
+        ) else { return nil }
+
+        if isSwapped {
+            data.withUnsafeMutableBytes {
+                let buffer = $0.assumingMemoryBound(to: UInt32.self)
+                for i in 0 ..< numberOfElements {
+                    buffer[i] = buffer[i].byteSwapped
                 }
             }
+        }
+
+        return .init(
+            data: data,
+            numberOfElements: numberOfElements
         )
     }
 }
 
 extension MachOFile {
     public var symbolStrings: Strings? {
-        if let symtab = loadCommands.symtab {
-            return Strings(
-                machO: self,
-                offset: headerStartOffset + Int(symtab.stroff),
-                size: Int(symtab.strsize)
-            )
+        guard let symtab = loadCommands.symtab else {
+            return nil
         }
-        return nil
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: numericCast(symtab.stroff),
+            length: numericCast(symtab.strsize)
+        ) else { return nil }
+
+        return .init(
+            fileSlice: fileSlice,
+            offset: numericCast(symtab.stroff),
+            size: numericCast(symtab.strsize),
+            isSwapped: isSwapped
+        )
     }
 }
 
@@ -290,7 +354,7 @@ extension MachOFile {
             machO: self,
             offset: offset,
             size: section.size,
-            isLittleEndian: true
+            isSwapped: isSwapped
         )
     }
 }
@@ -404,8 +468,13 @@ extension MachOFile {
             return nil
         }
 
-        let entries: DataSequence<DataInCodeEntry> = fileHandle.readDataSequence(
-            offset: numericCast(headerStartOffset) + numericCast(dataInCode.dataoff),
+        guard let data = _readLinkEditData(
+            offset: numericCast(dataInCode.dataoff),
+            length: numericCast(dataInCode.datasize)
+        ) else { return nil }
+
+        let entries: DataSequence<DataInCodeEntry> = .init(
+            data: data,
             numberOfElements: numericCast(dataInCode.datasize) / DataInCodeEntry.layoutSize
         )
 
@@ -432,13 +501,13 @@ extension MachOFile {
         guard let info = loadCommands.dyldChainedFixups else {
             return nil
         }
-        let data = fileHandle.readData(
-            offset: UInt64(headerStartOffset) + numericCast(info.dataoff),
-            size: numericCast(info.datasize)
-        )
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: numericCast(info.dataoff),
+            length: numericCast(info.datasize)
+        ) else { return nil }
 
         return .init(
-            data: data,
+            fileSice: fileSlice,
             isSwapped: isSwapped
         )
     }
@@ -449,26 +518,38 @@ extension MachOFile {
         guard let dysymtab = loadCommands.dysymtab else {
             return nil
         }
-        return fileHandle.readDataSequence(
-            offset: numericCast(dysymtab.extreloff),
-            numberOfElements: numericCast(dysymtab.nextrel),
-            swapHandler: { data in
-                guard self.isSwapped else { return }
-                data.withUnsafeMutableBytes {
-                    guard let baseAddress = $0.baseAddress else { return }
-                    let ptr = baseAddress
-                        .assumingMemoryBound(to: relocation_info.self)
-                    swap_relocation_info(ptr, dysymtab.nextrel, NXHostByteOrder())
-                }
+
+        let offset: UInt64 = numericCast(dysymtab.extreloff)
+        let numberOfElements: Int = numericCast(dysymtab.nextrel)
+
+        guard var data = _readLinkEditData(
+            offset: numericCast(offset),
+            length: MemoryLayout<UInt64>.size * numberOfElements
+        ) else { return nil }
+
+        if isSwapped {
+            data.withUnsafeMutableBytes {
+                guard let baseAddress = $0.baseAddress else { return }
+                let ptr = baseAddress
+                    .assumingMemoryBound(to: relocation_info.self)
+                swap_relocation_info(ptr, dysymtab.nextrel, NXHostByteOrder())
             }
+        }
+
+        return .init(
+            data: data,
+            numberOfElements: numberOfElements
         )
     }
 
     public var classicBindingSymbols: [ClassicBindingSymbol]? {
         _classicBindingSymbols(
             addendLoader: { address in
-                fileHandle.read(
-                    offset: fileOffset(of: address) + numericCast(headerStartOffset)
+                guard let fileOffset = fileOffset(of: address) else {
+                    return 0
+                }
+                return fileHandle.read(
+                    offset: fileOffset + numericCast(headerStartOffset)
                 )
             }
         )
@@ -492,12 +573,14 @@ extension MachOFile {
         guard let info = loadCommands.codeSignature else {
             return nil
         }
-        let data = fileHandle.readData(
-            offset: UInt64(headerStartOffset) + numericCast(info.dataoff),
-            size: numericCast(info.datasize)
-        )
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: numericCast(info.dataoff),
+            length: numericCast(info.datasize)
+        ) else { return nil }
 
-        return .init(data: data)
+        return .init(
+            fileSice: fileSlice
+        )
     }
 }
 
@@ -505,6 +588,49 @@ extension MachOFile {
     /// A Boolean value that indicates whether this machO file was loaded from dyld cache
     public var isLoadedFromDyldCache: Bool {
         headerStartOffsetInCache > 0
+    }
+
+    /// The `DyldCache` object associated with this Mach-O file, if available.
+    ///
+    /// This property attempts to lazily load the dyld cache based on the file URL.
+    /// - If `_cache` has already been set, that value is returned.
+    /// - If `fullCache` is available, the corresponding subcache for this file URL is returned.
+    /// - Otherwise, this attempts to initialize a new `DyldCache` using the file URL.
+    ///
+    /// This is mainly used when the Mach-O file originates from a dyld shared cache and requires
+    /// access to symbols, sections, or other data spread across subcaches.
+    public var cache: DyldCache? {
+        if let _cache { return _cache }
+        if let fullCache {
+            return fullCache.cache(for: url)
+        }
+        _cache = try? .init(url: url)
+        _cache?._fullCache = _fullCache
+        return _cache
+    }
+
+    /// The `FullDyldCache` object associated with this Mach-O file, if available.
+    ///
+    /// This property attempts to lazily load the corresponding full dyld cache based on the file URL.
+    /// - If `_fullCache` has already been set, that value is returned.
+    /// - If `_cache` exists and its `_fullCache` is available, that is returned.
+    /// - Otherwise, this tries to load a `FullDyldCache` from a path obtained by removing the last two path extensions of `url`.
+    ///
+    /// This is primarily used when the Mach-O file originates from a dyld shared cache and data in other
+    /// subcache files needs to be accessed.
+    public var fullCache: FullDyldCache? {
+        if let _fullCache { return _fullCache }
+        if let _cache,
+           let _fullCache = _cache._fullCache {
+            return _fullCache
+        }
+        _fullCache = try? .init(
+            url: url
+                .deletingPathExtension()
+                .deletingPathExtension()
+        )
+        _cache?._fullCache = _fullCache
+        return _fullCache
     }
 }
 
@@ -539,10 +665,110 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    /// Info.plist embedded in the MachO binary (__TEXT,__info_plist)
+    public var embeddedInfoPlist: [String: Any]? {
+        func plist(in section: any SectionProtocol) throws -> [String: Any]? {
+            let offset = headerStartOffset + section.offset
+            let data = try fileHandle.readData(
+                offset: offset,
+                length: section.size
+            )
+            guard let infoPlist = try? PropertyListSerialization.propertyList(
+                from: data,
+                format: nil
+            ) else {
+                return nil
+            }
+            return infoPlist as? [String: Any]
+        }
+
+        if let text = loadCommands.text64 {
+            guard let __info_plist = text.sections(in: self).first(
+                where: { $0.sectionName == "__info_plist" }
+            ) else { return nil }
+            return try? plist(in: __info_plist)
+        } else if let text = loadCommands.text {
+            guard let __info_plist = text.sections(in: self).first(
+                where: { $0.sectionName == "__info_plist" }
+            ) else { return nil }
+            return try? plist(in: __info_plist)
+        }
+        return nil
+    }
+}
+
+extension MachOFile {
+    internal func _fileSliceForLinkEditData(
+        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        length: Int
+    ) -> File.FileSlice? {
+        let text: (any SegmentCommandProtocol)? = loadCommands.text64 ?? loadCommands.text
+        let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
+        guard let text, let linkedit else { return nil }
+        guard linkedit.fileOffset + linkedit.fileSize >= offset + length else { return nil }
+
+        let maxFileOffsetToCheck = text.fileOffset + linkedit.virtualMemoryAddress - text.virtualMemoryAddress
+        let isWithinFileRange: Bool = fileHandle.size >= maxFileOffsetToCheck
+
+        // 1) text.vmaddr < linkedit.vmaddr
+        // 2) fileoff_diff <= vmaddr_diff
+        // 3) If both exist in the same file
+        //    text.fileoff < linkedit.fileoff <= text.fileoff + vmaddr_diff
+        // 4) if fileHandle.size < text.fileoff + vmaddr_diff
+        //    both exist in the same file
+
+        // The linkeditdata in iOS is stored together in a separate, independent cache.
+        // (.0x.linkeditdata)
+        if isLoadedFromDyldCache && !isWithinFileRange {
+            let offset = offset - numericCast(linkedit.fileOffset)
+            guard let fullCache = self.fullCache,
+                  let fileOffset = fullCache.fileOffset(
+                    of: numericCast(linkedit.virtualMemoryAddress + offset)
+                  ),
+                  let segment = fullCache.fileSegment(
+                    forOffset: fileOffset
+                  ) else {
+                return nil
+            }
+            return try? segment._file.fileSlice(
+                offset: numericCast(fileOffset) - segment.offset,
+                length: length
+            )
+        } else {
+            return try? fileHandle.fileSlice(
+                offset: headerStartOffset + offset,
+                length: length
+            )
+        }
+    }
+
+    /// Reads the data in the linkedit segment appropriately.
+    ///
+    /// The linkedit data in the machO file obtained from the dyld cache may be separated in a separate sub cache file.
+    /// (e.g. dyld cache in iOS except Simulator)
+    ///
+    /// The data related to the following load command exists in linkedit.
+    ///   - symtab
+    ///   - dysymtab
+    ///   - linkedit_data_command
+    ///   - exports trie
+    public func _readLinkEditData(
+        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        length: Int
+    ) -> Data? {
+        guard let fileSlice = _fileSliceForLinkEditData(
+            offset: offset,
+            length: length
+        ) else { return nil }
+        return try? fileSlice.readAllData()
+    }
+}
+
+extension MachOFile {
     // https://github.com/apple-oss-distributions/dyld/blob/d552c40cd1de105f0ec95008e0e0c0972de43456/common/MetadataVisitor.cpp#L262
     public func resolveRebase(at offset: UInt64) -> UInt64? {
         if isLoadedFromDyldCache,
-           let cache = try? DyldCache(url: url) {
+           let cache = self.cache {
             return cache.resolveRebase(at: offset)
         }
 
@@ -560,7 +786,7 @@ extension MachOFile {
 
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
         if isLoadedFromDyldCache,
-           let cache = try? DyldCache(url: url) {
+           let cache = self.cache {
             return cache.resolveOptionalRebase(at: offset)
         }
 
@@ -574,12 +800,12 @@ extension MachOFile {
             return nil
         }
         if is64Bit {
-            let value: UInt64 = fileHandle.read(
+            let value: UInt64 = try! fileHandle.read(
                 offset: numericCast(headerStartOffset + pointer.offset)
             )
             if value == 0 { return nil }
         } else {
-            let value: UInt32 = fileHandle.read(
+            let value: UInt32 = try! fileHandle.read(
                 offset: numericCast(headerStartOffset + pointer.offset)
             )
             if value == 0 { return nil }
@@ -616,20 +842,25 @@ extension MachOFile {
 
 
 extension MachOFile {
-    /// Convert raw vmaddr to fileoffset
+    /// Converts a raw virtual memory address (VM address) into a file offset within the Mach-O file.
     ///
-    /// Properly handle PAC, objc tagged pointer, etc.
-    /// It does not deal with rebase/bind.
+    /// This method handles pointer authentication codes (PAC) and Objective-C tagged pointers,
+    /// returning the corresponding offset within the file that contains the Mach-O header.
+    /// It does **not** resolve addresses that rely on rebase or bind operations.
     ///
-    /// - Parameter rawVMAddr:
-    /// - Returns: Raw vmaddr read from section etc.
-    public func fileOffset(of rawVMAddr: UInt64) -> UInt64 {
-        var vmaddr = rawVMAddr
-        if let vmaddrMask {
-            vmaddr &= vmaddrMask // PAC & objc tagged pointer
+    /// - Note:
+    ///   When the Mach-O file originates from a **dyld shared cache**, segments such as `__LINKEDIT` or `__DATA`
+    ///   may reside in different subcache files. In such cases, this function returns `nil` if the address
+    ///   does not belong to the current subcache file.
+    ///
+    /// - Parameter rawVMAddr: The raw virtual memory address to convert.
+    /// - Returns: The file offset relative to the start of the file that contains the Mach-O header,
+    ///   or `nil` if the address does not exist within this file.
+    public func fileOffset(of rawVMAddr: UInt64) -> UInt64? {
+        let vmaddr = stripPointerTags(of: rawVMAddr)
+        if let cache {
+            return cache.fileOffset(of: vmaddr)
         }
-        //        vmaddr &= ~3 // objc pointer union
-
         for segment in self.segments {
             if segment.virtualMemoryAddress <= vmaddr,
                vmaddr < segment.virtualMemoryAddress + segment.virtualMemorySize {
@@ -640,80 +871,6 @@ extension MachOFile {
                 return vmaddr
             }
         }
-        return vmaddr
-    }
-}
-
-extension MachOFile {
-    /// Bitmask to get a valid range of vmaddr from raw vmaddr
-    ///
-    /// | Arch | `MACH_VM_MAX_ADDRESS` | mask |
-    /// |---------|------------------|----------|
-    /// | **arm** | `0x80000000` | `0x7FFFFFFF` |
-    /// | **arm64 (mac or driver)** | `0x00007FFFFE000000` | `0x00007FFFFFFFFFFF` |
-    /// | **arm64 (other)** | `0x0000000FC0000000` | `0x0000000FFFFFFFFF` |
-    /// | **i386** | `0x00007FFFFFE00000` | `0x00007FFFFFFFFFFF` |
-    ///
-    /// [xnu implementation](https://github.com/apple-oss-distributions/xnu/blob/8d741a5de7ff4191bf97d57b9f54c2f6d4a15585/osfmk/mach/arm/vm_param.h#L126)
-    private var vmaddrMask: UInt64? {
-        switch header.cpuType {
-        case .x86:
-            return 0xFFFFFFFF
-        case .i386:
-            return 0xFFFFFFFF
-        case .x86_64:
-            return 0x00007FFFFFFFFFFF
-        case .arm:
-            return 0x7FFFFFFF
-        case .arm64:
-            if let platform = loadCommands.info(of: LoadCommand.buildVersion)?.platform {
-                if [
-                    .macOS,
-                    .driverKit
-                ].contains(platform) || isMacOS == true {
-                    return 0x00007FFFFFFFFFFF
-                } else {
-                    return 0x0000000FFFFFFFFF
-                }
-            }
-            return 0x0000000FFFFFFFFF // FIXME: fallback
-
-        case .arm64_32:
-            return 0x7FFFFFFF
-        default:
-            return nil
-        }
-    }
-}
-
-extension MachOFile {
-    private var isMacOS: Bool? {
-        let loadCommands = loadCommands
-        if let platform = loadCommands.info(of: LoadCommand.buildVersion)?.platform  {
-            return [
-                .macOS,
-                .macOSExclaveKit,
-                .macOSExclaveCore,
-                .macCatalyst
-            ].contains(
-                platform
-            )
-        }
-        if loadCommands.info(of: LoadCommand.versionMinMacosx) != nil {
-            return true
-        }
-
-        if loadCommands.info(of: LoadCommand.versionMinIphoneos) != nil ||
-            loadCommands.info(of: LoadCommand.versionMinWatchos) != nil ||
-            loadCommands.info(of: LoadCommand.versionMinTvos) != nil {
-            return false
-        }
-
-        if header.isInDyldCache,
-           let cache = try? DyldCache(url: url) {
-            return cache.header.platform == .macOS
-        }
-
         return nil
     }
 }

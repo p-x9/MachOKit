@@ -8,91 +8,91 @@
 
 import CoreFoundation
 import Foundation
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 import MachOKitC
 
 extension MachOFile {
     public struct CodeSign {
-        public let data: Data
+        typealias FileSlice = File.FileSlice
+
+        internal let fileSice: FileSlice
         public let isSwapped: Bool // bigEndian => false
     }
 }
 
 extension MachOFile.CodeSign {
-    init(data: Data) {
-        self.data = data
+    init(fileSice: FileSlice) {
+        self.fileSice = fileSice
         self.isSwapped = CFByteOrderGetCurrent() != CFByteOrderBigEndian.rawValue
+    }
+}
+
+extension MachOFile.CodeSign {
+    public var data: Data? {
+        try? fileSice.readData(offset: 0, length: fileSice.size)
     }
 }
 
 extension MachOFile.CodeSign: CodeSignProtocol {
     public var superBlob: CodeSignSuperBlob? {
-        data.withUnsafeBytes {
-            guard let basePtr = $0.baseAddress else { return nil }
-            var layout = basePtr.assumingMemoryBound(to: CS_SuperBlob.self).pointee
-            if isSwapped { layout = layout.swapped }
-            return .init(
-                layout: layout,
-                offset: 0
-            )
-        }
+        var layout = fileSice.ptr
+            .assumingMemoryBound(to: CS_SuperBlob.self)
+            .pointee
+        if isSwapped { layout = layout.swapped }
+        return .init(
+            layout: layout,
+            offset: 0
+        )
     }
 
     public var codeDirectories: [CodeSignCodeDirectory] {
-        data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress,
-                  let superBlob else {
-                return []
+        guard let superBlob else { return [] }
+        let blobIndices = superBlob.blobIndices(in: self)
+        return blobIndices
+            .compactMap {
+                let offset: Int = numericCast($0.offset)
+                let ptr = fileSice.ptr.advanced(by: offset)
+                let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
+                let blob = CodeSignGenericBlob(
+                    layout: isSwapped ? _blob.swapped : _blob
+                )
+                guard blob.magic == .codedirectory else {
+                    return nil
+                }
+                return (
+                    ptr.assumingMemoryBound(to: CS_CodeDirectory.self).pointee,
+                    offset
+                )
             }
-            let blobIndices = superBlob.blobIndices(in: self)
-            return blobIndices
-                .compactMap {
-                    let offset: Int = numericCast($0.offset)
-                    let ptr = baseAddress.advanced(by: offset)
-                    let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
-                    let blob = CodeSignGenericBlob(
-                        layout: isSwapped ? _blob.swapped : _blob
-                    )
-                    guard blob.magic == .codedirectory else {
-                        return nil
-                    }
-                    return (
-                        ptr.assumingMemoryBound(to: CS_CodeDirectory.self).pointee,
-                        offset
-                    )
-                }
-                .map {
-                    isSwapped ? .init(layout: $0.swapped, offset: $1)
-                    : .init(layout: $0, offset: $1)
-                }
-        }
+            .map {
+                isSwapped ? .init(layout: $0.swapped, offset: $1)
+                : .init(layout: $0, offset: $1)
+            }
     }
 
     public var requirementsBlob: CodeSignSuperBlob? {
-        guard let superBlob else {
-            return nil
-        }
+        guard let superBlob else { return nil }
         let blobIndices = superBlob.blobIndices(in: self)
         guard let index = blobIndices.first(
             where: { $0.type == .requirements }
         ) else {
             return nil
         }
-        return data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress else {
-                return nil
-            }
-            let offset: Int = numericCast(index.offset)
-            let ptr = baseAddress.advanced(by: offset)
-            var _blob = ptr
-                .assumingMemoryBound(to: CS_SuperBlob.self)
-                .pointee
-            if isSwapped { _blob = _blob.swapped }
+        let offset: Int = numericCast(index.offset)
+        let ptr = fileSice.ptr.advanced(by: offset)
+        var _blob = ptr
+            .assumingMemoryBound(to: CS_SuperBlob.self)
+            .pointee
+        if isSwapped { _blob = _blob.swapped }
 
-            return .init(
-                layout: _blob,
-                offset: offset
-            )
-        }
+        return .init(
+            layout: _blob,
+            offset: offset
+        )
     }
 }
 
@@ -110,26 +110,21 @@ extension MachOFile.CodeSign {
         at index: CodeSignBlobIndex,
         includesGenericInfo: Bool = true
     ) -> Data? {
-        data.withUnsafeBytes { bufferPointer in
-            guard let baseAddress = bufferPointer.baseAddress else {
-                return nil
-            }
-            let offset: Int = numericCast(superBlob.offset) + numericCast(index.offset)
-            guard let _blob: CodeSignGenericBlob = .load(
-                from: baseAddress,
-                offset: offset,
-                isSwapped: isSwapped
-            ) else { return nil }
+        let offset: Int = numericCast(superBlob.offset) + numericCast(index.offset)
+        guard let _blob: CodeSignGenericBlob = .load(
+            from: fileSice.ptr,
+            offset: offset,
+            isSwapped: isSwapped
+        ) else { return nil }
 
-            let data = Data(
-                bytes: baseAddress.advanced(by: offset),
-                count: numericCast(_blob.length)
-            )
-            if includesGenericInfo {
-                return data
-            } else {
-                return data.advanced(by: CodeSignGenericBlob.layoutSize)
-            }
+        let data = Data(
+            bytes: fileSice.ptr.advanced(by: offset),
+            count: numericCast(_blob.length)
+        )
+        if includesGenericInfo {
+            return data
+        } else {
+            return data.advanced(by: CodeSignGenericBlob.layoutSize)
         }
     }
 

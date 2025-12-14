@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct DyldCacheSlideInfo3: LayoutWrapper {
+public struct DyldCacheSlideInfo3: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_slide_info3
 
     public var layout: Layout
@@ -40,6 +40,18 @@ extension DyldCacheSlideInfo3 {
     }
 
     public func pageStarts(in cache: DyldCache) -> DataSequence<PageStart>? {
+        _pageStarts(in: cache)
+    }
+
+    public func pageStarts(in cache: FullDyldCache) -> DataSequence<PageStart>? {
+        _pageStarts(in: cache)
+    }
+}
+
+extension DyldCacheSlideInfo3 {
+    internal func _pageStarts<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<PageStart>? {
         let pageStartsOffset = layoutSize
         return cache.fileHandle.readDataSequence(
             offset: numericCast(offset) + numericCast(pageStartsOffset),

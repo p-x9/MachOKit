@@ -69,8 +69,7 @@ extension String {
 extension String {
     @inline(__always)
     func isEqual(to tuple: CCharTuple16) -> Bool {
-        var buffer = tuple
-        return withUnsafePointer(to: &buffer.0) { tuple in
+        withUnsafePointer(to: tuple) { tuple in
             withCString { str in
                 strcmp(str, tuple) == 0
             }
@@ -79,8 +78,7 @@ extension String {
 
     @inline(__always)
     func isEqual(to tuple: CCharTuple32) -> Bool {
-        var buffer = tuple
-        return withUnsafePointer(to: &buffer.0) { tuple in
+        withUnsafePointer(to: tuple) { tuple in
             withCString { str in
                 strcmp(str, tuple) == 0
             }

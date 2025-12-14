@@ -50,7 +50,7 @@ extension DyldCacheMappingFlags {
 }
 
 extension DyldCacheMappingFlags {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// DYLD_CACHE_MAPPING_AUTH_DATA
         case authData
         /// DYLD_CACHE_MAPPING_DIRTY_DATA

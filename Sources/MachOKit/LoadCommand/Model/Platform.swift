@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum Platform {
+public enum Platform: Sendable {
     /// PLATFORM_UNKNOWN
     case unknown
     /// PLATFORM_ANY

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ObjCImageInfo: LayoutWrapper {
+public struct ObjCImageInfo: LayoutWrapper, Sendable {
     public typealias Layout = objc_image_info
 
     public var layout: Layout
@@ -79,7 +79,7 @@ extension ObjCImageInfoFlags {
 }
 
 extension ObjCImageInfoFlags {
-    public enum Bit: UInt32, CaseIterable {
+    public enum Bit: UInt32, Sendable, CaseIterable {
         /// categories were optimized by dyld
         case dyldCategoriesOptimized     = 0x00000001
         /// image supports GC
@@ -115,7 +115,7 @@ extension ObjCImageInfoFlags.Bit: CustomStringConvertible {
 }
 
 extension ObjCImageInfoFlags {
-    public enum SwiftVersion: UInt32 {
+    public enum SwiftVersion: UInt32, Sendable {
         case v1 = 1
         case v1_2
         case v2

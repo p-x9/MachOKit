@@ -3,12 +3,12 @@
 //
 //
 //  Created by p-x9 on 2023/12/26.
-//  
+//
 //
 
 import Foundation
 
-public struct IndirectSymbol {
+public struct IndirectSymbol: Sendable {
     let _value: UInt32
 }
 

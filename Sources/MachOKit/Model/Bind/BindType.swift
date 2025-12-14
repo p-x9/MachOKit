@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum BindType {
+public enum BindType: Sendable {
     /// BIND_TYPE_POINTER
     case pointer
     /// BIND_TYPE_TEXT_ABSOLUTE32

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum RebaseOpcode {
+public enum RebaseOpcode: Sendable {
     /// REBASE_OPCODE_DONE
     case done
     /// REBASE_OPCODE_SET_TYPE_IMM

@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct CodeSignSuperBlob: LayoutWrapper {
+public struct CodeSignSuperBlob: LayoutWrapper, Sendable {
     public typealias Layout = CS_SuperBlob
 
     public var layout: Layout
@@ -37,7 +37,10 @@ extension CodeSignSuperBlob {
 
         return AnyRandomAccessCollection(
             DataSequence<CS_BlobIndex>(
-                data: signature.data.advanced(by: offset),
+                data: try! signature.fileSice.readData(
+                    offset: offset,
+                    upToCount: signature.fileSice.size
+                ),
                 numberOfElements: count
             ).lazy.map {
                 .init(layout: signature.isSwapped ? $0.swapped : $0)

@@ -20,25 +20,25 @@ public struct DylibUseFlags: BitFlags {
 
 extension DylibUseFlags {
     /// DYLIB_USE_WEAK_LINK
-    public static let weak_link = MachHeader.Flags(
+    public static let weak_link = DylibUseFlags(
         rawValue: Bit.weak_link.rawValue
     )
     /// DYLIB_USE_REEXPORT
-    public static let reexport = MachHeader.Flags(
+    public static let reexport = DylibUseFlags(
         rawValue: Bit.reexport.rawValue
     )
     /// DYLIB_USE_UPWARD
-    public static let upward = MachHeader.Flags(
+    public static let upward = DylibUseFlags(
         rawValue: Bit.upward.rawValue
     )
     /// DYLIB_USE_DELAYED_INIT
-    public static let delayed_init = MachHeader.Flags(
+    public static let delayed_init = DylibUseFlags(
         rawValue: Bit.delayed_init.rawValue
     )
 }
 
 extension DylibUseFlags {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// DYLIB_USE_WEAK_LINK
         case weak_link
         /// DYLIB_USE_REEXPORT

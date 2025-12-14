@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum BindOperationsKind {
+public enum BindOperationsKind: Sendable {
     case normal
     case weak
     case lazy

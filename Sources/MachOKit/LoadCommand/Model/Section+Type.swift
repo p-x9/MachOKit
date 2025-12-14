@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum SectionType {
+public enum SectionType: Sendable {
     /// S_REGULAR
     case regular
     /// S_ZEROFILL

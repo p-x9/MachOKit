@@ -39,10 +39,14 @@ extension ExportSymbolFlags {
     public static let static_resolver = ExportSymbolFlags(
         rawValue: Bit.static_resolver.rawValue
     )
+    /// EXPORT_SYMBOL_FLAGS_FUNCTION_VARIANT
+    public static let function_variant = ExportSymbolFlags(
+        rawValue: Bit.function_variant.rawValue
+    )
 }
 
 extension ExportSymbolFlags {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION
         case weak_definition
         /// EXPORT_SYMBOL_FLAGS_REEXPORT
@@ -51,6 +55,8 @@ extension ExportSymbolFlags {
         case stub_and_resolver
         /// EXPORT_SYMBOL_FLAGS_STATIC_RESOLVER
         case static_resolver
+        /// EXPORT_SYMBOL_FLAGS_FUNCTION_VARIANT
+        case function_variant
     }
 }
 
@@ -63,6 +69,7 @@ extension ExportSymbolFlags.Bit: RawRepresentable {
         case RawValue(EXPORT_SYMBOL_FLAGS_REEXPORT): self = .reexport
         case RawValue(EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER): self = .stub_and_resolver
         case RawValue(EXPORT_SYMBOL_FLAGS_STATIC_RESOLVER): self = .static_resolver
+        case RawValue(EXPORT_SYMBOL_FLAGS_FUNCTION_VARIANT): self = .function_variant
         default: return nil
         }
     }
@@ -73,6 +80,7 @@ extension ExportSymbolFlags.Bit: RawRepresentable {
         case .reexport: RawValue(EXPORT_SYMBOL_FLAGS_REEXPORT)
         case .stub_and_resolver: RawValue(EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER)
         case .static_resolver: RawValue(EXPORT_SYMBOL_FLAGS_STATIC_RESOLVER)
+        case .function_variant: RawValue(EXPORT_SYMBOL_FLAGS_FUNCTION_VARIANT)
         }
     }
 }
@@ -84,6 +92,7 @@ extension ExportSymbolFlags.Bit: CustomStringConvertible {
         case .reexport: "EXPORT_SYMBOL_FLAGS_REEXPORT"
         case .stub_and_resolver: "EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER"
         case .static_resolver: "EXPORT_SYMBOL_FLAGS_STATIC_RESOLVER"
+        case .function_variant: "EXPORT_SYMBOL_FLAGS_FUNCTION_VARIANT"
         }
     }
 }

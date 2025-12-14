@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 5.10
 
 import PackageDescription
 
@@ -20,12 +20,15 @@ let package = Package(
             targets: ["MachOKitC"]
         )
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/p-x9/swift-fileio.git", from: "0.11.0")
+    ],
     targets: [
         .target(
             name: "MachOKit",
             dependencies: [
-                "MachOKitC"
+                "MachOKitC",
+                .product(name: "FileIO", package: "swift-fileio")
             ],
             swiftSettings: SwiftSetting.allCases + [
                 .enableExperimentalFeature("AccessLevelOnImport", .when(configuration: .debug))

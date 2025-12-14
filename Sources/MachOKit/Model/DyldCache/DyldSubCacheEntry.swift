@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum DyldSubCacheEntryType {
+public enum DyldSubCacheEntryType: Sendable {
     case general
     case v1
 
@@ -22,7 +22,7 @@ public enum DyldSubCacheEntryType {
     }
 }
 
-public enum DyldSubCacheEntry {
+public enum DyldSubCacheEntry: Sendable {
     case general(DyldSubCacheEntryGeneral)
     case v1(DyldSubCacheEntryV1)
 
@@ -63,8 +63,17 @@ public enum DyldSubCacheEntry {
 // cache
 extension DyldSubCacheEntry {
     public func subcache(for cache: DyldCache) throws -> DyldCache? {
+        if let _fullCache = cache._fullCache {
+            return _fullCache.subCaches.first(
+                where: {
+                    $0.url.lastPathComponent.hasSuffix(fileSuffix)
+                }
+            )
+        }
         let url = URL(fileURLWithPath: cache.url.path + fileSuffix)
-        return try DyldCache(subcacheUrl: url, mainCacheHeader: cache.header)
+        let subcache = try DyldCache(subcacheUrl: url, mainCache: cache)
+        subcache._fullCache = cache._fullCache
+        return subcache
     }
 
     public func subcache(for cache: DyldCacheLoaded) throws -> DyldCacheLoaded? {
@@ -76,7 +85,7 @@ extension DyldSubCacheEntry {
     }
 }
 
-public struct DyldSubCacheEntryV1: LayoutWrapper {
+public struct DyldSubCacheEntryV1: LayoutWrapper, Sendable {
     public typealias Layout = dyld_subcache_entry_v1
 
     public var layout: Layout
@@ -91,13 +100,13 @@ extension DyldSubCacheEntryV1 {
 
     /// File name suffix of the subCache file
     ///
-    /// e.g. ".01", ".02"
+    /// e.g. ".1", ".2"
     public var fileSuffix: String {
-        "." + String(format: "%02d", index)
+        "." + String(format: "%u", index + 1)
     }
 }
 
-public struct DyldSubCacheEntryGeneral: LayoutWrapper {
+public struct DyldSubCacheEntryGeneral: LayoutWrapper, Sendable {
     public typealias Layout = dyld_subcache_entry
 
     public var layout: Layout

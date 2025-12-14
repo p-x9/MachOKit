@@ -666,6 +666,7 @@ extension MachOFilePrintTests {
             return
         }
         let segments = machO.segments
+        let imports = chainedFixups.imports
 
         let startsInSegments = chainedFixups.startsInSegments(of: startsInImage)
         for (i, startsInSegment) in startsInSegments.enumerated() {
@@ -674,7 +675,6 @@ extension MachOFilePrintTests {
             print(segment.segmentName)
 
             let pointers = chainedFixups.pointers(of: startsInSegment, in: machO)
-            let imports = chainedFixups.imports
 
             for pointer in pointers {
                 let fixupInfo = pointer.fixupInfo
@@ -697,6 +697,15 @@ extension MachOFilePrintTests {
                 }
             }
         }
+    }
+}
+
+extension MachOFilePrintTests {
+    func testEmbeddedInfoPlist() throws {
+        guard let infoPlist = machO.embeddedInfoPlist else {
+            throw XCTSkip("No embedded Info.plist found")
+        }
+        print(infoPlist)
     }
 }
 

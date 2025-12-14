@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum DyldChainedSymbolsFormat: UInt32 {
+public enum DyldChainedSymbolsFormat: UInt32, Sendable {
     case uncompressed
     case zlibCompressed
 }

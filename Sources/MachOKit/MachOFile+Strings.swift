@@ -7,13 +7,20 @@
 //
 
 import Foundation
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 
 extension MachOFile {
     public typealias Strings = UnicodeStrings<UTF8>
     public typealias UTF16Strings = UnicodeStrings<UTF16>
 
     public struct UnicodeStrings<Encoding: _UnicodeEncoding>: StringTable {
-        public let data: Data
+        typealias FileSlice = File.FileSlice
+
+        private let fileSlice: FileSlice
 
         /// file offset of string table start
         public let offset: Int
@@ -21,31 +28,62 @@ extension MachOFile {
         /// size of string table
         public let size: Int
 
-        public let isLittleEndian: Bool
+        public let isSwapped: Bool
+
+        init(
+            fileSlice: FileSlice,
+            offset: Int,
+            size: Int,
+            isSwapped: Bool
+        ) {
+            self.fileSlice = fileSlice
+            self.offset = offset
+            self.size = size
+            self.isSwapped = isSwapped
+        }
 
         public func makeIterator() -> Iterator {
-            .init(data: data, isLittleEndian: isLittleEndian)
+            .init(fileSlice: fileSlice, isSwapped: isSwapped)
         }
     }
 }
 
 extension MachOFile.UnicodeStrings {
-    init(
+    @_spi(Support)
+    public init(
         machO: MachOFile,
         offset: Int,
         size: Int,
-        isLittleEndian: Bool = false
+        isSwapped: Bool
     ) {
-        let data = machO.fileHandle.readData(
-            offset: numericCast(offset),
-            size: size
+        let fileSlice = try! machO.fileHandle.fileSlice(
+            offset: offset,
+            length: size
         )
         self.init(
-            data: data,
+            fileSlice: fileSlice,
             offset: offset,
             size: size,
-            isLittleEndian: isLittleEndian
+            isSwapped: isSwapped
         )
+    }
+}
+
+extension MachOFile.UnicodeStrings {
+    public var data: Data? {
+        try? fileSlice.readAllData()
+    }
+}
+
+extension MachOFile.UnicodeStrings {
+    public func string(at offset: Int) -> Element? {
+        guard 0 <= offset, offset < fileSlice.size else { return nil }
+        let string = String(
+            cString: fileSlice.ptr
+                .advanced(by: offset)
+                .assumingMemoryBound(to: CChar.self)
+        )
+        return .init(string: string, offset: offset)
     }
 }
 
@@ -53,47 +91,65 @@ extension MachOFile.UnicodeStrings {
     public struct Iterator: IteratorProtocol {
         public typealias Element = StringTableEntry
 
-        private let data: Data
+        private let fileSice: FileSlice
         private let tableSize: Int
-        private let isLittleEndian: Bool
+        private let isSwapped: Bool
 
         private var nextOffset: Int
 
-        init(data: Data, isLittleEndian: Bool) {
-            self.data = data
-            self.tableSize = data.count
-            self.isLittleEndian = isLittleEndian
+        init(fileSlice: FileSlice, isSwapped: Bool) {
+            self.fileSice = fileSlice
+            self.tableSize = fileSlice.size
             self.nextOffset = 0
+            self.isSwapped = isSwapped
         }
 
         public mutating func next() -> Element? {
-            data.withUnsafeBytes {
-                if nextOffset >= tableSize { return nil }
-                guard let baseAddress = $0.baseAddress else { return nil }
+            guard nextOffset < tableSize else { return nil }
 
-                let ptr = baseAddress
-                    .advanced(by: nextOffset)
-                    .assumingMemoryBound(to: Encoding.CodeUnit.self)
-                var (string, offset) = ptr.readString(as: Encoding.self)
+            let ptr = UnsafeRawPointer(fileSice.ptr)
+                .advanced(by: nextOffset)
+                .assumingMemoryBound(to: Encoding.CodeUnit.self)
+            var (string, offset) = ptr.readString(as: Encoding.self)
 
-                if isLittleEndian {
-                    let data = Data(bytes: ptr, count: offset)
-                    string = data.withUnsafeBytes {
-                        let baseAddress = $0.baseAddress!
-                            .assumingMemoryBound(to: Encoding.CodeUnit.self)
-                        return .init(
-                            decodingCString: baseAddress,
-                            as: Encoding.self
-                        )
-                    }
-                }
-
-                let result = Element(string: string, offset: nextOffset)
-
+            defer {
                 nextOffset += offset
-
-                return  result
             }
+
+            if isSwapped || shouldSwap(ptr) {
+                let data = Data(bytes: ptr, count: offset)
+                    .byteSwapped(Encoding.CodeUnit.self)
+                string = data.withUnsafeBytes {
+                    let baseAddress = $0.baseAddress!
+                        .assumingMemoryBound(to: Encoding.CodeUnit.self)
+                    return .init(
+                        decodingCString: baseAddress,
+                        as: Encoding.self
+                    )
+                }
+            }
+
+            return .init(
+                string: string,
+                offset: nextOffset
+            )
+        }
+    }
+}
+
+extension MachOFile.UnicodeStrings.Iterator {
+    // https://github.com/swiftlang/swift-corelibs-foundation/blob/4a9694d396b34fb198f4c6dd865702f7dc0b0dcf/Sources/Foundation/NSString.swift#L1390
+    func shouldSwap(_ ptr: UnsafePointer<Encoding.CodeUnit>) -> Bool {
+        let size = MemoryLayout<Encoding.CodeUnit>.size
+        switch size {
+        case 1:
+            return false
+        case 2:
+            return ptr.pointee == 0xFFFE /* ZERO WIDTH NO-BREAK SPACE (swapped) */
+        case 4:
+            return ptr.pointee == UInt32(0xFFFE0000) // avoid overflows in 32bit env
+        default:
+            return false
         }
     }
 }

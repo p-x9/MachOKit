@@ -9,9 +9,9 @@
 import Foundation
 import MachOKitC
 
-public protocol CFStringProtocol {
+public protocol CFStringProtocol: Sendable {
     /// Offset at which string data is stored
-    var stringOffset: Int { get }
+    var stringAddress: Int { get }
     /// Number (in terms of UTF-16 code pairs) of Unicode characters in a string.
     var stringSize: Int { get }
 
@@ -44,7 +44,7 @@ public struct CFString32: LayoutWrapper, CFStringProtocol {
 }
 
 extension CFString64 {
-    public var stringOffset: Int {
+    public var stringAddress: Int {
         numericCast(layout._ptr & 0x7ffffffff)
     }
 
@@ -68,7 +68,7 @@ extension CFString64 {
 }
 
 extension CFString32 {
-    public var stringOffset: Int {
+    public var stringAddress: Int {
         numericCast(layout._ptr)
     }
 
@@ -87,26 +87,26 @@ extension CFString32 {
 
 extension CFStringProtocol {
     public func string(in machO: MachOFile) -> String? {
-        let offset =  machO.fileOffset(
-            of: numericCast(stringOffset)
-        ) + numericCast(machO.headerStartOffset)
+        guard let offset = machO.fileOffset(
+            of: numericCast(stringAddress)
+        ) else { return nil }
 
         if isUnicode {
-            let data = machO.fileHandle.readData(
-                offset: offset,
-                size: numericCast(stringSize) * numericCast(MemoryLayout<UInt16/*UniChar*/>.size)
+            let data = try! machO.fileHandle.readData(
+                offset: numericCast(offset) + machO.headerStartOffset,
+                length: stringSize * MemoryLayout<UInt16/*UniChar*/>.size
             )
             return String(bytes: data, encoding: .utf16LittleEndian)
         } else {
             return machO.fileHandle.readString(
-                offset: UInt64(offset),
+                offset: numericCast(offset) + numericCast(machO.headerStartOffset),
                 size: stringSize
             )
         }
     }
 
     public func string(in machO: MachOImage) -> String? {
-        guard let ptr = UnsafeRawPointer(bitPattern: UInt(stringOffset)) else {
+        guard let ptr = UnsafeRawPointer(bitPattern: UInt(stringAddress)) else {
             return nil
         }
 
@@ -119,5 +119,12 @@ extension CFStringProtocol {
                 encoding: .ascii
             )
         }
+    }
+}
+
+extension CFStringProtocol {
+    @available(*, deprecated, renamed: "stringAddress")
+    public var stringOffset: Int {
+        stringAddress
     }
 }

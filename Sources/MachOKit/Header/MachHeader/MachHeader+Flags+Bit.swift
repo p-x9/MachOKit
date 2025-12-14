@@ -9,7 +9,7 @@
 import Foundation
 
 extension MachHeader.Flags {
-    public enum Bit: CaseIterable {
+    public enum Bit: Sendable, CaseIterable {
         /// MH_NOUNDEFS
         case noundefs
         /// MH_INCRLINK

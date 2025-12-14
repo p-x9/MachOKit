@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct CodeSignGenericBlob: LayoutWrapper {
+public struct CodeSignGenericBlob: LayoutWrapper, Sendable {
     public typealias Layout = CS_GenericBlob
 
     public var layout: Layout

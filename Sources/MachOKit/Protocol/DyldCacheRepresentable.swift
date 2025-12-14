@@ -101,6 +101,10 @@ public protocol DyldCacheRepresentable {
     /// Sequence of tpro mapping infos
     var tproMappings: TproMappingInfos? { get }
 
+    var functionVariantInfo: DyldCacheFunctionVariantInfo? { get }
+
+    var prewarmingData: DyldCachePrewarming? { get }
+
     /// Get the prebuiltLoaderSet indicated by programOffset.
     /// - Parameter programOffset: program name and offset pair
     /// - Returns: prebuiltLoaderSet
@@ -143,6 +147,22 @@ public protocol DyldCacheRepresentable {
     /// - Parameter offset: file offset
     /// - Returns: mapping and slide info
     func mappingAndSlideInfo(forFileOffset offset: UInt64) -> DyldCacheMappingAndSlideInfo?
+}
+
+extension DyldCacheRepresentable {
+    public var dylibIndices: [DylibIndex] {
+        guard let dylibsTrie else {
+            return []
+        }
+        return dylibsTrie.dylibIndices
+    }
+
+    public var programOffsets: [ProgramOffset] {
+        guard let programsTrie else {
+            return []
+        }
+        return programsTrie.programOffsets
+    }
 }
 
 extension DyldCacheRepresentable {

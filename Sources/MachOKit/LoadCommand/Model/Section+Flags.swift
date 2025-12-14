@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SectionFlags {
+public struct SectionFlags: Sendable {
     public let rawValue: UInt32
 
     public var type: SectionType? {

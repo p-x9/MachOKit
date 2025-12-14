@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol DyldChainedImportProtocol: LayoutWrapper {
+public protocol DyldChainedImportProtocol: LayoutWrapper, Sendable {
     var libraryOrdinal: Int { get }
     var isWeakImport: Bool { get }
     var nameOffset: Int { get }

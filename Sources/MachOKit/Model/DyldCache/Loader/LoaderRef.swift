@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct LoaderRef: LayoutWrapper {
+public struct LoaderRef: LayoutWrapper, Sendable {
     public typealias Layout = loader_ref
 
     public var layout: Layout

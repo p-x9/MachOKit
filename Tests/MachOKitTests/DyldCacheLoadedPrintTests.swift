@@ -326,6 +326,8 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         print("Type Conformance Hash Table Cache Offset:", swiftOptimization.typeConformanceHashTableCacheOffset)
         print("Metadata Conformance Hash Table Cache Offset:", swiftOptimization.metadataConformanceHashTableCacheOffset)
         print("Foreign Type Conformance Hash Table Cache Offset:", swiftOptimization.foreignTypeConformanceHashTableCacheOffset)
+        print("Prespecialized Data Cache Offset:", swiftOptimization.prespecializationDataCacheOffset)
+        print("Prespecialized Metadata Hash Table Cache Offset:", swiftOptimization.prespecializedMetadataHashTableCacheOffsets)
     }
 
 
@@ -341,6 +343,36 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         guard let mappings = cache.tproMappings else { return }
         for mapping in mappings {
             print("- 0x\(String(mapping.unslidAddress, radix: 16)), \(mapping.size)")
+        }
+    }
+
+    func testFunctionVariantInfo() throws {
+        guard let variantInfo = cache.functionVariantInfo else { return }
+        print("Version:", variantInfo.layout.version)
+        print("Count:", variantInfo.layout.count)
+        guard let entries = variantInfo.entries(in: cache) else {
+            if variantInfo.layout.count > 0 {
+                XCTFail()
+            }
+            return
+        }
+        for entry in entries {
+            print(" ", entry.layout)
+        }
+    }
+
+    func testPrewarmingData() throws {
+        guard let prewarmingData = cache.prewarmingData else { return }
+        print("Version:", prewarmingData.layout.version)
+        print("Count:", prewarmingData.layout.count)
+        guard let entries = prewarmingData.entries(in: cache) else {
+            if prewarmingData.layout.count > 0 {
+                XCTFail()
+            }
+            return
+        }
+        for entry in entries {
+            print(" ", entry.layout)
         }
     }
 }

@@ -1,14 +1,14 @@
 //
 //  BindingSymbol.swift
-//  
+//
 //
 //  Created by p-x9 on 2023/12/13.
-//  
+//
 //
 
 import Foundation
 
-public struct BindingSymbol {
+public struct BindingSymbol: Sendable {
     public let type: BindType
     public let libraryOrdinal: Int
     public let segmentIndex: UInt

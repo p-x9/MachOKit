@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum RelocationLength: UInt32 {
+public enum RelocationLength: UInt32, Sendable {
     case byte
     case word
     case long

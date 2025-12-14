@@ -8,8 +8,8 @@
 
 import Foundation
 
-public protocol DyldCacheLocalSymbolsEntryProtocol {
-    /// Offset in cache file of start of dylib
+public protocol DyldCacheLocalSymbolsEntryProtocol: Sendable {
+    /// Offset in cache buffer of start of dylib
     var dylibOffset: Int { get }
 
     /// Start index of locals for this dylib
@@ -17,4 +17,10 @@ public protocol DyldCacheLocalSymbolsEntryProtocol {
 
     /// Number of local symbols for this dylib
     var nlistCount: Int { get }
+}
+
+extension DyldCacheLocalSymbolsEntryProtocol {
+    public var nlistRange: Range<Int> {
+        nlistStartIndex ..< nlistStartIndex + nlistCount
+    }
 }

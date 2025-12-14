@@ -38,39 +38,19 @@ extension PrebuiltLoader_Pre1165_3 {
 
 extension PrebuiltLoader_Pre1165_3 {
     public func path(in cache: DyldCache) -> String? {
-        guard let offset = cache.fileOffset(
-            of: numericCast(address) + numericCast(layout.pathOffset)
-        ) else { return nil }
-        return cache.fileHandle.readString(offset: offset)
+        _path(in: cache)
     }
 
     public func altPath(in cache: DyldCache) -> String? {
-        guard layout.altPathOffset != 0 else { return nil }
-        guard let offset = cache.fileOffset(
-            of: numericCast(address) + numericCast(layout.altPathOffset)
-        ) else { return nil }
-        return cache.fileHandle.readString(offset: offset)
+        _altPath(in: cache)
     }
 
     public func dependentLoaderRefs(in cache: DyldCache) -> DataSequence<LoaderRef>? {
-        guard layout.dependentLoaderRefsArrayOffset != 0,
-              let offset = cache.fileOffset(
-                of: numericCast(address) + numericCast(layout.dependentLoaderRefsArrayOffset)
-              ) else {
-            return nil
-        }
-        return cache.fileHandle.readDataSequence(
-            offset: offset,
-            numberOfElements: numericCast(layout.depCount)
-        )
+        _dependentLoaderRefs(in: cache)
     }
 
     public func objcBinaryInfo(in cache: DyldCache) -> ObjCBinaryInfo? {
-        guard layout.objcBinaryInfoOffset != 0 else { return nil }
-        guard let offset = cache.fileOffset(
-            of: numericCast(address) + numericCast(layout.objcBinaryInfoOffset)
-        ) else { return nil }
-        return cache.fileHandle.read(offset: offset)
+        _objcBinaryInfo(in: cache)
     }
 }
 
@@ -124,6 +104,70 @@ extension PrebuiltLoader_Pre1165_3 {
             .advanced(by: numericCast(layout.objcBinaryInfoOffset))
             .assumingMemoryBound(to: ObjCBinaryInfo.self)
             .pointee
+    }
+}
+
+extension PrebuiltLoader_Pre1165_3 {
+    public func path(in cache: FullDyldCache) -> String? {
+        _path(in: cache)
+    }
+
+    public func altPath(in cache: FullDyldCache) -> String? {
+        _altPath(in: cache)
+    }
+
+    public func dependentLoaderRefs(in cache: FullDyldCache) -> DataSequence<LoaderRef>? {
+        _dependentLoaderRefs(in: cache)
+    }
+
+    public func objcBinaryInfo(in cache: FullDyldCache) -> ObjCBinaryInfo? {
+        _objcBinaryInfo(in: cache)
+    }
+}
+
+extension PrebuiltLoader_Pre1165_3 {
+    internal func _path<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> String? {
+        guard let offset = cache.fileOffset(
+            of: numericCast(address) + numericCast(layout.pathOffset)
+        ) else { return nil }
+        return cache.fileHandle.readString(offset: offset)
+    }
+
+    internal func _altPath<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> String? {
+        guard layout.altPathOffset != 0 else { return nil }
+        guard let offset = cache.fileOffset(
+            of: numericCast(address) + numericCast(layout.altPathOffset)
+        ) else { return nil }
+        return cache.fileHandle.readString(offset: offset)
+    }
+
+    internal func _dependentLoaderRefs<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DataSequence<LoaderRef>? {
+        guard layout.dependentLoaderRefsArrayOffset != 0,
+              let offset = cache.fileOffset(
+                of: numericCast(address) + numericCast(layout.dependentLoaderRefsArrayOffset)
+              ) else {
+            return nil
+        }
+        return cache.fileHandle.readDataSequence(
+            offset: offset,
+            numberOfElements: numericCast(layout.depCount)
+        )
+    }
+
+    internal func _objcBinaryInfo<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> ObjCBinaryInfo? {
+        guard layout.objcBinaryInfoOffset != 0 else { return nil }
+        guard let offset = cache.fileOffset(
+            of: numericCast(address) + numericCast(layout.objcBinaryInfoOffset)
+        ) else { return nil }
+        return cache.fileHandle.read(offset: offset)
     }
 }
 

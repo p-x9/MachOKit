@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum Magic: CaseIterable, Codable, Equatable {
+public enum Magic: CaseIterable, Sendable, Codable, Equatable {
     /// MH_MAGIC
     case magic
     /// MH_CIGAM
