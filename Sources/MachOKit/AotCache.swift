@@ -7,11 +7,18 @@
 //
 
 import Foundation
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
+internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 
 public struct AotCache {
+    typealias File = MemoryMappedFile
+
     /// URL of loaded dyld cache file
     public let url: URL
-    let fileHandle: FileHandle
+    let fileHandle: File
 
 //    public var headerSize: Int {
 //        header.headerSize
@@ -22,11 +29,14 @@ public struct AotCache {
 
     public init(url: URL) throws {
         self.url = url
-        let fileHandle = try FileHandle(forReadingFrom: url)
+        let fileHandle = try File.open(
+            url: url,
+            isWritable: false
+        )
         self.fileHandle = fileHandle
 
         // read header
-        self.header = fileHandle.read(
+        self.header = try! fileHandle.read(
             offset: 0
         )
 
@@ -39,11 +49,12 @@ public struct AotCache {
 
 extension AotCache {
     public var codeSign: MachOFile.CodeSign? {
-        let data = fileHandle.readData(
-            offset: numericCast(header.code_signature_offset),
-            size: numericCast(header.code_signature_size)
+        .init(
+            fileSice: try! fileHandle.fileSlice(
+                offset: numericCast(header.code_signature_offset),
+                length: numericCast(header.code_signature_size)
+            )
         )
-        return .init(data: data)
     }
 }
 
