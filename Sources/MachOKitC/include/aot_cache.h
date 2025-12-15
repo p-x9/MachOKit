@@ -25,4 +25,27 @@ struct aot_cache_header {
     // shared_file_mapping_np mappings is omitted here
 };
 
+// ref: https://github.com/FFRI/ProjectChampollion/blob/b2c083206e3dde48c00d72be181483428463686c/AotSharedCacheExtractor/main.py#L100
+// decompile `/usr/libexec/rosetta/runtime` (macOS 15.7（24G222）)
+struct aot_code_fragment_metadata {
+    uint32_t type;
+
+    // cache
+    int32_t image_path_offset;
+
+    // (cache(x86).headerStartOffsetInCache + headerSize + header.sizeofcmds) -> align up with 64
+    int32_t x86_code_offset;
+    int32_t x86_code_size;
+
+    int32_t arm_code_offset;
+    int32_t arm_code_size;
+
+    int32_t branch_map_offset;
+    int32_t branch_map_size;
+
+    int32_t instruction_map_offset;
+    int32_t instruction_map_size;
+};
+
+
 #endif /* aot_cache_h */
