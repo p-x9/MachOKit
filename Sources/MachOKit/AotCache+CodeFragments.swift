@@ -82,7 +82,7 @@ extension AotCache.CodeFragments {
 
             defer {
                 nextOffset += Element.layoutSize
-                nextOffset += numericCast(layout.branch_map_size)
+                nextOffset += numericCast(layout.branch_data_size)
                 nextOffset += numericCast(layout.instruction_map_size)
 
                 nextIndex += 1
