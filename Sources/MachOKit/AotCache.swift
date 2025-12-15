@@ -60,10 +60,31 @@ extension AotCache {
 
 extension AotCache {
     /// Sequence of mapping infos
-    public var mappingInfos: DataSequence<DyldCacheMappingInfo>? {
+    public var mappingInfos: DataSequence<DyldCacheMappingInfo> {
         fileHandle.readDataSequence(
             offset: numericCast(header.layoutSize),
             numberOfElements: 3
+        )
+    }
+}
+
+extension AotCache {
+    /// Sequence of code fragments
+    public var codeFragments: CodeFragments {
+        let mapping = mappingInfos[0]
+
+        let offset = header.headerSize
+        let size = numericCast(mapping.size) - offset
+
+        let fileSlice = try! fileHandle.fileSlice(
+            offset: offset,
+            length: numericCast(mapping.size) - offset
+        )
+        return .init(
+            fileSlice: fileSlice,
+            offset: offset,
+            size: size,
+            numberOfEntries: numericCast(header.num_code_fragments)
         )
     }
 }
