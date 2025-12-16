@@ -25,6 +25,19 @@ struct aot_cache_header {
     // shared_file_mapping_np mappings is omitted here
 };
 
+#define LC_AOT_METADATA 0xcacaca01
+
+struct aot_metadata_command {
+    uint32_t cmd;         // LC_AOT_METADATA
+    uint32_t cmdsize;     // = 0x20
+
+    uint32_t x86_image_path_offset;
+    uint32_t x86_image_path_size;
+
+    uint32_t fragment_count;
+    uint32_t fragment_offset;
+};
+
 // ref: https://github.com/FFRI/ProjectChampollion/blob/b2c083206e3dde48c00d72be181483428463686c/AotSharedCacheExtractor/main.py#L100
 // decompile `/usr/libexec/rosetta/runtime` (macOS 15.7（24G222）)
 struct aot_code_fragment_metadata {
@@ -47,5 +60,26 @@ struct aot_code_fragment_metadata {
     int32_t instruction_map_size;
 };
 
+struct aot_instruction_map_header {
+    uint32_t _field1; // 66052 fixed?
+    uint32_t _field2; // reserved?
+    uint32_t _field3; // reserved?
+    uint32_t _field4; // reserved?
+    uint32_t map_size;
+    uint32_t entry_count;
+    uint32_t index_offset;
+    // sizeof(first_submap_offset) * entry_count + index_offset
+    uint32_t first_submap_offset;
+};
+
+struct aot_instruction_map_index_entry {
+    /// offset from `aot_code_fragment_metadata->x86_code_offset`
+    uint32_t x86_code_offset;
+    /// offset from `aot_code_fragment_metadata->arm_code_offset`
+    uint32_t arm_code_offset;
+    /// offset from `aot_instruction_map_header->first_submap_offset`
+    uint32_t submap_offset;
+    uint32_t flags; // ?
+};
 
 #endif /* aot_cache_h */
