@@ -53,9 +53,11 @@ struct aot_code_fragment_metadata {
     int32_t arm_code_offset;
     int32_t arm_code_size;
 
+    // offset from fragments starts
     int32_t branch_data_offset;
     int32_t branch_data_size;
 
+    // offset from fragments starts
     int32_t instruction_map_offset;
     int32_t instruction_map_size;
 };

@@ -7,6 +7,7 @@
 //
 
 import MachOKitC
+import Foundation
 
 public struct AotCodeFragment: LayoutWrapper {
     public typealias Layout = aot_code_fragment_metadata
@@ -45,6 +46,19 @@ extension AotCodeFragment {
 
         return cache.fileHandle.readString(
             offset: fileOffset
+        )
+    }
+}
+
+extension AotCodeFragment {
+    public func instructionMap(
+        in cache: AotCache
+    ) -> AotInstructionMap? {
+        guard layout.instruction_map_size > 0 else { return nil }
+        let offset = offset + layoutSize + numericCast(layout.branch_data_size)
+        return .init(
+            header: try! cache.fileHandle.read(offset: offset),
+            offset: offset
         )
     }
 }
