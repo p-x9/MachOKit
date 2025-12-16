@@ -12,6 +12,7 @@ public struct AotCodeFragment: LayoutWrapper {
     public typealias Layout = aot_code_fragment_metadata
 
     public var layout: Layout
+    public let offset: Int
 }
 
 extension AotCodeFragment {

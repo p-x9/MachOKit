@@ -88,7 +88,8 @@ extension AotCache.CodeFragments {
                 nextIndex += 1
             }
 
-            return .init(layout: layout)
+            let offset = fileSlice.baseOffset + nextOffset
+            return .init(layout: layout, offset: offset)
         }
     }
 }
