@@ -62,3 +62,16 @@ extension AotCodeFragment {
         )
     }
 }
+
+extension AotCodeFragment {
+    public func branchData(
+        in cache: AotCache
+    ) -> AotBranchData? {
+        guard layout.branch_data_size > 0 else { return nil }
+        let offset = offset + layoutSize
+        return .init(
+            header: try! cache.fileHandle.read(offset: offset),
+            offset: offset
+        )
+    }
+}
