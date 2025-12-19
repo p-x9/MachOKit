@@ -14,18 +14,26 @@ public struct AotBranchData {
 }
 
 extension AotBranchData {
-    public func entries(in cache: AotCache) -> DataSequence<AotBranchDataIndexEntry>? {
-        guard header.kind == 0 else { return nil }
+    public func compactEntries(in cache: AotCache) -> DataSequence<AotBranchDataIndexEntryCompact>? {
+        guard header.kind == 1 else { return nil }
         return cache.fileHandle.readDataSequence(
-            offset: UInt64(offset + MemoryLayout<AotBranchDataHeader>.size),
+            offset: UInt64(offset + AotBranchDataHeader.layoutSize),
             numberOfElements: numericCast(header.entry_count)
         )
     }
 
-    public func compactEntries(in cache: AotCache) -> DataSequence<AotBranchDataIndexEntryCompact>? {
-        guard header.kind > 0 else { return nil }
+    public func entries(in cache: AotCache) -> DataSequence<AotBranchDataIndexEntry>? {
+        guard header.kind == 2 else { return nil }
         return cache.fileHandle.readDataSequence(
-            offset: UInt64(offset + MemoryLayout<AotBranchDataHeader>.size - MemoryLayout<AotBranchDataIndexEntryCompact>.size),
+            offset: UInt64(offset + AotBranchDataHeader.layoutSize),
+            numberOfElements: numericCast(header.entry_count)
+        )
+    }
+
+    public func extendedEntries(in cache: AotCache) -> DataSequence<AotBranchDataIndexEntryExtended>? {
+        guard header.kind == 3 else { return nil }
+        return cache.fileHandle.readDataSequence(
+            offset: UInt64(offset + AotBranchDataHeader.layoutSize),
             numberOfElements: numericCast(header.entry_count)
         )
     }

@@ -87,28 +87,33 @@ struct aot_instruction_map_index_entry {
 #pragma pack(push, 1)
 
 struct aot_branch_data_header {
-    uint32_t _field1;
+    uint32_t kind;
     uint32_t _field2;
     uint32_t data_size;
     uint32_t entry_count;
-    uint16_t _field5;
-    uint16_t kind;
-    uint8_t _field6;
 };
 
 struct aot_branch_data_index_entry {
-    uint32_t index;
+    uint16_t index;
     uint16_t _field2;
-    uint16_t _field3;
-    uint8_t _field4;
+    uint8_t _field3;
+    uint32_t _field4;
 };
 
 struct aot_branch_data_index_entry_compact {
     uint8_t index;
     uint8_t _field2;
     uint8_t _field3;
+    uint16_t _field4;
+};
+
+struct aot_branch_data_index_entry_extended {
+    uint16_t index;
+    uint16_t _field2;
+    uint16_t _field3;
     uint8_t _field4;
-    uint8_t _field5;
+    uint16_t _field5;
+    uint8_t _field6;
 };
 
 #pragma pack(pop)
