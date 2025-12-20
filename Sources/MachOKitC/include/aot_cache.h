@@ -67,6 +67,22 @@ struct aot_cache_code_fragment_metadata {
     int32_t instruction_map_size;
 };
 
+struct aot_code_fragment_metadata {
+    int32_t x86_code_offset;
+    int32_t x86_code_size;
+
+    int32_t arm_code_offset;
+    int32_t arm_code_size;
+
+    // offset from linkedit segment starts
+    int32_t branch_data_offset;
+    int32_t branch_data_size;
+
+    // offset from linkedit segment starts
+    int32_t instruction_map_offset;
+    int32_t instruction_map_size;
+};
+
 struct aot_instruction_map_header {
     uint32_t _field1; // 66052 fixed?
     uint32_t _field2; // reserved?
