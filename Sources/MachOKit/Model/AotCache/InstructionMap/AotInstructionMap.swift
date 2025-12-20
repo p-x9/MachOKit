@@ -21,4 +21,11 @@ extension AotInstructionMap {
             numberOfElements: numericCast(header.entry_count)
         )
     }
+
+    public func entries(in machO: MachOFile) -> DataSequence<AotInstructionMapIndexEntry> {
+        machO.fileHandle.readDataSequence(
+            offset: UInt64(offset + MemoryLayout<AotInstructionMapHeader>.size),
+            numberOfElements: numericCast(header.entry_count)
+        )
+    }
 }

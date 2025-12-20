@@ -35,6 +35,21 @@ extension AotMetadataCommand {
 }
 
 extension AotMetadataCommand {
+    public func codeFragment(
+        in machO: MachOFile
+    ) -> AotCodeFragment? {
+        let linkeditOffset = linkeditOffset(in: machO)
+
+        let offset = machO.headerStartOffset + linkeditOffset + Int(layout.fragment_offset)
+
+        return .init(
+            layout: try! machO.fileHandle.read(offset: offset),
+            offset: offset
+        )
+    }
+}
+
+extension AotMetadataCommand {
     private func linkeditOffset(in machO: MachOFile) -> Int {
         let loadCommands = machO.loadCommands
         return if let linkedit = loadCommands.linkedit {

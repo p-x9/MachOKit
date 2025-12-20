@@ -36,7 +36,7 @@ struct aot_metadata_command {
     uint32_t x86_image_path_size;
 
     uint32_t fragment_offset;
-    uint32_t fragment_count;
+    uint32_t fragment_count; // == 1
 
     // address of __TEXT,__text section starts (x86_64)
     uint32_t x86_code_address;
