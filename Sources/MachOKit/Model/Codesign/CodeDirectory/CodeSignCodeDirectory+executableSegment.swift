@@ -13,7 +13,7 @@ extension CodeSignCodeDirectory {
         guard isSupportsExecSegment else {
             return nil
         }
-        let layout: CS_CodeDirectory_ExecSeg = signature.fileSice.ptr
+        let layout: CS_CodeDirectory_ExecSeg = signature.fileSlice.ptr
             .advanced(by: offset)
             .advanced(by: layoutSize)
             .advanced(by: ScatterOffset.layoutSize)

@@ -13,7 +13,7 @@ extension CodeSignCodeDirectory {
         guard isSupportsRuntime else {
             return nil
         }
-        let layout: CS_CodeDirectory_Runtime = signature.fileSice.ptr
+        let layout: CS_CodeDirectory_Runtime = signature.fileSlice.ptr
             .advanced(by: offset)
             .advanced(by: layoutSize)
             .advanced(by: ScatterOffset.layoutSize)
@@ -62,7 +62,7 @@ extension CodeSignCodeDirectory {
         let offset = offset
         + numericCast(runtime.preEncryptOffset)
         + index * size
-        return try! signature.fileSice.readData(
+        return try! signature.fileSlice.readData(
             offset: numericCast(offset),
             length: size
         )

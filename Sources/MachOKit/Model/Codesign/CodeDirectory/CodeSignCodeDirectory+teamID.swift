@@ -11,7 +11,7 @@ import Foundation
 extension CodeSignCodeDirectory {
     public func teamIdOffset(in signature: MachOFile.CodeSign) -> TeamIdOffset? {
         guard isSupportsScatter else { return nil }
-        let layout: CS_CodeDirectory_TeamID = signature.fileSice.ptr
+        let layout: CS_CodeDirectory_TeamID = signature.fileSlice.ptr
             .advanced(by: offset)
             .advanced(by: layoutSize)
             .advanced(by: ScatterOffset.layoutSize)
@@ -27,7 +27,7 @@ extension CodeSignCodeDirectory {
               teamIdOffset.teamOffset != 0 else {
             return nil
         }
-        let ptr = signature.fileSice.ptr
+        let ptr = signature.fileSlice.ptr
             .advanced(by: offset)
             .advanced(by: Int(teamIdOffset.teamOffset))
             .assumingMemoryBound(to: CChar.self)

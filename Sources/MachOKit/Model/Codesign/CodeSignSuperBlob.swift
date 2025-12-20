@@ -37,9 +37,9 @@ extension CodeSignSuperBlob {
 
         return AnyRandomAccessCollection(
             DataSequence<CS_BlobIndex>(
-                data: try! signature.fileSice.readData(
+                data: try! signature.fileSlice.readData(
                     offset: offset,
-                    upToCount: signature.fileSice.size
+                    upToCount: signature.fileSlice.size
                 ),
                 numberOfElements: count
             ).lazy.map {

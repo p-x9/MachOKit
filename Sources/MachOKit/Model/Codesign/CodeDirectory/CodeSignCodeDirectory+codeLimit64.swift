@@ -13,7 +13,7 @@ extension CodeSignCodeDirectory {
         guard isSupportsCodeLimit64 else {
             return nil
         }
-        let layout: CS_CodeDirectory_CodeLimit64 = signature.fileSice.ptr
+        let layout: CS_CodeDirectory_CodeLimit64 = signature.fileSlice.ptr
             .advanced(by: offset)
             .advanced(by: layoutSize)
             .advanced(by: ScatterOffset.layoutSize)
