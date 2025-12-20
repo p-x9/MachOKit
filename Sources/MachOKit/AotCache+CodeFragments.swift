@@ -54,7 +54,7 @@ extension AotCache.CodeFragments {
 
 extension AotCache.CodeFragments {
     public struct Iterator: IteratorProtocol {
-        public typealias Element = AotCodeFragment
+        public typealias Element = AotCacheCodeFragment
 
         private let fileSlice: FileSlice
         private let numberOfEntries: Int

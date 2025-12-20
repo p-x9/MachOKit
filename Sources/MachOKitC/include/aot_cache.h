@@ -45,7 +45,7 @@ struct aot_metadata_command {
 
 // ref: https://github.com/FFRI/ProjectChampollion/blob/b2c083206e3dde48c00d72be181483428463686c/AotSharedCacheExtractor/main.py#L100
 // decompile `/usr/libexec/rosetta/runtime` (macOS 15.7（24G222）)
-struct aot_code_fragment_metadata {
+struct aot_cache_code_fragment_metadata {
     uint32_t type;
 
     // cache

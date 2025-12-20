@@ -1,5 +1,5 @@
 //
-//  AotCodeFragment.swift
+//  AotCacheCodeFragment.swift
 //  MachOKit
 //
 //  Created by p-x9 on 2025/12/15
@@ -9,20 +9,20 @@
 import MachOKitC
 import Foundation
 
-public struct AotCodeFragment: LayoutWrapper {
-    public typealias Layout = aot_code_fragment_metadata
+public struct AotCacheCodeFragment: LayoutWrapper {
+    public typealias Layout = aot_cache_code_fragment_metadata
 
     public var layout: Layout
     public let offset: Int
 }
 
-extension AotCodeFragment {
+extension AotCacheCodeFragment {
     public var type: AotCodeFragmentType {
         .init(rawValue: layout.type)!
     }
 }
 
-extension AotCodeFragment {
+extension AotCacheCodeFragment {
     public func imagePath(
         x86DyldCache cache: DyldCache
     ) -> String? {
@@ -50,7 +50,7 @@ extension AotCodeFragment {
     }
 }
 
-extension AotCodeFragment {
+extension AotCacheCodeFragment {
     public func instructionMap(
         in cache: AotCache
     ) -> AotInstructionMap? {
@@ -63,7 +63,7 @@ extension AotCodeFragment {
     }
 }
 
-extension AotCodeFragment {
+extension AotCacheCodeFragment {
     public func branchData(
         in cache: AotCache
     ) -> AotBranchData? {
