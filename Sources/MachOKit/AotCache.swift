@@ -50,7 +50,7 @@ public struct AotCache {
 extension AotCache {
     public var codeSign: MachOFile.CodeSign? {
         .init(
-            fileSice: try! fileHandle.fileSlice(
+            fileSlice: try! fileHandle.fileSlice(
                 offset: numericCast(header.code_signature_offset),
                 length: numericCast(header.code_signature_size)
             )

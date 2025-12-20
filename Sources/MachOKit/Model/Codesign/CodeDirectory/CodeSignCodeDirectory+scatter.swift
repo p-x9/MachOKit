@@ -13,7 +13,7 @@ extension CodeSignCodeDirectory {
         guard isSupportsScatter else {
             return nil
         }
-        let layout: CS_CodeDirectory_Scatter = signature.fileSice.ptr
+        let layout: CS_CodeDirectory_Scatter = signature.fileSlice.ptr
             .advanced(by: offset)
             .advanced(by: layoutSize)
             .assumingMemoryBound(to: CS_CodeDirectory_Scatter.self)

@@ -329,7 +329,7 @@ extension DyldCache {
 extension DyldCache {
     public var codeSign: MachOFile.CodeSign? {
         .init(
-            fileSice: try! fileHandle.fileSlice(
+            fileSlice: try! fileHandle.fileSlice(
                 offset: numericCast(header.codeSignatureOffset),
                 length: numericCast(header.codeSignatureSize)
             )

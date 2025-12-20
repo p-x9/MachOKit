@@ -19,27 +19,27 @@ extension MachOFile {
     public struct CodeSign {
         typealias FileSlice = File.FileSlice
 
-        internal let fileSice: FileSlice
+        internal let fileSlice: FileSlice
         public let isSwapped: Bool // bigEndian => false
     }
 }
 
 extension MachOFile.CodeSign {
-    init(fileSice: FileSlice) {
-        self.fileSice = fileSice
+    init(fileSlice: FileSlice) {
+        self.fileSlice = fileSlice
         self.isSwapped = CFByteOrderGetCurrent() != CFByteOrderBigEndian.rawValue
     }
 }
 
 extension MachOFile.CodeSign {
     public var data: Data? {
-        try? fileSice.readData(offset: 0, length: fileSice.size)
+        try? fileSlice.readData(offset: 0, length: fileSlice.size)
     }
 }
 
 extension MachOFile.CodeSign: CodeSignProtocol {
     public var superBlob: CodeSignSuperBlob? {
-        var layout = fileSice.ptr
+        var layout = fileSlice.ptr
             .assumingMemoryBound(to: CS_SuperBlob.self)
             .pointee
         if isSwapped { layout = layout.swapped }
@@ -55,7 +55,7 @@ extension MachOFile.CodeSign: CodeSignProtocol {
         return blobIndices
             .compactMap {
                 let offset: Int = numericCast($0.offset)
-                let ptr = fileSice.ptr.advanced(by: offset)
+                let ptr = fileSlice.ptr.advanced(by: offset)
                 let _blob = ptr.assumingMemoryBound(to: CS_GenericBlob.self).pointee
                 let blob = CodeSignGenericBlob(
                     layout: isSwapped ? _blob.swapped : _blob
@@ -83,7 +83,7 @@ extension MachOFile.CodeSign: CodeSignProtocol {
             return nil
         }
         let offset: Int = numericCast(index.offset)
-        let ptr = fileSice.ptr.advanced(by: offset)
+        let ptr = fileSlice.ptr.advanced(by: offset)
         var _blob = ptr
             .assumingMemoryBound(to: CS_SuperBlob.self)
             .pointee
@@ -112,13 +112,13 @@ extension MachOFile.CodeSign {
     ) -> Data? {
         let offset: Int = numericCast(superBlob.offset) + numericCast(index.offset)
         guard let _blob: CodeSignGenericBlob = .load(
-            from: fileSice.ptr,
+            from: fileSlice.ptr,
             offset: offset,
             isSwapped: isSwapped
         ) else { return nil }
 
         let data = Data(
-            bytes: fileSice.ptr.advanced(by: offset),
+            bytes: fileSlice.ptr.advanced(by: offset),
             count: numericCast(_blob.length)
         )
         if includesGenericInfo {

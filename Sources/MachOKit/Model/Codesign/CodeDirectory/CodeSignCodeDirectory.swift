@@ -41,7 +41,7 @@ extension CodeSignCodeDirectory {
 extension CodeSignCodeDirectory {
     public func identifier(in signature: MachOFile.CodeSign) -> String {
         String(
-            cString: signature.fileSice.ptr
+            cString: signature.fileSlice.ptr
                 .advanced(by: offset)
                 .advanced(by: numericCast(layout.identOffset))
                 .assumingMemoryBound(to: CChar.self)
@@ -62,7 +62,7 @@ extension CodeSignCodeDirectory {
     public func hash(
         in signature: MachOFile.CodeSign
     ) -> Data? {
-        let data = try! signature.fileSice.readData(
+        let data = try! signature.fileSlice.readData(
             offset: offset,
             length: numericCast(layout.length)
         )
@@ -132,7 +132,7 @@ extension CodeSignCodeDirectory {
         }
         let size: Int = numericCast(layout.hashSize)
         let offset = offset + numericCast(layout.hashOffset) + index * size
-        return try! signature.fileSice.readData(
+        return try! signature.fileSlice.readData(
             offset: offset,
             length: size
         )
