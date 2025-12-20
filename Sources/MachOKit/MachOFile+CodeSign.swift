@@ -25,8 +25,8 @@ extension MachOFile {
 }
 
 extension MachOFile.CodeSign {
-    init(fileSice: FileSlice) {
-        self.fileSlice = fileSice
+    init(fileSlice: FileSlice) {
+        self.fileSlice = fileSlice
         self.isSwapped = CFByteOrderGetCurrent() != CFByteOrderBigEndian.rawValue
     }
 }

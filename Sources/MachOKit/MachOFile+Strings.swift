@@ -91,14 +91,14 @@ extension MachOFile.UnicodeStrings {
     public struct Iterator: IteratorProtocol {
         public typealias Element = StringTableEntry
 
-        private let fileSice: FileSlice
+        private let fileSlice: FileSlice
         private let tableSize: Int
         private let isSwapped: Bool
 
         private var nextOffset: Int
 
         init(fileSlice: FileSlice, isSwapped: Bool) {
-            self.fileSice = fileSlice
+            self.fileSlice = fileSlice
             self.tableSize = fileSlice.size
             self.nextOffset = 0
             self.isSwapped = isSwapped
@@ -107,7 +107,7 @@ extension MachOFile.UnicodeStrings {
         public mutating func next() -> Element? {
             guard nextOffset < tableSize else { return nil }
 
-            let ptr = UnsafeRawPointer(fileSice.ptr)
+            let ptr = UnsafeRawPointer(fileSlice.ptr)
                 .advanced(by: nextOffset)
                 .assumingMemoryBound(to: Encoding.CodeUnit.self)
             var (string, offset) = ptr.readString(as: Encoding.self)

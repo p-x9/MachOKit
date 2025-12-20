@@ -18,14 +18,14 @@ extension MachOFile {
     public struct DyldChainedFixups {
         typealias FileSlice = File.FileSlice
 
-        let fileSice: FileSlice
+        let fileSlice: FileSlice
         let isSwapped: Bool
     }
 }
 
 extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
     public var header: DyldChainedFixupsHeader? {
-        let ret = fileSice.ptr
+        let ret = fileSlice.ptr
             .assumingMemoryBound(to: DyldChainedFixupsHeader.self)
             .pointee
         return isSwapped ? ret.swapped : ret
@@ -34,7 +34,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
     public var startsInImage: DyldChainedStartsInImage? {
         guard let header else { return nil }
         let offset: Int = numericCast(header.starts_offset)
-        let ptr = fileSice.ptr
+        let ptr = fileSlice.ptr
             .advanced(by: offset)
         let layout = ptr
             .assumingMemoryBound(to: DyldChainedStartsInImage.Layout.self)
@@ -51,7 +51,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
     ) -> [DyldChainedStartsInSegment] {
         guard let startsInImage else { return [] }
         let offsets: [Int] = {
-            let ptr = fileSice.ptr
+            let ptr = fileSlice.ptr
                 .advanced(by: startsInImage.offset)
                 .advanced(by: DyldChainedStartsInImage.layoutOffset(of: \.seg_info_offset))
             return UnsafeBufferPointer(
@@ -62,7 +62,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             .map { numericCast($0) }
         }()
 
-        let ptr = fileSice.ptr
+        let ptr = fileSlice.ptr
             .advanced(by: startsInImage.offset)
         return offsets.enumerated().map { index, offset in
             let layout = ptr.advanced(by: offset)
@@ -84,7 +84,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
     ) -> [DyldChainedPage] {
         guard let startsInSegment else { return [] }
 
-        let ptr = fileSice.ptr
+        let ptr = fileSlice.ptr
             .advanced(by: startsInSegment.offset)
             .advanced(by: startsInSegment.layoutOffset(of: \.page_start))
             .assumingMemoryBound(to: UInt16.self)
@@ -106,7 +106,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
             return []
         }
         let offset: Int = numericCast(header.imports_offset)
-        let ptr = fileSice.ptr
+        let ptr = fileSlice.ptr
             .advanced(by: offset)
         let count: Int = numericCast(header.imports_count)
 
@@ -142,7 +142,7 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
 
     public func symbolName(for nameOffset: Int) -> String? {
         guard let header else { return nil }
-        let ptr = fileSice.ptr
+        let ptr = fileSlice.ptr
             .advanced(by: numericCast(header.symbols_offset))
             .advanced(by: nameOffset)
             .assumingMemoryBound(to: CChar.self)

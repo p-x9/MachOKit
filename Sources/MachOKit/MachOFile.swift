@@ -507,7 +507,7 @@ extension MachOFile {
         ) else { return nil }
 
         return .init(
-            fileSice: fileSlice,
+            fileSlice: fileSlice,
             isSwapped: isSwapped
         )
     }
@@ -579,7 +579,7 @@ extension MachOFile {
         ) else { return nil }
 
         return .init(
-            fileSice: fileSlice
+            fileSlice: fileSlice
         )
     }
 }
