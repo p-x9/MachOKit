@@ -231,6 +231,12 @@ extension LoadCommandWrapper where Layout == target_triple_command {
     }
 }
 
+extension LoadCommandWrapper where Layout == aot_metadata_command {
+    public mutating func swap() {
+        swap_aot_metadata_command(&layout, NXHostByteOrder())
+    }
+}
+
 public func swap_target_triple_command(
     _ dl: UnsafeMutablePointer<target_triple_command>!,
     _ target_byte_sex: NXByteOrder
@@ -238,4 +244,21 @@ public func swap_target_triple_command(
     dl.pointee.cmd = dl.pointee.cmd.byteSwapped
     dl.pointee.cmdsize = dl.pointee.cmdsize.byteSwapped
     dl.pointee.triple.offset = dl.pointee.triple.offset.byteSwapped
+}
+
+public func swap_aot_metadata_command(
+    _ dl: UnsafeMutablePointer<aot_metadata_command>!,
+    _ target_byte_sex: NXByteOrder
+) {
+    dl.pointee.cmd = dl.pointee.cmd.byteSwapped
+    dl.pointee.cmdsize = dl.pointee.cmdsize.byteSwapped
+
+    dl.pointee.x86_image_path_offset = dl.pointee.x86_image_path_offset.byteSwapped
+    dl.pointee.x86_image_path_size = dl.pointee.x86_image_path_size.byteSwapped
+
+    dl.pointee.fragment_offset = dl.pointee.fragment_offset.byteSwapped
+    dl.pointee.fragment_count = dl.pointee.fragment_count.byteSwapped
+
+    dl.pointee.x86_code_address = dl.pointee.x86_code_address.byteSwapped
+    dl.pointee._field8 = dl.pointee._field8.byteSwapped
 }

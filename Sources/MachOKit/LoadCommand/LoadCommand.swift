@@ -125,6 +125,9 @@ public enum LoadCommand: Sendable {
     case functionVariantFixups(LoadCommandInfo<linkedit_data_command>)
     /// LC_TARGET_TRIPLE
     case targetTriple(TargetTripleCommand)
+
+    /// LC_AOT_METADATA
+    case aotMetadata(AotMetadataCommand)
 }
 
 extension LoadCommand {
@@ -372,6 +375,10 @@ extension LoadCommand {
             return .targetTriple(
                 .init(rawPointer.autoBoundPointee(), offset: offset)
             )
+        case .aotMetadata:
+            return .aotMetadata(
+                .init(rawPointer.autoBoundPointee(), offset: offset)
+            )
         }
     }
 }
@@ -437,6 +444,7 @@ extension LoadCommand {
         case .functionVariants: .functionVariants
         case .functionVariantFixups: .functionVariantFixups
         case .targetTriple: .targetTriple
+        case .aotMetadata: .aotMetadata
         }
     }
 }
@@ -502,6 +510,7 @@ extension LoadCommand {
         case let .functionVariants(info): info.cmdsize
         case let .functionVariantFixups(info): info.cmdsize
         case let .targetTriple(info): info.cmdsize
+        case let .aotMetadata(info): info.cmdsize
         }
         return numericCast(cmdSize)
     }
@@ -568,6 +577,7 @@ extension LoadCommand {
         case let .functionVariants(info): info
         case let .functionVariantFixups(info): info
         case let .targetTriple(info): info
+        case let .aotMetadata(info): info
         }
     }
 }
@@ -824,6 +834,10 @@ extension LoadCommand {
             var info = info
             info.swap()
             return .targetTriple(info)
+        case let .aotMetadata(info):
+            var info = info
+            info.swap()
+            return .aotMetadata(info)
         }
     }
 }

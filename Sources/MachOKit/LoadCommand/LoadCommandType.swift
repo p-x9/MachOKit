@@ -125,6 +125,9 @@ public enum LoadCommandType: Sendable {
     case functionVariantFixups
     /// LC_TARGET_TRIPLE
     case targetTriple
+
+    /// LC_AOT_METADATA
+    case aotMetadata
 }
 
 extension LoadCommandType: RawRepresentable {
@@ -188,6 +191,7 @@ extension LoadCommandType: RawRepresentable {
         case UInt32(LC_FUNCTION_VARIANTS): self = .functionVariants
         case UInt32(LC_FUNCTION_VARIANT_FIXUPS): self = .functionVariantFixups
         case UInt32(LC_TARGET_TRIPLE): self = .targetTriple
+        case UInt32(LC_AOT_METADATA): self = .aotMetadata
         default: return nil
         }
     }
@@ -254,6 +258,7 @@ extension LoadCommandType {
         case .functionVariants: UInt32(LC_FUNCTION_VARIANTS)
         case .functionVariantFixups: UInt32(LC_FUNCTION_VARIANT_FIXUPS)
         case .targetTriple: UInt32(LC_TARGET_TRIPLE)
+        case .aotMetadata: UInt32(LC_AOT_METADATA)
         }
     }
 }
@@ -319,6 +324,7 @@ extension LoadCommandType: CustomStringConvertible {
         case .functionVariants: "LC_FUNCTION_VARIANTS"
         case .functionVariantFixups: "LC_FUNCTION_VARIANT_FIXUPS"
         case .targetTriple: "LC_TARGET_TRIPLE"
+        case .aotMetadata: "LC_AOT_METADATA"
         }
     }
 }

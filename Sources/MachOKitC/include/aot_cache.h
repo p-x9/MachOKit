@@ -31,11 +31,16 @@ struct aot_metadata_command {
     uint32_t cmd;         // LC_AOT_METADATA
     uint32_t cmdsize;     // = 0x20
 
+    // offset from linkedit segment starts
     uint32_t x86_image_path_offset;
     uint32_t x86_image_path_size;
 
-    uint32_t fragment_count;
     uint32_t fragment_offset;
+    uint32_t fragment_count;
+
+    // address of __TEXT,__text section starts (x86_64)
+    uint32_t x86_code_address;
+    uint32_t _field8;
 };
 
 // ref: https://github.com/FFRI/ProjectChampollion/blob/b2c083206e3dde48c00d72be181483428463686c/AotSharedCacheExtractor/main.py#L100
