@@ -6,7 +6,6 @@
 //
 //
 
-import CoreFoundation
 import Foundation
 #if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
 internal import FileIO
@@ -27,7 +26,7 @@ extension MachOFile {
 extension MachOFile.CodeSign {
     init(fileSlice: FileSlice) {
         self.fileSlice = fileSlice
-        self.isSwapped = CFByteOrderGetCurrent() != CFByteOrderBigEndian.rawValue
+        self.isSwapped = Endian.current != .big
     }
 }
 
