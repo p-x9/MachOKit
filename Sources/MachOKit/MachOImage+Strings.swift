@@ -118,7 +118,7 @@ extension MachOImage.UnicodeStrings {
 
             let char = nextPointer.pointee
 
-            if Self.shouldSwap(char)  {
+            if Self.shouldSwap(char) {
                 handleSwap(
                     string: &string,
                     length: length,
@@ -168,7 +168,7 @@ fileprivate func handleSwap<Encoding: _UnicodeEncoding>(
     encoding: Encoding.Type
 ) {
     var data = Data(
-        bytes: ptr.advanced(by: 1), // skip BOM
+        bytes: ptr,
         count: length
     )
 
