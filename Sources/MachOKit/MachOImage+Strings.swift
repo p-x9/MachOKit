@@ -16,19 +16,24 @@ extension MachOImage {
         public let basePointer: UnsafePointer<Encoding.CodeUnit>
         public let tableSize: Int
 
+        public let isSwapped: Bool
+
         @_spi(Support)
         public init(
             basePointer: UnsafePointer<Encoding.CodeUnit>,
-            tableSize: Int
+            tableSize: Int,
+            isSwapped: Bool = false
         ) {
             self.basePointer = basePointer
             self.tableSize = tableSize
+            self.isSwapped = isSwapped
         }
 
         public func makeIterator() -> Iterator {
             Iterator(
                 basePointer: basePointer,
-                tableSize: tableSize
+                tableSize: tableSize,
+                isSwapped: isSwapped
             )
         }
     }
@@ -39,7 +44,8 @@ extension MachOImage.UnicodeStrings {
         ptr: UnsafeRawPointer,
         text: SegmentCommand64,
         linkedit: SegmentCommand64,
-        symtab: LoadCommandInfo<symtab_command>
+        symtab: LoadCommandInfo<symtab_command>,
+        isSwapped: Bool = false
     ) {
         let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         self.basePointer = ptr
@@ -47,13 +53,15 @@ extension MachOImage.UnicodeStrings {
             .advanced(by: numericCast(fileSlide))
             .assumingMemoryBound(to: Encoding.CodeUnit.self)
         self.tableSize = Int(symtab.strsize)
+        self.isSwapped = isSwapped
     }
 
     init(
         ptr: UnsafeRawPointer,
         text: SegmentCommand,
         linkedit: SegmentCommand,
-        symtab: LoadCommandInfo<symtab_command>
+        symtab: LoadCommandInfo<symtab_command>,
+        isSwapped: Bool = false
     ) {
         let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         self.basePointer = ptr
@@ -61,6 +69,7 @@ extension MachOImage.UnicodeStrings {
             .advanced(by: numericCast(fileSlide))
             .assumingMemoryBound(to: Encoding.CodeUnit.self)
         self.tableSize = Int(symtab.strsize)
+        self.isSwapped = isSwapped
     }
 }
 
@@ -75,7 +84,7 @@ extension MachOImage.UnicodeStrings {
 
         let char = ptr.pointee
 
-        if Iterator.shouldSwap(char) {
+        if isSwapped || Iterator.shouldSwap(char) {
             handleSwap(
                 string: &string,
                 length: length,
@@ -95,16 +104,19 @@ extension MachOImage.UnicodeStrings {
 
         private let basePointer: UnsafePointer<Encoding.CodeUnit>
         private let tableSize: Int
+        private let isSwapped: Bool
 
         private var nextPointer: UnsafePointer<Encoding.CodeUnit>
 
         init(
             basePointer: UnsafePointer<Encoding.CodeUnit>,
-            tableSize: Int
+            tableSize: Int,
+            isSwapped: Bool
         ) {
             self.basePointer = basePointer
             self.tableSize = tableSize
             self.nextPointer = basePointer
+            self.isSwapped = isSwapped
         }
 
         public mutating func next() -> Element? {
@@ -118,7 +130,7 @@ extension MachOImage.UnicodeStrings {
 
             let char = nextPointer.pointee
 
-            if Self.shouldSwap(char) {
+            if isSwapped || Self.shouldSwap(char) {
                 handleSwap(
                     string: &string,
                     length: length,
