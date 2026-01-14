@@ -67,11 +67,24 @@ extension MachOImage.UnicodeStrings {
 extension MachOImage.UnicodeStrings {
     public func string(at offset: Int) -> Element? {
         guard 0 <= offset, offset < tableSize else { return nil }
-        let string = String(
-            cString: UnsafeRawPointer(basePointer)
-                .advanced(by: offset)
-                .assumingMemoryBound(to: CChar.self)
-        )
+
+        let ptr = basePointer.advanced(by: offset)
+
+        var (string, length) = ptr
+            .readString(as: Encoding.self)
+
+        let char = ptr.pointee
+
+        if Iterator.shouldSwap(char) {
+            handleSwap(
+                string: &string,
+                length: length,
+                ptr: ptr,
+                hasBOM: Iterator.shouldSwap(char),
+                encoding: Encoding.self
+            )
+        }
+
         return .init(string: string, offset: offset)
     }
 }
@@ -99,25 +112,24 @@ extension MachOImage.UnicodeStrings {
             if offset >= tableSize {
                 return nil
             }
-            var (string, nextOffset) = nextPointer.readString(
+            var (string, length) = nextPointer.readString(
                 as: Encoding.self
             )
 
-            if shouldSwap(nextPointer) {
-                let data = Data(bytes: nextPointer, count: offset)
-                    .byteSwapped(Encoding.CodeUnit.self)
-                string = data.withUnsafeBytes {
-                    let baseAddress = $0.baseAddress!
-                        .assumingMemoryBound(to: Encoding.CodeUnit.self)
-                    return .init(
-                        decodingCString: baseAddress,
-                        as: Encoding.self
-                    )
-                }
+            let char = nextPointer.pointee
+
+            if Self.shouldSwap(char)  {
+                handleSwap(
+                    string: &string,
+                    length: length,
+                    ptr: nextPointer,
+                    hasBOM: Self.shouldSwap(char),
+                    encoding: Encoding.self
+                )
             }
 
             nextPointer = nextPointer.advanced(
-                by: nextOffset / MemoryLayout<Encoding.CodeUnit>.size
+                by: length / MemoryLayout<Encoding.CodeUnit>.size
             )
 
             return .init(string: string, offset: offset)
@@ -126,17 +138,53 @@ extension MachOImage.UnicodeStrings {
 }
 
 extension MachOImage.UnicodeStrings.Iterator {
-    func shouldSwap(_ ptr: UnsafePointer<Encoding.CodeUnit>) -> Bool {
+    // https://github.com/swiftlang/swift-corelibs-foundation/blob/4a9694d396b34fb198f4c6dd865702f7dc0b0dcf/Sources/Foundation/NSString.swift#L1390
+    static func shouldSwap(
+        _ char: Encoding.CodeUnit
+    ) -> Bool {
         let size = MemoryLayout<Encoding.CodeUnit>.size
+        var char = char
+        if Endian.current == .little {
+            char = char.byteSwapped
+        }
         switch size {
         case 1:
             return false
         case 2:
-            return ptr.pointee == 0xFFFE /* ZERO WIDTH NO-BREAK SPACE (swapped) */
+            return char == 0xFFFE /* ZERO WIDTH NO-BREAK SPACE */
         case 4:
-            return ptr.pointee == UInt32(0xFFFE0000) // avoid overflows in 32bit env
+            return char == UInt32(0xFFFE0000) // avoid overflows in 32bit env
         default:
             return false
         }
+    }
+}
+
+fileprivate func handleSwap<Encoding: _UnicodeEncoding>(
+    string: inout String,
+    length: Int,
+    ptr: UnsafePointer<Encoding.CodeUnit>,
+    hasBOM: Bool,
+    encoding: Encoding.Type
+) {
+    var data = Data(
+        bytes: ptr.advanced(by: 1), // skip BOM
+        count: length
+    )
+
+    // strip BOM
+    if hasBOM {
+        data.removeFirst(MemoryLayout<Encoding.CodeUnit>.size)
+    }
+
+    data = data.byteSwapped(Encoding.CodeUnit.self)
+
+    string = data.withUnsafeBytes {
+        let baseAddress = $0.baseAddress!
+            .assumingMemoryBound(to: Encoding.CodeUnit.self)
+        return .init(
+            decodingCString: baseAddress,
+            as: Encoding.self
+        )
     }
 }

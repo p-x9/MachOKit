@@ -78,11 +78,30 @@ extension MachOFile.UnicodeStrings {
 extension MachOFile.UnicodeStrings {
     public func string(at offset: Int) -> Element? {
         guard 0 <= offset, offset < fileSlice.size else { return nil }
-        let string = String(
-            cString: fileSlice.ptr
-                .advanced(by: offset)
-                .assumingMemoryBound(to: CChar.self)
+
+        guard let (_string, length) = fileSlice._readString(
+            offset: numericCast(offset),
+            as: Encoding.self
+        ) else {
+            return nil
+        }
+        var string = _string
+
+        let char = try! fileSlice.read(
+            offset: offset,
+            as: Encoding.CodeUnit.self
         )
+
+        if isSwapped || Iterator.shouldSwap(char) {
+            handleSwap(
+                string: &string,
+                at: offset,
+                length: length,
+                fileHandle: fileSlice,
+                hasBOM: Iterator.shouldSwap(char),
+                encoding: Encoding.self
+            )
+        }
         return .init(string: string, offset: offset)
     }
 }
@@ -107,26 +126,30 @@ extension MachOFile.UnicodeStrings {
         public mutating func next() -> Element? {
             guard nextOffset < tableSize else { return nil }
 
-            let ptr = UnsafeRawPointer(fileSlice.ptr)
-                .advanced(by: nextOffset)
-                .assumingMemoryBound(to: Encoding.CodeUnit.self)
-            var (string, offset) = ptr.readString(as: Encoding.self)
+            guard let (_string, length) = fileSlice._readString(
+                offset: nextOffset,
+                as: Encoding.self
+            ) else { return nil }
+            var string = _string
 
             defer {
-                nextOffset += offset
+                nextOffset += length
             }
 
-            if isSwapped || shouldSwap(ptr) {
-                let data = Data(bytes: ptr, count: offset)
-                    .byteSwapped(Encoding.CodeUnit.self)
-                string = data.withUnsafeBytes {
-                    let baseAddress = $0.baseAddress!
-                        .assumingMemoryBound(to: Encoding.CodeUnit.self)
-                    return .init(
-                        decodingCString: baseAddress,
-                        as: Encoding.self
-                    )
-                }
+            let char = try! fileSlice.read(
+                offset: nextOffset,
+                as: Encoding.CodeUnit.self
+            )
+
+            if isSwapped || Self.shouldSwap(char) {
+                handleSwap(
+                    string: &string,
+                    at: nextOffset,
+                    length: length,
+                    fileHandle: fileSlice,
+                    hasBOM: Self.shouldSwap(char),
+                    encoding: Encoding.self
+                )
             }
 
             return .init(
@@ -139,17 +162,53 @@ extension MachOFile.UnicodeStrings {
 
 extension MachOFile.UnicodeStrings.Iterator {
     // https://github.com/swiftlang/swift-corelibs-foundation/blob/4a9694d396b34fb198f4c6dd865702f7dc0b0dcf/Sources/Foundation/NSString.swift#L1390
-    func shouldSwap(_ ptr: UnsafePointer<Encoding.CodeUnit>) -> Bool {
+    static func shouldSwap(
+        _ char: Encoding.CodeUnit
+    ) -> Bool {
         let size = MemoryLayout<Encoding.CodeUnit>.size
+        var char = char
+        if Endian.current == .little {
+            char = char.byteSwapped
+        }
         switch size {
         case 1:
             return false
         case 2:
-            return ptr.pointee == 0xFFFE /* ZERO WIDTH NO-BREAK SPACE (swapped) */
+            return char == 0xFFFE /* ZERO WIDTH NO-BREAK SPACE */
         case 4:
-            return ptr.pointee == UInt32(0xFFFE0000) // avoid overflows in 32bit env
+            return char == UInt32(0xFFFE0000) // avoid overflows in 32bit env
         default:
             return false
         }
+    }
+}
+
+fileprivate func handleSwap<Encoding: _UnicodeEncoding>(
+    string: inout String,
+    at offset: Int,
+    length: Int,
+    fileHandle: some _FileIOProtocol,
+    hasBOM: Bool,
+    encoding: Encoding.Type
+) {
+    var data = try! fileHandle.readData(
+        offset: offset,
+        length: length
+    )
+
+    // strip BOM
+    if hasBOM {
+        data.removeFirst(MemoryLayout<Encoding.CodeUnit>.size)
+    }
+
+    data = data.byteSwapped(Encoding.CodeUnit.self)
+
+    string = data.withUnsafeBytes {
+        let baseAddress = $0.baseAddress!
+            .assumingMemoryBound(to: Encoding.CodeUnit.self)
+        return .init(
+            decodingCString: baseAddress,
+            as: Encoding.self
+        )
     }
 }
