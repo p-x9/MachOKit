@@ -277,6 +277,54 @@ extension _FileIOProtocol {
 }
 #endif
 
+extension _FileIOProtocol {
+    @_disfavoredOverload
+    @inline(__always)
+    func _readString<Encoding: _UnicodeEncoding>(
+        offset: Int,
+        as encoding: Encoding.Type
+    ) -> (String, Int)? {
+        if let fileHandle = self as? (any _MemoryMappedFileIOProtocol) {
+            return UnsafeRawPointer(fileHandle.ptr)
+                .advanced(by: offset)
+                .assumingMemoryBound(to: Encoding.CodeUnit.self)
+                .readString(
+                    as: Encoding.self
+                )
+        } else {
+            var count = 0
+            var offset: Int = offset
+
+            var characters: [Encoding.CodeUnit] = []
+
+            while let char = try? read(
+                offset: offset,
+                as: Encoding.CodeUnit.self
+            ), char != 0 {
+                characters.append(char)
+                count += 1
+                offset += MemoryLayout<Encoding.CodeUnit>.size
+            }
+
+            characters.append(0)
+
+            return characters.withUnsafeBytes { bufferPtr in
+                guard let baseAddress = bufferPtr.baseAddress else {
+                    return nil
+                }
+                let string = String(
+                    decodingCString: baseAddress
+                        .assumingMemoryBound(to: Encoding.CodeUnit.self),
+                    as: Encoding.self
+                )
+                let length = (count + 1) * MemoryLayout<Encoding.CodeUnit>.size
+                return (string, length)
+            }
+        }
+    }
+}
+
+
 extension MemoryMappedFileIOProtocol {
     @inline(__always)
     func readString(

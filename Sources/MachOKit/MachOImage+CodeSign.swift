@@ -33,7 +33,7 @@ extension MachOImage.CodeSign: CodeSignProtocol {
             .advanced(by: -numericCast(linkedit.fileoff))
             .advanced(by: numericCast(codeSignature.dataoff))
         let size: Int = numericCast(codeSignature.datasize)
-        let isSwapped = CFByteOrderGetCurrent() != CFByteOrderBigEndian.rawValue
+        let isSwapped = Endian.current != .big
 
         self.init(
             basePointer: start,
@@ -58,7 +58,7 @@ extension MachOImage.CodeSign: CodeSignProtocol {
             .advanced(by: numericCast(codeSignature.dataoff))
             .assumingMemoryBound(to: UInt8.self)
         let size: Int = numericCast(codeSignature.datasize)
-        let isSwapped = CFByteOrderGetCurrent() != CFByteOrderBigEndian.rawValue
+        let isSwapped = Endian.current != .big
 
         self.init(
             basePointer: start,

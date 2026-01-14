@@ -6,7 +6,6 @@
 //
 //
 
-import CoreFoundation // for CFByteOrderGetCurrent (Linux)
 import Foundation
 #if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
 internal import FileIO
@@ -158,7 +157,7 @@ extension MachOFile {
 
 extension MachOFile {
     public var endian: Endian {
-        let hostIsLittleEndian = CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
+        let hostIsLittleEndian = Endian.current == .little
         return hostIsLittleEndian
         ? (isSwapped ? .big : .little)
         : (isSwapped ? .little : .big)

@@ -6,7 +6,6 @@
 //  
 //
 
-import CoreFoundation // for CFByteOrderGetCurrent (Linux)
 import Foundation
 
 /// Structure for `MachO` representation loaded from memory.
@@ -152,16 +151,7 @@ extension MachOImage {
 }
 
 extension MachOImage {
-    public var endian: Endian {
-        switch CFByteOrderGetCurrent() {
-        case numericCast(CFByteOrderLittleEndian.rawValue):
-            return .little
-        case numericCast(CFByteOrderBigEndian.rawValue):
-            return .big
-        default:
-            fatalError("Unexpected byte order value: \(CFByteOrderGetCurrent())")
-        }
-    }
+    public var endian: Endian { .current }
 }
 
 extension MachOImage {
