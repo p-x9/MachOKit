@@ -1,5 +1,5 @@
 {
-  "originHash" : "390aa1caed2034660eedc516e62688f10c6e33f7856646eb9e5402d5512cc0da",
+  "originHash" : "248cb83f1a2be994aa315ca0dcf48bf4a6f0bb20e24283cf2f1bd130476a369d",
   "pins" : [
     {
       "identity" : "swift-binary-parse-support",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/swift-fileio-extra.git",
       "state" : {
-        "revision" : "80477216d53b083b7f840b7683c08b4522da23c4",
-        "version" : "0.1.0"
+        "revision" : "fd15445710e300aa9f70f9b00bc60118398c4a7c",
+        "version" : "0.2.0"
       }
     }
   ],
