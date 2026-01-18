@@ -1,6 +1,15 @@
 {
-  "originHash" : "e70766ff3a8762b0e0cb3838085b9606c85ddf0ae441e6ef58776eb9d424a238",
+  "originHash" : "390aa1caed2034660eedc516e62688f10c6e33f7856646eb9e5402d5512cc0da",
   "pins" : [
+    {
+      "identity" : "swift-binary-parse-support",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/p-x9/swift-binary-parse-support.git",
+      "state" : {
+        "revision" : "defc2adb3df88788c7c18129077d0868e6d23593",
+        "version" : "0.1.1"
+      }
+    },
     {
       "identity" : "swift-fileio",
       "kind" : "remoteSourceControl",
@@ -8,6 +17,15 @@
       "state" : {
         "revision" : "d589ff3966f9f064574780f527449a946736b989",
         "version" : "0.13.0"
+      }
+    },
+    {
+      "identity" : "swift-fileio-extra",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/p-x9/swift-fileio-extra.git",
+      "state" : {
+        "revision" : "80477216d53b083b7f840b7683c08b4522da23c4",
+        "version" : "0.1.0"
       }
     }
   ],
