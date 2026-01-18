@@ -289,7 +289,7 @@ extension MachOFile {
         ) else { return nil }
 
         return .init(
-            fileSlice: fileSlice,
+            source: fileSlice,
             offset: numericCast(symtab.stroff),
             size: numericCast(symtab.strsize),
             isSwapped: isSwapped
