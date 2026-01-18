@@ -9,8 +9,10 @@
 import Foundation
 #if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
 internal import FileIO
+internal import FileIOBinary
 #else
 @_implementationOnly import FileIO
+@_implementationOnly import FileIOBinary
 #endif
 
 /// `DyldCache` represents a single dyld shared cache file.

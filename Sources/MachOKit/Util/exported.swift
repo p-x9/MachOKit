@@ -14,3 +14,6 @@ import MachO
 
 @_exported
 import MachOKitC
+
+@_exported
+@_spi(Core) import BinaryParseSupport

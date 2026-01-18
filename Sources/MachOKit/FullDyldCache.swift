@@ -9,8 +9,10 @@
 import Foundation
 #if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
 internal import FileIO
+internal import FileIOBinary
 #else
 @_implementationOnly import FileIO
+@_implementationOnly import FileIOBinary
 #endif
 
 /// `FullDyldCache` is a high-level abstraction that represents a complete dyld shared cache
