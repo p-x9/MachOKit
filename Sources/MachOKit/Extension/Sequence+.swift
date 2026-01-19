@@ -220,11 +220,10 @@ extension Sequence where Element == MachOFile.Symbol {
             if strcmp(nameC, symbol.name) == 0 ||
                 symbol.name.withCString({ strcmp(nameC, $0 + 1) == 0 }) {
                 results.append(symbol)
-            } else if !mangled {
-                let demangled = stdlib_demangleName(symbol.name)
-                if strcmp(nameC, demangled) == 0 {
-                    results.append(symbol)
-                }
+            } else if !mangled,
+                      let demangled = stdlib_demangleName(symbol.name),
+                      strcmp(nameC, demangled) == 0 {
+                results.append(symbol)
             }
         }
         return results
@@ -253,11 +252,10 @@ extension Sequence where Element == MachOImage.Symbol {
         for symbol in self {
             if strcmp(nameC, symbol.nameC) == 0 || strcmp(nameC, symbol.nameC + 1) == 0 {
                 results.append(symbol)
-            } else if !mangled {
-                let demangled = stdlib_demangleName(symbol.nameC)
-                if strcmp(nameC, demangled) == 0 {
-                    results.append(symbol)
-                }
+            } else if !mangled,
+                      let demangled = stdlib_demangleName(symbol.nameC),
+                      strcmp(nameC, demangled) == 0 {
+                results.append(symbol)
             }
         }
         return results
