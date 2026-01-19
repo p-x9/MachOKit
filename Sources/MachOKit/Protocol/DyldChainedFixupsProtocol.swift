@@ -30,6 +30,12 @@ extension DyldChainedFixupsProtocol {
         guard let symbolName = symbolName(for: nameOffset) else {
             return nil
         }
-        return stdlib_demangleName(symbolName)
+        if let demangled = stdlib_demangleName(symbolName) {
+            return demangled
+        }
+        if let demangled = cxa_demangle(symbolName) {
+            return demangled
+        }
+        return symbolName
     }
 }

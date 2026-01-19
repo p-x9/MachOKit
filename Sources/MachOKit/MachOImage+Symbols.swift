@@ -27,7 +27,13 @@ extension MachOImage.Symbol {
     }
 
     public var demangledName: String {
-        .init(cString: stdlib_demangleName(nameC))
+        if let demangled = stdlib_demangleName(nameC) {
+            return .init(cString: demangled)
+        }
+        if let demangled = cxa_demangle(nameC) {
+            return .init(cString: demangled)
+        }
+        return .init(cString: nameC)
     }
 }
 
