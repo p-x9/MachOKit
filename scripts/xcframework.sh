@@ -67,6 +67,8 @@ archive_project() {
         OTHER_LDFLAGS=$3
     fi
 
+    export BUILD_BINARY_KIT_FW=1
+
     xcodebuild archive -workspace . -scheme "$SCHEME" \
                 -configuration "$CONFIGURATION" \
                 -destination "$DESTINATION" \

@@ -44,10 +44,9 @@ public protocol SectionProtocol: LayoutWrapper, Sendable {
     ///
     /// - Parameters:
     ///   - vmaddrSlide: slide
+    /// - Parameter machO: MachOImage to which `self` belongs
     /// - Returns: string table
-    func strings(
-        vmaddrSlide: Int
-    ) -> MachOImage.Strings?
+    func strings(in machO: MachOImage) -> MachOImage.Strings?
 
     /// Get the data in this section as a string table
     ///
@@ -219,18 +218,24 @@ extension SectionProtocol {
     ///   - segment: sgment to which this section belongs
     ///   - vmaddrSlide: slide
     /// - Returns: string table
-    @available(*, deprecated, renamed: "strings(vmaddrSlide:)", message: "No need to provide segment")
+    @available(*, unavailable, renamed: "strings(in:)")
     public func strings(
         in segment: any SegmentCommandProtocol,
         vmaddrSlide: Int
     ) -> MachOImage.Strings? {
-        strings(vmaddrSlide: vmaddrSlide)
+        fatalError("Use `strings(in:)`")
     }
 
+    @available(*, unavailable, renamed: "strings(in:)")
     public func strings(
         vmaddrSlide: Int
     ) -> MachOImage.Strings? {
+        fatalError("Use `strings(in:)`")
+    }
+
+    public func strings(in machO: MachOImage) -> MachOImage.Strings? {
         guard flags.type == .cstring_literals else { return nil }
+        guard let vmaddrSlide = machO.vmaddrSlide else { return nil }
         guard let basePointer = startPtr(
             vmaddrSlide: vmaddrSlide
         ) else {
@@ -239,6 +244,7 @@ extension SectionProtocol {
         let tableSize = size
         return MachOImage.Strings(
             basePointer: basePointer.assumingMemoryBound(to: UInt8.self),
+            offset: Int(bitPattern: basePointer) - Int(bitPattern: machO.ptr),
             tableSize: tableSize
         )
     }

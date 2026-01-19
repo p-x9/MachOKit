@@ -9,8 +9,10 @@
 import Foundation
 #if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
 @_spi(Core) internal import FileIO
+internal import FileIOBinary
 #else
 @_spi(Core) @_implementationOnly import FileIO
+@_implementationOnly import FileIOBinary
 #endif
 
 extension MachOFile {

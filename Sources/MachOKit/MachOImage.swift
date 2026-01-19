@@ -286,31 +286,29 @@ extension MachOImage {
 extension MachOImage {
     /// Strings in `__TEXT, __cstring` section
     public var cStrings: Strings? {
-        guard let vmaddrSlide else { return nil }
         if is64Bit, let text = loadCommands.text64 {
             let cstrings = text.sections(cmdsStart: cmdsStartPtr).first {
                 $0.sectionName == "__cstring"
             }
             guard let cstrings else { return nil }
-            return cstrings.strings(vmaddrSlide: vmaddrSlide)
+            return cstrings.strings(in: self)
         } else if let text = loadCommands.text {
             let cstrings = text.sections(cmdsStart: cmdsStartPtr).first {
                 $0.sectionName == "__cstring"
             }
             guard let cstrings else { return nil }
-            return cstrings.strings(vmaddrSlide: vmaddrSlide)
+            return cstrings.strings(in: self)
         }
         return nil
     }
 
     public var allCStringTables: [Strings] {
-        guard let vmaddrSlide else { return [] }
         if is64Bit {
             let segments = loadCommands.infos(of: LoadCommand.segment64)
             return segments.flatMap { segment in
                 segment.sections(cmdsStart: cmdsStartPtr)
                     .compactMap { section in
-                        section.strings(vmaddrSlide: vmaddrSlide)
+                        section.strings(in: self)
                     }
             }
         } else {
@@ -318,7 +316,7 @@ extension MachOImage {
             return segments.flatMap { segment in
                 segment.sections(cmdsStart: cmdsStartPtr)
                     .compactMap { section in
-                        section.strings(vmaddrSlide: vmaddrSlide)
+                        section.strings(in: self)
                     }
             }
         }
@@ -342,6 +340,7 @@ extension MachOImage {
         return .init(
             basePointer: start
                 .assumingMemoryBound(to: UInt16.self),
+            offset: Int(bitPattern: start) - Int(bitPattern: ptr),
             tableSize: numericCast(section.size)
         )
     }
