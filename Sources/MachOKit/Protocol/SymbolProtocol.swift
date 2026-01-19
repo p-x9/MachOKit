@@ -21,6 +21,6 @@ public protocol SymbolProtocol {
 
 extension SymbolProtocol {
     public var demangledName: String {
-        stdlib_demangleName(name)
+        stdlib_demangleName(name) ?? cxa_demangle(name) ?? name
     }
 }

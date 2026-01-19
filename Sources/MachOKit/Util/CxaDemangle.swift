@@ -1,33 +1,31 @@
 //
-//  SwiftDemangle.swift
+//  CxaDemangle.swift
+//  MachOKit
 //
-//
-//  Created by p-x9 on 2024/01/05.
+//  Created by p-x9 on 2026/01/19
 //  
 //
 
 import Foundation
 
-@_silgen_name("swift_demangle")
-internal func _stdlib_demangleImpl(
+@_silgen_name("__cxa_demangle")
+internal func __cxa_demangle(
     mangledName: UnsafePointer<CChar>?,
-    mangledNameLength: UInt,
     outputBuffer: UnsafeMutablePointer<CChar>?,
     outputBufferSize: UnsafeMutablePointer<UInt>?,
-    flags: UInt32
+    status: UInt32
 ) -> UnsafeMutablePointer<CChar>?
 
-internal func stdlib_demangleName(
+internal func cxa_demangle(
     _ mangledName: String
 ) -> String? {
     guard !mangledName.isEmpty else { return mangledName }
     return mangledName.utf8CString.withUnsafeBufferPointer { mangledNameUTF8 in
-        let demangledNamePtr = _stdlib_demangleImpl(
+        let demangledNamePtr = __cxa_demangle(
             mangledName: mangledNameUTF8.baseAddress,
-            mangledNameLength: numericCast(mangledNameUTF8.count - 1),
             outputBuffer: nil,
             outputBufferSize: nil,
-            flags: 0
+            status: 0
         )
 
         if let demangledNamePtr {
@@ -37,15 +35,14 @@ internal func stdlib_demangleName(
     }
 }
 
-internal func stdlib_demangleName(
+internal func cxa_demangle(
     _ mangledName: UnsafePointer<CChar>
 ) -> UnsafePointer<CChar>? {
-    let demangledNamePtr = _stdlib_demangleImpl(
+    let demangledNamePtr = __cxa_demangle(
         mangledName: mangledName,
-        mangledNameLength: numericCast(strlen(mangledName)),
         outputBuffer: nil,
         outputBufferSize: nil,
-        flags: 0
+        status: 0
     )
     if let demangledNamePtr {
         return .init(demangledNamePtr)

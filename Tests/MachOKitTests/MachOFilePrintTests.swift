@@ -300,7 +300,12 @@ final class MachOFilePrintTests: XCTestCase {
         guard let cstrings = machO.symbolStrings else { return }
         for (i, cstring) in cstrings.enumerated() {
             let offset = cstrings.offset + cstring.offset - machO.headerStartOffset
-            print(i, "0x" + String(offset, radix: 16), cstring.string, stdlib_demangleName(cstring.string))
+            print(
+                i,
+                "0x" + String(offset, radix: 16),
+                cstring.string,
+                stdlib_demangleName(cstring.string) ?? cxa_demangle(cstring.string) ?? cstring.string
+            )
         }
     }
 
