@@ -24,13 +24,14 @@ extension MachOImage.UnicodeStrings {
     ) {
         let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         let offset: Int = numericCast(symtab.stroff) + numericCast(fileSlide)
+        let tableSize: Int = numericCast(symtab.strsize)
         self.init(
             source: MemoryUnicodeStringsSource(
-                ptr: ptr,
-                size: .max // Dummy
+                ptr: ptr.advanced(by: offset),
+                size: tableSize
             ),
             offset: offset,
-            size: Int(symtab.strsize),
+            size: tableSize,
             isSwapped: isSwapped
         )
     }
@@ -44,13 +45,14 @@ extension MachOImage.UnicodeStrings {
     ) {
         let fileSlide = Int(linkedit.vmaddr) - Int(text.vmaddr) - Int(linkedit.fileoff)
         let offset: Int = numericCast(symtab.stroff) + numericCast(fileSlide)
+        let tableSize: Int = numericCast(symtab.strsize)
         self.init(
             source: MemoryUnicodeStringsSource(
-                ptr: ptr,
-                size: .max // Dummy
+                ptr: ptr.advanced(by: offset),
+                size: tableSize
             ),
             offset: offset,
-            size: Int(symtab.strsize),
+            size: tableSize,
             isSwapped: isSwapped
         )
     }
@@ -59,6 +61,7 @@ extension MachOImage.UnicodeStrings {
 extension MachOImage.UnicodeStrings {
     init(
         basePointer: UnsafePointer<Encoding.CodeUnit>,
+        offset: Int,
         tableSize: Int
     ) {
         self.init(
@@ -66,7 +69,7 @@ extension MachOImage.UnicodeStrings {
                 ptr: .init(basePointer),
                 size: tableSize
             ),
-            offset: 0,
+            offset: offset,
             size: tableSize,
             isSwapped: false
         )
