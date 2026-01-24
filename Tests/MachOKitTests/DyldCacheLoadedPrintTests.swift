@@ -259,7 +259,9 @@ final class DyldCacheLoadedPrintTests: XCTestCase {
         if let oldObjcOptimization = cache.oldObjcOptimization {
             print(
                 " old objcOptimization:",
-                oldObjcOptimization.relativeMethodSelectorBaseAddress(in: cache)
+                oldObjcOptimization
+                    .relativeMethodSelectorBaseAddress(in: cache)
+                    .debugDescription
             )
         }
 

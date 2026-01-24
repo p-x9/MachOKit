@@ -393,11 +393,8 @@ extension DyldCacheLoaded {
             vmaddrSlide: vmaddrSlide
         ) else { return nil }
 
-        let layout: OldObjCOptimization.Layout = start
-                .autoBoundPointee()
-
-        return .init(
-            layout: layout,
+        return .load(
+            from: start,
             offset: Int(bitPattern: start) - Int(bitPattern: ptr)
         )
     }
