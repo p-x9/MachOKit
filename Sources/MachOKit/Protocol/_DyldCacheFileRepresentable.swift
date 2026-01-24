@@ -135,20 +135,10 @@ extension _DyldCacheFileRepresentable {
             __objc_opt_ro = section
         }
 
-        guard let offset = fileOffset(of: numericCast(__objc_opt_ro.address)) else {
-            return nil
-        }
-        let layout: OldObjCOptimization.Layout = try! fileHandle.read(
-            offset: numericCast(offset)
+        return .load(
+            from: numericCast(__objc_opt_ro.address),
+            in: libobjc
         )
-        // `libobjc` exists only in main cache.
-        guard let address = address(of: numericCast(offset)) else {
-            return nil
-        }
-
-        return .init(
-            layout: layout,
-            offset: numericCast(address - mainCacheHeader.sharedRegionStart))
     }
 
     public var swiftOptimization: SwiftOptimization? {
