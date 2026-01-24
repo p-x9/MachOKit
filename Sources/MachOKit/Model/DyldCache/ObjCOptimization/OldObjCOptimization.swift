@@ -20,19 +20,19 @@ public enum OldObjCOptimization: Sendable {
 extension OldObjCOptimization {
     public var offset: Int {
         switch self {
-        case .v12(let optimzation): optimzation.offset
-        case .v13(let optimzation): optimzation.offset
-        case .v15(let optimzation): optimzation.offset
-        case .v16(let optimzation): optimzation.offset
+        case .v12(let optimization): optimization.offset
+        case .v13(let optimization): optimization.offset
+        case .v15(let optimization): optimization.offset
+        case .v16(let optimization): optimization.offset
         }
     }
 
     public var version: UInt32 {
         switch self {
-        case .v12(let optimzation): optimzation.version
-        case .v13(let optimzation): optimzation.version
-        case .v15(let optimzation): optimzation.version
-        case .v16(let optimzation): optimzation.version
+        case .v12(let optimization): optimization.version
+        case .v13(let optimization): optimization.version
+        case .v15(let optimization): optimization.version
+        case .v16(let optimization): optimization.version
         }
     }
 
@@ -40,8 +40,8 @@ extension OldObjCOptimization {
         switch self {
         case .v12: nil
         case .v13: nil
-        case .v15(let optimzation): optimzation.flags
-        case .v16(let optimzation): optimzation.flags
+        case .v15(let optimization): optimization.flags
+        case .v16(let optimization): optimization.flags
         }
     }
 
@@ -55,8 +55,8 @@ extension OldObjCOptimization {
         case .v12: return nil
         case .v13: return nil
         case .v15: return nil
-        case .v16(let optimzation):
-            return optimzation.relativeMethodSelectorBaseAddress(in: cache)
+        case .v16(let optimization):
+            return optimization.relativeMethodSelectorBaseAddress(in: cache)
         }
     }
 }
@@ -71,10 +71,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRW64(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRW64(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRW64(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRW64(in: cache)
         }
     }
 
@@ -87,10 +87,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRW32(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRW32(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRW32(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRW32(in: cache)
         }
     }
 
@@ -103,10 +103,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRW64(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRW64(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRW64(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRW64(in: cache)
         }
     }
 
@@ -119,10 +119,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRW32(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRW32(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRW32(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRW32(in: cache)
         }
     }
 }
@@ -137,10 +137,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRW64(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRW64(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRW64(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRW64(in: cache)
         }
     }
 
@@ -153,10 +153,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRW32(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRW32(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRW32(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRW32(in: cache)
         }
     }
 }
@@ -171,10 +171,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRO64(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRO64(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRO64(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRO64(in: cache)
         }
     }
 
@@ -187,10 +187,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRO32(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRO32(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRO32(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRO32(in: cache)
         }
     }
 
@@ -203,10 +203,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRO64(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRO64(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRO64(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRO64(in: cache)
         }
     }
 
@@ -219,10 +219,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRO32(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRO32(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRO32(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRO32(in: cache)
         }
     }
 }
@@ -237,10 +237,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRO64(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRO64(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRO64(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRO64(in: cache)
         }
     }
 
@@ -253,10 +253,10 @@ extension OldObjCOptimization {
         switch self {
         case .v12: return nil
         case .v13: return nil
-        case .v15(let optimzation):
-            return optimzation.headerOptimizationRO32(in: cache)
-        case .v16(let optimzation):
-            return optimzation.headerOptimizationRO32(in: cache)
+        case .v15(let optimization):
+            return optimization.headerOptimizationRO32(in: cache)
+        case .v16(let optimization):
+            return optimization.headerOptimizationRO32(in: cache)
         }
     }
 }
