@@ -223,14 +223,14 @@ extension SectionProtocol {
         in segment: any SegmentCommandProtocol,
         vmaddrSlide: Int
     ) -> MachOImage.Strings? {
-        fatalError("Use `strings(in:)`")
+        fatalError("This API has been removed. Use `strings(in:)` with a MachOImage instance instead.")
     }
 
     @available(*, unavailable, renamed: "strings(in:)")
     public func strings(
         vmaddrSlide: Int
     ) -> MachOImage.Strings? {
-        fatalError("Use `strings(in:)`")
+        fatalError("This API has been removed. Use `strings(in:)` with a MachOImage instance instead.")
     }
 
     public func strings(in machO: MachOImage) -> MachOImage.Strings? {
