@@ -27,7 +27,7 @@ let package = Package(
         ),
         .package(
             url: "https://github.com/p-x9/swift-fileio-extra.git",
-            from: "0.2.0"
+            from: "0.2.2"
         ),
     ],
     targets: [
@@ -63,7 +63,7 @@ if isForBinaryKitFramework {
     package.dependencies += [
         .package(
             url: "https://github.com/p-x9/swift-binary-parse-support-bin.git",
-            from: "0.1.1"
+            from: "0.2.1"
         ),
     ]
     machOKit?.dependencies += [
@@ -76,7 +76,7 @@ if isForBinaryKitFramework {
     package.dependencies += [
         .package(
             url: "https://github.com/p-x9/swift-binary-parse-support.git",
-            from: "0.1.1"
+            from: "0.2.1"
         ),
     ]
     machOKit?.dependencies += [
