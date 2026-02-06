@@ -8,13 +8,32 @@
 
 import Foundation
 
-@_silgen_name("__cxa_demangle")
+// *WORKAROUND*: Avoiding link errors in visionOS
+// When using `_silgen_name`, there is an issue where only visionOS cannot reference `__cxa_demangle`.
+// However, in reality, the symbol does exist.
+// @_silgen_name("__cxa_demangle")
 internal func __cxa_demangle(
     mangledName: UnsafePointer<CChar>?,
     outputBuffer: UnsafeMutablePointer<CChar>?,
     outputBufferSize: UnsafeMutablePointer<UInt>?,
     status: UInt32
-) -> UnsafeMutablePointer<CChar>?
+) -> UnsafeMutablePointer<CChar>? {
+    typealias CxaDemangleFn = @convention(c) (
+        UnsafePointer<CChar>?,
+        UnsafeMutablePointer<CChar>?,
+        UnsafeMutablePointer<UInt>?,
+        UnsafeMutablePointer<UInt32>?
+    ) -> UnsafeMutablePointer<CChar>?
+
+    guard let handle = dlopen(nil, RTLD_NOW),
+          let sym = dlsym(handle, "__cxa_demangle") else {
+        return nil
+    }
+
+    let fn = unsafeBitCast(sym, to: CxaDemangleFn.self)
+    var status = status
+    return fn(mangledName, outputBuffer, outputBufferSize, &status)
+}
 
 internal func cxa_demangle(
     _ mangledName: String
