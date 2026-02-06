@@ -21,14 +21,22 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/p-x9/swift-fileio.git", from: "0.13.0")
+        .package(
+            url: "https://github.com/p-x9/swift-fileio.git",
+            from: "0.13.0"
+        ),
+        .package(
+            url: "https://github.com/p-x9/swift-fileio-extra.git",
+            from: "0.2.2"
+        ),
     ],
     targets: [
         .target(
             name: "MachOKit",
             dependencies: [
                 "MachOKitC",
-                .product(name: "FileIO", package: "swift-fileio")
+                .product(name: "FileIO", package: "swift-fileio"),
+                .product(name: "FileIOBinary", package: "swift-fileio-extra")
             ],
             swiftSettings: SwiftSetting.allCases + [
                 .enableExperimentalFeature("AccessLevelOnImport", .when(configuration: .debug))
@@ -45,6 +53,42 @@ let package = Package(
     ]
 )
 
+let machOKit = package.targets.first(where: { $0.name == "MachOKit" })
+
+// MARK: - Binary Parse Support
+
+let isForBinaryKitFramework = Context.environment["BUILD_BINARY_KIT_FW"] != nil
+
+if isForBinaryKitFramework {
+    package.dependencies += [
+        .package(
+            url: "https://github.com/p-x9/swift-binary-parse-support-bin.git",
+            from: "0.2.1"
+        ),
+    ]
+    machOKit?.dependencies += [
+        .product(
+            name: "BinaryParseSupport",
+            package: "swift-binary-parse-support-bin"
+        )
+    ]
+} else {
+    package.dependencies += [
+        .package(
+            url: "https://github.com/p-x9/swift-binary-parse-support.git",
+            from: "0.2.1"
+        ),
+    ]
+    machOKit?.dependencies += [
+        .product(
+            name: "BinaryParseSupport",
+            package: "swift-binary-parse-support"
+        )
+    ]
+}
+
+// MARK: - Crypto
+
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) &&  canImport(CommonCrypto)
 /* Do Nothing */
 #else
@@ -52,7 +96,6 @@ package.dependencies += [
     .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "4.0.0")
 ]
 
-let machOKit = package.targets.first(where: { $0.name == "MachOKit" })
 machOKit?.dependencies += [
     .product(
         name: "Crypto",

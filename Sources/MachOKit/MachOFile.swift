@@ -9,8 +9,10 @@
 import Foundation
 #if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
 internal import FileIO
+internal import FileIOBinary
 #else
 @_implementationOnly import FileIO
+@_implementationOnly import FileIOBinary
 #endif
 
 public class MachOFile: MachORepresentable {
@@ -289,7 +291,7 @@ extension MachOFile {
         ) else { return nil }
 
         return .init(
-            fileSlice: fileSlice,
+            source: fileSlice,
             offset: numericCast(symtab.stroff),
             size: numericCast(symtab.strsize),
             isSwapped: isSwapped

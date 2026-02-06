@@ -9,6 +9,7 @@
 import XCTest
 @testable import MachOKit
 import FileIO
+import FileIOBinary
 
 final class FullDyldCachePrintTests: XCTestCase {
     private var cache: FullDyldCache!

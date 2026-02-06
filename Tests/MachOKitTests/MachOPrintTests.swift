@@ -230,7 +230,9 @@ final class MachOPrintTests: XCTestCase {
     func testSymbolStrings() throws {
         guard let cstrings = machO.symbolStrings else { return }
         for (i, cstring) in cstrings.enumerated() {
-            let ptr = cstrings.basePointer.advanced(by: cstring.offset)
+            let ptr = machO.ptr
+                .advanced(by: cstrings.offset)
+                .advanced(by: cstring.offset)
             print(i, "0x" + String(Int(bitPattern: ptr), radix: 16), cstring.string)
         }
     }
@@ -238,7 +240,9 @@ final class MachOPrintTests: XCTestCase {
     func testCStrings() throws {
         guard let cstrings = machO.cStrings else { return }
         for (i, cstring) in cstrings.enumerated() {
-            let ptr = cstrings.basePointer.advanced(by: cstring.offset)
+            let ptr = machO.ptr
+                .advanced(by: cstrings.offset)
+                .advanced(by: cstring.offset)
             print(i, "0x" + String(Int(bitPattern: ptr), radix: 16), cstring.string)
         }
     }
@@ -252,7 +256,9 @@ final class MachOPrintTests: XCTestCase {
     func testUStrings() throws {
         guard let cstrings = machO.uStrings else { return }
         for (i, cstring) in cstrings.enumerated() {
-            let ptr = cstrings.basePointer.advanced(by: cstring.offset)
+            let ptr = machO.ptr
+                .advanced(by: cstrings.offset)
+                .advanced(by: cstring.offset)
             print(i, "0x" + String(Int(bitPattern: ptr), radix: 16), cstring.string)
         }
     }
