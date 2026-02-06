@@ -16,24 +16,25 @@ internal func __cxa_demangle(
     mangledName: UnsafePointer<CChar>?,
     outputBuffer: UnsafeMutablePointer<CChar>?,
     outputBufferSize: UnsafeMutablePointer<UInt>?,
-    status: UInt32
+    status: UnsafeMutablePointer<UInt32>?
 ) -> UnsafeMutablePointer<CChar>? {
-    typealias CxaDemangleFn = @convention(c) (
-        UnsafePointer<CChar>?,
-        UnsafeMutablePointer<CChar>?,
-        UnsafeMutablePointer<UInt>?,
-        UnsafeMutablePointer<UInt32>?
-    ) -> UnsafeMutablePointer<CChar>?
+    return ___cxaDemangleFn?(mangledName, outputBuffer, outputBufferSize, status)
+}
 
+typealias CxaDemangleFn = @convention(c) (
+    UnsafePointer<CChar>?,
+    UnsafeMutablePointer<CChar>?,
+    UnsafeMutablePointer<UInt>?,
+    UnsafeMutablePointer<UInt32>?
+) -> UnsafeMutablePointer<CChar>?
+
+private let ___cxaDemangleFn: CxaDemangleFn? = {
     guard let handle = dlopen(nil, RTLD_NOW),
           let sym = dlsym(handle, "__cxa_demangle") else {
         return nil
     }
-
-    let fn = unsafeBitCast(sym, to: CxaDemangleFn.self)
-    var status = status
-    return fn(mangledName, outputBuffer, outputBufferSize, &status)
-}
+    return unsafeBitCast(sym, to: CxaDemangleFn.self)
+}()
 
 internal func cxa_demangle(
     _ mangledName: String
@@ -44,7 +45,7 @@ internal func cxa_demangle(
             mangledName: mangledNameUTF8.baseAddress,
             outputBuffer: nil,
             outputBufferSize: nil,
-            status: 0
+            status: nil
         )
 
         if let demangledNamePtr {
@@ -61,7 +62,7 @@ internal func cxa_demangle(
         mangledName: mangledName,
         outputBuffer: nil,
         outputBufferSize: nil,
-        status: 0
+        status: nil
     )
     if let demangledNamePtr {
         return .init(demangledNamePtr)
