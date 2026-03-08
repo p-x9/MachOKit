@@ -127,6 +127,11 @@ extension FatFile {
     /// Each Mach-O file is initialized using the architecture's
     /// file offset within the fat container.
     ///
+    /// - Important: Not every architecture entry in a fat binary is
+    ///              guaranteed to contain a directly parseable Mach-O
+    ///              image. In some cases, the embedded payload may be
+    ///              an archive container instead.
+    ///
     /// - Returns: An array of `MachOFile` instances, one for each
     ///            architecture in the fat binary.
     /// - Throws: Any error thrown while initializing a `MachOFile`.
