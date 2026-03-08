@@ -80,7 +80,7 @@ extension TrieNode {
             .pointee
         childrenOffset += MemoryLayout<UInt8>.size
 
-        for _ in 0..<numberOfChildren {
+        for _ in 0..<numberOfChildren where childrenOffset < trieSize {
             let (string, stringOffset) = basePointer
                 .advanced(by: childrenOffset)
                 .readString()
