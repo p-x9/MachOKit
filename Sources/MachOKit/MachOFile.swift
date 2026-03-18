@@ -106,7 +106,7 @@ public class MachOFile: MachORepresentable {
         )
     }
 
-    private init(
+    package init(
         url: URL,
         imagePath: String?,
         headerStartOffset: Int,
