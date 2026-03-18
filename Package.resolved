@@ -1,13 +1,13 @@
 {
-  "originHash" : "5408aebf9d93d3c36ec9a49be60659873071e9092695e4f7b1dd3e58c2904045",
+  "originHash" : "f7f74236181a123fa53911ec8aa117390263d6e22b18df984280356a0ddb2859",
   "pins" : [
     {
       "identity" : "objectarchivekit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/ObjectArchiveKit.git",
       "state" : {
-        "revision" : "695f734d639eedba959535a32f2ee2c122ef0813",
-        "version" : "0.1.0"
+        "revision" : "bc9375cbc3290dcd1902620874b0c6ef2d3f53c1",
+        "version" : "0.2.0"
       }
     },
     {
