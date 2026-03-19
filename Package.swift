@@ -18,6 +18,10 @@ let package = Package(
         .library(
             name: "MachOKitC",
             targets: ["MachOKitC"]
+        ),
+        .library(
+            name: "MachOArchiveKit",
+            targets: ["MachOArchiveKit"]
         )
     ],
     dependencies: [
