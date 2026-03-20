@@ -3,7 +3,7 @@
 //  MachOKit
 //
 //  Created by p-x9 on 2026/03/16
-//  
+//
 //
 
 import Foundation
@@ -15,7 +15,7 @@ import MachOArchiveKit
 final class ArchiveFileTests: XCTestCase {
     var fat: FatFile!
     var archive: ArchiveFile!
-    
+
     override func setUp() async throws {
         let developerDirectoryURL = try developerDirectoryURL()
         let url = developerDirectoryURL
@@ -31,14 +31,14 @@ final class ArchiveFileTests: XCTestCase {
             return
         }
     }
-    
+
     func testDumpFileStructure() throws {
         func dump(_ machO: MachOFile, level: Int) {
             let path = machO.imagePath
             let name = path.split(separator: "/").last ?? ""
             print(String(repeating: " ", count: level) + name)
         }
-        
+
         func dump(_ fat: FatFile, level: Int) {
             print(String(repeating: " ", count: level) + "Fat", fat.url.lastPathComponent)
             do {
@@ -55,7 +55,7 @@ final class ArchiveFileTests: XCTestCase {
                 }
             } catch {}
         }
-        
+
         func dump(_ archive: ArchiveFile, level: Int, cpu: CPU) {
             print(String(repeating: " ", count: level) + "Archive", cpu)
             do {
@@ -66,8 +66,34 @@ final class ArchiveFileTests: XCTestCase {
                 print(String(repeating: " ", count: level + 1) + "...")
             } catch {}
         }
-        
+
         dump(fat, level: 0)
+    }
+}
+
+extension ArchiveFileTests {
+    func testBSDSymbols() throws {
+        guard let symbolTable = archive.bsdSymbolTable else {
+            return
+        }
+        print("count: \(symbolTable.count)")
+        print("isSorted: \(symbolTable.isSorted(in: archive))")
+        for symbol in try symbolTable.entries(in: archive) {
+            let name = try symbolTable.name(for: symbol, in: archive)
+            print(name ?? "unknown", symbol.stringOffset, symbol.headerOffset)
+        }
+    }
+
+    func testDarwin64Symbols() throws {
+        guard let symbolTable = archive.darwin64SymbolTable else {
+            return
+        }
+        print("count: \(symbolTable.count)")
+        print("isSorted: \(symbolTable.isSorted(in: archive))")
+        for symbol in try symbolTable.entries(in: archive) {
+            let name = try symbolTable.name(for: symbol, in: archive)
+            print(name ?? "unknown", symbol.stringOffset, symbol.headerOffset)
+        }
     }
 }
 
