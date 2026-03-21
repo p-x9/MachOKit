@@ -16,6 +16,10 @@ let package = Package(
             targets: ["MachOKit"]
         ),
         .library(
+            name: "MachOArchiveKit",
+            targets: ["MachOArchiveKit"]
+        ),
+        .library(
             name: "MachOKitC",
             targets: ["MachOKitC"]
         )
@@ -28,6 +32,10 @@ let package = Package(
         .package(
             url: "https://github.com/p-x9/swift-fileio-extra.git",
             from: "0.2.2"
+        ),
+        .package(
+            url: "https://github.com/p-x9/ObjectArchiveKit.git",
+            from: "0.3.0"
         ),
     ],
     targets: [
@@ -43,12 +51,19 @@ let package = Package(
             ]
         ),
         .target(
+            name: "MachOArchiveKit",
+            dependencies: [
+                "MachOKit",
+                .product(name: "ObjectArchiveKit", package: "ObjectArchiveKit"),
+            ]
+        ),
+        .target(
             name: "MachOKitC",
             publicHeadersPath: "include"
         ),
         .testTarget(
             name: "MachOKitTests",
-            dependencies: ["MachOKit"]
+            dependencies: ["MachOKit", "MachOArchiveKit"]
         )
     ]
 )

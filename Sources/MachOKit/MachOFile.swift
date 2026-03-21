@@ -106,7 +106,7 @@ public class MachOFile: MachORepresentable {
         )
     }
 
-    private init(
+    package init(
         url: URL,
         imagePath: String?,
         headerStartOffset: Int,
@@ -127,7 +127,11 @@ public class MachOFile: MachORepresentable {
             offset: UInt64(headerStartOffset + headerStartOffsetInCache)
         )
 
-        let isSwapped = header.magic.isSwapped
+        guard let magic = header.magic else {
+            throw MachOKitError.invalidMagic
+        }
+
+        let isSwapped = magic.isSwapped
         if isSwapped {
             swap_mach_header(&header.layout, NXHostByteOrder())
         }

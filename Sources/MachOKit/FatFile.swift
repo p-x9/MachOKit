@@ -20,7 +20,7 @@ import Foundation
 public class FatFile {
 
     /// The file URL of the fat binary.
-    let url: URL
+    public let url: URL
 
     /// File handle used for reading the binary contents.
     let fileHandle: FileHandle
