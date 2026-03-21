@@ -35,7 +35,7 @@ let package = Package(
         ),
         .package(
             url: "https://github.com/p-x9/ObjectArchiveKit.git",
-            from: "0.2.0"
+            from: "0.3.0"
         ),
     ],
     targets: [
@@ -55,8 +55,6 @@ let package = Package(
             dependencies: [
                 "MachOKit",
                 .product(name: "ObjectArchiveKit", package: "ObjectArchiveKit"),
-                .product(name: "FileIO", package: "swift-fileio"),
-                .product(name: "FileIOBinary", package: "swift-fileio-extra")
             ]
         ),
         .target(
