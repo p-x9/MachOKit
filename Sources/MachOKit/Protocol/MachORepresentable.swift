@@ -939,8 +939,9 @@ extension MachORepresentable {
                 return cache.header.platform == .macOS
             }
 #if canImport(Darwin)
-            if self is MachOImage {
-                return nil
+            if self is MachOImage,
+               let cache = DyldCacheLoaded.current {
+                return cache.header.platform == .macOS
             }
 #endif
         }

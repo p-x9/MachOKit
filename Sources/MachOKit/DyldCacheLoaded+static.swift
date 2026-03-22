@@ -9,9 +9,9 @@
 #if canImport(Darwin)
 extension DyldCacheLoaded {
     public static var current: DyldCacheLoaded? {
-        var size = 0
-        guard let ptr = _dyld_get_shared_cache_range(&size),
-              let cache = try? DyldCacheLoaded(ptr: ptr) else {
+        guard let range = _MachOKitDyldRuntime.sharedCacheRange(),
+              range.size > 0,
+              let cache = try? DyldCacheLoaded(ptr: range.ptr) else {
             return nil
         }
         return cache

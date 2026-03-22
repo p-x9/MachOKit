@@ -46,12 +46,6 @@ let package = Package(
                 .product(name: "FileIO", package: "swift-fileio"),
                 .product(name: "FileIOBinary", package: "swift-fileio-extra")
             ],
-            exclude: [
-                "DyldCache+host.swift",
-                "DyldCacheLoaded+static.swift",
-                "FullDyldCache+host.swift",
-                "MachOImage+static.swift",
-            ],
             swiftSettings: SwiftSetting.allCases + [
                 .enableExperimentalFeature("AccessLevelOnImport", .when(configuration: .debug))
             ]
