@@ -28,17 +28,9 @@ generate_symbol_graphs() {
 
   xcodebuild clean build -scheme "${scheme}"\
     -destination "generic/platform=${destination}" \
-    OTHER_SWIFT_FLAGS="-emit-extension-block-symbols -emit-symbol-graph -emit-symbol-graph-dir $(pwd)/.build/symbol-graphs" \
-    DOCC_EXTRACT_EXTENSION_SYMBOLS=YES
+    OTHER_SWIFT_FLAGS="-emit-extension-block-symbols -emit-symbol-graph -emit-symbol-graph-dir $(pwd)/.build/symbol-graphs"
 
   mv "./.build/symbol-graphs/${scheme}.symbols.json" "${SYMBOL_DIR}/${scheme}_${destination}.symbols.json"
-
-  # Extension
-  for file in ./.build/symbol-graphs/${scheme}@*.symbols.json; do
-    if [ -f "$file" ]; then
-      mv "$file" "${SYMBOL_DIR}/$(basename "${file%.symbols.json}").symbols.json"
-    fi
-  done
 
   if [ -d "./Sources/$scheme/include" ]; then
     local HEADERS=$(ls "./Sources/$scheme/include")
@@ -56,10 +48,8 @@ generate_symbol_graphs() {
 clean_build
 clean_xcbuild ios MachOKitC
 clean_xcbuild ios MachOKit
-clean_xcbuild ios MachOArchiveKit
 
 clean_symbol
 
 generate_symbol_graphs ios MachOKitC
 generate_symbol_graphs ios MachOKit
-generate_symbol_graphs ios MachOArchiveKit
