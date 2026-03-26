@@ -7,7 +7,7 @@ generate_docc() {
   mkdir -p docs
 
   $(xcrun --find docc) convert \
-    "./${TARGET}.docc" \
+    "./Sources/${TARGET}/Documentation.docc" \
      --output-path "docs" \
      --hosting-base-path "${REPO_NAME}" \
      --additional-symbol-graph-dir ./symbol-graphs
