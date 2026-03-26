@@ -2,5 +2,5 @@
 
 🔬 A Swift library for parsing MachO files to obtain various information.
 
-> [!NOTE]
+> Note:
 > Unix archive (.a) format is supported by ``MachOArchiveKit``.
