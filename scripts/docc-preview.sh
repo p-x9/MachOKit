@@ -6,7 +6,7 @@ preview_docc() {
   mkdir -p docs
 
   $(xcrun --find docc) preview \
-    "./Sources/${TARGET}/Documentation.docc" \
+    "./${TARGET}.docc" \
     --additional-symbol-graph-dir symbol-graphs \
     --output-path "docs"
 }

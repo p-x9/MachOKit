@@ -3,13 +3,11 @@
 //  MachOKit
 //
 //  Created by p-x9 on 2025/02/01
-//
+//  
 //
 
 #ifndef core_foundation_h
 #define core_foundation_h
-
-#include <stdint.h>
 
 // ref: https://github.com/apple-oss-distributions/CF/blob/dc54c6bb1c1e5e0b9486c1d26dd5bef110b20bf3/CFRuntime.h#L222-L228
 typedef struct __CFRuntimeBase64 {
