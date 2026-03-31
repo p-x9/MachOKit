@@ -113,8 +113,6 @@ if isForBinaryKitFramework {
     ]
 }
 
-// MARK: - Crypto
-
 // https://github.com/treastrain/swift-upcomingfeatureflags-cheatsheet
 extension SwiftSetting {
     static let forwardTrailingClosures: Self = .enableUpcomingFeature("ForwardTrailingClosures")              // SE-0286, Swift 5.3,  SwiftPM 5.8+
