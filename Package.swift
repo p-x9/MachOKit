@@ -37,7 +37,7 @@ let package = Package(
         ),
         .package(
             url: "https://github.com/p-x9/ObjectArchiveKit.git",
-            from: "0.3.0"
+            from: "0.5.0"
         ),
         .package(
             url: "https://github.com/apple/swift-crypto.git",
