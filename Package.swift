@@ -2,6 +2,8 @@
 
 import PackageDescription
 
+let linuxPlatforms: [Platform] = [.linux, .openbsd]
+
 let package = Package(
     name: "MachOKit",
     platforms: [
@@ -35,7 +37,11 @@ let package = Package(
         ),
         .package(
             url: "https://github.com/p-x9/ObjectArchiveKit.git",
-            from: "0.3.0"
+            from: "0.5.0"
+        ),
+        .package(
+            url: "https://github.com/apple/swift-crypto.git",
+            "1.0.0" ..< "4.0.0"
         ),
     ],
     targets: [
@@ -44,7 +50,12 @@ let package = Package(
             dependencies: [
                 "MachOKitC",
                 .product(name: "FileIO", package: "swift-fileio"),
-                .product(name: "FileIOBinary", package: "swift-fileio-extra")
+                .product(name: "FileIOBinary", package: "swift-fileio-extra"),
+                .product(
+                    name: "Crypto",
+                    package: "swift-crypto",
+                    condition: .when(platforms: linuxPlatforms)
+                )
             ],
             swiftSettings: SwiftSetting.allCases + [
                 .enableExperimentalFeature("AccessLevelOnImport", .when(configuration: .debug))
@@ -101,23 +112,6 @@ if isForBinaryKitFramework {
         )
     ]
 }
-
-// MARK: - Crypto
-
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) &&  canImport(CommonCrypto)
-/* Do Nothing */
-#else
-package.dependencies += [
-    .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "4.0.0")
-]
-
-machOKit?.dependencies += [
-    .product(
-        name: "Crypto",
-        package: "swift-crypto"
-    )
-]
-#endif
 
 // https://github.com/treastrain/swift-upcomingfeatureflags-cheatsheet
 extension SwiftSetting {
