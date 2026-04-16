@@ -1,5 +1,4 @@
 import Foundation
-import MachOKitC
 
 extension DyldCache {
     public static var host: DyldCache? {

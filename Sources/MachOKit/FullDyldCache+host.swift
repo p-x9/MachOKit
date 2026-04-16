@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import MachOKitC
 
 extension FullDyldCache {
     public static var host: FullDyldCache? {
