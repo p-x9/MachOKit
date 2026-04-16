@@ -9,44 +9,44 @@ import Darwin
     typealias SharedCacheFilePathFunction = @convention(c) () -> UnsafePointer<CChar>?
     private static let obfuscationKey: UInt8 = 0x5A
 
-    nonisolated(unsafe) private static let fallbackHandle = unsafe withDecodedCString(libraryPathBytes) {
+    nonisolated(unsafe) private static let fallbackHandle = withDecodedCString(libraryPathBytes) {
         dlopen($0, RTLD_LAZY | RTLD_LOCAL)
     }
-    nonisolated(unsafe) private static let symbolSearchHandles: [UnsafeMutableRawPointer?] = unsafe [
-        unsafe UnsafeMutableRawPointer(bitPattern: -2),
+    nonisolated(unsafe) private static let symbolSearchHandles: [UnsafeMutableRawPointer?] = [
+        UnsafeMutableRawPointer(bitPattern: -2),
         fallbackHandle,
     ]
 
-    private static let sharedCacheRangeFunction = unsafe loadFunction(
+    private static let sharedCacheRangeFunction = loadFunction(
         symbolBytes: sharedCacheRangeSymbolBytes,
         as: SharedCacheRangeFunction.self
     )
 
-    private static let sharedCacheFilePathFunction = unsafe loadFunction(
+    private static let sharedCacheFilePathFunction = loadFunction(
         symbolBytes: sharedCacheFilePathSymbolBytes,
         as: SharedCacheFilePathFunction.self
     )
 
     static func sharedCacheRange() -> (ptr: UnsafeRawPointer, size: Int)? {
-        guard let function = unsafe sharedCacheRangeFunction else {
+        guard let function = sharedCacheRangeFunction else {
             return nil
         }
 
         var size = 0
-        guard let ptr = unsafe withUnsafeMutablePointer(to: &size, { function($0) }) else {
+        guard let ptr = withUnsafeMutablePointer(to: &size, { function($0) }) else {
             return nil
         }
 
-        return unsafe (ptr, size)
+        return (ptr, size)
     }
 
     static func sharedCacheFilePath() -> String? {
-        guard let function = unsafe sharedCacheFilePathFunction,
-              let path = unsafe function() else {
+        guard let function = sharedCacheFilePathFunction,
+              let path = function() else {
             return nil
         }
 
-        return unsafe String(cString: path)
+        return String(cString: path)
     }
 
     private static func loadFunction<T>(
@@ -54,13 +54,13 @@ import Darwin
         as type: T.Type
     ) -> T? {
         _ = type
-        var iterator = unsafe symbolSearchHandles.makeIterator()
-        while let handle = unsafe iterator.next() {
+        var iterator = symbolSearchHandles.makeIterator()
+        while let handle = iterator.next() {
             guard let handle,
-                  let symbol = unsafe resolveSymbol(encodedName: symbolBytes, handle: handle) else {
+                  let symbol = resolveSymbol(encodedName: symbolBytes, handle: handle) else {
                 continue
             }
-            return unsafe unsafeBitCast(symbol, to: T.self)
+            return unsafeBitCast(symbol, to: T.self)
         }
 
         return nil
