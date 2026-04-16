@@ -13,18 +13,18 @@ enum _DyldSharedCacheRuntime {
     typealias SharedCacheFilePathFunction = @convention(c) () -> UnsafePointer<CChar>?
     private static let obfuscationKey: UInt8 = 0x5A
 
-    private static let fallbackHandle = SendableHandle(
-        rawValue: withDecodedCString(libraryPathBytes) {
-            dlopen($0, RTLD_LAZY | RTLD_LOCAL)
-        }
-    )
     private static let RTLD_DEFAULT = SendableHandle(
         rawValue: UnsafeMutableRawPointer(bitPattern: -2)
     )
-    private static let symbolSearchHandles: [SendableHandle] = [
-        RTLD_DEFAULT,
-        fallbackHandle,
-    ]
+    private enum FallbackHandleHolder {
+        static let handle = SendableHandle(
+            rawValue: _DyldSharedCacheRuntime.withDecodedCString(
+                _DyldSharedCacheRuntime.libraryPathBytes
+            ) {
+                dlopen($0, RTLD_LAZY | RTLD_LOCAL)
+            }
+        )
+    }
 
     private static let sharedCacheRangeFunction = loadFunction(
         symbolBytes: sharedCacheRangeSymbolBytes,
@@ -62,16 +62,22 @@ enum _DyldSharedCacheRuntime {
         symbolBytes: [UInt8],
         as type: T.Type
     ) -> T? {
-        var iterator = symbolSearchHandles.makeIterator()
-        while let handle = iterator.next() {
-            guard let rawHandle = handle.rawValue,
-                  let symbol = resolveSymbol(encodedName: symbolBytes, handle: rawHandle) else {
-                continue
-            }
+        if let symbol = resolveSymbol(
+            encodedName: symbolBytes,
+            handle: RTLD_DEFAULT.rawValue
+        ) {
             return unsafeBitCast(symbol, to: T.self)
         }
 
-        return nil
+        guard let fallbackHandle = openFallbackHandle().rawValue,
+              let symbol = resolveSymbol(
+                encodedName: symbolBytes,
+                handle: fallbackHandle
+              ) else {
+            return nil
+        }
+
+        return unsafeBitCast(symbol, to: T.self)
     }
 
     private static func resolveSymbol(
@@ -81,6 +87,10 @@ enum _DyldSharedCacheRuntime {
         withDecodedCString(encodedName) {
             dlsym(handle, $0)
         }
+    }
+
+    private static func openFallbackHandle() -> SendableHandle {
+        FallbackHandleHolder.handle
     }
 
     private static func withDecodedCString<R>(
