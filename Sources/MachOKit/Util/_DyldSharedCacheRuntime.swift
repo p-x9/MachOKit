@@ -18,8 +18,11 @@ enum _DyldSharedCacheRuntime {
             dlopen($0, RTLD_LAZY | RTLD_LOCAL)
         }
     )
+    private static let RTLD_DEFAULT = SendableHandle(
+        rawValue: UnsafeMutableRawPointer(bitPattern: -2)
+    )
     private static let symbolSearchHandles: [SendableHandle] = [
-        SendableHandle(rawValue: UnsafeMutableRawPointer(bitPattern: -2)),
+        RTLD_DEFAULT,
         fallbackHandle,
     ]
 
@@ -59,7 +62,6 @@ enum _DyldSharedCacheRuntime {
         symbolBytes: [UInt8],
         as type: T.Type
     ) -> T? {
-        _ = type
         var iterator = symbolSearchHandles.makeIterator()
         while let handle = iterator.next() {
             guard let rawHandle = handle.rawValue,
@@ -94,18 +96,21 @@ enum _DyldSharedCacheRuntime {
         }
     }
 
+    // "_dyld_get_shared_cache_range"
     private static let sharedCacheRangeSymbolBytes: [UInt8] = [
         0x05, 0x3e, 0x23, 0x36, 0x3e, 0x05, 0x3d, 0x3f, 0x2e, 0x05,
         0x29, 0x32, 0x3b, 0x28, 0x3f, 0x3e, 0x05, 0x39, 0x3b, 0x39,
         0x32, 0x3f, 0x05, 0x28, 0x3b, 0x34, 0x3d, 0x3f,
     ]
 
+    // "dyld_shared_cache_file_path"
     private static let sharedCacheFilePathSymbolBytes: [UInt8] = [
         0x3e, 0x23, 0x36, 0x3e, 0x05, 0x29, 0x32, 0x3b, 0x28, 0x3f,
         0x3e, 0x05, 0x39, 0x3b, 0x39, 0x32, 0x3f, 0x05, 0x3c, 0x33,
         0x36, 0x3f, 0x05, 0x2a, 0x3b, 0x2e, 0x32,
     ]
 
+    // "/usr/lib/system/libdyld.dylib"
     private static let libraryPathBytes: [UInt8] = [
         0x75, 0x2f, 0x29, 0x28, 0x75, 0x36, 0x33, 0x38, 0x75, 0x29,
         0x23, 0x29, 0x2e, 0x3f, 0x37, 0x75, 0x36, 0x33, 0x38, 0x3e,
