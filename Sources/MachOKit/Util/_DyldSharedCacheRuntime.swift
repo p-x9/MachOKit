@@ -3,7 +3,8 @@ import Foundation
 #if canImport(Darwin)
 import Darwin
 
-@unsafe enum _MachOKitDyldRuntime {
+// Shared cache runtime shim that avoids direct/private dyld helper imports.
+@unsafe enum _DyldSharedCacheRuntime {
     typealias SharedCacheRangeFunction = @convention(c) (UnsafeMutablePointer<Int>?) -> UnsafeRawPointer?
     typealias SharedCacheFilePathFunction = @convention(c) () -> UnsafePointer<CChar>?
 
