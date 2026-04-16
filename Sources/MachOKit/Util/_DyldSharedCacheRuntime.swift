@@ -4,16 +4,22 @@ import Foundation
 import Darwin
 
 // Shared-cache runtime shim that avoids direct private loader helper imports.
-@unsafe enum _DyldSharedCacheRuntime {
+enum _DyldSharedCacheRuntime {
+    private struct SendableHandle: @unchecked Sendable {
+        let rawValue: UnsafeMutableRawPointer?
+    }
+
     typealias SharedCacheRangeFunction = @convention(c) (UnsafeMutablePointer<Int>?) -> UnsafeRawPointer?
     typealias SharedCacheFilePathFunction = @convention(c) () -> UnsafePointer<CChar>?
     private static let obfuscationKey: UInt8 = 0x5A
 
-    nonisolated(unsafe) private static let fallbackHandle = withDecodedCString(libraryPathBytes) {
-        dlopen($0, RTLD_LAZY | RTLD_LOCAL)
-    }
-    nonisolated(unsafe) private static let symbolSearchHandles: [UnsafeMutableRawPointer?] = [
-        UnsafeMutableRawPointer(bitPattern: -2),
+    private static let fallbackHandle = SendableHandle(
+        rawValue: withDecodedCString(libraryPathBytes) {
+            dlopen($0, RTLD_LAZY | RTLD_LOCAL)
+        }
+    )
+    private static let symbolSearchHandles: [SendableHandle] = [
+        SendableHandle(rawValue: UnsafeMutableRawPointer(bitPattern: -2)),
         fallbackHandle,
     ]
 
@@ -56,8 +62,8 @@ import Darwin
         _ = type
         var iterator = symbolSearchHandles.makeIterator()
         while let handle = iterator.next() {
-            guard let handle,
-                  let symbol = resolveSymbol(encodedName: symbolBytes, handle: handle) else {
+            guard let rawHandle = handle.rawValue,
+                  let symbol = resolveSymbol(encodedName: symbolBytes, handle: rawHandle) else {
                 continue
             }
             return unsafeBitCast(symbol, to: T.self)
