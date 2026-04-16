@@ -4,7 +4,7 @@ import Foundation
 import Darwin
 
 // Shared-cache runtime shim that avoids direct private loader helper imports.
-@unsafe enum _SharedCacheRuntime {
+@unsafe enum _DyldSharedCacheRuntime {
     typealias SharedCacheRangeFunction = @convention(c) (UnsafeMutablePointer<Int>?) -> UnsafeRawPointer?
     typealias SharedCacheFilePathFunction = @convention(c) () -> UnsafePointer<CChar>?
     private static let obfuscationKey: UInt8 = 0x5A
