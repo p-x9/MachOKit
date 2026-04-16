@@ -12,7 +12,7 @@ import MachOKitC
 extension FullDyldCache {
     public static var host: FullDyldCache? {
 #if canImport(Darwin)
-        guard let path = _DyldSharedCacheRuntime.sharedCacheFilePath() else {
+        guard let path = _SharedCacheRuntime.sharedCacheFilePath() else {
             return nil
         }
         let url: URL = .init(fileURLWithPath: path)

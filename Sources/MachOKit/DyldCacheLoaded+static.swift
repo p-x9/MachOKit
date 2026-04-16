@@ -9,7 +9,7 @@
 #if canImport(Darwin)
 extension DyldCacheLoaded {
     public static var current: DyldCacheLoaded? {
-        guard let range = _DyldSharedCacheRuntime.sharedCacheRange(),
+        guard let range = _SharedCacheRuntime.sharedCacheRange(),
               range.size > 0,
               let cache = try? DyldCacheLoaded(ptr: range.ptr) else {
             return nil

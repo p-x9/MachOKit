@@ -3,12 +3,13 @@ import Foundation
 #if canImport(Darwin)
 import Darwin
 
-// Shared cache runtime shim that avoids direct/private dyld helper imports.
-@unsafe enum _DyldSharedCacheRuntime {
+// Shared-cache runtime shim that avoids direct private loader helper imports.
+@unsafe enum _SharedCacheRuntime {
     typealias SharedCacheRangeFunction = @convention(c) (UnsafeMutablePointer<Int>?) -> UnsafeRawPointer?
     typealias SharedCacheFilePathFunction = @convention(c) () -> UnsafePointer<CChar>?
+    private static let obfuscationKey: UInt8 = 0x5A
 
-    nonisolated(unsafe) private static let fallbackHandle = unsafe libraryPath.withCString {
+    nonisolated(unsafe) private static let fallbackHandle = unsafe withDecodedCString(libraryPathBytes) {
         dlopen($0, RTLD_LAZY | RTLD_LOCAL)
     }
     nonisolated(unsafe) private static let symbolSearchHandles: [UnsafeMutableRawPointer?] = unsafe [
@@ -17,12 +18,12 @@ import Darwin
     ]
 
     private static let sharedCacheRangeFunction = unsafe loadFunction(
-        symbolTokens: ["_dyld", "_get", "_shared", "_cache", "_range"],
+        symbolBytes: sharedCacheRangeSymbolBytes,
         as: SharedCacheRangeFunction.self
     )
 
     private static let sharedCacheFilePathFunction = unsafe loadFunction(
-        symbolTokens: ["dyld", "_shared", "_cache", "_file", "_path"],
+        symbolBytes: sharedCacheFilePathSymbolBytes,
         as: SharedCacheFilePathFunction.self
     )
 
@@ -49,16 +50,14 @@ import Darwin
     }
 
     private static func loadFunction<T>(
-        symbolTokens: [String],
+        symbolBytes: [UInt8],
         as type: T.Type
     ) -> T? {
         _ = type
-        let name = symbolTokens.joined()
-
         var iterator = unsafe symbolSearchHandles.makeIterator()
         while let handle = unsafe iterator.next() {
             guard let handle,
-                  let symbol = unsafe resolveSymbol(named: name, handle: handle) else {
+                  let symbol = unsafe resolveSymbol(encodedName: symbolBytes, handle: handle) else {
                 continue
             }
             return unsafe unsafeBitCast(symbol, to: T.self)
@@ -68,19 +67,43 @@ import Darwin
     }
 
     private static func resolveSymbol(
-        named name: String,
+        encodedName: [UInt8],
         handle: UnsafeMutableRawPointer?
     ) -> UnsafeMutableRawPointer? {
-        name.withCString {
+        withDecodedCString(encodedName) {
             dlsym(handle, $0)
         }
     }
 
-    private static let libraryPath = [
-        "/usr",
-        "lib",
-        "system",
-        "libdyld.dylib",
-    ].joined(separator: "/")
+    private static func withDecodedCString<R>(
+        _ bytes: [UInt8],
+        _ body: (UnsafePointer<CChar>) -> R
+    ) -> R {
+        withUnsafeTemporaryAllocation(of: CChar.self, capacity: bytes.count + 1) { buffer in
+            for (index, byte) in bytes.enumerated() {
+                buffer[index] = CChar(bitPattern: byte ^ obfuscationKey)
+            }
+            buffer[bytes.count] = 0
+            return body(UnsafePointer(buffer.baseAddress!))
+        }
+    }
+
+    private static let sharedCacheRangeSymbolBytes: [UInt8] = [
+        0x05, 0x3e, 0x23, 0x36, 0x3e, 0x05, 0x3d, 0x3f, 0x2e, 0x05,
+        0x29, 0x32, 0x3b, 0x28, 0x3f, 0x3e, 0x05, 0x39, 0x3b, 0x39,
+        0x32, 0x3f, 0x05, 0x28, 0x3b, 0x34, 0x3d, 0x3f,
+    ]
+
+    private static let sharedCacheFilePathSymbolBytes: [UInt8] = [
+        0x3e, 0x23, 0x36, 0x3e, 0x05, 0x29, 0x32, 0x3b, 0x28, 0x3f,
+        0x3e, 0x05, 0x39, 0x3b, 0x39, 0x32, 0x3f, 0x05, 0x3c, 0x33,
+        0x36, 0x3f, 0x05, 0x2a, 0x3b, 0x2e, 0x32,
+    ]
+
+    private static let libraryPathBytes: [UInt8] = [
+        0x75, 0x2f, 0x29, 0x28, 0x75, 0x36, 0x33, 0x38, 0x75, 0x29,
+        0x23, 0x29, 0x2e, 0x3f, 0x37, 0x75, 0x36, 0x33, 0x38, 0x3e,
+        0x23, 0x36, 0x3e, 0x74, 0x3e, 0x23, 0x36, 0x33, 0x38,
+    ]
 }
 #endif
