@@ -15,7 +15,7 @@ final class MachOPrintTests: XCTestCase {
     private var machO: MachOImage!
 
     override func setUp() {
-        machO = MachOImage(name: "MachOKitTests")
+        machO = MachOImage.current()
     }
 
     func testHeader() throws {

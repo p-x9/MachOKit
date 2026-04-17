@@ -1,13 +1,12 @@
 import Foundation
-import MachOKitC
 
 extension DyldCache {
     public static var host: DyldCache? {
         #if canImport(Darwin)
-        guard let ptr = dyld_shared_cache_file_path() else {
+        guard let path = _DyldSharedCacheRuntime.sharedCacheFilePath() else {
             return nil
         }
-        let url: URL = .init(fileURLWithPath: .init(cString: ptr))
+        let url: URL = .init(fileURLWithPath: path)
         return try? DyldCache(url: url)
         #else
         return nil

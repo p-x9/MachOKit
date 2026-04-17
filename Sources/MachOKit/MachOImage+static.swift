@@ -50,10 +50,7 @@ extension MachOImage {
     public static func image(
         for address: UnsafeRawPointer
     ) -> MachOImage? {
-        guard let header = dyld_image_header_containing_address(address) else {
-            return nil
-        }
-        return .init(ptr: header)
+        image(containing: address)
     }
 }
 
