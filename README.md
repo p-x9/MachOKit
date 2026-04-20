@@ -161,6 +161,20 @@ for machO in machOs {
 // ...
 ```
 
+### UI-friendly labels
+
+`MachOKit` keeps `description` values close to C header constants (for example `LC_MAIN`).
+If you need user-facing labels, import `MachOKitReadable` and use `readableDescription`.
+
+```swift
+import MachOKit
+import MachOKitReadable
+
+let type = FileType.execute
+print(type.description)           // MH_EXECUTE
+print(type.readableDescription)   // Executable
+```
+
 ### Example Codes
 
 There are a variety of uses, but most show a basic example that prints output to the Test directory.
