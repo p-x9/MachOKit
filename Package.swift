@@ -24,6 +24,10 @@ let package = Package(
         .library(
             name: "MachOKitC",
             targets: ["MachOKitC"]
+        ),
+        .library(
+            name: "MachOKitReadable",
+            targets: ["MachOKitReadable"]
         )
     ],
     dependencies: [
@@ -69,12 +73,18 @@ let package = Package(
             ]
         ),
         .target(
+            name: "MachOKitReadable",
+            dependencies: [
+                "MachOKit"
+            ]
+        ),
+        .target(
             name: "MachOKitC",
             publicHeadersPath: "include"
         ),
         .testTarget(
             name: "MachOKitTests",
-            dependencies: ["MachOKit", "MachOArchiveKit"]
+            dependencies: ["MachOKit", "MachOArchiveKit", "MachOKitReadable"]
         )
     ]
 )
