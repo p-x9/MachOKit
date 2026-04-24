@@ -36,7 +36,7 @@ extension ObjCOptimization {
 
     /// Relative method list type are offsets from this address
     /// - Parameter cache: DyldCache to which `self` belongs
-    /// - Returns: relative selector's base address
+    /// - Returns: relative type's base address
     public func relativeMethodTypeBaseAddress(
         in cache: DyldCacheLoaded
     ) -> UnsafeRawPointer? {
