@@ -33,6 +33,20 @@ extension ObjCOptimization {
                 by: numericCast(layout.relativeMethodSelectorBaseAddressOffset)
             )
     }
+
+    /// Relative method list type are offsets from this address
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: relative type's base address
+    public func relativeMethodTypeBaseAddress(
+        in cache: DyldCacheLoaded
+    ) -> UnsafeRawPointer? {
+        guard layout.version >= 2 else { return nil }
+        let relativeMethodSelectorBaseAddress = relativeMethodSelectorBaseAddress(in: cache)
+        return relativeMethodSelectorBaseAddress
+            .advanced(
+                by: numericCast(layout.relativeMethodSelectorBufferSize)
+            )
+    }
 }
 
 // MARK: Header Optimization RW
