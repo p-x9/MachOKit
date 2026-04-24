@@ -15,7 +15,7 @@
 
 struct objc_optimization
 {
-    uint32_t version; // = 1
+    uint32_t version; // = 1-2
     uint32_t flags;
     uint64_t headerInfoROCacheOffset;
     uint64_t headerInfoRWCacheOffset;
@@ -23,6 +23,10 @@ struct objc_optimization
     uint64_t classHashTableCacheOffset;
     uint64_t protocolHashTableCacheOffset;
     uint64_t relativeMethodSelectorBaseAddressOffset;
+
+    // Added in version 2
+    uint64_t relativeMethodSelectorBufferSize;
+    uint64_t relativeMethodTypesBufferSize; // this buffer starts at the end of the selectors buffer
 };
 
 // https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/OptimizerObjC.h#L656
