@@ -197,7 +197,7 @@ extension MachOFile {
                     flags = dylibUseCmd.flags
                 }
                 let lib = cmd.dylib(in: self)
-                dependencies.append(.init(dylib: lib, type: .load, useFlags: flags))
+                dependencies.append(.init(dylib: lib, type: .weakLoad, useFlags: flags))
             case let .reexportDylib(cmd):
                 let lib = cmd.dylib(in: self)
                 dependencies.append(.init(dylib: lib, type: .reexport))
