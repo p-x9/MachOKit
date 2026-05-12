@@ -49,7 +49,7 @@ extension SegmentCommandProtocol {
     }
 }
 
-public struct SegmentCommand: SegmentCommandProtocol {
+public struct SegmentCommand: SegmentCommandProtocol, Sendable {
     public typealias Layout = segment_command
     public typealias SectionType = Section
 
@@ -98,7 +98,7 @@ public struct SegmentCommand: SegmentCommandProtocol {
     }
 }
 
-public struct SegmentCommand64: SegmentCommandProtocol {
+public struct SegmentCommand64: SegmentCommandProtocol, Sendable {
     public typealias Layout = segment_command_64
     public typealias SectionType = Section64
 

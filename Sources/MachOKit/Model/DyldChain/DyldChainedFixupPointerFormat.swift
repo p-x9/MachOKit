@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum DyldChainedFixupPointerFormat {
+public enum DyldChainedFixupPointerFormat: Sendable {
     /// DYLD_CHAINED_PTR_ARM64E
     case arm64e
     /// DYLD_CHAINED_PTR_64

@@ -44,7 +44,7 @@ extension DataTrieTree: Sequence {
 }
 
 extension DataTrieTree {
-    public struct Iterator: IteratorProtocol {
+    public struct Iterator: IteratorProtocol, Sendable {
         private let data: Data
         internal var nextOffset: Int = 0
 

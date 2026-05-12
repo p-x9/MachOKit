@@ -6,7 +6,7 @@
 //  
 //
 
-public struct PrebuiltLoader_Pre1165_3: LayoutWrapper, PrebuiltLoaderProtocol {
+public struct PrebuiltLoader_Pre1165_3: LayoutWrapper, PrebuiltLoaderProtocol, Sendable {
     public typealias Layout = prebuilt_loader_pre1165_3
 
     public var layout: Layout

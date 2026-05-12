@@ -23,7 +23,7 @@ public enum DyldChainedImport: Sendable {
     }
 }
 
-public struct DyldChainedImportGeneral: DyldChainedImportProtocol {
+public struct DyldChainedImportGeneral: DyldChainedImportProtocol, Sendable {
     public typealias Layout = dyld_chained_import
 
     public var layout: Layout
@@ -45,7 +45,7 @@ public struct DyldChainedImportGeneral: DyldChainedImportProtocol {
     }
 }
 
-public struct DyldChainedImportAddend: DyldChainedImportProtocol {
+public struct DyldChainedImportAddend: DyldChainedImportProtocol, Sendable {
     public typealias Layout = dyld_chained_import_addend
 
     public var layout: Layout
@@ -67,7 +67,7 @@ public struct DyldChainedImportAddend: DyldChainedImportProtocol {
     }
 }
 
-public struct DyldChainedImportAddend64: DyldChainedImportProtocol {
+public struct DyldChainedImportAddend64: DyldChainedImportProtocol, Sendable {
     public typealias Layout = dyld_chained_import_addend64
 
     public var layout: Layout

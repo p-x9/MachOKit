@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct LinkerOptionCommand: LoadCommandWrapper {
+public struct LinkerOptionCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = linker_option_command
 
     public var layout: Layout

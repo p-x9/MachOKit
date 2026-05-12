@@ -17,7 +17,7 @@ public struct DyldCacheSlideInfo1: LayoutWrapper, Sendable {
 }
 
 extension DyldCacheSlideInfo1 {
-    public struct Entry: LayoutWrapper {
+    public struct Entry: LayoutWrapper, Sendable {
         public typealias Layout = dyld_cache_slide_info_entry
 
         public var layout: Layout

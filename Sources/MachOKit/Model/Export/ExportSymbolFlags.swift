@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ExportSymbolFlags: BitFlags {
+public struct ExportSymbolFlags: BitFlags, Sendable {
     public typealias RawValue = Int32
 
     public let rawValue: RawValue

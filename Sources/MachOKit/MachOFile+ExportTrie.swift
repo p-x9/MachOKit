@@ -11,7 +11,7 @@ import Foundation
 extension MachOFile {
     // https://github.com/apple-oss-distributions/dyld/blob/65bbeed63cec73f313b1d636e63f243964725a9d/mach_o/ExportsTrie.cpp
     // https://github.com/apple-oss-distributions/ld64/blob/47f477cb721755419018f7530038b272e9d0cdea/src/mach_o/ExportsTrie.cpp
-    public struct ExportTrie: Sequence {
+    public struct ExportTrie: Sequence, Sendable {
         public typealias Wrapped = DataTrieTree<ExportTrieNodeContent>
 
         public let exportOffset: Int
@@ -71,7 +71,7 @@ extension MachOFile.ExportTrie {
 }
 
 extension MachOFile.ExportTrie {
-    public struct Iterator: IteratorProtocol {
+    public struct Iterator: IteratorProtocol, Sendable {
         public typealias Element = Wrapped.Element
 
         private var wrapped: Wrapped.Iterator

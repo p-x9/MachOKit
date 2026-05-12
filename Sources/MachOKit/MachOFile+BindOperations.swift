@@ -9,7 +9,7 @@
 import Foundation
 
 extension MachOFile {
-    public struct BindOperations: Sequence {
+    public struct BindOperations: Sequence, Sendable {
         public let data: Data
         public let bindOffset: Int
         public let bindSize: Int
@@ -38,7 +38,7 @@ extension MachOFile.BindOperations {
 }
 
 extension MachOFile.BindOperations {
-    public struct Iterator: IteratorProtocol {
+    public struct Iterator: IteratorProtocol, Sendable {
         public typealias Element = BindOperation
 
         private let data: Data

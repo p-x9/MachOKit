@@ -6,7 +6,7 @@
 //  
 //
 
-public struct FilesetEntryCommand: LoadCommandWrapper {
+public struct FilesetEntryCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = fileset_entry_command
 
     public var layout: Layout

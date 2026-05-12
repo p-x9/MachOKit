@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct RpathCommand: LoadCommandWrapper {
+public struct RpathCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = rpath_command
 
     public var layout: Layout

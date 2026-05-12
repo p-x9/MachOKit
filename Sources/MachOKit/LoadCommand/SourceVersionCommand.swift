@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SourceVersionCommand: LoadCommandWrapper {
+public struct SourceVersionCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = source_version_command
 
     public var layout: Layout

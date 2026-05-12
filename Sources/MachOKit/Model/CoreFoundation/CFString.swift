@@ -31,13 +31,13 @@ public protocol CFStringProtocol: Sendable {
     func string(in machO: MachOImage) -> String?
 }
 
-public struct CFString64: LayoutWrapper, CFStringProtocol {
+public struct CFString64: LayoutWrapper, CFStringProtocol, Sendable {
     public typealias Layout = CF_CONST_STRING64
 
     public var layout: Layout
 }
 
-public struct CFString32: LayoutWrapper, CFStringProtocol {
+public struct CFString32: LayoutWrapper, CFStringProtocol, Sendable {
     public typealias Layout = CF_CONST_STRING32
 
     public var layout: Layout

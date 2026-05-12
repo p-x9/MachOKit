@@ -16,7 +16,7 @@ internal import FileIOBinary
 #endif
 
 extension MachOFile {
-    public struct Symbol: SymbolProtocol {
+    public struct Symbol: SymbolProtocol, Sendable {
         public let name: String
 
         /// Offset from start of mach header (`MachO`)

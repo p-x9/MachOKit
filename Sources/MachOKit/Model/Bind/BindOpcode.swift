@@ -103,7 +103,7 @@ extension BindOpcode: CustomStringConvertible {
     }
 }
 
-public enum BindSubOpcode {
+public enum BindSubOpcode: Sendable {
     /// BIND_SUBOPCODE_THREADED_SET_BIND_ORDINAL_TABLE_SIZE_ULEB
     case threaded_set_bind_ordinal_table_size_uleb
     /// BIND_SUBOPCODE_THREADED_APPLY

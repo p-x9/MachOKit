@@ -14,7 +14,7 @@ public protocol NlistProtocol: LayoutWrapper, Sendable {
     var sectionNumber: Int? { get }
 }
 
-public struct Nlist: NlistProtocol {
+public struct Nlist: NlistProtocol, Sendable {
     public typealias Layout = nlist
 
     public var layout: Layout
@@ -32,7 +32,7 @@ public struct Nlist: NlistProtocol {
     }
 }
 
-public struct Nlist64: NlistProtocol {
+public struct Nlist64: NlistProtocol, Sendable {
     public typealias Layout = nlist_64
 
     public var layout: Layout

@@ -18,7 +18,7 @@ extension EncryptionInfoCommandProtocol {
     }
 }
 
-public struct EncryptionInfoCommand: LoadCommandWrapper {
+public struct EncryptionInfoCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = encryption_info_command
 
     public var layout: Layout
@@ -30,7 +30,7 @@ public struct EncryptionInfoCommand: LoadCommandWrapper {
     }
 }
 
-public struct EncryptionInfoCommand64: LoadCommandWrapper {
+public struct EncryptionInfoCommand64: LoadCommandWrapper, Sendable {
     public typealias Layout = encryption_info_command_64
 
     public var layout: Layout

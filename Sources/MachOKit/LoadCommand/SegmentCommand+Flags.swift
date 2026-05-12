@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SegmentCommandFlags: BitFlags {
+public struct SegmentCommandFlags: BitFlags, Sendable {
     public typealias RawValue = UInt32
 
     public let rawValue: RawValue
@@ -42,7 +42,7 @@ extension SegmentCommandFlags {
 }
 
 extension SegmentCommandFlags {
-    public enum Bit: CaseIterable {
+    public enum Bit: CaseIterable, Sendable {
         /// SG_HIGHVM
         case highvm
         /// SG_FVMLIB

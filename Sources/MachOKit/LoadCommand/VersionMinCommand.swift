@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct VersionMinCommand: LoadCommandWrapper {
+public struct VersionMinCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = version_min_command
 
     public var layout: version_min_command

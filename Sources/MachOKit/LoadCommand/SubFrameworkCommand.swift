@@ -6,7 +6,7 @@
 //  
 //
 
-public struct SubFrameworkCommand: LoadCommandWrapper {
+public struct SubFrameworkCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = sub_framework_command
 
     public var layout: Layout

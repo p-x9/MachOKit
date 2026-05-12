@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct PrebuiltLoader: LayoutWrapper, PrebuiltLoaderProtocol {
+public struct PrebuiltLoader: LayoutWrapper, PrebuiltLoaderProtocol, Sendable {
     public typealias Layout = prebuilt_loader
 
     public var layout: Layout

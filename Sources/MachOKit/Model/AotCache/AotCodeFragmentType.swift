@@ -6,7 +6,7 @@
 //  
 //
 
-public enum AotCodeFragmentType: UInt32 {
+public enum AotCodeFragmentType: UInt32, Sendable {
     case normal
     case runtime
 }

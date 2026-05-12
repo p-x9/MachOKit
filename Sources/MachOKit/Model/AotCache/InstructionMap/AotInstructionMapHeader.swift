@@ -8,7 +8,7 @@
 
 import MachOKitC
 
-public struct AotInstructionMapHeader: LayoutWrapper {
+public struct AotInstructionMapHeader: LayoutWrapper, Sendable {
     public typealias Layout = aot_instruction_map_header
 
     public var layout: Layout

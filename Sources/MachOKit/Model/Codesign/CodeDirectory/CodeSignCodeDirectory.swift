@@ -199,25 +199,25 @@ extension CodeSignCodeDirectory {
 }
 
 extension CodeSignCodeDirectory {
-    public struct ScatterOffset: LayoutWrapper {
+    public struct ScatterOffset: LayoutWrapper, Sendable {
         public typealias Layout = CS_CodeDirectory_Scatter
 
         public var layout: Layout
     }
 
-    public struct TeamIdOffset: LayoutWrapper {
+    public struct TeamIdOffset: LayoutWrapper, Sendable {
         public typealias Layout = CS_CodeDirectory_TeamID
 
         public var layout: Layout
     }
 
-    public struct CodeLimit64: LayoutWrapper {
+    public struct CodeLimit64: LayoutWrapper, Sendable {
         public typealias Layout = CS_CodeDirectory_CodeLimit64
 
         public var layout: Layout
     }
 
-    public struct ExecutableSegment: LayoutWrapper {
+    public struct ExecutableSegment: LayoutWrapper, Sendable {
         public typealias Layout = CS_CodeDirectory_ExecSeg
 
         public var layout: Layout
@@ -227,7 +227,7 @@ extension CodeSignCodeDirectory {
         }
     }
 
-    public struct Runtime: LayoutWrapper {
+    public struct Runtime: LayoutWrapper, Sendable {
         public typealias Layout = CS_CodeDirectory_Runtime
 
         public var layout: Layout

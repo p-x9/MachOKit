@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct AotInstructionMap {
+public struct AotInstructionMap: Sendable {
     public let header: AotInstructionMapHeader
     public let offset: Int
 }

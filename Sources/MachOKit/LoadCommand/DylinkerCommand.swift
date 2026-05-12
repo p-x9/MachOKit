@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DylinkerCommand: LoadCommandWrapper {
+public struct DylinkerCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = dylinker_command
 
     public var layout: Layout

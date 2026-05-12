@@ -8,7 +8,7 @@
 
 import MachOKitC
 
-public struct AotBranchDataHeader: LayoutWrapper {
+public struct AotBranchDataHeader: LayoutWrapper, Sendable {
     public typealias Layout = aot_branch_data_header
 
     public var layout: Layout

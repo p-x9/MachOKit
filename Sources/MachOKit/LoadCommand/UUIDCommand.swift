@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct UUIDCommand: LoadCommandWrapper {
+public struct UUIDCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = uuid_command
 
     public var layout: Layout

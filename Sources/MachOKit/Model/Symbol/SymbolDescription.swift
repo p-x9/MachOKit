@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct SymbolDescription: BitFlags {
+public struct SymbolDescription: BitFlags, Sendable {
     public typealias RawValue = Int32
 
     public let rawValue: RawValue
@@ -79,7 +79,7 @@ extension SymbolDescription {
 }
 
 extension SymbolDescription {
-    public enum Bit: CaseIterable {
+    public enum Bit: CaseIterable, Sendable {
         /// REFERENCED_DYNAMICALLY
         case referenced_dynamically
         /// N_NO_DEAD_STRIP

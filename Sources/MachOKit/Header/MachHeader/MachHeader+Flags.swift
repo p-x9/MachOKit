@@ -9,7 +9,7 @@
 import Foundation
 
 extension MachHeader {
-    public struct Flags: BitFlags {
+    public struct Flags: BitFlags, Sendable {
         public typealias RawValue = UInt32
 
         public let rawValue: RawValue

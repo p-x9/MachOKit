@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ObjCOptimizationFlags: BitFlags {
+public struct ObjCOptimizationFlags: BitFlags, Sendable {
     public typealias RawValue = UInt32
 
     public let rawValue: RawValue

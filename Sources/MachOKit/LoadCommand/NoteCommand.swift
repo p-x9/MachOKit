@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct NoteCommand: LoadCommandWrapper {
+public struct NoteCommand: LoadCommandWrapper, Sendable {
     public typealias Layout = note_command
 
     public var layout: Layout

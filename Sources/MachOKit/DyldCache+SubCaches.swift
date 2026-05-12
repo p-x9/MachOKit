@@ -9,7 +9,7 @@
 import Foundation
 
 extension DyldCache {
-    public struct SubCaches: Sequence {
+    public struct SubCaches: Sequence, Sendable {
         public let data: Data // DyldSubCacheEntryGeneral * numberOfSubCaches
         public let numberOfSubCaches: Int
         public let subCacheEntryType: DyldSubCacheEntryType
@@ -25,7 +25,7 @@ extension DyldCache {
 }
 
 extension DyldCache.SubCaches {
-    public struct Iterator: IteratorProtocol {
+    public struct Iterator: IteratorProtocol, Sendable {
         public typealias Element = DyldSubCacheEntry
 
         public let data: Data // DyldSubCacheEntryGeneral * numberOfSubCaches

@@ -61,7 +61,7 @@ public protocol ObjCHeaderInfoROProtocol: Sendable {
 }
 
 // MARK: - ObjCHeaderInfoRO64
-public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol {
+public struct ObjCHeaderInfoRO64: LayoutWrapper, ObjCHeaderInfoROProtocol, Sendable {
     public typealias HeaderOptimizationRO = ObjCHeaderOptimizationRO64
     public typealias Layout = objc_header_info_ro_t_64
 
@@ -177,7 +177,7 @@ extension ObjCHeaderInfoRO64 {
 }
 
 // MARK: - ObjCHeaderInfoRO32
-public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol {
+public struct ObjCHeaderInfoRO32: LayoutWrapper, ObjCHeaderInfoROProtocol, Sendable {
     public typealias HeaderOptimizationRO = ObjCHeaderOptimizationRO32
     public typealias Layout = objc_header_info_ro_t_32
 
