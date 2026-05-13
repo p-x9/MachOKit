@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DylibUseFlags: BitFlags, Sendable {
+public struct DylibUseFlags: BitFlags {
     public typealias RawValue = UInt32
 
     public let rawValue: RawValue

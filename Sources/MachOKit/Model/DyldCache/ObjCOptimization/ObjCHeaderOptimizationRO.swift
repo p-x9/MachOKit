@@ -30,7 +30,7 @@ public protocol ObjCHeaderOptimizationROProtocol: Sendable {
     func headerInfos(in cache: FullDyldCache) -> AnyRandomAccessCollection<HeaderInfo>?
 }
 
-public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationROProtocol, Sendable {
+public struct ObjCHeaderOptimizationRO64: LayoutWrapper, ObjCHeaderOptimizationROProtocol {
     public typealias Layout = objc_headeropt_ro_t_64
     public typealias HeaderInfo = ObjCHeaderInfoRO64
 
@@ -113,7 +113,7 @@ extension ObjCHeaderOptimizationRO64 {
     }
 }
 
-public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationROProtocol, Sendable {
+public struct ObjCHeaderOptimizationRO32: LayoutWrapper, ObjCHeaderOptimizationROProtocol {
     public typealias Layout = objc_headeropt_ro_t_32
     public typealias HeaderInfo = ObjCHeaderInfoRO32
 

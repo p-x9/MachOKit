@@ -85,7 +85,7 @@ extension SectionProtocol {
     }
 }
 
-public struct Section: SectionProtocol, Sendable {
+public struct Section: SectionProtocol {
     public typealias Layout = section
 
     public var layout: Layout
@@ -147,7 +147,7 @@ extension Section {
     }
 }
 
-public struct Section64: SectionProtocol, Sendable {
+public struct Section64: SectionProtocol {
     public typealias Layout = section_64
 
     public var layout: Layout

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct EntryPointCommand: LoadCommandWrapper, Sendable {
+public struct EntryPointCommand: LoadCommandWrapper {
     public typealias Layout = entry_point_command
 
     public var layout: Layout

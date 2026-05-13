@@ -24,7 +24,7 @@ extension ObjCImageInfo {
     }
 }
 
-public struct ObjCImageInfoFlags: BitFlags, Sendable {
+public struct ObjCImageInfoFlags: BitFlags {
     public typealias RawValue = UInt32
 
     public var rawValue: RawValue

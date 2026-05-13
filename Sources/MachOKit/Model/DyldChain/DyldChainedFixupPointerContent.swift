@@ -22,7 +22,7 @@ extension DyldChainedFixupPointerContent {
 }
 
 extension DyldChainedFixupPointerInfo {
-    public enum ARM64E: DyldChainedFixupPointerContent, Sendable {
+    public enum ARM64E: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtrArm64eRebase)
         case bind(DyldChainedPtrArm64eBind)
         case authRebase(DyldChainedPtrArm64eAuthRebase)
@@ -76,7 +76,7 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
-    public enum General64: DyldChainedFixupPointerContent, Sendable {
+    public enum General64: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr64Rebase)
         case bind(DyldChainedPtr64Bind)
 
@@ -120,7 +120,7 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
-    public enum General64Cache: DyldChainedFixupPointerContent, Sendable {
+    public enum General64Cache: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr64KernelCacheRebase)
 
         public var next: Int {
@@ -148,7 +148,7 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
-    public enum General32: DyldChainedFixupPointerContent, Sendable {
+    public enum General32: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr32Rebase)
         case bind(DyldChainedPtr32Bind)
 
@@ -192,7 +192,7 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
-    public enum General32Cache: DyldChainedFixupPointerContent, Sendable {
+    public enum General32Cache: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr32CacheRebase)
 
         public var next: Int {
@@ -220,7 +220,7 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
-    public enum General32Firmware: DyldChainedFixupPointerContent, Sendable {
+    public enum General32Firmware: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtr32FirmwareRebase)
 
         public var next: Int {
@@ -248,7 +248,7 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
-    public enum ARM64EUserland24: DyldChainedFixupPointerContent, Sendable {
+    public enum ARM64EUserland24: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtrArm64eRebase)
         case bind(DyldChainedPtrArm64eBind24)
         case authRebase(DyldChainedPtrArm64eAuthRebase)
@@ -302,7 +302,7 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
-    public enum ARM64ESharedCache: DyldChainedFixupPointerContent, Sendable {
+    public enum ARM64ESharedCache: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtrArm64eSharedCacheRebase)
         case authRebase(DyldChainedPtrArm64eSharedCacheAuthRebase)
 
@@ -343,7 +343,7 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
-    public enum ARM64ESegmented: DyldChainedFixupPointerContent, Sendable {
+    public enum ARM64ESegmented: DyldChainedFixupPointerContent {
         case rebase(DyldChainedPtrArm64eSegmentedRebase)
         case authRebase(DyldChainedPtrArm64eSegmentedAuthRebase)
 
@@ -413,7 +413,7 @@ extension DyldChainedPointerContentBind {
     public var isAuth: Bool { false }
 }
 
-public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_rebase
 
     public var layout: Layout
@@ -431,7 +431,7 @@ public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase, Senda
     }
 }
 
-public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind, Sendable {
+public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_bind
 
     public var layout: Layout
@@ -458,7 +458,7 @@ public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind, Sendable 
     }
 }
 
-public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_rebase
 
     public var layout: Layout
@@ -478,7 +478,7 @@ public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase, S
     }
 }
 
-public struct DyldChainedPtrArm64eAuthBind: DyldChainedPointerContentBind, Sendable {
+public struct DyldChainedPtrArm64eAuthBind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_bind
 
     public var layout: Layout
@@ -498,7 +498,7 @@ public struct DyldChainedPtrArm64eAuthBind: DyldChainedPointerContentBind, Senda
     }
 }
 
-public struct DyldChainedPtr64Rebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtr64Rebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_64_rebase
 
     public var layout: Layout
@@ -516,7 +516,7 @@ public struct DyldChainedPtr64Rebase: DyldChainedPointerContentRebase, Sendable 
     }
 }
 
-public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind, Sendable {
+public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_64_bind
 
     public var layout: Layout
@@ -542,7 +542,7 @@ public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind, Sendable {
     }
 }
 
-public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind, Sendable {
+public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_bind24
 
     public var layout: Layout
@@ -569,7 +569,7 @@ public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind, Sendabl
     }
 }
 
-public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind, Sendable {
+public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_bind24
 
     public var layout: Layout
@@ -589,7 +589,7 @@ public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind, Sen
     }
 }
 
-public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_64_kernel_cache_rebase
 
     public var layout: Layout
@@ -609,7 +609,7 @@ public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase
     }
 }
 
-public struct DyldChainedPtr32Rebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtr32Rebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_32_rebase
 
     public var layout: Layout
@@ -623,7 +623,7 @@ public struct DyldChainedPtr32Rebase: DyldChainedPointerContentRebase, Sendable 
     }
 }
 
-public struct DyldChainedPtr32Bind: DyldChainedPointerContentBind, Sendable {
+public struct DyldChainedPtr32Bind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_32_bind
 
     public var layout: Layout
@@ -641,7 +641,7 @@ public struct DyldChainedPtr32Bind: DyldChainedPointerContentBind, Sendable {
     }
 }
 
-public struct DyldChainedPtr32CacheRebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtr32CacheRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_32_cache_rebase
 
     public var layout: Layout
@@ -655,7 +655,7 @@ public struct DyldChainedPtr32CacheRebase: DyldChainedPointerContentRebase, Send
     }
 }
 
-public struct DyldChainedPtr32FirmwareRebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtr32FirmwareRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_32_firmware_rebase
 
     public var layout: Layout
@@ -669,7 +669,7 @@ public struct DyldChainedPtr32FirmwareRebase: DyldChainedPointerContentRebase, S
     }
 }
 
-public struct DyldChainedPtrArm64eSharedCacheRebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtrArm64eSharedCacheRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_shared_cache_rebase
 
     public var layout: Layout
@@ -687,7 +687,7 @@ public struct DyldChainedPtrArm64eSharedCacheRebase: DyldChainedPointerContentRe
     }
 }
 
-public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_shared_cache_auth_rebase
 
     public var layout: Layout
@@ -708,7 +708,7 @@ public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerConte
 }
 
 
-public struct DyldChainedPtrArm64eSegmentedRebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtrArm64eSegmentedRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_segmented_rebase
 
     public var layout: Layout
@@ -722,7 +722,7 @@ public struct DyldChainedPtrArm64eSegmentedRebase: DyldChainedPointerContentReba
     }
 }
 
-public struct DyldChainedPtrArm64eSegmentedAuthRebase: DyldChainedPointerContentRebase, Sendable {
+public struct DyldChainedPtrArm64eSegmentedAuthRebase: DyldChainedPointerContentRebase {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_segmented_rebase
 
     public var layout: Layout

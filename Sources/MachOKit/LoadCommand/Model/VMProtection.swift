@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct VMProtection: BitFlags, Sendable {
+public struct VMProtection: BitFlags {
     public typealias RawValue = vm_prot_t
 
     public let rawValue: RawValue

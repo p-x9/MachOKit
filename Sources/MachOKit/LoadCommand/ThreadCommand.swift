@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct ThreadCommand: LoadCommandWrapper, Sendable {
+public struct ThreadCommand: LoadCommandWrapper {
     public typealias Layout = thread_command
 
     public var layout: Layout

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DylibCommand: LoadCommandWrapper, Sendable {
+public struct DylibCommand: LoadCommandWrapper {
     public typealias Layout = dylib_command
 
     public var layout: Layout

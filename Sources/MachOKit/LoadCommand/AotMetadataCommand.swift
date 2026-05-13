@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct AotMetadataCommand: LoadCommandWrapper, Sendable {
+public struct AotMetadataCommand: LoadCommandWrapper {
     public typealias Layout = aot_metadata_command
 
     public var layout: Layout

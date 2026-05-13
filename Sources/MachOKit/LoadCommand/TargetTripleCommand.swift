@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct TargetTripleCommand: LoadCommandWrapper, Sendable {
+public struct TargetTripleCommand: LoadCommandWrapper {
     public typealias Layout = target_triple_command
 
     public var layout: Layout

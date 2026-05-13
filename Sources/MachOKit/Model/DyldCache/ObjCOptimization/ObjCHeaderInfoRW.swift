@@ -15,7 +15,7 @@ public protocol ObjCHeaderInfoRWProtocol: Sendable {
     var isAllClassesRelized: Bool { get }
 }
 
-public struct ObjCHeaderInfoRW64: LayoutWrapper, ObjCHeaderInfoRWProtocol, Sendable {
+public struct ObjCHeaderInfoRW64: LayoutWrapper, ObjCHeaderInfoRWProtocol {
     public typealias Layout = header_info_rw_64
 
     public var layout: Layout
@@ -24,7 +24,7 @@ public struct ObjCHeaderInfoRW64: LayoutWrapper, ObjCHeaderInfoRWProtocol, Senda
     public var isAllClassesRelized: Bool { layout.allClassesRealized == 1 }
 }
 
-public struct ObjCHeaderInfoRW32: LayoutWrapper, ObjCHeaderInfoRWProtocol, Sendable {
+public struct ObjCHeaderInfoRW32: LayoutWrapper, ObjCHeaderInfoRWProtocol {
     public typealias Layout = header_info_rw_32
 
     public var layout: Layout
