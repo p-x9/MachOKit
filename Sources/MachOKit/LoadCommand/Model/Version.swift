@@ -39,7 +39,7 @@ extension Version: Comparable {
     }
 }
 
-public struct SourceVersion {
+public struct SourceVersion: Sendable {
     public let a: Int
     public let b: Int
     public let c: Int

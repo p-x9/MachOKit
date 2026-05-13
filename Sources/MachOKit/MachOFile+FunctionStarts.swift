@@ -9,7 +9,7 @@
 import Foundation
 
 extension MachOFile {
-    public struct FunctionStarts: Sequence {
+    public struct FunctionStarts: Sequence, Sendable {
         public let data: Data
         public let functionStartsOffset: Int
         public let functionStartsSize: Int
@@ -72,7 +72,7 @@ extension MachOFile.FunctionStarts {
 }
 
 extension MachOFile.FunctionStarts {
-    public struct Iterator: IteratorProtocol {
+    public struct Iterator: IteratorProtocol, Sendable {
         public typealias Element = FunctionStart
 
         private let data: Data

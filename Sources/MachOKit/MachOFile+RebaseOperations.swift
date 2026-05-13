@@ -9,7 +9,7 @@
 import Foundation
 
 extension MachOFile {
-    public struct RebaseOperations: Sequence {
+    public struct RebaseOperations: Sequence, Sendable {
         public let data: Data
         public let rebaseOffset: Int
         public let rebaseSize: Int
@@ -52,7 +52,7 @@ extension MachOFile.RebaseOperations {
 }
 
 extension MachOFile.RebaseOperations {
-    public struct Iterator: IteratorProtocol {
+    public struct Iterator: IteratorProtocol, Sendable {
         public typealias Element = RebaseOperation
 
         private let data: Data

@@ -79,7 +79,7 @@ extension SymbolDescription {
 }
 
 extension SymbolDescription {
-    public enum Bit: CaseIterable {
+    public enum Bit: CaseIterable, Sendable {
         /// REFERENCED_DYNAMICALLY
         case referenced_dynamically
         /// N_NO_DEAD_STRIP

@@ -8,19 +8,19 @@
 
 import MachOKitC
 
-public struct AotBranchDataIndexEntry: LayoutWrapper {
+public struct AotBranchDataIndexEntry: LayoutWrapper, Sendable {
     public typealias Layout = aot_branch_data_index_entry
 
     public var layout: Layout
 }
 
-public struct AotBranchDataIndexEntryCompact: LayoutWrapper {
+public struct AotBranchDataIndexEntryCompact: LayoutWrapper, Sendable {
     public typealias Layout = aot_branch_data_index_entry_compact
 
     public var layout: Layout
 }
 
-public struct AotBranchDataIndexEntryExtended: LayoutWrapper {
+public struct AotBranchDataIndexEntryExtended: LayoutWrapper, Sendable {
     public typealias Layout = aot_branch_data_index_entry_extended
 
     public var layout: Layout

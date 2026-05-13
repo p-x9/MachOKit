@@ -9,7 +9,7 @@ public enum File {
 }
 
 /// Errors that can occur while parsing or loading Mach-O files.
-public enum MachOKitError: LocalizedError {
+public enum MachOKitError: LocalizedError, Sendable {
     case invalidMagic
     case invalidCpuType
 }

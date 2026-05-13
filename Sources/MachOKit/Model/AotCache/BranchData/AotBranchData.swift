@@ -8,7 +8,7 @@
 
 import MachOKitC
 
-public struct AotBranchData {
+public struct AotBranchData: Sendable {
     public let header: AotBranchDataHeader
     public let offset: Int
 }

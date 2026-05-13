@@ -18,7 +18,7 @@ public struct DyldCacheSlideInfo5: LayoutWrapper, Sendable {
 
 // MARK: - PageStart
 extension DyldCacheSlideInfo5 {
-    public struct PageStart {
+    public struct PageStart: Sendable {
         public let value: UInt16
 
         public var isNoRebase: Bool {

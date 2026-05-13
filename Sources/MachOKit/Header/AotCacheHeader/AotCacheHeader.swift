@@ -9,7 +9,7 @@
 import Foundation
 import MachOKitC
 
-public struct AotCacheHeader: LayoutWrapper {
+public struct AotCacheHeader: LayoutWrapper, Sendable {
     public typealias Layout = aot_cache_header
 
     public var layout: Layout

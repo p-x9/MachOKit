@@ -9,7 +9,7 @@
 import Foundation
 
 extension MachOFile {
-    public struct LoadCommands: Sequence {
+    public struct LoadCommands: Sequence, Sendable {
         public let data: Data
         public let numberOfCommands: Int
         public let isSwapped: Bool
@@ -25,7 +25,7 @@ extension MachOFile {
 }
 
 extension MachOFile.LoadCommands {
-    public struct Iterator: IteratorProtocol {
+    public struct Iterator: IteratorProtocol, Sendable {
         public typealias Element = LoadCommand
 
         public let data: Data
