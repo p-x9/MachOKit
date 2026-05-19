@@ -188,7 +188,7 @@ public protocol MachORepresentable {
     /// If sectionNumber is 0, search in all sections
     ///
     /// - Parameters:
-    ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - offset: Offset from start of mach header. See ``SymbolProtocol/offset``.
     ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Closest symbol.
@@ -205,7 +205,7 @@ public protocol MachORepresentable {
     /// If sectionNumber is 0, search in all sections
     ///
     /// - Parameters:
-    ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - offset: Offset from start of mach header. See ``SymbolProtocol/offset``.
     ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Closest symbols.
@@ -220,7 +220,7 @@ public protocol MachORepresentable {
     /// If sectionNumber is 0, search in all sections
     ///
     /// - Parameters:
-    ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - offset: Offset from start of mach header. See ``SymbolProtocol/offset``.
     ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbol
@@ -232,12 +232,12 @@ public protocol MachORepresentable {
 
     /// Find the symbols matching the specified offset.
     ///
-    /// Different from ``symbol(for:isGlobalOnly:)`` multiple symbols with the same offset may be found.
+    /// Different from ``symbol(for:inSection:isGlobalOnly:)``, multiple symbols with the same offset may be found.
     ///
     /// If sectionNumber is 0, search in all sections
     ///
     /// - Parameters:
-    ///   - offset: Offset from start of mach header. (``SymbolProtocol.offset``)
+    ///   - offset: Offset from start of mach header. See ``SymbolProtocol/offset``.
     ///   - sectionNumber: Section number to be searched.
     ///   - isGlobalOnly: If true, search only global symbols.
     /// - Returns: Matched symbols

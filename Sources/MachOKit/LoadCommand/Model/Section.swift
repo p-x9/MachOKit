@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2023/12/01.
-//  
+//
 //
 
 import Foundation
@@ -40,17 +40,15 @@ public protocol SectionProtocol: LayoutWrapper, Sendable {
 
     /// Get the data in this section as a string table
     ///
-    /// returns nil except when type is `cstring_literals
+    /// returns nil except when type is `cstring_literals`
     ///
-    /// - Parameters:
-    ///   - vmaddrSlide: slide
     /// - Parameter machO: MachOImage to which `self` belongs
     /// - Returns: string table
     func strings(in machO: MachOImage) -> MachOImage.Strings?
 
     /// Get the data in this section as a string table
     ///
-    /// returns nil except when type is `cstring_literals
+    /// returns nil except when type is `cstring_literals`
     ///
     /// - Parameter machO: MachOFile to which `self` belongs
     /// - Returns: string table
@@ -212,7 +210,7 @@ extension Section64 {
 extension SectionProtocol {
     /// Get the data in this section as a string table
     ///
-    /// returns nil except when type is `cstring_literals
+    /// returns nil except when type is `cstring_literals`
     ///
     /// - Parameters:
     ///   - segment: sgment to which this section belongs

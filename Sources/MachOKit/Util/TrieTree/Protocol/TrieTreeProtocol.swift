@@ -9,7 +9,7 @@
 import Foundation
 
 /// Protocol for structures representing Trie Tree
-///  - ``DataTrieTree``: Handles the trie tree contained in ``Data``
+///  - ``DataTrieTree``: Handles the trie tree contained in `Data`
 ///  - ``MemoryTrieTree``: Handles the trie tree exsisted on memory
 ///
 /// It conforms to Sequence and sequentially retrieves the elements of the tree

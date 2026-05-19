@@ -1,3 +1,3 @@
 # ``MachOKitC``
 
-🔬 A Swift library for parsing MachO files to obtain various information.
+MachOKitC provides C layouts and constants that MachOKit wraps in Swift.

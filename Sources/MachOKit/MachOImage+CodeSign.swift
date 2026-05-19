@@ -140,7 +140,7 @@ extension MachOImage.CodeSign {
     ///   - includesGenericInfo: A boolean value that indicates whether the data defined in the ``CodeSignGenericBlob``, such as magic and length, are included or not.
     /// - Returns: Data of blob
     ///
-    /// Note that when converting from this data to other blob models, byte swapping must be performed appropriately for the ``MachOImage.CodeSign.isSwapped`` parameter.
+    /// Note that when converting from this data to other blob models, byte swapping must be performed appropriately for the ``MachOImage/CodeSign/isSwapped`` parameter.
     public func blobData(
         in superBlob: CodeSignSuperBlob,
         at index: CodeSignBlobIndex,
