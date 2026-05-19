@@ -232,7 +232,7 @@ public protocol MachORepresentable {
 
     /// Find the symbols matching the specified offset.
     ///
-    /// Different from `symbol(for:inSection:isGlobalOnly:)`, multiple symbols with the same offset may be found.
+    /// Different from ``symbol(for:inSection:isGlobalOnly:)``, multiple symbols with the same offset may be found.
     ///
     /// If sectionNumber is 0, search in all sections
     ///
