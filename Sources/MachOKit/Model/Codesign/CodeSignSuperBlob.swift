@@ -28,7 +28,7 @@ extension CodeSignSuperBlob {
 
 extension CodeSignSuperBlob {
     /// Get indices of this SuperBlob
-    /// - Parameter signature: ``MachOFile.CodeSign`` to which this SuperBlob belongs.
+    /// - Parameter signature: ``MachOFile/CodeSign`` to which this SuperBlob belongs.
     /// - Returns: indices of this superBlob
     public func blobIndices(
         in signature: MachOFile.CodeSign
@@ -49,7 +49,7 @@ extension CodeSignSuperBlob {
     }
 
     /// Get indices of this SuperBlob
-    /// - Parameter signature: ``MachOImage.CodeSign`` to which this SuperBlob belongs.
+    /// - Parameter signature: ``MachOImage/CodeSign`` to which this SuperBlob belongs.
     /// - Returns: indices of this superBlob
     public func blobIndices(
         in signature: MachOImage.CodeSign

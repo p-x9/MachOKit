@@ -42,8 +42,6 @@ public protocol SectionProtocol: LayoutWrapper, Sendable {
     ///
     /// returns nil except when type is `cstring_literals
     ///
-    /// - Parameters:
-    ///   - vmaddrSlide: slide
     /// - Parameter machO: MachOImage to which `self` belongs
     /// - Returns: string table
     func strings(in machO: MachOImage) -> MachOImage.Strings?
