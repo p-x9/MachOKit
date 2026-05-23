@@ -209,10 +209,33 @@ The following file contains sample code.
     Re-implementation of [facebook/fishhook](https://github.com/facebook/fishhook) with Swift using MachOKit
 - [AntiFishHook](https://github.com/p-x9/swift-anti-fishhook)
     A Swift library to deactivate fishhook. (Anti-FishHook)
+- [dyld-shared-cache-extractor](https://github.com/swiftbin/dyld-shared-cache-extractor)
+    A CLI tool to extract dylib from dyld_shared_cache
+- [inject-o](https://github.com/swiftbin/inject-o)
+    A CLI tool for injecting dependent dylibs into the Mach-O file.
+
+### Runtime Metadata
+
+Utilities for extracting higher-level language metadata from Mach-O binaries.
+
+- [MachOObjCSection](https://github.com/p-x9/MachOObjCSection)
+    Objective-C metadata parser for classes, methods, protocols, properties, categories, and related runtime structures.
+
+- [MachOSwiftSection](https://github.com/MxIris-Reverse-Engineering/MachOSwiftSection)
+    Swift metadata parser for types, protocols, protocol conformances, and other Swift runtime information.
+    (Developed by [Mx-Iris](https://github.com/Mx-Iris).)
+
+### Debug Information
+
+- [swift-dwarf](https://github.com/p-x9/swift-dwarf)
+    A Swift library for parsing DWARF debug information.
 
 ### Other binary type
+
 - [ELFKit](https://github.com/p-x9/ELFKit)
     Elf format
+- PEKit
+    Coming Soon...
 
 ## License
 
