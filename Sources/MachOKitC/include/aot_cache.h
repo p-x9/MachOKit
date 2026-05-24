@@ -17,6 +17,7 @@ struct aot_cache_header {
     char     magic[8];
     uint8_t  uuid[16];
     uint8_t  x86_uuid[16];
+    // SHA-256 digest of the RuntimeRoutines code fragment.
     uint8_t  cambria_version[CAMBRIA_VERSION_INFO_SIZE];
     uint64_t code_signature_offset;
     uint64_t code_signature_size;
@@ -48,21 +49,22 @@ struct aot_metadata_command {
 struct aot_cache_code_fragment_metadata {
     uint32_t type;
 
-    // cache
+    // VM offset from x86 dyld shared cache header's sharedRegionStart.
     int32_t image_path_offset;
 
     // (cache(x86).headerStartOffsetInCache + headerSize + header.sizeofcmds) -> align up with 64
     int32_t x86_code_offset;
     int32_t x86_code_size;
 
+    // Offset from the executable AOT mapping, currently mapping[2].
     int32_t arm_code_offset;
     int32_t arm_code_size;
 
-    // offset from fragments starts
+    // Offset from the code fragments area start, currently aot_cache_header::header_size.
     int32_t branch_data_offset;
     int32_t branch_data_size;
 
-    // offset from fragments starts
+    // Offset from the code fragments area start, currently aot_cache_header::header_size.
     int32_t instruction_map_offset;
     int32_t instruction_map_size;
 };
@@ -84,14 +86,16 @@ struct aot_code_fragment_metadata {
 };
 
 struct aot_instruction_map_header {
-    uint32_t _field1; // 66052 fixed?
+    uint32_t _field1; // observed: 0x00010204
     uint32_t _field2; // reserved?
     uint32_t _field3; // reserved?
     uint32_t _field4; // reserved?
+    // Total instruction map block size, including this header.
     uint32_t map_size;
     uint32_t entry_count;
+    // Observed: sizeof(aot_instruction_map_header).
     uint32_t index_offset;
-    // sizeof(first_submap_offset) * entry_count + index_offset
+    // Observed: index_offset + sizeof(aot_instruction_map_index_entry) * entry_count.
     uint32_t first_submap_offset;
 };
 
@@ -102,6 +106,7 @@ struct aot_instruction_map_index_entry {
     uint32_t arm_code_offset;
     /// offset from `aot_instruction_map_header->first_submap_offset`
     uint32_t submap_offset;
+    // Observed: usually 0x101, with different values near fragment-terminal entries.
     uint32_t flags; // ?
 };
 
@@ -110,31 +115,42 @@ struct aot_instruction_map_index_entry {
 struct aot_branch_data_header {
     uint32_t kind;
     uint32_t _field2;
-    uint32_t data_size;
+    // Total branch data block size, including this header.
+    uint32_t block_size;
     uint32_t entry_count;
 };
 
 struct aot_branch_data_index_entry {
-    uint16_t index;
-    uint16_t _field2;
-    uint8_t _field3;
-    uint32_t _field4;
+    // Observed as an x86 code 0x100-byte bucket index.
+    uint16_t x86_code_bucket;
+    // Observed as an ARM code 0x400-byte bucket index.
+    uint16_t arm_code_bucket;
+    // Size of this entry's slice in each payload plane.
+    uint8_t  payload_size;
+    // Offset of this entry's slice in each payload plane.
+    uint32_t payload_offset;
 };
 
 struct aot_branch_data_index_entry_compact {
-    uint8_t index;
-    uint8_t _field2;
-    uint8_t _field3;
-    uint16_t _field4;
+    // Observed as an x86 code 0x100-byte bucket index.
+    uint8_t  x86_code_bucket;
+    // Observed as an ARM code 0x400-byte bucket index.
+    uint8_t  arm_code_bucket;
+    // Size of this entry's slice in each payload plane.
+    uint8_t  payload_size;
+    // Offset of this entry's slice in each payload plane.
+    uint16_t payload_offset;
 };
 
 struct aot_branch_data_index_entry_extended {
-    uint16_t index;
-    uint16_t _field2;
-    uint16_t _field3;
-    uint8_t _field4;
-    uint16_t _field5;
-    uint8_t _field6;
+    // Observed as an x86 code 0x10000-byte bucket index.
+    uint16_t x86_code_bucket;
+    // Observed as an ARM code 0x40000-byte bucket index.
+    uint16_t arm_code_bucket;
+    // Size of this entry's slice in each payload plane.
+    uint16_t payload_size;
+    // Offset of this entry's slice in each payload plane.
+    uint32_t payload_offset;
 };
 
 #pragma pack(pop)

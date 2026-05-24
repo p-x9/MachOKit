@@ -14,14 +14,102 @@ public struct AotBranchDataIndexEntry: LayoutWrapper, Sendable {
     public var layout: Layout
 }
 
+extension AotBranchDataIndexEntry {
+    public static let x86CodeBucketSize = 0x100
+    public static let armCodeBucketSize = 0x400
+
+    public var x86CodeBucket: Int {
+        numericCast(layout.x86_code_bucket)
+    }
+
+    public var armCodeBucket: Int {
+        numericCast(layout.arm_code_bucket)
+    }
+
+    public var payloadSize: Int {
+        numericCast(layout.payload_size)
+    }
+
+    public var payloadOffset: Int {
+        numericCast(layout.payload_offset)
+    }
+}
+
 public struct AotBranchDataIndexEntryCompact: LayoutWrapper, Sendable {
     public typealias Layout = aot_branch_data_index_entry_compact
 
     public var layout: Layout
 }
 
+extension AotBranchDataIndexEntryCompact {
+    public static let x86CodeBucketSize = 0x100
+    public static let armCodeBucketSize = 0x400
+
+    public var x86CodeBucket: Int {
+        numericCast(layout.x86_code_bucket)
+    }
+
+    public var armCodeBucket: Int {
+        numericCast(layout.arm_code_bucket)
+    }
+
+    public var payloadSize: Int {
+        numericCast(layout.payload_size)
+    }
+
+    public var payloadOffset: Int {
+        numericCast(layout.payload_offset)
+    }
+}
+
 public struct AotBranchDataIndexEntryExtended: LayoutWrapper, Sendable {
     public typealias Layout = aot_branch_data_index_entry_extended
 
     public var layout: Layout
+}
+
+extension AotBranchDataIndexEntryExtended {
+    public static let x86CodeBucketSize = 0x10000
+    public static let armCodeBucketSize = 0x40000
+
+    public var x86CodeBucket: Int {
+        numericCast(layout.x86_code_bucket)
+    }
+
+    public var armCodeBucket: Int {
+        numericCast(layout.arm_code_bucket)
+    }
+
+    public var payloadSize: Int {
+        numericCast(layout.payload_size)
+    }
+
+    public var payloadOffset: Int {
+        numericCast(layout.payload_offset)
+    }
+}
+
+extension AotBranchDataIndexEntry: AotBranchDataPayloadEntry {}
+extension AotBranchDataIndexEntryCompact: AotBranchDataPayloadEntry {}
+extension AotBranchDataIndexEntryExtended: AotBranchDataPayloadEntry {}
+
+protocol AotBranchDataPayloadEntry {
+    static var x86CodeBucketSize: Int { get }
+    static var armCodeBucketSize: Int { get }
+
+    var x86CodeBucket: Int { get }
+    var armCodeBucket: Int { get }
+
+    var payloadSize: Int { get }
+    var payloadOffset: Int { get }
+}
+
+extension AotBranchDataPayloadEntry {
+    public var x86CodeBucketOffset: Int {
+        x86CodeBucket * Self.x86CodeBucketSize
+    }
+
+    public var armCodeBucketOffset: Int {
+        armCodeBucket * Self.armCodeBucketSize
+    }
 }
