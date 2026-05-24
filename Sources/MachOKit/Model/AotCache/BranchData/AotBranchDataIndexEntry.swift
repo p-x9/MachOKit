@@ -26,12 +26,12 @@ extension AotBranchDataIndexEntry: AotBranchDataPayloadEntry {
         numericCast(layout.arm_code_bucket)
     }
 
-    public var payloadSize: Int {
-        numericCast(layout.payload_size)
+    public var payloadRecordCount: Int {
+        numericCast(layout.payload_record_count)
     }
 
-    public var payloadOffset: Int {
-        numericCast(layout.payload_offset)
+    public var payloadRecordOffset: Int {
+        numericCast(layout.payload_record_offset)
     }
 }
 
@@ -53,12 +53,12 @@ extension AotBranchDataIndexEntryCompact: AotBranchDataPayloadEntry {
         numericCast(layout.arm_code_bucket)
     }
 
-    public var payloadSize: Int {
-        numericCast(layout.payload_size)
+    public var payloadRecordCount: Int {
+        numericCast(layout.payload_record_count)
     }
 
-    public var payloadOffset: Int {
-        numericCast(layout.payload_offset)
+    public var payloadRecordOffset: Int {
+        numericCast(layout.payload_record_offset)
     }
 }
 
@@ -80,12 +80,12 @@ extension AotBranchDataIndexEntryExtended: AotBranchDataPayloadEntry {
         numericCast(layout.arm_code_bucket)
     }
 
-    public var payloadSize: Int {
-        numericCast(layout.payload_size)
+    public var payloadRecordCount: Int {
+        numericCast(layout.payload_record_count)
     }
 
-    public var payloadOffset: Int {
-        numericCast(layout.payload_offset)
+    public var payloadRecordOffset: Int {
+        numericCast(layout.payload_record_offset)
     }
 }
 
@@ -96,8 +96,8 @@ protocol AotBranchDataPayloadEntry {
     var x86CodeBucket: Int { get }
     var armCodeBucket: Int { get }
 
-    var payloadSize: Int { get }
-    var payloadOffset: Int { get }
+    var payloadRecordCount: Int { get }
+    var payloadRecordOffset: Int { get }
 }
 
 extension AotBranchDataPayloadEntry {

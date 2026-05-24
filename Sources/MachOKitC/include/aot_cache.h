@@ -125,10 +125,10 @@ struct aot_branch_data_index_entry {
     uint16_t x86_code_bucket;
     // Observed as an ARM code 0x400-byte bucket index.
     uint16_t arm_code_bucket;
-    // Size of this entry's slice in each payload plane.
-    uint8_t  payload_size;
-    // Offset of this entry's slice in each payload plane.
-    uint32_t payload_offset;
+    // Number of payload records for this entry.
+    uint8_t  payload_record_count;
+    // Payload record offset.
+    uint32_t payload_record_offset;
 };
 
 struct aot_branch_data_index_entry_compact {
@@ -136,10 +136,10 @@ struct aot_branch_data_index_entry_compact {
     uint8_t  x86_code_bucket;
     // Observed as an ARM code 0x400-byte bucket index.
     uint8_t  arm_code_bucket;
-    // Size of this entry's slice in each payload plane.
-    uint8_t  payload_size;
-    // Offset of this entry's slice in each payload plane.
-    uint16_t payload_offset;
+    // Number of payload records for this entry.
+    uint8_t  payload_record_count;
+    // Payload record offset.
+    uint16_t payload_record_offset;
 };
 
 struct aot_branch_data_index_entry_extended {
@@ -147,10 +147,24 @@ struct aot_branch_data_index_entry_extended {
     uint16_t x86_code_bucket;
     // Observed as an ARM code 0x40000-byte bucket index.
     uint16_t arm_code_bucket;
-    // Size of this entry's slice in each payload plane.
-    uint16_t payload_size;
-    // Offset of this entry's slice in each payload plane.
-    uint32_t payload_offset;
+    // Number of payload records for this entry.
+    uint16_t payload_record_count;
+    // Payload record offset.
+    uint32_t payload_record_offset;
+};
+
+struct aot_branch_data_payload_record {
+    // Offset within the x86 code bucket.
+    uint8_t x86_code_bucket_offset;
+    // ARM instruction index within the ARM code bucket.
+    uint8_t arm_code_bucket_instruction_index;
+};
+
+struct aot_branch_data_payload_record_extended {
+    // Offset within the x86 code bucket.
+    uint16_t x86_code_bucket_offset;
+    // ARM instruction index within the ARM code bucket.
+    uint16_t arm_code_bucket_instruction_index;
 };
 
 #pragma pack(pop)
