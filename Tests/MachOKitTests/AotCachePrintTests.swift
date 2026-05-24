@@ -92,19 +92,17 @@ extension AotCachePrintTests {
             let imagePath = fragment.imagePath(x86DyldCache: x86DyldCache)
             print(imagePath ?? "unknown")
 
-            if let branchData = fragment.branchData(in: cache)  {
+            if let branchData = fragment.branchData(in: cache) {
                 let header = branchData.header
                 print(header)
 
                 if let entries = branchData.extendedEntries(in: cache) {
                     for branch in entries {
                         print(
-                            String(branch.index, radix: 16),
-                            String(branch._field2, radix: 16),
-                            String(branch._field3, radix: 16),
-                            String(branch._field4, radix: 16),
-                            String(branch._field5, radix: 16),
-                            String(branch._field6, radix: 16)
+                            String(branch.x86CodeBucket, radix: 16),
+                            String(branch.armCodeBucket, radix: 16),
+                            String(branch.payloadRecordCount, radix: 16),
+                            String(branch.payloadRecordOffset, radix: 16)
                         )
                     }
                 }
@@ -112,10 +110,10 @@ extension AotCachePrintTests {
                 if let entries = branchData.entries(in: cache) {
                     for branch in entries {
                         print(
-                            String(branch.index, radix: 16),
-                            String(branch._field2, radix: 16),
-                            String(branch._field3, radix: 16),
-                            String(branch._field4, radix: 16)
+                            String(branch.x86CodeBucket, radix: 16),
+                            String(branch.armCodeBucket, radix: 16),
+                            String(branch.payloadRecordCount, radix: 16),
+                            String(branch.payloadRecordOffset, radix: 16)
                         )
                     }
                 }
@@ -123,10 +121,10 @@ extension AotCachePrintTests {
                 if let entries = branchData.compactEntries(in: cache) {
                     for branch in entries {
                         print(
-                            String(branch.index, radix: 16),
-                            String(branch._field2, radix: 16),
-                            String(branch._field3, radix: 16),
-                            String(branch._field4, radix: 16)
+                            String(branch.x86CodeBucket, radix: 16),
+                            String(branch.armCodeBucket, radix: 16),
+                            String(branch.payloadRecordCount, radix: 16),
+                            String(branch.payloadRecordOffset, radix: 16)
                         )
                     }
                 }
