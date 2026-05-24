@@ -17,14 +17,14 @@ public struct AotInstructionMap: Sendable {
 extension AotInstructionMap {
     public func entries(in cache: AotCache) -> DataSequence<AotInstructionMapIndexEntry> {
         cache.fileHandle.readDataSequence(
-            offset: UInt64(offset + MemoryLayout<AotInstructionMapHeader>.size),
+            offset: UInt64(offset + AotInstructionMapHeader.layoutSize),
             numberOfElements: numericCast(header.entry_count)
         )
     }
 
     public func entries(in machO: MachOFile) -> DataSequence<AotInstructionMapIndexEntry> {
         machO.fileHandle.readDataSequence(
-            offset: UInt64(offset + MemoryLayout<AotInstructionMapHeader>.size),
+            offset: UInt64(offset + AotInstructionMapHeader.layoutSize),
             numberOfElements: numericCast(header.entry_count)
         )
     }
