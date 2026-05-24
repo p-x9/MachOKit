@@ -14,7 +14,7 @@ public struct AotBranchDataIndexEntry: LayoutWrapper, Sendable {
     public var layout: Layout
 }
 
-extension AotBranchDataIndexEntry {
+extension AotBranchDataIndexEntry: AotBranchDataPayloadEntry {
     public static let x86CodeBucketSize = 0x100
     public static let armCodeBucketSize = 0x400
 
@@ -41,7 +41,7 @@ public struct AotBranchDataIndexEntryCompact: LayoutWrapper, Sendable {
     public var layout: Layout
 }
 
-extension AotBranchDataIndexEntryCompact {
+extension AotBranchDataIndexEntryCompact: AotBranchDataPayloadEntry {
     public static let x86CodeBucketSize = 0x100
     public static let armCodeBucketSize = 0x400
 
@@ -68,7 +68,7 @@ public struct AotBranchDataIndexEntryExtended: LayoutWrapper, Sendable {
     public var layout: Layout
 }
 
-extension AotBranchDataIndexEntryExtended {
+extension AotBranchDataIndexEntryExtended: AotBranchDataPayloadEntry {
     public static let x86CodeBucketSize = 0x10000
     public static let armCodeBucketSize = 0x40000
 
@@ -88,10 +88,6 @@ extension AotBranchDataIndexEntryExtended {
         numericCast(layout.payload_offset)
     }
 }
-
-extension AotBranchDataIndexEntry: AotBranchDataPayloadEntry {}
-extension AotBranchDataIndexEntryCompact: AotBranchDataPayloadEntry {}
-extension AotBranchDataIndexEntryExtended: AotBranchDataPayloadEntry {}
 
 protocol AotBranchDataPayloadEntry {
     static var x86CodeBucketSize: Int { get }
