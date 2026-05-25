@@ -16,3 +16,41 @@ public struct AotBranchDataPayloadLocation: Sendable {
         armCodeBucketRelativeInstructionIndex * 4
     }
 }
+
+extension AotBranchDataPayloadLocation {
+    public init(
+        record: AotBranchDataPayloadRecord,
+        entry: AotBranchDataIndexEntryCompact
+    ) {
+        self.init(
+            x86CodeBucketRelativeOffset: record.x86CodeBucketRelativeOffset,
+            armCodeBucketRelativeInstructionIndex: record.armCodeBucketRelativeInstructionIndex,
+            x86CodeOffset: entry.x86CodeBucketOffset + record.x86CodeBucketRelativeOffset,
+            armCodeOffset: entry.armCodeBucketOffset + record.armCodeBucketRelativeOffset
+        )
+    }
+
+    public init(
+        record: AotBranchDataPayloadRecord,
+        entry: AotBranchDataIndexEntry
+    ) {
+        self.init(
+            x86CodeBucketRelativeOffset: record.x86CodeBucketRelativeOffset,
+            armCodeBucketRelativeInstructionIndex: record.armCodeBucketRelativeInstructionIndex,
+            x86CodeOffset: entry.x86CodeBucketOffset + record.x86CodeBucketRelativeOffset,
+            armCodeOffset: entry.armCodeBucketOffset + record.armCodeBucketRelativeOffset
+        )
+    }
+
+    public init(
+        record: AotBranchDataPayloadRecordExtended,
+        entry: AotBranchDataIndexEntryExtended
+    ) {
+        self.init(
+            x86CodeBucketRelativeOffset: record.x86CodeBucketRelativeOffset,
+            armCodeBucketRelativeInstructionIndex: record.armCodeBucketRelativeInstructionIndex,
+            x86CodeOffset: entry.x86CodeBucketOffset + record.x86CodeBucketRelativeOffset,
+            armCodeOffset: entry.armCodeBucketOffset + record.armCodeBucketRelativeOffset
+        )
+    }
+}
