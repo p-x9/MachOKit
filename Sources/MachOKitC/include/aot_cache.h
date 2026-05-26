@@ -86,10 +86,13 @@ struct aot_code_fragment_metadata {
 };
 
 struct aot_instruction_map_header {
-    uint32_t _field1; // observed: 0x00010204
-    uint32_t _field2; // reserved?
-    uint32_t _field3; // reserved?
-    uint32_t _field4; // reserved?
+    uint8_t arm_instruction_byte_size;       // observed: 4
+    uint8_t x86_code_delta_rice_width;       // observed: 2
+    uint8_t arm_instruction_delta_rice_width;// observed: 1
+    uint8_t _field4;                         // reserved? observed: 0
+    uint32_t _field5; // reserved? observed: 0
+    uint32_t _field6; // reserved? observed: 0
+    uint32_t _field7; // reserved? observed: 0
     // Total instruction map block size, including this header.
     uint32_t map_size;
     uint32_t entry_count;
@@ -106,8 +109,9 @@ struct aot_instruction_map_index_entry {
     uint32_t arm_code_offset;
     /// offset from `aot_instruction_map_header->first_submap_offset`
     uint32_t submap_offset;
-    // Observed: usually 0x101, with different values near fragment-terminal entries.
-    uint32_t flags; // ?
+    // Observed as the number of encoded submap deltas.
+    // Usually 0x101, with smaller values near fragment-terminal entries.
+    uint32_t submap_delta_count;
 };
 
 #pragma pack(push, 1)
