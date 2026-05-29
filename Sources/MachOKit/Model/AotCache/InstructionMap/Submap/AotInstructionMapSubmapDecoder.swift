@@ -11,11 +11,11 @@ enum AotInstructionMapSubmapDecoder {
         submap: AotInstructionMapSubmap,
         header: AotInstructionMapHeader,
         entry: AotInstructionMapIndexEntry,
-        readByte: @escaping (Int) throws -> UInt8
+        fileHandle: AotCache.File
     ) throws -> [AotInstructionMapSubmapEntry] {
         var reader = BitReader(
             offset: submap.offset,
-            readByte: readByte
+            fileHandle: fileHandle
         )
         var entries: [AotInstructionMapSubmapEntry] = []
         entries.reserveCapacity(entry.submapDeltaCount)
@@ -39,14 +39,14 @@ private extension AotInstructionMapSubmapDecoder {
         var bitOffset = 0
         var byte: UInt8 = 0
         var hasByte = false
-        let readByte: (Int) throws -> UInt8
+        let fileHandle: AotCache.File
 
         init(
             offset: Int,
-            readByte: @escaping (Int) throws -> UInt8
+            fileHandle: AotCache.File
         ) {
             self.byteOffset = offset
-            self.readByte = readByte
+            self.fileHandle = fileHandle
         }
 
         mutating func readEntry(
@@ -183,7 +183,7 @@ private extension AotInstructionMapSubmapDecoder {
 
         mutating func readBit() throws -> Bool {
             if !hasByte {
-                byte = try readByte(byteOffset)
+                byte = try fileHandle.read(offset: byteOffset)
                 hasByte = true
             }
 

@@ -25,7 +25,7 @@ extension AotInstructionMapSubmap {
             submap: self,
             header: map.header,
             entry: entry,
-            readByte: { try cache.fileHandle.read(offset: $0) }
+            fileHandle: cache.fileHandle
         )
     }
 
@@ -42,7 +42,31 @@ extension AotInstructionMapSubmap {
             submap: self,
             header: map.header,
             entry: entry,
-            readByte: { try machO.fileHandle.read(offset: $0) }
+            fileHandle: machO.fileHandle
         )
+    }
+}
+
+extension AotInstructionMapSubmap {
+    internal func indexEntry(
+        for map: AotInstructionMap,
+        in cache: AotCache
+    ) throws -> AotInstructionMapIndexEntry? {
+        guard 0 <= index,
+              index < map.header.entryCount else {
+            return nil
+        }
+        return map.entries(in: cache)[index]
+    }
+
+    internal func indexEntry(
+        for map: AotInstructionMap,
+        in machO: MachOFile
+    ) throws -> AotInstructionMapIndexEntry? {
+        guard 0 <= index,
+              index < map.header.entryCount else {
+            return nil
+        }
+        return map.entries(in: machO)[index]
     }
 }
