@@ -61,6 +61,17 @@ extension AotCacheCodeFragment {
             offset: offset
         )
     }
+
+    public func instructionMap(
+        in machO: MachOFile
+    ) -> AotInstructionMap? {
+        guard layout.instruction_map_size > 0 else { return nil }
+        let offset = offset + layoutSize + numericCast(layout.branch_data_size)
+        return .init(
+            header: try! machO.fileHandle.read(offset: offset),
+            offset: offset
+        )
+    }
 }
 
 extension AotCacheCodeFragment {
@@ -71,6 +82,17 @@ extension AotCacheCodeFragment {
         let offset = offset + layoutSize
         return .init(
             header: try! cache.fileHandle.read(offset: offset),
+            offset: offset
+        )
+    }
+
+    public func branchData(
+        in machO: MachOFile
+    ) -> AotBranchData? {
+        guard layout.branch_data_size > 0 else { return nil }
+        let offset = offset + layoutSize
+        return .init(
+            header: try! machO.fileHandle.read(offset: offset),
             offset: offset
         )
     }

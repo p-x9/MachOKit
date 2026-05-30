@@ -51,6 +51,32 @@ extension AotBranchData {
 }
 
 extension AotBranchData {
+    public func compactEntries(in machO: MachOFile) -> DataSequence<AotBranchDataIndexEntryCompact>? {
+        guard header.kind == 1 else { return nil }
+        return machO.fileHandle.readDataSequence(
+            offset: UInt64(offset + AotBranchDataHeader.layoutSize),
+            numberOfElements: numericCast(header.entry_count)
+        )
+    }
+
+    public func entries(in machO: MachOFile) -> DataSequence<AotBranchDataIndexEntry>? {
+        guard header.kind == 2 else { return nil }
+        return machO.fileHandle.readDataSequence(
+            offset: UInt64(offset + AotBranchDataHeader.layoutSize),
+            numberOfElements: numericCast(header.entry_count)
+        )
+    }
+
+    public func extendedEntries(in machO: MachOFile) -> DataSequence<AotBranchDataIndexEntryExtended>? {
+        guard header.kind == 3 else { return nil }
+        return machO.fileHandle.readDataSequence(
+            offset: UInt64(offset + AotBranchDataHeader.layoutSize),
+            numberOfElements: numericCast(header.entry_count)
+        )
+    }
+}
+
+extension AotBranchData {
     public func payloadRecords(
         for entry: AotBranchDataIndexEntryCompact,
         in cache: AotCache
@@ -86,6 +112,41 @@ extension AotBranchData {
 }
 
 extension AotBranchData {
+    public func payloadRecords(
+        for entry: AotBranchDataIndexEntryCompact,
+        in machO: MachOFile
+    ) -> [AotBranchDataPayloadRecord]? {
+        guard header.kind == 1 else { return nil }
+        return _payloadRecords(
+            for: entry,
+            readData: { try? machO.fileHandle.readData(offset: $0, length: $1) }
+        )
+    }
+
+    public func payloadRecords(
+        for entry: AotBranchDataIndexEntry,
+        in machO: MachOFile
+    ) -> [AotBranchDataPayloadRecord]? {
+        guard header.kind == 2 else { return nil }
+        return _payloadRecords(
+            for: entry,
+            readData: { try? machO.fileHandle.readData(offset: $0, length: $1) }
+        )
+    }
+
+    public func payloadRecords(
+        for entry: AotBranchDataIndexEntryExtended,
+        in machO: MachOFile
+    ) -> [AotBranchDataPayloadRecordExtended]? {
+        guard header.kind == 3 else { return nil }
+        return _payloadRecordsExtended(
+            for: entry,
+            readData: { try? machO.fileHandle.readData(offset: $0, length: $1) }
+        )
+    }
+}
+
+extension AotBranchData {
     public func payloadLocations(
         for entry: AotBranchDataIndexEntryCompact,
         in cache: AotCache
@@ -107,6 +168,32 @@ extension AotBranchData {
         in cache: AotCache
     ) -> [AotBranchDataPayloadLocation]? {
         payloadRecords(for: entry, in: cache)?
+            .map { .init(record: $0, entry: entry) }
+    }
+}
+
+extension AotBranchData {
+    public func payloadLocations(
+        for entry: AotBranchDataIndexEntryCompact,
+        in machO: MachOFile
+    ) -> [AotBranchDataPayloadLocation]? {
+        payloadRecords(for: entry, in: machO)?
+            .map { .init(record: $0, entry: entry) }
+    }
+
+    public func payloadLocations(
+        for entry: AotBranchDataIndexEntry,
+        in machO: MachOFile
+    ) -> [AotBranchDataPayloadLocation]? {
+        payloadRecords(for: entry, in: machO)?
+            .map { .init(record: $0, entry: entry) }
+    }
+
+    public func payloadLocations(
+        for entry: AotBranchDataIndexEntryExtended,
+        in machO: MachOFile
+    ) -> [AotBranchDataPayloadLocation]? {
+        payloadRecords(for: entry, in: machO)?
             .map { .init(record: $0, entry: entry) }
     }
 }
