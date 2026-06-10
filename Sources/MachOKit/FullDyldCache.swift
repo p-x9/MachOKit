@@ -34,7 +34,16 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
     let fileHandle: File
 
     // Retain the symbol cache
+    private let symbolCacheLock = NSLock()
     private var _symbolCache: DyldCache?
+
+    // Retain the main cache
+    private let mainCacheLock = NSLock()
+    private var _mainCache: DyldCache?
+
+    // Retain the sub caches
+    private let subCachesLock = NSLock()
+    private var _subCaches: [DyldCache]?
 
     public var headerSize: Int {
         header.actualSize
@@ -49,33 +58,6 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
     public let cpu: CPU
 
     public var subCacheSuffixes: [String]
-
-    public private(set) lazy var mainCache: DyldCache = {
-        let cache: DyldCache = .init(
-            unsafeFileHandle: fileHandle._files[0]._file,
-            url: url,
-            cpu: cpu,
-            mainCache: nil
-        )
-        cache._fullCache = self
-        cache._symbolCache = _symbolCache
-        return cache
-    }()
-
-    public private(set) lazy var subCaches: [DyldCache] = {
-        let mainCache = self.mainCache
-        return zip(subCacheSuffixes, fileHandle._files[1...])
-            .map {
-                let cache: DyldCache = .init(
-                    unsafeFileHandle: $1._file,
-                    url: .init(string: url.path + $0)!,
-                    cpu: cpu,
-                    mainCache: mainCache
-                )
-                cache._fullCache = self
-                return cache
-            }
-    }()
 
     public init(url: URL) throws {
         self.url = url
@@ -101,6 +83,49 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
 }
 
 extension FullDyldCache {
+    public var mainCache: DyldCache {
+        mainCacheLock.lock()
+        defer { mainCacheLock.unlock() }
+
+        if let _mainCache { return _mainCache }
+
+        let cache: DyldCache = .init(
+            unsafeFileHandle: fileHandle._files[0]._file,
+            url: url,
+            cpu: cpu,
+            mainCache: nil
+        )
+        cache._fullCache = self
+        symbolCacheLock.withLock {
+            cache._symbolCache = _symbolCache
+        }
+        _mainCache = cache
+        return cache
+    }
+
+    public var subCaches: [DyldCache] {
+        let mainCache = self.mainCache
+
+        subCachesLock.lock()
+        defer { subCachesLock.unlock() }
+
+        if let _subCaches { return _subCaches }
+
+        let subCaches = zip(subCacheSuffixes, fileHandle._files[1...])
+            .map {
+                let cache: DyldCache = .init(
+                    unsafeFileHandle: $1._file,
+                    url: .init(string: url.path + $0)!,
+                    cpu: cpu,
+                    mainCache: mainCache
+                )
+                cache._fullCache = self
+                return cache
+            }
+        _subCaches = subCaches
+        return subCaches
+    }
+
     /// Header for main dyld cache
     /// When this dyld cache is a subcache, represent the header of the main cache
     public var mainCacheHeader: DyldCacheHeader { header }
@@ -168,14 +193,16 @@ extension FullDyldCache {
     // Sequence of sub caches
     public typealias SubCaches = DyldCache.SubCaches
     @_implements(DyldCacheRepresentable, subCaches)
-    public var _subCaches: SubCaches? {
+    public var __DyldCacheRepresentable_subCaches: SubCaches? {
         mainCache.subCaches
     }
 
     /// DyldCache containing unmapped local symbols
     public var symbolCache: DyldCache? {
         get throws {
-            if let _symbolCache = _symbolCache { return _symbolCache }
+            symbolCacheLock.lock()
+            defer { symbolCacheLock.unlock() }
+            if let _symbolCache { return _symbolCache }
             let symbolCache = try mainCache.symbolCache
             _symbolCache = symbolCache
             return symbolCache
