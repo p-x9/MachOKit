@@ -83,6 +83,20 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
 }
 
 extension FullDyldCache {
+    /// Header for main dyld cache
+    /// When this dyld cache is a subcache, represent the header of the main cache
+    public var mainCacheHeader: DyldCacheHeader { header }
+}
+
+extension FullDyldCache {
+    public var urls: [URL] {
+        [url] + subCacheSuffixes.map {
+            URL(fileURLWithPath: url.path + $0)
+        }
+    }
+}
+
+extension FullDyldCache {
     public var mainCache: DyldCache {
         mainCacheLock.lock()
         defer { mainCacheLock.unlock() }
@@ -124,18 +138,6 @@ extension FullDyldCache {
             }
         _subCaches = subCaches
         return subCaches
-    }
-
-    /// Header for main dyld cache
-    /// When this dyld cache is a subcache, represent the header of the main cache
-    public var mainCacheHeader: DyldCacheHeader { header }
-}
-
-extension FullDyldCache {
-    public var urls: [URL] {
-        [url] + subCacheSuffixes.map {
-            URL(fileURLWithPath: url.path + $0)
-        }
     }
 }
 
