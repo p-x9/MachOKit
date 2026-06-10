@@ -37,13 +37,13 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
     private let symbolCacheLock = NSLock()
     private var _symbolCache: DyldCache?
 
-    // Retain the main cache
+    // Cache the main cache while it is retained by callers or child caches
     private let mainCacheLock = NSLock()
-    private var _mainCache: DyldCache?
+    private weak var _mainCache: DyldCache?
 
-    // Retain the sub caches
+    // Cache the sub caches while they are retained by callers
     private let subCachesLock = NSLock()
-    private var _subCaches: [DyldCache]?
+    private var _subCaches: [WeakBox<DyldCache>]?
 
     public var headerSize: Int {
         header.actualSize
@@ -80,6 +80,12 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
         self.cpu = mainCache.cpu
         self.subCacheSuffixes = subCacheSuffixes
     }
+
+    private func subCacheBoxes() -> [WeakBox<DyldCache>] {
+        if let _subCaches { return _subCaches }
+        return subCacheSuffixes.map { _ in WeakBox(wrapped: nil) }
+    }
+
 }
 
 extension FullDyldCache {
@@ -123,20 +129,25 @@ extension FullDyldCache {
         subCachesLock.lock()
         defer { subCachesLock.unlock() }
 
-        if let _subCaches { return _subCaches }
-
+        let boxes = subCacheBoxes()
         let subCaches = zip(subCacheSuffixes, fileHandle._files[1...])
-            .map {
+            .enumerated()
+            .map { index, element in
+                if let cache = boxes[index].wrapped {
+                    return cache
+                }
+
                 let cache: DyldCache = .init(
-                    unsafeFileHandle: $1._file,
-                    url: .init(fileURLWithPath: url.path + $0),
+                    unsafeFileHandle: element.1._file,
+                    url: .init(fileURLWithPath: url.path + element.0),
                     cpu: cpu,
                     mainCache: mainCache
                 )
                 cache._fullCache = self
+                boxes[index].wrapped = cache
                 return cache
             }
-        _subCaches = subCaches
+        _subCaches = boxes
         return subCaches
     }
 }
@@ -234,7 +245,6 @@ extension FullDyldCache {
     /// Sequence of MachO information contained in this cache
     public func machOFiles() -> AnySequence<MachOFile> {
         guard let imageInfos else { return AnySequence([]) }
-        let mainCache = self.mainCache
         let machOFiles = imageInfos
             .lazy
             .compactMap { info in
@@ -249,13 +259,9 @@ extension FullDyldCache {
                 guard let (url, segment) = self.urlAndFileSegment(forOffset: fileOffset) else {
                     return nil
                 }
-                let cache: DyldCache = .init(
-                    unsafeFileHandle: segment._file,
-                    url: url,
-                    cpu: self.cpu,
-                    mainCache: segment.offset == 0 ? nil : mainCache
-                )
-                cache._fullCache = self
+                guard let cache = self.cache(forOffset: fileOffset) else {
+                    return nil
+                }
 
                 return try? .init(
                     url: url,
@@ -275,13 +281,9 @@ extension FullDyldCache {
         guard let (url, segment) = self.urlAndFileSegment(forOffset: fileOffset) else {
             return nil
         }
-        let cache: DyldCache = .init(
-            unsafeFileHandle: segment._file,
-            url: url,
-            cpu: self.cpu,
-            mainCache: segment.offset == 0 ? nil : mainCache
-        )
-        cache._fullCache = self
+        guard let cache = cache(forOffset: fileOffset) else {
+            return nil
+        }
 
         return try? MachOFile(
             url: url,
@@ -321,15 +323,16 @@ extension FullDyldCache {
     /// The subcache that maps `offset`, paired with `offset` translated into
     /// that subcache's own coordinate space.
     ///
-    /// `cache(forOffset:)` builds the subcache's `DyldCache` from that file's
-    /// standalone mmap, so its mapping table is addressed from the start of
-    /// the subcache file. `DyldCache.resolveRebase` / `resolveOptionalRebase`
-    /// consult that table via `mappingAndSlideInfo(forFileOffset:)` and read
-    /// bytes through the subcache's own file handle, so they must be given a
-    /// subcache-local offset — the full-cache `offset` minus the subcache's
-    /// start within the full cache. This mirrors the `- segment.offset`
-    /// adjustment already applied in `machOFiles()`; without it the lookup
-    /// always misses for any pointer outside the first subcache.
+    /// `cache(forOffset:)` returns the subcache's `DyldCache` backed by that
+    /// file's standalone mmap, so its mapping table is addressed from the start
+    /// of the subcache file. `DyldCache.resolveRebase` /
+    /// `resolveOptionalRebase` consult that table via
+    /// `mappingAndSlideInfo(forFileOffset:)` and read bytes through the
+    /// subcache's own file handle, so they must be given a subcache-local
+    /// offset — the full-cache `offset` minus the subcache's start within the
+    /// full cache. This mirrors the `- segment.offset` adjustment already
+    /// applied in `machOFiles()`; without it the lookup always misses for any
+    /// pointer outside the first subcache.
     private func cacheAndLocalOffset(forOffset offset: UInt64) -> (DyldCache, UInt64)? {
         guard let (_, segment) = urlAndFileSegment(forOffset: offset),
               let cache = cache(forOffset: offset) else {
@@ -372,29 +375,28 @@ extension FullDyldCache {
     }
 
     public func cache(forOffset offset: UInt64) -> DyldCache? {
-        guard let (url, segment) = urlAndFileSegment(forOffset: offset) else {
+        guard let index = fileHandle._files.firstIndex(
+            where: {
+                $0.offset <= offset && offset < $0.offset + $0.size
+            }
+        ) else {
             return nil
         }
-        let cache: DyldCache = .init(
-            unsafeFileHandle: segment._file,
-            url: url,
-            cpu: cpu,
-            mainCache: segment.offset == 0 ? nil : mainCache
-        )
-        cache._fullCache = self
-        return cache
+        return cache(at: index)
     }
 
     public func cache(for url: URL) -> DyldCache? {
         guard let index = urls.firstIndex(of: url) else { return nil }
-        let segment = fileHandle._files[index]
-        let cache: DyldCache = .init(
-            unsafeFileHandle: segment._file,
-            url: url,
-            cpu: cpu,
-            mainCache: segment.offset == 0 ? nil : mainCache
-        )
-        cache._fullCache = self
-        return cache
+        return cache(at: index)
+    }
+
+    private func cache(at index: Int) -> DyldCache? {
+        guard fileHandle._files.indices.contains(index) else {
+            return nil
+        }
+        if index == 0 {
+            return mainCache
+        }
+        return subCaches[index - 1]
     }
 }
