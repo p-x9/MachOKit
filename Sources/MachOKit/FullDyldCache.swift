@@ -202,11 +202,17 @@ extension FullDyldCache {
     /// DyldCache containing unmapped local symbols
     public var symbolCache: DyldCache? {
         get throws {
-            symbolCacheLock.lock()
-            defer { symbolCacheLock.unlock() }
-            if let _symbolCache { return _symbolCache }
+            let cachedSymbolCache = symbolCacheLock.withLock {
+                _symbolCache
+            }
+            if let cachedSymbolCache { return cachedSymbolCache }
+
             let symbolCache = try mainCache.symbolCache
-            _symbolCache = symbolCache
+
+            symbolCacheLock.withLock {
+                _symbolCache = symbolCache
+            }
+
             return symbolCache
         }
     }
