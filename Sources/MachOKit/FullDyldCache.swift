@@ -50,6 +50,33 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
 
     public var subCacheSuffixes: [String]
 
+    public private(set) lazy var mainCache: DyldCache = {
+        let cache: DyldCache = .init(
+            unsafeFileHandle: fileHandle._files[0]._file,
+            url: url,
+            cpu: cpu,
+            mainCache: nil
+        )
+        cache._fullCache = self
+        cache._symbolCache = _symbolCache
+        return cache
+    }()
+
+    public private(set) lazy var subCaches: [DyldCache] = {
+        let mainCache = self.mainCache
+        return zip(subCacheSuffixes, fileHandle._files[1...])
+            .map {
+                let cache: DyldCache = .init(
+                    unsafeFileHandle: $1._file,
+                    url: .init(string: url.path + $0)!,
+                    cpu: cpu,
+                    mainCache: mainCache
+                )
+                cache._fullCache = self
+                return cache
+            }
+    }()
+
     public init(url: URL) throws {
         self.url = url
 
@@ -88,33 +115,6 @@ extension FullDyldCache {
 }
 
 extension FullDyldCache {
-    public var mainCache: DyldCache {
-        let cache: DyldCache = .init(
-            unsafeFileHandle: fileHandle._files[0]._file,
-            url: url,
-            cpu: cpu,
-            mainCache: nil
-        )
-        cache._fullCache = self
-        cache._symbolCache = _symbolCache
-        return cache
-    }
-
-    public var subCaches: [DyldCache] {
-        let mainCache = self.mainCache
-        return zip(subCacheSuffixes, fileHandle._files[1...])
-            .map {
-                let cache: DyldCache = .init(
-                    unsafeFileHandle: $1._file,
-                    url: .init(string: url.path + $0)!,
-                    cpu: cpu,
-                    mainCache: mainCache
-                )
-                cache._fullCache = self
-                return cache
-            }
-    }
-
     public var allCaches: [DyldCache] {
         [mainCache] + subCaches
     }
