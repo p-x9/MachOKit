@@ -129,7 +129,7 @@ extension FullDyldCache {
             .map {
                 let cache: DyldCache = .init(
                     unsafeFileHandle: $1._file,
-                    url: .init(string: url.path + $0)!,
+                    url: .init(fileURLWithPath: url.path + $0),
                     cpu: cpu,
                     mainCache: mainCache
                 )
