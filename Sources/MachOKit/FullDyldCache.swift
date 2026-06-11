@@ -322,8 +322,14 @@ extension FullDyldCache {
     }
 
     internal func urlAndFileSegment(forOffset offset: UInt64) -> (URL, File.FileSegment)? {
-        guard let index = fileIndex(forOffset: offset),
-              let url = url(forOffset: offset) else { return nil }
+        guard let index = fileIndex(forOffset: offset) else { return nil }
+        let url: URL = if index == 0 {
+            url
+        } else {
+            .init(
+                fileURLWithPath: url.path + subCacheSuffixes[index - 1]
+            )
+        }
         return (url, fileHandle._files[index])
     }
 
