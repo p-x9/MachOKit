@@ -154,21 +154,13 @@ extension ObjCHeaderInfoRO64 {
         in cache: FullDyldCache
     ) -> MachOFile? {
         guard let offset = resolvedMachOHeaderOffset(in: cache),
-              let (url, segment) = cache.urlAndFileSegment(forOffset: offset) else {
+              let (_cache, segment) = cache.cacheAndFileSegment(forOffset: offset) else {
             return nil
         }
         let imagePath = imagePath(in: cache)
 
-        let _cache: DyldCache = .init(
-            unsafeFileHandle: segment._file,
-            url: url,
-            cpu: cache.cpu,
-            mainCache: segment.offset == 0 ? nil : cache.mainCache
-        )
-        _cache._fullCache = cache
-
         return try? .init(
-            url: url,
+            url: _cache.url,
             imagePath: imagePath,
             headerStartOffsetInCache: numericCast(offset) - segment.offset,
             cache: _cache
@@ -270,21 +262,13 @@ extension ObjCHeaderInfoRO32 {
         in cache: FullDyldCache
     ) -> MachOFile? {
         guard let offset = resolvedMachOHeaderOffset(in: cache),
-              let (url, segment) = cache.urlAndFileSegment(forOffset: offset) else {
+              let (_cache, segment) = cache.cacheAndFileSegment(forOffset: offset) else {
             return nil
         }
         let imagePath = imagePath(in: cache)
 
-        let _cache: DyldCache = .init(
-            unsafeFileHandle: segment._file,
-            url: url,
-            cpu: cache.cpu,
-            mainCache: segment.offset == 0 ? nil : cache.mainCache
-        )
-        _cache._fullCache = cache
-
         return try? .init(
-            url: url,
+            url: _cache.url,
             imagePath: imagePath,
             headerStartOffsetInCache: numericCast(offset) - segment.offset,
             cache: _cache
