@@ -64,7 +64,7 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
         } ?? []
         var urls = [url]
         urls += subCacheSuffixes.map {
-            URL(fileURLWithPath: url.path + $0)
+            URL(fileURLWithPath: url.path + $0, isDirectory: false)
         }
 
         let fileHandle: File = try .open(
@@ -90,7 +90,7 @@ extension FullDyldCache {
 extension FullDyldCache {
     public var urls: [URL] {
         [url] + subCacheSuffixes.map {
-            URL(fileURLWithPath: url.path + $0)
+            URL(fileURLWithPath: url.path + $0, isDirectory: false)
         }
     }
 }
@@ -295,7 +295,8 @@ extension FullDyldCache {
         guard let index = fileIndex(forOffset: offset) else { return nil }
         if index == 0 { return url }
         return .init(
-            fileURLWithPath: url.path + subCacheSuffixes[index - 1]
+            fileURLWithPath: url.path + subCacheSuffixes[index - 1],
+            isDirectory: false
         )
     }
 
@@ -309,7 +310,8 @@ extension FullDyldCache {
             url
         } else {
             .init(
-                fileURLWithPath: url.path + subCacheSuffixes[index - 1]
+                fileURLWithPath: url.path + subCacheSuffixes[index - 1],
+                isDirectory: false
             )
         }
         return (url, fileHandle._files[index])
@@ -349,7 +351,7 @@ extension FullDyldCache {
         if index == 0 { return mainCache ?? self.mainCache }
         let cache: DyldCache = .init(
             unsafeFileHandle: fileHandle._files[index]._file,
-            url: URL(fileURLWithPath: url.path + subCacheSuffixes[index - 1]),
+            url: URL(fileURLWithPath: url.path + subCacheSuffixes[index - 1], isDirectory: false),
             cpu: cpu,
             header: subCacheHeaders[index - 1],
             mainCache: mainCache ?? self.mainCache

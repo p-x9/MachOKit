@@ -250,7 +250,7 @@ extension DyldCache {
             let suffix = ".symbols"
             let path = url.path + suffix
             let symbolCache: DyldCache = try .init(
-                subcacheUrl: .init(fileURLWithPath: path),
+                subcacheUrl: .init(fileURLWithPath: path, isDirectory: false),
                 mainCacheHeader: mainCacheHeader
             )
             _symbolCache = symbolCache
