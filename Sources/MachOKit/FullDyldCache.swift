@@ -48,7 +48,7 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
     /// It is obtained based on magic.
     public let cpu: CPU
 
-    public var subCacheSuffixes: [String]
+    public let subCacheSuffixes: [String]
 
     /// URLs of the main cache file and all its subcache files
     public let urls: [URL]
