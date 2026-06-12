@@ -119,24 +119,6 @@ extension FullDyldCache {
     public var allCaches: [DyldCache] {
         [mainCache] + subCaches
     }
-
-    /// Assemble the `DyldCache` for the file at `index` from the
-    /// preloaded header, without re-reading it from the file
-    internal func cache(
-        atIndex index: Int,
-        mainCache: DyldCache? = nil
-    ) -> DyldCache {
-        if index == 0 { return mainCache ?? self.mainCache }
-        let cache: DyldCache = .init(
-            unsafeFileHandle: fileHandle._files[index]._file,
-            url: URL(fileURLWithPath: url.path + subCacheSuffixes[index - 1]),
-            cpu: cpu,
-            header: subCacheHeaders[index - 1],
-            mainCache: mainCache ?? self.mainCache
-        )
-        cache._fullCache = self
-        return cache
-    }
 }
 
 extension FullDyldCache {
@@ -354,5 +336,25 @@ extension FullDyldCache {
     public func cache(for url: URL) -> DyldCache? {
         guard let index = urls.firstIndex(of: url) else { return nil }
         return cache(atIndex: index)
+    }
+}
+
+extension FullDyldCache {
+    /// Assemble the `DyldCache` for the file at `index` from the
+    /// preloaded header, without re-reading it from the file
+    internal func cache(
+        atIndex index: Int,
+        mainCache: DyldCache? = nil
+    ) -> DyldCache {
+        if index == 0 { return mainCache ?? self.mainCache }
+        let cache: DyldCache = .init(
+            unsafeFileHandle: fileHandle._files[index]._file,
+            url: URL(fileURLWithPath: url.path + subCacheSuffixes[index - 1]),
+            cpu: cpu,
+            header: subCacheHeaders[index - 1],
+            mainCache: mainCache ?? self.mainCache
+        )
+        cache._fullCache = self
+        return cache
     }
 }
