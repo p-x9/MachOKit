@@ -70,7 +70,7 @@ extension DyldSubCacheEntry {
                 }
             )
         }
-        let url = URL(fileURLWithPath: cache.url.path + fileSuffix)
+        let url = URL(fileURLWithPath: cache.url.path + fileSuffix, isDirectory: false)
         let subcache = try DyldCache(subcacheUrl: url, mainCache: cache)
         subcache._fullCache = cache._fullCache
         return subcache

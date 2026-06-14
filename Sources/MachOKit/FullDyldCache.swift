@@ -48,7 +48,10 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
     /// It is obtained based on magic.
     public let cpu: CPU
 
-    public var subCacheSuffixes: [String]
+    public let subCacheSuffixes: [String]
+
+    /// URLs of the main cache file and all its subcache files
+    public let urls: [URL]
 
     // Headers of sub caches, preloaded to avoid re-reading them
     // every time a `DyldCache` is assembled
@@ -64,7 +67,7 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
         } ?? []
         var urls = [url]
         urls += subCacheSuffixes.map {
-            URL(fileURLWithPath: url.path + $0)
+            URL(fileURLWithPath: url.path + $0, isDirectory: false)
         }
 
         let fileHandle: File = try .open(
@@ -78,6 +81,7 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
         self.subCacheHeaders = try fileHandle._files[1...].map {
             try $0._file.read(offset: 0)
         }
+        self.urls = urls
     }
 }
 
@@ -85,14 +89,6 @@ extension FullDyldCache {
     /// Header for main dyld cache
     /// When this dyld cache is a subcache, represent the header of the main cache
     public var mainCacheHeader: DyldCacheHeader { header }
-}
-
-extension FullDyldCache {
-    public var urls: [URL] {
-        [url] + subCacheSuffixes.map {
-            URL(fileURLWithPath: url.path + $0)
-        }
-    }
 }
 
 extension FullDyldCache {
@@ -293,10 +289,7 @@ extension FullDyldCache {
 extension FullDyldCache {
     public func url(forOffset offset: UInt64) -> URL? {
         guard let index = fileIndex(forOffset: offset) else { return nil }
-        if index == 0 { return url }
-        return .init(
-            fileURLWithPath: url.path + subCacheSuffixes[index - 1]
-        )
+        return urls[index]
     }
 
     internal func fileSegment(forOffset offset: UInt64) -> File.FileSegment? {
@@ -305,14 +298,7 @@ extension FullDyldCache {
 
     internal func urlAndFileSegment(forOffset offset: UInt64) -> (URL, File.FileSegment)? {
         guard let index = fileIndex(forOffset: offset) else { return nil }
-        let url: URL = if index == 0 {
-            url
-        } else {
-            .init(
-                fileURLWithPath: url.path + subCacheSuffixes[index - 1]
-            )
-        }
-        return (url, fileHandle._files[index])
+        return (urls[index], fileHandle._files[index])
     }
 
     internal func cacheAndFileSegment(forOffset offset: UInt64) -> (DyldCache, File.FileSegment)? {
@@ -349,7 +335,7 @@ extension FullDyldCache {
         if index == 0 { return mainCache ?? self.mainCache }
         let cache: DyldCache = .init(
             unsafeFileHandle: fileHandle._files[index]._file,
-            url: URL(fileURLWithPath: url.path + subCacheSuffixes[index - 1]),
+            url: urls[index],
             cpu: cpu,
             header: subCacheHeaders[index - 1],
             mainCache: mainCache ?? self.mainCache
