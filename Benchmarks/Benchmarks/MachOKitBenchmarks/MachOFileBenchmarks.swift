@@ -2,7 +2,23 @@ import Benchmark
 import Foundation
 import MachOKit
 
-let benchmarks: @Sendable () -> Void = {
+func registerMachOFileBenchmarks() {
+    Benchmark("MachOFile.loadCommands.enumerate") { benchmark in
+        let machO = BenchmarkFixtures.machOFile()
+        let iterations = 100
+
+        benchmark.startMeasurement()
+
+        for _ in 0..<iterations {
+            var count = 0
+            for command in machO.loadCommands {
+                blackHole(command)
+                count += 1
+            }
+            blackHole(count)
+        }
+    }
+
     Benchmark("MachOFile.symbols.enumerate") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
 
@@ -16,6 +32,17 @@ let benchmarks: @Sendable () -> Void = {
         blackHole(count)
     }
 
+    Benchmark("MachOFile.dependencies.repeated") { benchmark in
+        let machO = BenchmarkFixtures.machOFile()
+        let iterations = 1_000
+
+        benchmark.startMeasurement()
+
+        for _ in 0..<iterations {
+            blackHole(machO.dependencies)
+        }
+    }
+
     Benchmark("MachOFile.exportedSymbols.repeated") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
         let iterations = 100
@@ -24,6 +51,44 @@ let benchmarks: @Sendable () -> Void = {
 
         for _ in 0..<iterations {
             blackHole(machO.exportedSymbols)
+        }
+    }
+
+    Benchmark("MachOFile.exportTrie.search") { benchmark in
+        let machO = BenchmarkFixtures.machOFile()
+        guard let exportTrie = machO.exportTrie else { return }
+        let names = BenchmarkFixtures.exportedSymbolNames(from: machO, limit: 1_000)
+        guard !names.isEmpty else { return }
+
+        benchmark.startMeasurement()
+
+        for name in names {
+            blackHole(exportTrie.search(by: name))
+        }
+    }
+
+    Benchmark("MachOFile.exportTrie.prefixSearch") { benchmark in
+        let machO = BenchmarkFixtures.machOFile()
+        guard let exportTrie = machO.exportTrie else { return }
+        let prefixes = BenchmarkFixtures.exportedSymbolPrefixes(from: machO, limit: 100)
+        guard !prefixes.isEmpty else { return }
+
+        benchmark.startMeasurement()
+
+        for prefix in prefixes {
+            blackHole(exportTrie.search(byKeyPrefix: prefix))
+        }
+    }
+
+    Benchmark("MachOFile.exportTrie.entries") { benchmark in
+        let machO = BenchmarkFixtures.machOFile()
+        guard let exportTrie = machO.exportTrie else { return }
+        let iterations = 10
+
+        benchmark.startMeasurement()
+
+        for _ in 0..<iterations {
+            blackHole(exportTrie.entries)
         }
     }
 
@@ -38,21 +103,41 @@ let benchmarks: @Sendable () -> Void = {
         }
     }
 
-    Benchmark("MachOFile.rebases.segmentLookup") { benchmark in
+    Benchmark("MachOFile.sections.repeated") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
-        let rebases = machO.rebases
+        let iterations = 1_000
 
         benchmark.startMeasurement()
 
-        if machO.is64Bit {
-            for rebase in rebases {
-                blackHole(rebase.segment64(in: machO))
-            }
-        } else {
-            for rebase in rebases {
-                blackHole(rebase.segment32(in: machO))
+        for _ in 0..<iterations {
+            blackHole(machO.sections)
+        }
+    }
+
+    Benchmark("MachOFile.allCStringTables.repeated") { benchmark in
+        let machO = BenchmarkFixtures.machOFile()
+        let iterations = 100
+
+        benchmark.startMeasurement()
+
+        for _ in 0..<iterations {
+            blackHole(machO.allCStringTables)
+        }
+    }
+
+    Benchmark("MachOFile.functionStarts.enumerate") { benchmark in
+        let machO = BenchmarkFixtures.machOFile()
+
+        benchmark.startMeasurement()
+
+        var count = 0
+        if let functionStarts = machO.functionStarts {
+            for functionStart in functionStarts {
+                blackHole(functionStart)
+                count += 1
             }
         }
+        blackHole(count)
     }
 
     Benchmark("MachOFile.closestSymbol.repeated") { benchmark in
@@ -79,35 +164,26 @@ let benchmarks: @Sendable () -> Void = {
         }
     }
 
-    if BenchmarkFixtures.dyldCacheURL != nil {
-        Benchmark("DyldCache.machOFiles.enumerate") { benchmark in
-            guard let cache = BenchmarkFixtures.dyldCache() else { return }
+    Benchmark("MachOFile.fileOffset.translate") { benchmark in
+        let machO = BenchmarkFixtures.machOFile()
+        let addresses = BenchmarkFixtures.machOAddresses(from: machO, limit: 100_000)
 
-            benchmark.startMeasurement()
+        benchmark.startMeasurement()
 
-            var count = 0
-            for machO in cache.machOFiles() {
-                blackHole(machO)
-                count += 1
-            }
-            blackHole(count)
-        }
-
-        Benchmark("DyldCache.fileOffset.translate") { benchmark in
-            guard let cache = BenchmarkFixtures.dyldCache(),
-                  let mappings = cache.mappingInfos,
-                  let firstMapping = mappings.first else {
-                return
-            }
-            let addresses = (0..<100_000).map {
-                firstMapping.address + UInt64($0) % firstMapping.size
-            }
-
-            benchmark.startMeasurement()
-
-            for address in addresses {
-                blackHole(cache.fileOffset(of: address))
-            }
+        for address in addresses {
+            blackHole(machO.fileOffset(of: address))
         }
     }
+
+    Benchmark("MachOFile.contains.unslidAddress") { benchmark in
+        let machO = BenchmarkFixtures.machOFile()
+        let addresses = BenchmarkFixtures.machOAddresses(from: machO, limit: 100_000)
+
+        benchmark.startMeasurement()
+
+        for address in addresses {
+            blackHole(machO.contains(unslidAddress: address))
+        }
+    }
+
 }
