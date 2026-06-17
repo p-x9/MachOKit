@@ -56,31 +56,23 @@ extension BindingSymbol {
 
 extension BindingSymbol {
     public func segment64(in machO: MachOImage) -> SegmentCommand64? {
-        let segments = Array(machO.segments64)
         let index = Int(segmentIndex)
-        guard segments.indices.contains(index) else { return nil }
-        return segments[index]
+        return machO.segments64.element(at: index)
     }
 
     public func segment32(in machO: MachOImage) -> SegmentCommand? {
-        let segments = Array(machO.segments32)
         let index = Int(segmentIndex)
-        guard segments.indices.contains(index) else { return nil }
-        return segments[index]
+        return machO.segments32.element(at: index)
     }
 
     public func segment64(in machO: MachOFile) -> SegmentCommand64? {
-        let segments = Array(machO.segments64)
         let index = Int(segmentIndex)
-        guard segments.indices.contains(index) else { return nil }
-        return segments[index]
+        return machO.segments64.element(at: index)
     }
 
     public func segment32(in machO: MachOFile) -> SegmentCommand? {
-        let segments = Array(machO.segments32)
         let index = Int(segmentIndex)
-        guard segments.indices.contains(index) else { return nil }
-        return segments[index]
+        return machO.segments32.element(at: index)
     }
 }
 
