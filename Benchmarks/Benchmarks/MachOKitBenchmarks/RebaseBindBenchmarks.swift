@@ -42,6 +42,10 @@ func registerRebaseBindBenchmarks() {
 
     Benchmark("MachOFile.rebases.repeated") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
+        guard let rebases = BenchmarkFixtures.classicRebases(from: machO, benchmark: benchmark) else {
+            return
+        }
+        blackHole(rebases)
         let iterations = 100
 
         benchmark.startMeasurement()
@@ -53,6 +57,10 @@ func registerRebaseBindBenchmarks() {
 
     Benchmark("MachOFile.bindings.repeated") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
+        guard let bindings = BenchmarkFixtures.classicBindings(from: machO, benchmark: benchmark) else {
+            return
+        }
+        blackHole(bindings)
         let iterations = 100
 
         benchmark.startMeasurement()
@@ -66,7 +74,9 @@ func registerRebaseBindBenchmarks() {
 
     Benchmark("MachOFile.rebases.segmentLookup") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
-        let rebases = machO.rebases
+        guard let rebases = BenchmarkFixtures.classicRebases(from: machO, benchmark: benchmark) else {
+            return
+        }
 
         benchmark.startMeasurement()
 
@@ -83,7 +93,9 @@ func registerRebaseBindBenchmarks() {
 
     Benchmark("MachOFile.rebases.sectionLookup") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
-        let rebases = machO.rebases
+        guard let rebases = BenchmarkFixtures.classicRebases(from: machO, benchmark: benchmark) else {
+            return
+        }
 
         benchmark.startMeasurement()
 
@@ -100,7 +112,9 @@ func registerRebaseBindBenchmarks() {
 
     Benchmark("MachOFile.rebases.address") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
-        let rebases = machO.rebases
+        guard let rebases = BenchmarkFixtures.classicRebases(from: machO, benchmark: benchmark) else {
+            return
+        }
 
         benchmark.startMeasurement()
 
@@ -111,7 +125,9 @@ func registerRebaseBindBenchmarks() {
 
     Benchmark("MachOFile.bindings.segmentLookup") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
-        let bindings = machO.bindingSymbols + machO.weakBindingSymbols + machO.lazyBindingSymbols
+        guard let bindings = BenchmarkFixtures.classicBindings(from: machO, benchmark: benchmark) else {
+            return
+        }
 
         benchmark.startMeasurement()
 
@@ -128,7 +144,9 @@ func registerRebaseBindBenchmarks() {
 
     Benchmark("MachOFile.bindings.sectionLookup") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
-        let bindings = machO.bindingSymbols + machO.weakBindingSymbols + machO.lazyBindingSymbols
+        guard let bindings = BenchmarkFixtures.classicBindings(from: machO, benchmark: benchmark) else {
+            return
+        }
 
         benchmark.startMeasurement()
 
@@ -145,7 +163,9 @@ func registerRebaseBindBenchmarks() {
 
     Benchmark("MachOFile.bindings.libraryLookup") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
-        let bindings = machO.bindingSymbols + machO.weakBindingSymbols + machO.lazyBindingSymbols
+        guard let bindings = BenchmarkFixtures.classicBindings(from: machO, benchmark: benchmark) else {
+            return
+        }
 
         benchmark.startMeasurement()
 
@@ -156,7 +176,9 @@ func registerRebaseBindBenchmarks() {
 
     Benchmark("MachOFile.bindings.address") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
-        let bindings = machO.bindingSymbols + machO.weakBindingSymbols + machO.lazyBindingSymbols
+        guard let bindings = BenchmarkFixtures.classicBindings(from: machO, benchmark: benchmark) else {
+            return
+        }
 
         benchmark.startMeasurement()
 
