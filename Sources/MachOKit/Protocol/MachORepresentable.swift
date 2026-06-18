@@ -377,81 +377,140 @@ extension MachORepresentable {
     }
 }
 
-extension MachORepresentable {
-    // ref: https://github.com/apple-oss-distributions/dyld/blob/93bd81f9d7fcf004fcebcb66ec78983882b41e71/common/MachOLoaded.cpp#L606
+extension MachORepresentable where Self == MachOFile {
     public func closestSymbol( // swiftlint:disable:this cyclomatic_complexity
         at offset: Int,
         inSection sectionNumber: Int = 0,
         isGlobalOnly: Bool = false
     ) -> Symbol? {
-        let symbols = Array(self.symbols)
-        var bestSymbol: Symbol?
-
-        if let dysym = loadCommands.dysymtab {
-            // find closest match in globals
-            let globalStart: Int = numericCast(dysym.iextdefsym)
-            let globalCount: Int = numericCast(dysym.nextdefsym)
-            for i in globalStart ..< globalStart + globalCount {
-                let symbol = symbols[i]
-                let nlist = symbol.nlist
-                let symbolSectionNumber = symbol.nlist.sectionNumber
-
-                guard nlist.flags?.type == .sect,
-                      symbol.offset <= offset,
-                      sectionNumber == 0 || symbolSectionNumber == sectionNumber else {
-                    continue
-                }
-                if let bestSymbol,
-                   bestSymbol.offset >= symbol.offset {
-                    continue
-                }
-                bestSymbol = symbol
-            }
-            if isGlobalOnly { return bestSymbol }
-
-            // find closest match in locals
-            let localStart: Int = numericCast(dysym.ilocalsym)
-            let localCount: Int = numericCast(dysym.nlocalsym)
-            for i in localStart ..< localStart + localCount {
-                let symbol = symbols[i]
-                let nlist = symbol.nlist
-                let symbolSectionNumber = symbol.nlist.sectionNumber
-
-                guard nlist.flags?.type == .sect,
-                      nlist.flags?.stab == nil,
-                      symbol.offset <= offset,
-                      sectionNumber == 0 || symbolSectionNumber == sectionNumber else {
-                    continue
-                }
-                if let bestSymbol,
-                   bestSymbol.offset >= symbol.offset {
-                    continue
-                }
-                bestSymbol = symbol
-            }
-        } else {
-            // find closest match in locals
-            for symbol in symbols {
-                let nlist = symbol.nlist
-                let symbolSectionNumber = symbol.nlist.sectionNumber
-                guard nlist.flags?.type == .sect,
-                      nlist.flags?.stab == nil,
-                      symbol.offset <= offset,
-                      !isGlobalOnly || nlist.flags?.contains(.ext) ?? false,
-                      sectionNumber == 0 || symbolSectionNumber == sectionNumber else {
-                    continue
-                }
-                if let bestSymbol,
-                   bestSymbol.offset >= symbol.offset {
-                    continue
-                }
-                bestSymbol = symbol
-            }
+        if is64Bit, let symbols64 {
+            return _closestSymbol(
+                in: self,
+                at: offset,
+                inSection: sectionNumber,
+                isGlobalOnly: isGlobalOnly,
+                symbols: symbols64
+            )
+        } else if let symbols32 {
+            return _closestSymbol(
+                in: self,
+                at: offset,
+                inSection: sectionNumber,
+                isGlobalOnly: isGlobalOnly,
+                symbols: symbols32
+            )
         }
-
-        return bestSymbol
+        return nil
     }
 
+}
+
+extension MachORepresentable where Self == MachOImage {
+    public func closestSymbol( // swiftlint:disable:this cyclomatic_complexity
+        at offset: Int,
+        inSection sectionNumber: Int = 0,
+        isGlobalOnly: Bool = false
+    ) -> Symbol? {
+        if is64Bit, let symbols64 {
+            return _closestSymbol(
+                in: self,
+                at: offset,
+                inSection: sectionNumber,
+                isGlobalOnly: isGlobalOnly,
+                symbols: symbols64
+            )
+        } else if let symbols32 {
+            return _closestSymbol(
+                in: self,
+                at: offset,
+                inSection: sectionNumber,
+                isGlobalOnly: isGlobalOnly,
+                symbols: symbols32
+            )
+        }
+        return nil
+    }
+
+}
+
+// ref: https://github.com/apple-oss-distributions/dyld/blob/93bd81f9d7fcf004fcebcb66ec78983882b41e71/common/MachOLoaded.cpp#L606
+@inline(__always)
+private func _closestSymbol<MachO, Table>( // swiftlint:disable:this cyclomatic_complexity
+    in machO: MachO,
+    at offset: Int,
+    inSection sectionNumber: Int,
+    isGlobalOnly: Bool,
+    symbols: Table
+) -> MachO.Symbol? where MachO: MachORepresentable, Table: _SymbolTableProtocol<MachO.Symbol> {
+    var bestIndex: Int?
+    var bestOffset: Int?
+
+    func updateBestSymbol(
+        at index: Int,
+        nlist: Table.WrappedNlist,
+        requireNonStab: Bool,
+        requireExternal: Bool
+    ) {
+        let flags = nlist.flags ?? .init(rawValue: 0)
+        let symbolOffset = symbols.offset(of: nlist)
+
+        guard flags.type == .sect,
+              !requireNonStab || flags.stab == nil,
+              symbolOffset <= offset,
+              !requireExternal || flags.contains(.ext),
+              sectionNumber == 0 || nlist.sectionNumber == sectionNumber else {
+            return
+        }
+        if let bestOffset,
+           bestOffset >= symbolOffset {
+            return
+        }
+        bestIndex = index
+        bestOffset = symbolOffset
+    }
+
+    if let dysym = machO.loadCommands.dysymtab {
+        let globalStart: Int = numericCast(dysym.iextdefsym)
+        let globalCount: Int = numericCast(dysym.nextdefsym)
+        for i in globalStart ..< globalStart + globalCount {
+            updateBestSymbol(
+                at: i,
+                nlist: symbols.wrappedNlist(at: i),
+                requireNonStab: false,
+                requireExternal: false
+            )
+        }
+        if isGlobalOnly {
+            guard let bestIndex else { return nil }
+            return symbols.symbol(at: bestIndex, nlist: symbols.wrappedNlist(at: bestIndex))
+        }
+
+        let localStart: Int = numericCast(dysym.ilocalsym)
+        let localCount: Int = numericCast(dysym.nlocalsym)
+        for i in localStart ..< localStart + localCount {
+            updateBestSymbol(
+                at: i,
+                nlist: symbols.wrappedNlist(at: i),
+                requireNonStab: true,
+                requireExternal: false
+            )
+        }
+    } else {
+        for i in symbols.indices {
+            updateBestSymbol(
+                at: i,
+                nlist: symbols.wrappedNlist(at: i),
+                requireNonStab: true,
+                requireExternal: isGlobalOnly
+            )
+        }
+    }
+
+    guard let bestIndex else { return nil }
+    return symbols.symbol(at: bestIndex, nlist: symbols.wrappedNlist(at: bestIndex))
+}
+
+extension MachORepresentable {
     public func closestSymbols( // swiftlint:disable:this cyclomatic_complexity
         at offset: Int,
         inSection sectionNumber: Int = 0,

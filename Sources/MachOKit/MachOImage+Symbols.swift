@@ -283,3 +283,49 @@ extension MachOImage.Symbols: Collection {
 // MARK: - RandomAccessCollection
 extension MachOImage.Symbols64: RandomAccessCollection {}
 extension MachOImage.Symbols: RandomAccessCollection {}
+
+// MARK: - _SymbolTableProtocol
+
+extension MachOImage.Symbols64: _SymbolTableProtocol {
+    func wrappedNlist(at position: Int) -> Nlist64 {
+        Nlist64(layout: symbols.advanced(by: position).pointee)
+    }
+
+    func offset(of nlist: Nlist64) -> Int {
+        addressStart + numericCast(nlist.layout.n_value)
+    }
+
+    func symbol(at position: Int, nlist: Nlist64) -> MachOImage.Symbol {
+        let str = stringBase
+            .advanced(by: numericCast(nlist.layout.n_un.n_strx))
+        let address = addressStart + numericCast(nlist.layout.n_value)
+
+        return MachOImage.Symbol(
+            nameC: str,
+            offset: address,
+            nlist: nlist
+        )
+    }
+}
+
+extension MachOImage.Symbols: _SymbolTableProtocol {
+    func wrappedNlist(at position: Int) -> Nlist {
+        Nlist(layout: symbols.advanced(by: position).pointee)
+    }
+
+    func offset(of nlist: Nlist) -> Int {
+        addressStart + numericCast(nlist.layout.n_value)
+    }
+
+    func symbol(at position: Int, nlist: Nlist) -> MachOImage.Symbol {
+        let str = stringBase
+            .advanced(by: numericCast(nlist.layout.n_un.n_strx))
+        let address = addressStart + numericCast(nlist.layout.n_value)
+
+        return MachOImage.Symbol(
+            nameC: str,
+            offset: address,
+            nlist: nlist
+        )
+    }
+}
