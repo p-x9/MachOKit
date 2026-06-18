@@ -1,3 +1,4 @@
+import Benchmark
 import Foundation
 import MachOKit
 
@@ -51,6 +52,34 @@ enum BenchmarkFixtures {
         } catch {
             fatalError("Failed to load Mach-O benchmark fixture at \(machOURL.path): \(error)")
         }
+    }
+
+    static func classicRebases(from machO: MachOFile, benchmark: Benchmark) -> [Rebase]? {
+        let rebases = machO.rebases
+        guard !rebases.isEmpty else {
+            benchmark.error(
+                """
+                Mach-O benchmark fixture has no classic dyld rebase opcodes: \(machO.url.path).
+                Set MACHOKIT_BENCH_MACHO to a thin Mach-O with LC_DYLD_INFO_ONLY rebase data.
+                """
+            )
+            return nil
+        }
+        return rebases
+    }
+
+    static func classicBindings(from machO: MachOFile, benchmark: Benchmark) -> [BindingSymbol]? {
+        let bindings = machO.bindingSymbols + machO.weakBindingSymbols + machO.lazyBindingSymbols
+        guard !bindings.isEmpty else {
+            benchmark.error(
+                """
+                Mach-O benchmark fixture has no classic dyld bind opcodes: \(machO.url.path).
+                Set MACHOKIT_BENCH_MACHO to a thin Mach-O with LC_DYLD_INFO_ONLY bind data.
+                """
+            )
+            return nil
+        }
+        return bindings
     }
 
     static func dyldCache() -> DyldCache? {
