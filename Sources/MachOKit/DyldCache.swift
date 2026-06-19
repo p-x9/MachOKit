@@ -128,7 +128,8 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
         url: URL,
         cpu: CPU,
         header: DyldCacheHeader? = nil,
-        mainCache: DyldCache? = nil
+        mainCache: DyldCache? = nil,
+        mainCacheHeader: DyldCacheHeader? = nil
     ) {
         self.fileHandle = fileHandle
         self.url = url
@@ -139,14 +140,18 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
         )
         self.cpu = cpu
         self._mainCache = mainCache
-        self._mainCacheHeader = mainCache?.header
+        self._mainCacheHeader = mainCache?.header ?? mainCacheHeader
     }
 }
 
 extension DyldCache {
     public var mainCache: DyldCache? {
         if let _mainCache { return _mainCache }
-        if let _fullCache { return _fullCache.mainCache }
+        if let _fullCache {
+            let mainCache = _fullCache.mainCache
+            _mainCache = mainCache
+            return mainCache
+        }
         if url.lastPathComponent.contains(".") {
             let url = url
                 .deletingPathExtension()
