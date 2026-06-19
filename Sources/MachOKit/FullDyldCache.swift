@@ -108,9 +108,8 @@ extension FullDyldCache {
     }
 
     public var subCaches: [DyldCache] {
-        let mainCache = self.mainCache
         return (1..<fileHandle._files.count).map {
-            cache(atIndex: $0, mainCache: mainCache)
+            cache(atIndex: $0)
         }
     }
 
@@ -346,7 +345,8 @@ extension FullDyldCache {
             url: urls[index],
             cpu: cpu,
             header: subCacheHeaders[index - 1],
-            mainCache: mainCache ?? self.mainCache
+            mainCache: mainCache,
+            mainCacheHeader: header
         )
         cache._fullCache = self
         return cache
