@@ -148,6 +148,7 @@ extension DyldCache {
     public var mainCache: DyldCache? {
         if let _mainCache { return _mainCache }
         if let _fullCache {
+            if _fullCache.url == url { return self }
             let mainCache = _fullCache.mainCache
             _mainCache = mainCache
             return mainCache
