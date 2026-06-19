@@ -41,6 +41,8 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
     private var _mainCache: DyldCache?
     // Retain the symbol cache
     internal var _symbolCache: DyldCache?
+    private var _mappingInfos: DataSequence<DyldCacheMappingInfo>?
+    private var _mappingAndSlideInfos: DataSequence<DyldCacheMappingAndSlideInfo>?
 
     public var headerSize: Int {
         header.actualSize
@@ -171,10 +173,13 @@ extension DyldCache {
     /// Sequence of mapping infos
     public var mappingInfos: DataSequence<DyldCacheMappingInfo>? {
         guard header.mappingCount > 0 else { return nil }
-        return fileHandle.readDataSequence(
+        if let _mappingInfos { return _mappingInfos }
+        let mappingInfos: DataSequence<DyldCacheMappingInfo> = fileHandle.readDataSequence(
             offset: numericCast(header.mappingOffset),
             numberOfElements: numericCast(header.mappingCount)
         )
+        _mappingInfos = mappingInfos
+        return mappingInfos
     }
 
     /// Sequence of mapping and slide infos
@@ -183,10 +188,13 @@ extension DyldCache {
               header.hasProperty(\.mappingWithSlideCount) else {
             return nil
         }
-        return fileHandle.readDataSequence(
+        if let _mappingAndSlideInfos { return _mappingAndSlideInfos }
+        let mappingAndSlideInfos: DataSequence<DyldCacheMappingAndSlideInfo> = fileHandle.readDataSequence(
             offset: numericCast(header.mappingWithSlideOffset),
             numberOfElements: numericCast(header.mappingWithSlideCount)
         )
+        _mappingAndSlideInfos = mappingAndSlideInfos
+        return mappingAndSlideInfos
     }
 
     /// Sequence of image infos.

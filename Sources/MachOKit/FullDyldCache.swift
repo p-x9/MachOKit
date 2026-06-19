@@ -35,6 +35,8 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
 
     // Retain the symbol cache
     private var _symbolCache: DyldCache?
+    private var _mappingInfos: [DyldCacheMappingInfo]?
+    private var _mappingAndSlideInfos: [DyldCacheMappingAndSlideInfo]?
 
     public var headerSize: Int {
         header.actualSize
@@ -120,7 +122,8 @@ extension FullDyldCache {
 extension FullDyldCache {
     /// Sequence of mapping infos
     public var mappingInfos: [DyldCacheMappingInfo]? {
-        zip(fileHandle._files, allCaches).compactMap { file, cache in
+        if let _mappingInfos { return _mappingInfos }
+        let mappingInfos = zip(fileHandle._files, allCaches).compactMap { file, cache in
             cache.mappingInfos?
                 .map {
                     $0.withFileOffset(
@@ -128,11 +131,14 @@ extension FullDyldCache {
                     )
                 }
         }.flatMap { $0 }
+        _mappingInfos = mappingInfos
+        return mappingInfos
     }
 
     /// Sequence of mapping and slide infos
     public var mappingAndSlideInfos: [DyldCacheMappingAndSlideInfo]? {
-        zip(fileHandle._files, allCaches).compactMap { file, cache in
+        if let _mappingAndSlideInfos { return _mappingAndSlideInfos }
+        let mappingAndSlideInfos = zip(fileHandle._files, allCaches).compactMap { file, cache in
             cache.mappingAndSlideInfos?
                 .map {
                     $0.withFileOffset(
@@ -143,6 +149,8 @@ extension FullDyldCache {
                     )
                 }
         }.flatMap { $0 }
+        _mappingAndSlideInfos = mappingAndSlideInfos
+        return mappingAndSlideInfos
     }
 
     /// Sequence of image infos.
