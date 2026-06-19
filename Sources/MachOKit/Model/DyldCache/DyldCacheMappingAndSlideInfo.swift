@@ -62,6 +62,18 @@ extension DyldCacheMappingAndSlideInfo {
     ) -> DyldCacheSlideInfo? {
         _slideInfo(in: cache)
     }
+
+    func slideInfoVersion<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DyldCacheSlideInfo.Version? {
+        _slideInfoVersion(in: cache)
+    }
+
+    func slideInfo<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> DyldCacheSlideInfo? {
+        _slideInfo(in: cache)
+    }
 }
 
 extension DyldCacheMappingAndSlideInfo {
