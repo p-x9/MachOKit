@@ -364,3 +364,61 @@ extension MachOFile.Symbols: Collection {
 // MARK: - RandomAccessCollection
 extension MachOFile.Symbols64: RandomAccessCollection {}
 extension MachOFile.Symbols: RandomAccessCollection {}
+
+// MARK: - _SymbolTableProtocol
+
+extension MachOFile.Symbols64: _SymbolTableProtocol {
+    func wrappedNlist(at position: Int) -> Nlist64 {
+        var symbol: nlist_64 = try! symbolsSlice.read(
+            offset: Nlist64.layoutSize * position
+        )
+        if isSwapped {
+            swap_nlist_64(&symbol, 1, NXHostByteOrder())
+        }
+        return Nlist64(layout: symbol)
+    }
+
+    func offset(of nlist: Nlist64) -> Int {
+        numericCast(nlist.layout.n_value)
+    }
+
+    func symbol(at position: Int, nlist: Nlist64) -> MachOFile.Symbol {
+        let string = stringsSlice.readString(
+            offset: numericCast(nlist.layout.n_un.n_strx)
+        ) ?? ""
+
+        return .init(
+            name: string,
+            offset: numericCast(nlist.layout.n_value),
+            nlist: nlist
+        )
+    }
+}
+
+extension MachOFile.Symbols: _SymbolTableProtocol {
+    func wrappedNlist(at position: Int) -> Nlist {
+        var symbol: nlist = try! symbolsSlice.read(
+            offset: Nlist.layoutSize * position
+        )
+        if isSwapped {
+            swap_nlist(&symbol, 1, NXHostByteOrder())
+        }
+        return Nlist(layout: symbol)
+    }
+
+    func offset(of nlist: Nlist) -> Int {
+        numericCast(nlist.layout.n_value)
+    }
+
+    func symbol(at position: Int, nlist: Nlist) -> MachOFile.Symbol {
+        let string = stringsSlice.readString(
+            offset: numericCast(nlist.layout.n_un.n_strx)
+        ) ?? ""
+
+        return .init(
+            name: string,
+            offset: numericCast(nlist.layout.n_value),
+            nlist: nlist
+        )
+    }
+}
