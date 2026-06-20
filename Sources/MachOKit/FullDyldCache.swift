@@ -254,10 +254,7 @@ extension FullDyldCache {
     ///
     /// [dyld Implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/MetadataVisitor.cpp#L265)
     public func resolveRebase(at offset: UInt64) -> UInt64? {
-        guard let (cache, localOffset) = cacheAndLocalOffset(forOffset: offset) else {
-            return nil
-        }
-        return cache.resolveRebase(at: localOffset)
+        _resolveRebase(at: offset, skipsZeroValue: false)
     }
 
     /// File offset after optional rebasing performed on the specified file offset
@@ -267,29 +264,7 @@ extension FullDyldCache {
     /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/MetadataVisitor.cpp#L435)
     /// `resolveOptionalRebase` differs from `resolveRebase` in that rebasing may or may not actually take place.
     public func resolveOptionalRebase(at offset: UInt64) -> UInt64? {
-        guard let (cache, localOffset) = cacheAndLocalOffset(forOffset: offset) else {
-            return nil
-        }
-        return cache.resolveOptionalRebase(at: localOffset)
-    }
-
-    /// The subcache that maps `offset`, paired with `offset` translated into
-    /// that subcache's own coordinate space.
-    ///
-    /// `cache(forOffset:)` builds the subcache's `DyldCache` from that file's
-    /// standalone mmap, so its mapping table is addressed from the start of
-    /// the subcache file. `DyldCache.resolveRebase` / `resolveOptionalRebase`
-    /// consult that table via `mappingAndSlideInfo(forFileOffset:)` and read
-    /// bytes through the subcache's own file handle, so they must be given a
-    /// subcache-local offset — the full-cache `offset` minus the subcache's
-    /// start within the full cache. This mirrors the `- segment.offset`
-    /// adjustment already applied in `machOFiles()`; without it the lookup
-    /// always misses for any pointer outside the first subcache.
-    private func cacheAndLocalOffset(forOffset offset: UInt64) -> (DyldCache, UInt64)? {
-        guard let (cache, segment) = cacheAndFileSegment(forOffset: offset) else {
-            return nil
-        }
-        return (cache, offset - numericCast(segment.offset))
+        _resolveRebase(at: offset, skipsZeroValue: true)
     }
 }
 

@@ -36,6 +36,17 @@ extension DyldChainedFixupPointer {
         )
     }
 
+    func rebaseTargetRuntimeOffset<Cache: _DyldCacheFileRepresentable>(
+        for cache: Cache, // dummy
+        preferedLoadAddress: UInt64
+    ) -> UInt64? {
+        _rebaseTargetRuntimeOffset(
+            cache: nil,
+            machO: nil,
+            preferedLoadAddress: preferedLoadAddress
+        )
+    }
+
     public func rebaseTargetRuntimeOffset(
         for machO: MachOFile,
         preferedLoadAddress: UInt64
