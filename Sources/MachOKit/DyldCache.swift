@@ -41,8 +41,8 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
     private var _mainCache: DyldCache?
     // Retain the symbol cache
     internal var _symbolCache: DyldCache?
-    private var _mappingInfos: DataSequence<DyldCacheMappingInfo>?
-    private var _mappingAndSlideInfos: DataSequence<DyldCacheMappingAndSlideInfo>?
+    private var _mappingInfos: [DyldCacheMappingInfo]?
+    private var _mappingAndSlideInfos: [DyldCacheMappingAndSlideInfo]?
 
     public var headerSize: Int {
         header.actualSize
@@ -177,19 +177,20 @@ extension DyldCache {
 
 extension DyldCache {
     /// Sequence of mapping infos
-    public var mappingInfos: DataSequence<DyldCacheMappingInfo>? {
+    public var mappingInfos: [DyldCacheMappingInfo]? {
         guard header.mappingCount > 0 else { return nil }
         if let _mappingInfos { return _mappingInfos }
         let mappingInfos: DataSequence<DyldCacheMappingInfo> = fileHandle.readDataSequence(
             offset: numericCast(header.mappingOffset),
             numberOfElements: numericCast(header.mappingCount)
         )
-        _mappingInfos = mappingInfos
-        return mappingInfos
+        let _mappingInfos = Array(mappingInfos)
+        self._mappingInfos = _mappingInfos
+        return _mappingInfos
     }
 
     /// Sequence of mapping and slide infos
-    public var mappingAndSlideInfos: DataSequence<DyldCacheMappingAndSlideInfo>? {
+    public var mappingAndSlideInfos: [DyldCacheMappingAndSlideInfo]? {
         guard header.mappingWithSlideCount > 0,
               header.hasProperty(\.mappingWithSlideCount) else {
             return nil
@@ -199,8 +200,9 @@ extension DyldCache {
             offset: numericCast(header.mappingWithSlideOffset),
             numberOfElements: numericCast(header.mappingWithSlideCount)
         )
-        _mappingAndSlideInfos = mappingAndSlideInfos
-        return mappingAndSlideInfos
+        let _mappingAndSlideInfos = Array(mappingAndSlideInfos)
+        self._mappingAndSlideInfos = _mappingAndSlideInfos
+        return _mappingAndSlideInfos
     }
 
     /// Sequence of image infos.
