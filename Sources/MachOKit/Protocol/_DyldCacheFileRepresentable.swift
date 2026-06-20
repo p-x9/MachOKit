@@ -3,7 +3,7 @@
 //  MachOKit
 //
 //  Created by p-x9 on 2025/07/19
-//  
+//
 //
 
 import Foundation
@@ -16,13 +16,71 @@ internal import FileIOBinary
 #endif
 
 internal protocol _DyldCacheFileRepresentable: DyldCacheRepresentable
-where DylibsTrie == DataTrieTree<DylibsTrieNodeContent>,
+where MappingInfos == [DyldCacheMappingInfo],
+      MappingAndSlideInfos == [DyldCacheMappingAndSlideInfo],
+      DylibsTrie == DataTrieTree<DylibsTrieNodeContent>,
       ProgramsTrie == DataTrieTree<ProgramsTrieNodeContent>
 {
     associatedtype File: MemoryMappedFileIOProtocol
     var fileHandle: File { get }
 
     func machOFiles() -> AnySequence<MachOFile>
+}
+
+extension _DyldCacheFileRepresentable {
+    @inline(__always)
+    public func mappingInfo(for address: UInt64) -> DyldCacheMappingInfo? {
+        guard let mappings = mappingInfos else { return nil }
+        for mapping in mappings {
+            if mapping.address <= address,
+               address < mapping.address + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    @inline(__always)
+    public func mappingInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingInfo? {
+        guard let mappings = mappingInfos else { return nil }
+        for mapping in mappings {
+            if mapping.fileOffset <= offset,
+               offset < mapping.fileOffset + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    @inline(__always)
+    public func mappingAndSlideInfo(
+        for address: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = mappingAndSlideInfos else { return nil }
+        for mapping in mappings {
+            if mapping.address <= address,
+               address < mapping.address + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    @inline(__always)
+    public func mappingAndSlideInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = mappingAndSlideInfos else { return nil }
+        for mapping in mappings {
+            if mapping.fileOffset <= offset,
+               offset < mapping.fileOffset + mapping.size {
+                return mapping
+            }
+        }
+        return nil
+    }
 }
 
 extension _DyldCacheFileRepresentable {
