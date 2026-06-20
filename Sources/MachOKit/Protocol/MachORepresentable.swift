@@ -963,12 +963,25 @@ extension MachORepresentable where IndirectSymbols.Index == Int {
 
 extension MachORepresentable {
     public func contains(unslidAddress address: UInt64) -> Bool {
-        segments.contains(
-            where: {
-                $0.contains(unslidAddress: address)
-            }
-        )
+        if is64Bit {
+            _contains(unslidAddress: address, in: segments64)
+        } else {
+            _contains(unslidAddress: address, in: segments32)
+        }
     }
+}
+
+@inline(__always)
+private func _contains<Segments: Sequence>(
+    unslidAddress address: UInt64,
+    in segments: Segments
+) -> Bool where Segments.Element: SegmentCommandProtocol {
+    for segment in segments {
+        if segment.contains(unslidAddress: address) {
+            return true
+        }
+    }
+    return false
 }
 
 extension MachORepresentable {
