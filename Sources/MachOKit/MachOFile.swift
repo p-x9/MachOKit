@@ -86,10 +86,11 @@ public class MachOFile: MachORepresentable {
         try self.init(
             url: url,
             imagePath: imagePath,
+            fileHandle: cache.fileHandle,
             headerStartOffset: 0,
-            headerStartOffsetInCache: headerStartOffsetInCache
+            headerStartOffsetInCache: headerStartOffsetInCache,
+            cache: cache
         )
-        self._cache = cache
     }
 
     @available(*, deprecated, renamed: "init(url:imagePath:headerStartOffsetInCache:cache:)")
@@ -106,19 +107,37 @@ public class MachOFile: MachORepresentable {
         )
     }
 
-    package init(
+    package convenience init(
         url: URL,
         imagePath: String?,
         headerStartOffset: Int,
         headerStartOffsetInCache: Int
     ) throws {
-        self.url = url
-        self._imagePath = imagePath
         let fileHandle = try File.open(
             url: url,
             isWritable: false
         )
+        try self.init(
+            url: url,
+            imagePath: imagePath,
+            fileHandle: fileHandle,
+            headerStartOffset: headerStartOffset,
+            headerStartOffsetInCache: headerStartOffsetInCache
+        )
+    }
+
+    private init(
+        url: URL,
+        imagePath: String?,
+        fileHandle: File,
+        headerStartOffset: Int,
+        headerStartOffsetInCache: Int,
+        cache: DyldCache? = nil
+    ) throws {
+        self.url = url
+        self._imagePath = imagePath
         self.fileHandle = fileHandle
+        self._cache = cache
 
         self.headerStartOffset = headerStartOffset
         self.headerStartOffsetInCache = headerStartOffsetInCache
@@ -866,13 +885,26 @@ extension MachOFile {
         if let cache {
             return cache.fileOffset(of: vmaddr)
         }
-        for segment in self.segments {
-            if segment.virtualMemoryAddress <= vmaddr,
-               vmaddr < segment.virtualMemoryAddress + segment.virtualMemorySize {
-                return vmaddr + numericCast(segment.fileOffset) - numericCast(segment.virtualMemoryAddress)
+        if is64Bit {
+            return _fileOffset(of: vmaddr, in: segments64)
+        } else {
+            return _fileOffset(of: vmaddr, in: segments32)
+        }
+    }
+
+    @inline(__always)
+    private func _fileOffset<Segments: Sequence>(
+        of vmaddr: UInt64,
+        in segments: Segments
+    ) -> UInt64? where Segments.Element: SegmentCommandProtocol {
+        for segment in segments {
+            let segmentVMAddr = UInt64(segment.virtualMemoryAddress)
+            if segmentVMAddr <= vmaddr,
+               vmaddr < segmentVMAddr + UInt64(segment.virtualMemorySize) {
+                return vmaddr + UInt64(segment.fileOffset) - segmentVMAddr
             }
-            if segment.segmentName == SEG_TEXT,
-               vmaddr < segment.virtualMemoryAddress {
+            if vmaddr < segmentVMAddr,
+               segment.segmentName == SEG_TEXT {
                 return vmaddr
             }
         }

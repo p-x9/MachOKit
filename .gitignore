@@ -10,3 +10,7 @@ DerivedData/
 XCFrameworks/
 docs/
 symbol-graphs/
+
+Benchmarks/.benchmarkBaselines/
+Benchmarks/.build/
+Benchmarks/.swiftpm/

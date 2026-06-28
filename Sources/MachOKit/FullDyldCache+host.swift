@@ -14,7 +14,7 @@ extension FullDyldCache {
         guard let path = _DyldSharedCacheRuntime.sharedCacheFilePath() else {
             return nil
         }
-        let url: URL = .init(fileURLWithPath: path)
+        let url: URL = .init(fileURLWithPath: path, isDirectory: false)
         return try? FullDyldCache(url: url)
 #else
         return nil

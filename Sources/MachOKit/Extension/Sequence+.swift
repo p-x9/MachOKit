@@ -8,6 +8,21 @@
 
 import Foundation
 
+extension Sequence {
+    func element(at index: Int) -> Element? {
+        guard index >= 0 else { return nil }
+        var iterator = makeIterator()
+        var currentIndex = 0
+        while let element = iterator.next() {
+            if currentIndex == index {
+                return element
+            }
+            currentIndex += 1
+        }
+        return nil
+    }
+}
+
 // https://opensource.apple.com/source/ld64/ld64-253.9/src/other/dyldinfo.cpp.auto.html
 extension Sequence<BindOperation> {
     func bindings(

@@ -123,6 +123,8 @@ For dyld cache work:
   dyld cache paths.
 - For parser or binary-layout changes, prefer stable fixtures or small
   synthetic data over new tests that depend on `/System/Applications`.
+- For performance changes, verify the impact with
+  `make benchmark-baseline-compare` whenever a benchmark baseline is available.
 - For Markdown-only changes, a build is not normally required.
 
 ## Do Not Drift

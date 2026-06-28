@@ -234,8 +234,8 @@ Utilities for extracting higher-level language metadata from Mach-O binaries.
 
 - [ELFKit](https://github.com/p-x9/ELFKit)
     Elf format
-- PEKit
-    Coming Soon...
+- [PEKit](https://github.com/p-x9/PEKit)
+    PE/COFF format
 
 ## License
 
