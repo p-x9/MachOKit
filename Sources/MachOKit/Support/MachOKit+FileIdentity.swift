@@ -57,7 +57,11 @@ extension FullDyldCache {
 }
 
 extension AotCache {
-    /// The identity of the concatenated backing handle used by this aot cache.
+    /// The identity of the backing file handle used by this AOT cache file.
+    ///
+    /// Use this value as an owner key for external weak caches that should
+    /// follow the lifetime of the AOT cache's mapped file handle, not as a path
+    /// or inode equivalence check.
     @_spi(Support)
     public var fileHandleIdentity: any FileHandleIdentity { fileHandle }
 }
