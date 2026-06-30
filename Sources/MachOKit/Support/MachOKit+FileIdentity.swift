@@ -20,6 +20,27 @@ internal import FileIO
 /// This identity represents the object identity of the handle shared by
 /// MachOKit wrappers. It is not a file-system identity: separately opened
 /// handles for the same path may have different identities.
+///
+/// Example:
+/// ```swift
+/// @_spi(Support) import MachOKit
+///
+/// final class ParsedFileCache {}
+///
+/// final class ExternalCacheStore {
+///     private let caches = WeakMapTable<any FileHandleIdentity, ParsedFileCache>()
+///
+///     func cache(for machO: MachOFile) -> ParsedFileCache {
+///         let owner = machO.fileHandleIdentity
+///         if let cache = caches[owner] {
+///             return cache
+///         }
+///         let cache = ParsedFileCache()
+///         caches[owner] = cache
+///         return cache
+///     }
+/// }
+/// ```
 @_spi(Support)
 @_marker
 public protocol FileHandleIdentity: AnyObject {}
