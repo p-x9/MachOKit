@@ -7,7 +7,11 @@
 //
 
 import Foundation
+#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
 internal import FileIO
+#else
+@_implementationOnly import FileIO
+#endif
 
 // MARK: - file handle identity
 
