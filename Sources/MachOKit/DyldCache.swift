@@ -183,17 +183,6 @@ extension DyldCache {
     public var _cachedFullCache: FullDyldCache? {
         _fullCache
     }
-
-    /// The cached main `DyldCache`, if one is already available without loading it.
-    ///
-    /// Unlike ``mainCache``, this property does not lazily create or load the main cache.
-    @_spi(Support)
-    public var _cachedMainCache: DyldCache? {
-        if let _mainCache { return _mainCache }
-        if _fullCache?.url == url { return self }
-        if !url.lastPathComponent.contains(".") { return self }
-        return nil
-    }
 }
 
 extension DyldCache {
