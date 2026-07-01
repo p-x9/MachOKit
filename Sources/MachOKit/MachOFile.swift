@@ -625,11 +625,10 @@ extension MachOFile {
     /// access to symbols, sections, or other data spread across subcaches.
     public var cache: DyldCache? {
         if let _cache { return _cache }
-        if let fullCache {
-            return fullCache.cache(for: url)
+        if let _fullCache {
+            return _fullCache.cache(for: url)
         }
         _cache = try? .init(url: url)
-        _cache?._fullCache = _fullCache
         return _cache
     }
 
