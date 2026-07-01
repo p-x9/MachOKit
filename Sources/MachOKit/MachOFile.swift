@@ -618,18 +618,17 @@ extension MachOFile {
     ///
     /// This property attempts to lazily load the dyld cache based on the file URL.
     /// - If `_cache` has already been set, that value is returned.
-    /// - If `fullCache` is available, the corresponding subcache for this file URL is returned.
+    /// - If `_fullCache` has already been set, the corresponding subcache for this file URL is returned.
     /// - Otherwise, this attempts to initialize a new `DyldCache` using the file URL.
     ///
     /// This is mainly used when the Mach-O file originates from a dyld shared cache and requires
     /// access to symbols, sections, or other data spread across subcaches.
     public var cache: DyldCache? {
         if let _cache { return _cache }
-        if let fullCache {
-            return fullCache.cache(for: url)
+        if let _fullCache {
+            return _fullCache.cache(for: url)
         }
         _cache = try? .init(url: url)
-        _cache?._fullCache = _fullCache
         return _cache
     }
 
@@ -655,6 +654,30 @@ extension MachOFile {
         )
         _cache?._fullCache = _fullCache
         return _fullCache
+    }
+}
+
+extension MachOFile {
+    /// The cached or cheaply recoverable `DyldCache`, if one is already associated with this file.
+    ///
+    /// Unlike ``cache``, this property does not load a `FullDyldCache` or open a cache file.
+    /// If `_fullCache` is already associated with this file, this may assemble a `DyldCache`
+    /// wrapper from the existing file handles and preloaded headers.
+    @_spi(Support)
+    public var _cachedCache: DyldCache? {
+        if let _cache { return _cache }
+        if let _fullCache {
+            return _fullCache.cache(for: url)
+        }
+        return nil
+    }
+
+    /// The cached `FullDyldCache`, if one is already associated with this file.
+    ///
+    /// Unlike ``fullCache``, this property does not lazily create or load a full cache.
+    @_spi(Support)
+    public var _cachedFullCache: FullDyldCache? {
+        _fullCache ?? _cache?._fullCache
     }
 }
 
