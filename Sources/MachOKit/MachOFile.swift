@@ -618,7 +618,7 @@ extension MachOFile {
     ///
     /// This property attempts to lazily load the dyld cache based on the file URL.
     /// - If `_cache` has already been set, that value is returned.
-    /// - If `fullCache` is available, the corresponding subcache for this file URL is returned.
+    /// - If `_fullCache` has already been set, the corresponding subcache for this file URL is returned.
     /// - Otherwise, this attempts to initialize a new `DyldCache` using the file URL.
     ///
     /// This is mainly used when the Mach-O file originates from a dyld shared cache and requires
@@ -658,13 +658,14 @@ extension MachOFile {
 }
 
 extension MachOFile {
-    /// The cached `DyldCache`, if one is already associated with this file.
+    /// The cached or cheaply recoverable `DyldCache`, if one is already associated with this file.
     ///
-    /// Unlike ``cache``, this property does not lazily create or load a cache.
+    /// Unlike ``cache``, this property does not load a `FullDyldCache` or open a cache file.
+    /// If `_fullCache` is already associated with this file, this may assemble a `DyldCache`
+    /// wrapper from the existing file handles and preloaded headers.
     @_spi(Support)
     public var _cachedCache: DyldCache? {
         if let _cache { return _cache }
-        // Since fullCache retains the fileHandle, it can be retrieved at virtually no cost.
         if let _fullCache {
             return _fullCache.cache(for: url)
         }
