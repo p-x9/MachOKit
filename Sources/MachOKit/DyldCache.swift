@@ -190,10 +190,7 @@ extension DyldCache {
     @_spi(Support)
     public var _cachedMainCache: DyldCache? {
         if let _mainCache { return _mainCache }
-        if let _fullCache {
-            if _fullCache.url == url { return self }
-            return _fullCache.mainCache
-        }
+        if _fullCache?.url == url { return self }
         if !url.lastPathComponent.contains(".") { return self }
         return nil
     }
