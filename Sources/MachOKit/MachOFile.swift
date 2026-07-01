@@ -664,7 +664,12 @@ extension MachOFile {
     /// Unlike ``cache``, this property does not lazily create or load a cache.
     @_spi(Support)
     public var _cachedCache: DyldCache? {
-        _cache
+        if let _cache { return _cache }
+        // Since fullCache retains the fileHandle, it can be retrieved at virtually no cost.
+        if let fullCache {
+            return fullCache.cache(for: url)
+        }
+        return nil
     }
 
     /// The cached `FullDyldCache`, if one is already associated with this file.
