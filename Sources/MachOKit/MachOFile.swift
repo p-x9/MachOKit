@@ -672,7 +672,7 @@ extension MachOFile {
     /// Unlike ``fullCache``, this property does not lazily create or load a full cache.
     @_spi(Support)
     public var _cachedFullCache: FullDyldCache? {
-        _fullCache
+        _fullCache ?? _cache?._fullCache
     }
 }
 
