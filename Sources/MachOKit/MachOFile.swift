@@ -666,8 +666,8 @@ extension MachOFile {
     public var _cachedCache: DyldCache? {
         if let _cache { return _cache }
         // Since fullCache retains the fileHandle, it can be retrieved at virtually no cost.
-        if let fullCache {
-            return fullCache.cache(for: url)
+        if let _fullCache {
+            return _fullCache.cache(for: url)
         }
         return nil
     }
