@@ -176,6 +176,16 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    /// The cached `FullDyldCache`, if one is already associated with this cache.
+    ///
+    /// Unlike ``fullCache``, this property does not lazily create or load a full cache.
+    @_spi(Support)
+    public var _cachedFullCache: FullDyldCache? {
+        _fullCache
+    }
+}
+
+extension DyldCache {
     /// Sequence of mapping infos
     public var mappingInfos: [DyldCacheMappingInfo]? {
         guard header.mappingCount > 0 else { return nil }
