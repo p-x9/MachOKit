@@ -659,6 +659,24 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    /// The cached `DyldCache`, if one is already associated with this file.
+    ///
+    /// Unlike ``cache``, this property does not lazily create or load a cache.
+    @_spi(Support)
+    public var _cachedCache: DyldCache? {
+        _cache
+    }
+
+    /// The cached `FullDyldCache`, if one is already associated with this file.
+    ///
+    /// Unlike ``fullCache``, this property does not lazily create or load a full cache.
+    @_spi(Support)
+    public var _cachedFullCache: FullDyldCache? {
+        _fullCache
+    }
+}
+
+extension MachOFile {
     public var cfStrings64: DataSequence<CFString64>? {
         guard let section = sections64.first(where: {
             $0.sectionName == "__cfstring"

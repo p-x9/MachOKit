@@ -176,6 +176,27 @@ extension DyldCache {
 }
 
 extension DyldCache {
+    /// The cached `FullDyldCache`, if one is already associated with this cache.
+    ///
+    /// Unlike ``fullCache``, this property does not lazily create or load a full cache.
+    @_spi(Support)
+    public var _cachedFullCache: FullDyldCache? {
+        _fullCache
+    }
+
+    /// The cached main `DyldCache`, if one is already available without loading it.
+    ///
+    /// Unlike ``mainCache``, this property does not lazily create or load the main cache.
+    @_spi(Support)
+    public var _cachedMainCache: DyldCache? {
+        if let _mainCache { return _mainCache }
+        if _fullCache?.url == url { return self }
+        if !url.lastPathComponent.contains(".") { return self }
+        return nil
+    }
+}
+
+extension DyldCache {
     /// Sequence of mapping infos
     public var mappingInfos: [DyldCacheMappingInfo]? {
         guard header.mappingCount > 0 else { return nil }
