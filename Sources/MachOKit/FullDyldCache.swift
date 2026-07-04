@@ -377,14 +377,14 @@ extension FullDyldCache {
 }
 
 extension FullDyldCache {
-    private static let mappingBinarySearchThreshold = 32
+    private static let mappingBinarySearchThreshold = 64
 
     @inline(__always)
     private func findMapping<C: RandomAccessCollection>(
         in mappings: C,
         containing value: UInt64,
-        sortedBy lowerBound: KeyPath<C.Element, UInt64>,
-        size: KeyPath<C.Element, UInt64>
+        sortedBy lowerBound: (C.Element) -> UInt64,
+        size: (C.Element) -> UInt64
     ) -> C.Element? {
         if mappings.count < Self.mappingBinarySearchThreshold {
             return linearFindMapping(
@@ -406,12 +406,12 @@ extension FullDyldCache {
     private func linearFindMapping<C: Collection>(
         in mappings: C,
         containing value: UInt64,
-        lowerBound: KeyPath<C.Element, UInt64>,
-        size: KeyPath<C.Element, UInt64>
+        lowerBound: (C.Element) -> UInt64,
+        size: (C.Element) -> UInt64
     ) -> C.Element? {
         for mapping in mappings {
-            let start = mapping[keyPath: lowerBound]
-            if value >= start && value - start < mapping[keyPath: size] {
+            let start = lowerBound(mapping)
+            if value >= start && value - start < size(mapping) {
                 return mapping
             }
         }
@@ -422,8 +422,8 @@ extension FullDyldCache {
     private func binaryFindMapping<C: RandomAccessCollection>(
         in mappings: C,
         containing value: UInt64,
-        sortedBy lowerBound: KeyPath<C.Element, UInt64>,
-        size: KeyPath<C.Element, UInt64>
+        sortedBy lowerBound: (C.Element) -> UInt64,
+        size: (C.Element) -> UInt64
     ) -> C.Element? {
         var lower = mappings.startIndex
         var upper = mappings.endIndex
@@ -432,7 +432,7 @@ extension FullDyldCache {
             let distance = mappings.distance(from: lower, to: upper)
             let middle = mappings.index(lower, offsetBy: distance / 2)
 
-            if mappings[middle][keyPath: lowerBound] <= value {
+            if lowerBound(mappings[middle]) <= value {
                 lower = mappings.index(after: middle)
             } else {
                 upper = middle
@@ -442,7 +442,7 @@ extension FullDyldCache {
         guard lower != mappings.startIndex else { return nil }
 
         let candidate = mappings[mappings.index(before: lower)]
-        let start = candidate[keyPath: lowerBound]
-        return value >= start && value - start < candidate[keyPath: size] ? candidate : nil
+        let start = lowerBound(candidate)
+        return value >= start && value - start < size(candidate) ? candidate : nil
     }
 }
