@@ -327,3 +327,122 @@ extension FullDyldCache {
         return cache
     }
 }
+
+extension FullDyldCache {
+    public func mappingInfo(for address: UInt64) -> DyldCacheMappingInfo? {
+        guard let mappings = self.mappingInfos else { return nil }
+        return findMapping(
+            in: mappings,
+            containing: address,
+            sortedBy: \DyldCacheMappingInfo.address,
+            size: \DyldCacheMappingInfo.size
+        )
+    }
+
+    public func mappingInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingInfo? {
+        guard let mappings = self.mappingInfos else { return nil }
+        return findMapping(
+            in: mappings,
+            containing: offset,
+            sortedBy: \DyldCacheMappingInfo.fileOffset,
+            size: \DyldCacheMappingInfo.size
+        )
+    }
+
+    public func mappingAndSlideInfo(
+        for address: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = self.mappingAndSlideInfos else { return nil }
+        return findMapping(
+            in: mappings,
+            containing: address,
+            sortedBy: \DyldCacheMappingAndSlideInfo.address,
+            size: \DyldCacheMappingAndSlideInfo.size
+        )
+    }
+
+    public func mappingAndSlideInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = self.mappingAndSlideInfos else { return nil }
+        return findMapping(
+            in: mappings,
+            containing: offset,
+            sortedBy: \DyldCacheMappingAndSlideInfo.fileOffset,
+            size: \DyldCacheMappingAndSlideInfo.size
+        )
+    }
+}
+
+extension FullDyldCache {
+    private static let mappingBinarySearchThreshold = 32
+
+    @inline(__always)
+    private func findMapping<C: RandomAccessCollection>(
+        in mappings: C,
+        containing value: UInt64,
+        sortedBy lowerBound: KeyPath<C.Element, UInt64>,
+        size: KeyPath<C.Element, UInt64>
+    ) -> C.Element? {
+        if mappings.count < Self.mappingBinarySearchThreshold {
+            return linearFindMapping(
+                in: mappings,
+                containing: value,
+                lowerBound: lowerBound,
+                size: size
+            )
+        }
+        return binaryFindMapping(
+            in: mappings,
+            containing: value,
+            sortedBy: lowerBound,
+            size: size
+        )
+    }
+
+    @inline(__always)
+    private func linearFindMapping<C: Collection>(
+        in mappings: C,
+        containing value: UInt64,
+        lowerBound: KeyPath<C.Element, UInt64>,
+        size: KeyPath<C.Element, UInt64>
+    ) -> C.Element? {
+        for mapping in mappings {
+            let start = mapping[keyPath: lowerBound]
+            if value >= start && value - start < mapping[keyPath: size] {
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    @inline(__always)
+    private func binaryFindMapping<C: RandomAccessCollection>(
+        in mappings: C,
+        containing value: UInt64,
+        sortedBy lowerBound: KeyPath<C.Element, UInt64>,
+        size: KeyPath<C.Element, UInt64>
+    ) -> C.Element? {
+        var lower = mappings.startIndex
+        var upper = mappings.endIndex
+
+        while lower != upper {
+            let distance = mappings.distance(from: lower, to: upper)
+            let middle = mappings.index(lower, offsetBy: distance / 2)
+
+            if mappings[middle][keyPath: lowerBound] <= value {
+                lower = mappings.index(after: middle)
+            } else {
+                upper = middle
+            }
+        }
+
+        guard lower != mappings.startIndex else { return nil }
+
+        let candidate = mappings[mappings.index(before: lower)]
+        let start = candidate[keyPath: lowerBound]
+        return value >= start && value - start < candidate[keyPath: size] ? candidate : nil
+    }
+}
