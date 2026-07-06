@@ -235,7 +235,7 @@ extension ObjCHeaderOptimizationROProtocol {
                     guard let offset = $0.resolvedMachOHeaderOffset(
                         in: cache
                     ),
-                          let (url, segment) = cache.urlAndFileSegment(forOffset: offset) else {
+                          let (url, segment) = cache.urlAndFileSegment(forFileOffset: offset) else {
                         return false
                     }
                     return machO.headerStartOffsetInCache == Int(offset) - segment.offset && machO.url == url

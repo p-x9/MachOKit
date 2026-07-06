@@ -773,7 +773,7 @@ extension MachOFile {
                     of: numericCast(linkedit.virtualMemoryAddress + offset)
                   ),
                   let segment = fullCache.fileSegment(
-                    forOffset: fileOffset
+                    forFileOffset: fileOffset
                   ) else {
                 return nil
             }
