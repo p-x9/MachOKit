@@ -301,6 +301,26 @@ extension FullDyldCache {
         return cache(atIndex: index)
     }
 
+    /// Returns the cache file that contains the specified unslid address.
+    /// - Parameter address: The unslid virtual memory address.
+    /// - Returns: The `DyldCache` that contains `address`, or `nil` if the address is not mapped.
+    public func cache(for address: UInt64) -> DyldCache? {
+        cacheAndFileOffset(for: address)?.cache
+    }
+
+    /// Converts an unslid address into the cache that contains it and the file offset within that cache.
+    /// - Parameter address: The unslid virtual memory address.
+    /// - Returns: The cache that contains `address` and the file offset relative to the start of that cache file.
+    public func cacheAndFileOffset(
+        for address: UInt64
+    ) -> (cache: DyldCache, fileOffset: UInt64)? {
+        guard let offset = fileOffset(of: address),
+              let (cache, segment) = cacheAndFileSegment(forOffset: offset) else {
+            return nil
+        }
+        return (cache, offset - numericCast(segment.offset))
+    }
+
     public func cache(for url: URL) -> DyldCache? {
         guard let index = urls.firstIndex(of: url) else { return nil }
         return cache(atIndex: index)
