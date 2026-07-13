@@ -174,7 +174,11 @@ extension MachOImage.Symbols64 {
             let symbol = symbols.advanced(by: nextIndex).pointee
             let str = stringBase
                 .advanced(by: numericCast(symbol.n_un.n_strx))
-            let address = addressStart + numericCast(symbol.n_value)
+            // `n_value` is not always an address: N_ABS symbols carry
+            // arbitrary constants (e.g. `_swiftImmortalRefCount` in macOS 27's
+            // libswiftCore has bit 63 set), which would trap a widening
+            // `numericCast`. Reinterpret the bit pattern instead.
+            let address = addressStart &+ Int(bitPattern: UInt(symbol.n_value))
 
             return MachOImage.Symbol(
                 nameC: str,
@@ -246,7 +250,7 @@ extension MachOImage.Symbols64: Collection {
         let symbol = symbols.advanced(by: position).pointee
         let str = stringBase
             .advanced(by: numericCast(symbol.n_un.n_strx))
-        let address = addressStart + numericCast(symbol.n_value)
+        let address = addressStart &+ Int(bitPattern: UInt(symbol.n_value))
 
         return MachOImage.Symbol(
             nameC: str,
@@ -292,13 +296,13 @@ extension MachOImage.Symbols64: _SymbolTableProtocol {
     }
 
     func offset(of nlist: Nlist64) -> Int {
-        addressStart + numericCast(nlist.layout.n_value)
+        addressStart &+ Int(bitPattern: UInt(nlist.layout.n_value))
     }
 
     func symbol(at position: Int, nlist: Nlist64) -> MachOImage.Symbol {
         let str = stringBase
             .advanced(by: numericCast(nlist.layout.n_un.n_strx))
-        let address = addressStart + numericCast(nlist.layout.n_value)
+        let address = addressStart &+ Int(bitPattern: UInt(nlist.layout.n_value))
 
         return MachOImage.Symbol(
             nameC: str,

@@ -84,7 +84,13 @@ let package = Package(
         ),
         .testTarget(
             name: "MachOKitTests",
-            dependencies: ["MachOKit", "MachOArchiveKit", "MachOKitReadable"]
+            dependencies: [
+                "MachOKit",
+                "MachOArchiveKit",
+                "MachOKitReadable",
+                // Builds file-backed readers from synthetic bytes.
+                .product(name: "FileIO", package: "swift-fileio"),
+            ]
         )
     ]
 )

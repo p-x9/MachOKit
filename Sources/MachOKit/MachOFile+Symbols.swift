@@ -165,9 +165,13 @@ extension MachOFile.Symbols64 {
                 encoding: .utf8
             ) ?? ""
 
+            // `n_value` is not always an address: N_ABS symbols carry
+            // arbitrary constants (e.g. `_swiftImmortalRefCount` in macOS 27's
+            // libswiftCore has bit 63 set), which would trap a widening
+            // `numericCast`. Reinterpret the bit pattern instead.
             return .init(
                 name: string,
-                offset: numericCast(symbol.n_value),
+                offset: Int(bitPattern: UInt(symbol.n_value)),
                 nlist: Nlist64(layout: symbol)
             )
         }
@@ -325,7 +329,7 @@ extension MachOFile.Symbols64: Collection {
 
         return .init(
             name: string,
-            offset: numericCast(symbol.n_value),
+            offset: Int(bitPattern: UInt(symbol.n_value)),
             nlist: Nlist64(layout: symbol)
         )
     }
@@ -379,7 +383,7 @@ extension MachOFile.Symbols64: _SymbolTableProtocol {
     }
 
     func offset(of nlist: Nlist64) -> Int {
-        numericCast(nlist.layout.n_value)
+        Int(bitPattern: UInt(nlist.layout.n_value))
     }
 
     func symbol(at position: Int, nlist: Nlist64) -> MachOFile.Symbol {
@@ -389,7 +393,7 @@ extension MachOFile.Symbols64: _SymbolTableProtocol {
 
         return .init(
             name: string,
-            offset: numericCast(nlist.layout.n_value),
+            offset: Int(bitPattern: UInt(nlist.layout.n_value)),
             nlist: nlist
         )
     }
