@@ -215,7 +215,7 @@ extension FullDyldCache {
             }
             .compactMap { (imagePath: String, fileOffset: UInt64) ->
                 MachOFile? in
-                guard let index = self.fileIndex(forOffset: fileOffset) else {
+                guard let index = self.fileIndex(forFileOffset: fileOffset) else {
                     return nil
                 }
                 let cache = self.cache(atIndex: index, mainCache: mainCache)
@@ -235,7 +235,7 @@ extension FullDyldCache {
         guard let fileOffset = fileOffset(of: header.dyldInCacheMH) else {
             return nil
         }
-        guard let (cache, segment) = cacheAndFileSegment(forOffset: fileOffset) else {
+        guard let (cache, segment) = cacheAndFileSegment(forFileOffset: fileOffset) else {
             return nil
         }
         return try? MachOFile(
@@ -269,41 +269,103 @@ extension FullDyldCache {
 }
 
 extension FullDyldCache {
-    public func url(forOffset offset: UInt64) -> URL? {
-        guard let index = fileIndex(forOffset: offset) else { return nil }
+    /// Returns the cache file URL that contains the specified file offset in the full cache.
+    /// - Parameter fileOffset: A file offset from the start of the full cache's concatenated file view.
+    /// - Returns: The cache file URL that contains `fileOffset`, or `nil` if the offset is outside the full cache.
+    public func url(forFileOffset fileOffset: UInt64) -> URL? {
+        guard let index = fileIndex(forFileOffset: fileOffset) else { return nil }
         return urls[index]
     }
 
-    internal func fileSegment(forOffset offset: UInt64) -> File.FileSegment? {
-        try? fileHandle._file(for: numericCast(offset))
+    /// Returns the file segment that contains the specified file offset in the full cache.
+    /// - Parameter fileOffset: A file offset from the start of the full cache's concatenated file view.
+    /// - Returns: The file segment that contains `fileOffset`, or `nil` if the offset is outside the full cache.
+    internal func fileSegment(forFileOffset fileOffset: UInt64) -> File.FileSegment? {
+        try? fileHandle._file(for: numericCast(fileOffset))
     }
 
-    internal func urlAndFileSegment(forOffset offset: UInt64) -> (URL, File.FileSegment)? {
-        guard let index = fileIndex(forOffset: offset) else { return nil }
+    /// Returns the cache file URL and file segment that contain the specified file offset in the full cache.
+    /// - Parameter fileOffset: A file offset from the start of the full cache's concatenated file view.
+    /// - Returns: The cache file URL and file segment that contain `fileOffset`, or `nil` if the offset is outside the full cache.
+    internal func urlAndFileSegment(forFileOffset fileOffset: UInt64) -> (URL, File.FileSegment)? {
+        guard let index = fileIndex(forFileOffset: fileOffset) else { return nil }
         return (urls[index], fileHandle._files[index])
     }
 
-    internal func cacheAndFileSegment(forOffset offset: UInt64) -> (DyldCache, File.FileSegment)? {
-        guard let index = fileIndex(forOffset: offset) else { return nil }
+    /// Returns the cache and file segment that contain the specified file offset in the full cache.
+    /// - Parameter fileOffset: A file offset from the start of the full cache's concatenated file view.
+    /// - Returns: The cache and file segment that contain `fileOffset`, or `nil` if the offset is outside the full cache.
+    internal func cacheAndFileSegment(forFileOffset fileOffset: UInt64) -> (DyldCache, File.FileSegment)? {
+        guard let index = fileIndex(forFileOffset: fileOffset) else { return nil }
         return (cache(atIndex: index), fileHandle._files[index])
     }
 
-    private func fileIndex(forOffset offset: UInt64) -> Int? {
+    private func fileIndex(forFileOffset fileOffset: UInt64) -> Int? {
         fileHandle._files.firstIndex(
             where: {
-                $0.offset <= offset && offset < $0.offset + $0.size
+                $0.offset <= fileOffset && fileOffset < $0.offset + $0.size
             }
         )
     }
 
-    public func cache(forOffset offset: UInt64) -> DyldCache? {
-        guard let index = fileIndex(forOffset: offset) else { return nil }
+    /// Returns the cache file that contains the specified file offset in the full cache.
+    /// - Parameter fileOffset: A file offset from the start of the full cache's concatenated file view.
+    /// - Returns: The `DyldCache` that contains `fileOffset`, or `nil` if the offset is outside the full cache.
+    public func cache(forFileOffset fileOffset: UInt64) -> DyldCache? {
+        guard let index = fileIndex(forFileOffset: fileOffset) else { return nil }
         return cache(atIndex: index)
+    }
+
+    /// Returns the cache file that contains the specified unslid address.
+    /// - Parameter address: The unslid virtual memory address.
+    /// - Returns: The `DyldCache` that contains `address`, or `nil` if the address is not mapped.
+    public func cache(for address: UInt64) -> DyldCache? {
+        cacheAndFileOffset(for: address)?.cache
+    }
+
+    /// Converts an unslid address into the cache that contains it and the file offset within that cache.
+    /// - Parameter address: The unslid virtual memory address.
+    /// - Returns: The cache that contains `address` and the file offset relative to the start of that cache file.
+    public func cacheAndFileOffset(
+        for address: UInt64
+    ) -> (cache: DyldCache, fileOffset: UInt64)? {
+        guard let offset = fileOffset(of: address),
+              let (cache, segment) = cacheAndFileSegment(forFileOffset: offset) else {
+            return nil
+        }
+        return (cache, offset - numericCast(segment.offset))
     }
 
     public func cache(for url: URL) -> DyldCache? {
         guard let index = urls.firstIndex(of: url) else { return nil }
         return cache(atIndex: index)
+    }
+}
+
+extension FullDyldCache {
+    @available(*, deprecated, renamed: "url(forFileOffset:)")
+    public func url(forOffset offset: UInt64) -> URL? {
+        url(forFileOffset: offset)
+    }
+
+    @available(*, deprecated, renamed: "fileSegment(forFileOffset:)")
+    internal func fileSegment(forOffset offset: UInt64) -> File.FileSegment? {
+        fileSegment(forFileOffset: offset)
+    }
+
+    @available(*, deprecated, renamed: "urlAndFileSegment(forFileOffset:)")
+    internal func urlAndFileSegment(forOffset offset: UInt64) -> (URL, File.FileSegment)? {
+        urlAndFileSegment(forFileOffset: offset)
+    }
+
+    @available(*, deprecated, renamed: "cacheAndFileSegment(forFileOffset:)")
+    internal func cacheAndFileSegment(forOffset offset: UInt64) -> (DyldCache, File.FileSegment)? {
+        cacheAndFileSegment(forFileOffset: offset)
+    }
+
+    @available(*, deprecated, renamed: "cache(forFileOffset:)")
+    public func cache(forOffset offset: UInt64) -> DyldCache? {
+        cache(forFileOffset: offset)
     }
 }
 
@@ -325,5 +387,124 @@ extension FullDyldCache {
         )
         cache._fullCache = self
         return cache
+    }
+}
+
+extension FullDyldCache {
+    public func mappingInfo(for address: UInt64) -> DyldCacheMappingInfo? {
+        guard let mappings = self.mappingInfos else { return nil }
+        return findMapping(
+            in: mappings,
+            containing: address,
+            sortedBy: \DyldCacheMappingInfo.address,
+            size: \DyldCacheMappingInfo.size
+        )
+    }
+
+    public func mappingInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingInfo? {
+        guard let mappings = self.mappingInfos else { return nil }
+        return findMapping(
+            in: mappings,
+            containing: offset,
+            sortedBy: \DyldCacheMappingInfo.fileOffset,
+            size: \DyldCacheMappingInfo.size
+        )
+    }
+
+    public func mappingAndSlideInfo(
+        for address: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = self.mappingAndSlideInfos else { return nil }
+        return findMapping(
+            in: mappings,
+            containing: address,
+            sortedBy: \DyldCacheMappingAndSlideInfo.address,
+            size: \DyldCacheMappingAndSlideInfo.size
+        )
+    }
+
+    public func mappingAndSlideInfo(
+        forFileOffset offset: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        guard let mappings = self.mappingAndSlideInfos else { return nil }
+        return findMapping(
+            in: mappings,
+            containing: offset,
+            sortedBy: \DyldCacheMappingAndSlideInfo.fileOffset,
+            size: \DyldCacheMappingAndSlideInfo.size
+        )
+    }
+}
+
+extension FullDyldCache {
+    private static let mappingBinarySearchThreshold = 64
+
+    @inline(__always)
+    private func findMapping<C: RandomAccessCollection>(
+        in mappings: C,
+        containing value: UInt64,
+        sortedBy lowerBound: (C.Element) -> UInt64,
+        size: (C.Element) -> UInt64
+    ) -> C.Element? {
+        if mappings.count < Self.mappingBinarySearchThreshold {
+            return linearFindMapping(
+                in: mappings,
+                containing: value,
+                lowerBound: lowerBound,
+                size: size
+            )
+        }
+        return binaryFindMapping(
+            in: mappings,
+            containing: value,
+            sortedBy: lowerBound,
+            size: size
+        )
+    }
+
+    @inline(__always)
+    private func linearFindMapping<C: Collection>(
+        in mappings: C,
+        containing value: UInt64,
+        lowerBound: (C.Element) -> UInt64,
+        size: (C.Element) -> UInt64
+    ) -> C.Element? {
+        for mapping in mappings {
+            let start = lowerBound(mapping)
+            if value >= start && value - start < size(mapping) {
+                return mapping
+            }
+        }
+        return nil
+    }
+
+    @inline(__always)
+    private func binaryFindMapping<C: RandomAccessCollection>(
+        in mappings: C,
+        containing value: UInt64,
+        sortedBy lowerBound: (C.Element) -> UInt64,
+        size: (C.Element) -> UInt64
+    ) -> C.Element? {
+        var lower = mappings.startIndex
+        var upper = mappings.endIndex
+
+        while lower != upper {
+            let distance = mappings.distance(from: lower, to: upper)
+            let middle = mappings.index(lower, offsetBy: distance / 2)
+
+            if lowerBound(mappings[middle]) <= value {
+                lower = mappings.index(after: middle)
+            } else {
+                upper = middle
+            }
+        }
+
+        guard lower != mappings.startIndex else { return nil }
+
+        let candidate = mappings[mappings.index(before: lower)]
+        let start = lowerBound(candidate)
+        return value >= start && value - start < size(candidate) ? candidate : nil
     }
 }
