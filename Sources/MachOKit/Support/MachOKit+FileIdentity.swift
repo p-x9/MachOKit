@@ -7,19 +7,15 @@
 //
 
 import Foundation
-#if compiler(>=6.0) || (compiler(>=5.10) && hasFeature(AccessLevelOnImport))
-internal import FileIO
-#else
-@_implementationOnly import FileIO
-#endif
 
 // MARK: - file handle identity
 
 /// A marker protocol for objects that identify a MachOKit backing file handle.
 ///
-/// This identity represents the object identity of the handle shared by
-/// MachOKit wrappers. It is not a file-system identity: separately opened
-/// handles for the same path may have different identities.
+/// This identity represents a MachOKit-owned token associated with the backing
+/// handle shared by MachOKit wrappers. It is not the file handle itself, and it
+/// is not a file-system identity: separately opened handles for the same path
+/// may have different identities.
 ///
 /// Example:
 /// ```swift
@@ -45,10 +41,39 @@ internal import FileIO
 @_marker
 public protocol FileHandleIdentity: AnyObject {}
 
-@_spi(Support)
-extension MemoryMappedFile: FileHandleIdentity {}
-@_spi(Support)
-extension ConcatenatedMemoryMappedFile: FileHandleIdentity {}
+final class FileHandleIdentityBox: FileHandleIdentity {}
+
+private final class FileHandleIdentityStorage: @unchecked Sendable {
+    private let lock = NSLock()
+    #if canImport(ObjectiveC)
+    private let entries = NSMapTable<AnyObject, FileHandleIdentityBox>.weakToStrongObjects()
+    #else
+    private var entries = WeakKeyStrongValueMap<AnyObject, FileHandleIdentityBox>()
+    #endif
+
+    @inline(__always)
+    func identity(for fileHandle: AnyObject) -> FileHandleIdentityBox {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let identity = entries.object(forKey: fileHandle) {
+            return identity
+        }
+
+        let identity = FileHandleIdentityBox()
+        entries.setObject(identity, forKey: fileHandle)
+        return identity
+    }
+}
+
+enum FileHandleIdentityStore {
+    private static let storage = FileHandleIdentityStorage()
+
+    @inline(__always)
+    static func identity(for fileHandle: AnyObject) -> FileHandleIdentityBox {
+        storage.identity(for: fileHandle)
+    }
+}
 
 extension MachOFile {
     /// The identity of the backing file handle used by this Mach-O file.
@@ -58,7 +83,10 @@ extension MachOFile {
     /// weak caches that should follow the lifetime of the shared handle, not as
     /// a path or inode equivalence check.
     @_spi(Support)
-    public var fileHandleIdentity: any FileHandleIdentity { fileHandle }
+    @inline(__always)
+    public var fileHandleIdentity: any FileHandleIdentity {
+        FileHandleIdentityStore.identity(for: fileHandle)
+    }
 }
 
 extension DyldCache {
@@ -68,7 +96,10 @@ extension DyldCache {
     /// identity, allowing external SPI clients to share handle-scoped caches
     /// without exposing the file handle itself.
     @_spi(Support)
-    public var fileHandleIdentity: any FileHandleIdentity { fileHandle }
+    @inline(__always)
+    public var fileHandleIdentity: any FileHandleIdentity {
+        FileHandleIdentityStore.identity(for: fileHandle)
+    }
 }
 
 extension FullDyldCache {
@@ -78,7 +109,10 @@ extension FullDyldCache {
     /// `DyldCache` values produced from it may expose the identity of their
     /// underlying cache-file handle instead.
     @_spi(Support)
-    public var fileHandleIdentity: any FileHandleIdentity { fileHandle }
+    @inline(__always)
+    public var fileHandleIdentity: any FileHandleIdentity {
+        FileHandleIdentityStore.identity(for: fileHandle)
+    }
 }
 
 extension AotCache {
@@ -88,5 +122,8 @@ extension AotCache {
     /// follow the lifetime of the AOT cache's mapped file handle, not as a path
     /// or inode equivalence check.
     @_spi(Support)
-    public var fileHandleIdentity: any FileHandleIdentity { fileHandle }
+    @inline(__always)
+    public var fileHandleIdentity: any FileHandleIdentity {
+        FileHandleIdentityStore.identity(for: fileHandle)
+    }
 }
