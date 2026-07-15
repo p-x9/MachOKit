@@ -46,6 +46,29 @@ func registerFullDyldCacheBenchmarks() {
         }
     }
 
+    Benchmark("FullDyldCache.mappingInfo.lookupAcrossMappings") { benchmark in
+        guard let cache = BenchmarkFixtures.fullDyldCache() else { return }
+        let addresses = BenchmarkFixtures.dyldCacheAddressesAcrossMappings(
+            from: cache,
+            limit: 100_000
+        )
+        let fileOffsets = BenchmarkFixtures.dyldCacheFileOffsetsAcrossMappings(
+            from: cache,
+            limit: 100_000
+        )
+
+        benchmark.startMeasurement()
+
+        for address in addresses {
+            blackHole(cache.mappingInfo(for: address))
+            blackHole(cache.mappingAndSlideInfo(for: address))
+        }
+        for fileOffset in fileOffsets {
+            blackHole(cache.mappingInfo(forFileOffset: fileOffset))
+            blackHole(cache.mappingAndSlideInfo(forFileOffset: fileOffset))
+        }
+    }
+
     Benchmark("FullDyldCache.cache.forOffset") { benchmark in
         guard let cache = BenchmarkFixtures.fullDyldCache() else { return }
         let fileOffsets = BenchmarkFixtures.dyldCacheFileOffsetsAcrossMappings(from: cache, limit: 100_000)
