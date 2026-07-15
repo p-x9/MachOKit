@@ -396,8 +396,8 @@ extension FullDyldCache {
         return findMapping(
             in: mappings,
             containing: address,
-            sortedBy: \DyldCacheMappingInfo.address,
-            size: \DyldCacheMappingInfo.size
+            sortedBy: { $0.address },
+            size: { $0.size }
         )
     }
 
@@ -408,8 +408,8 @@ extension FullDyldCache {
         return findMapping(
             in: mappings,
             containing: offset,
-            sortedBy: \DyldCacheMappingInfo.fileOffset,
-            size: \DyldCacheMappingInfo.size
+            sortedBy: { $0.fileOffset },
+            size: { $0.size }
         )
     }
 
@@ -420,8 +420,8 @@ extension FullDyldCache {
         return findMapping(
             in: mappings,
             containing: address,
-            sortedBy: \DyldCacheMappingAndSlideInfo.address,
-            size: \DyldCacheMappingAndSlideInfo.size
+            sortedBy: { $0.address },
+            size: { $0.size }
         )
     }
 
@@ -432,8 +432,8 @@ extension FullDyldCache {
         return findMapping(
             in: mappings,
             containing: offset,
-            sortedBy: \DyldCacheMappingAndSlideInfo.fileOffset,
-            size: \DyldCacheMappingAndSlideInfo.size
+            sortedBy: { $0.fileOffset },
+            size: { $0.size }
         )
     }
 }
