@@ -393,47 +393,31 @@ extension FullDyldCache {
 extension FullDyldCache {
     public func mappingInfo(for address: UInt64) -> DyldCacheMappingInfo? {
         guard let mappings = self.mappingInfos else { return nil }
-        return findMapping(
-            in: mappings,
-            containing: address,
-            sortedBy: { $0.address },
-            size: { $0.size }
-        )
+        return findMappingInfo(in: mappings, containingAddress: address)
     }
 
     public func mappingInfo(
         forFileOffset offset: UInt64
     ) -> DyldCacheMappingInfo? {
         guard let mappings = self.mappingInfos else { return nil }
-        return findMapping(
-            in: mappings,
-            containing: offset,
-            sortedBy: { $0.fileOffset },
-            size: { $0.size }
-        )
+        return findMappingInfo(in: mappings, containingFileOffset: offset)
     }
 
     public func mappingAndSlideInfo(
         for address: UInt64
     ) -> DyldCacheMappingAndSlideInfo? {
         guard let mappings = self.mappingAndSlideInfos else { return nil }
-        return findMapping(
-            in: mappings,
-            containing: address,
-            sortedBy: { $0.address },
-            size: { $0.size }
-        )
+        return findMappingAndSlideInfo(in: mappings, containingAddress: address)
     }
 
+    @inline(__always)
     public func mappingAndSlideInfo(
         forFileOffset offset: UInt64
     ) -> DyldCacheMappingAndSlideInfo? {
         guard let mappings = self.mappingAndSlideInfos else { return nil }
-        return findMapping(
+        return findMappingAndSlideInfo(
             in: mappings,
-            containing: offset,
-            sortedBy: { $0.fileOffset },
-            size: { $0.size }
+            containingFileOffset: offset
         )
     }
 }
@@ -442,69 +426,138 @@ extension FullDyldCache {
     private static let mappingBinarySearchThreshold = 64
 
     @inline(__always)
-    private func findMapping<C: RandomAccessCollection>(
-        in mappings: C,
-        containing value: UInt64,
-        sortedBy lowerBound: (C.Element) -> UInt64,
-        size: (C.Element) -> UInt64
-    ) -> C.Element? {
+    private func findMappingInfo(
+        in mappings: [DyldCacheMappingInfo],
+        containingAddress address: UInt64
+    ) -> DyldCacheMappingInfo? {
         if mappings.count < Self.mappingBinarySearchThreshold {
-            return linearFindMapping(
-                in: mappings,
-                containing: value,
-                lowerBound: lowerBound,
-                size: size
-            )
-        }
-        return binaryFindMapping(
-            in: mappings,
-            containing: value,
-            sortedBy: lowerBound,
-            size: size
-        )
-    }
-
-    @inline(__always)
-    private func linearFindMapping<C: Collection>(
-        in mappings: C,
-        containing value: UInt64,
-        lowerBound: (C.Element) -> UInt64,
-        size: (C.Element) -> UInt64
-    ) -> C.Element? {
-        for mapping in mappings {
-            let start = lowerBound(mapping)
-            if value >= start && value - start < size(mapping) {
-                return mapping
+            for mapping in mappings {
+                let start = mapping.address
+                if address >= start && address - start < mapping.size {
+                    return mapping
+                }
             }
+            return nil
         }
-        return nil
-    }
 
-    @inline(__always)
-    private func binaryFindMapping<C: RandomAccessCollection>(
-        in mappings: C,
-        containing value: UInt64,
-        sortedBy lowerBound: (C.Element) -> UInt64,
-        size: (C.Element) -> UInt64
-    ) -> C.Element? {
         var lower = mappings.startIndex
         var upper = mappings.endIndex
-
         while lower != upper {
-            let distance = mappings.distance(from: lower, to: upper)
-            let middle = mappings.index(lower, offsetBy: distance / 2)
-
-            if lowerBound(mappings[middle]) <= value {
-                lower = mappings.index(after: middle)
+            let middle = lower + (upper - lower) / 2
+            if mappings[middle].address <= address {
+                lower = middle + 1
             } else {
                 upper = middle
             }
         }
 
         guard lower != mappings.startIndex else { return nil }
+        let candidate = mappings[lower - 1]
+        let start = candidate.address
+        return address >= start && address - start < candidate.size
+            ? candidate
+            : nil
+    }
 
-        let candidate = mappings[mappings.index(before: lower)]
-        let start = lowerBound(candidate)
-        return value >= start && value - start < size(candidate) ? candidate : nil
+    @inline(__always)
+    private func findMappingInfo(
+        in mappings: [DyldCacheMappingInfo],
+        containingFileOffset offset: UInt64
+    ) -> DyldCacheMappingInfo? {
+        if mappings.count < Self.mappingBinarySearchThreshold {
+            for mapping in mappings {
+                let start = mapping.fileOffset
+                if offset >= start && offset - start < mapping.size {
+                    return mapping
+                }
+            }
+            return nil
+        }
+
+        var lower = mappings.startIndex
+        var upper = mappings.endIndex
+        while lower != upper {
+            let middle = lower + (upper - lower) / 2
+            if mappings[middle].fileOffset <= offset {
+                lower = middle + 1
+            } else {
+                upper = middle
+            }
+        }
+
+        guard lower != mappings.startIndex else { return nil }
+        let candidate = mappings[lower - 1]
+        let start = candidate.fileOffset
+        return offset >= start && offset - start < candidate.size
+            ? candidate
+            : nil
+    }
+
+    @inline(__always)
+    private func findMappingAndSlideInfo(
+        in mappings: [DyldCacheMappingAndSlideInfo],
+        containingAddress address: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        if mappings.count < Self.mappingBinarySearchThreshold {
+            for mapping in mappings {
+                let start = mapping.address
+                if address >= start && address - start < mapping.size {
+                    return mapping
+                }
+            }
+            return nil
+        }
+
+        var lower = mappings.startIndex
+        var upper = mappings.endIndex
+        while lower != upper {
+            let middle = lower + (upper - lower) / 2
+            if mappings[middle].address <= address {
+                lower = middle + 1
+            } else {
+                upper = middle
+            }
+        }
+
+        guard lower != mappings.startIndex else { return nil }
+        let candidate = mappings[lower - 1]
+        let start = candidate.address
+        return address >= start && address - start < candidate.size
+            ? candidate
+            : nil
+    }
+
+    @inline(__always)
+    private func findMappingAndSlideInfo(
+        in mappings: [DyldCacheMappingAndSlideInfo],
+        containingFileOffset offset: UInt64
+    ) -> DyldCacheMappingAndSlideInfo? {
+        if mappings.count < Self.mappingBinarySearchThreshold {
+            for mapping in mappings {
+                let start = mapping.fileOffset
+                if offset >= start && offset - start < mapping.size {
+                    return mapping
+                }
+            }
+            return nil
+        }
+
+        var lower = mappings.startIndex
+        var upper = mappings.endIndex
+        while lower != upper {
+            let middle = lower + (upper - lower) / 2
+            if mappings[middle].fileOffset <= offset {
+                lower = middle + 1
+            } else {
+                upper = middle
+            }
+        }
+
+        guard lower != mappings.startIndex else { return nil }
+        let candidate = mappings[lower - 1]
+        let start = candidate.fileOffset
+        return offset >= start && offset - start < candidate.size
+            ? candidate
+            : nil
     }
 }
