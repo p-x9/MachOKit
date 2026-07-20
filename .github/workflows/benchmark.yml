@@ -51,14 +51,16 @@ jobs:
       - name: Checkout candidate
         uses: actions/checkout@v4
         with:
-          path: candidate
+          # Benchmarks uses `.package(path: "..")` with the MachOKit identity.
+          path: candidate/MachOKit
 
       - name: Checkout baseline
         if: inputs.mode == 'compare'
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.baseline_ref }}
-          path: baseline
+          # Keep the local package identity consistent with the candidate.
+          path: baseline/MachOKit
 
       - name: Select Xcode 16.2
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
@@ -66,11 +68,11 @@ jobs:
       - name: Run benchmark workflow
         shell: bash
         env:
-          CANDIDATE_ROOT: ${{ github.workspace }}/candidate
-          BASELINE_ROOT: ${{ github.workspace }}/baseline
+          CANDIDATE_ROOT: ${{ github.workspace }}/candidate/MachOKit
+          BASELINE_ROOT: ${{ github.workspace }}/baseline/MachOKit
           BENCHMARK_RESULTS_DIR: ${{ runner.temp }}/benchmark-results
           MACHOKIT_BENCH_MACHO: ${{ runner.temp }}/MachOKitBenchmarks-fixture
-        run: bash candidate/scripts/benchmark.sh
+        run: bash candidate/MachOKit/scripts/benchmark.sh
 
       - name: Upload benchmark results
         if: always()
