@@ -1,0 +1,82 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Run one ref or compare it with another ref
+        type: choice
+        options:
+          - compare
+          - run
+        default: compare
+      baseline_ref:
+        description: Branch, tag, or SHA used as the comparison baseline
+        type: string
+        default: main
+      filter:
+        description: Optional swift-benchmark regular expression
+        type: string
+        default: ""
+      pairs:
+        description: Number of AB/BA pairs in compare mode
+        type: choice
+        options:
+          - "1"
+          - "3"
+        default: "1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmark-${{ github.repository }}
+  cancel-in-progress: false
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+  BENCHMARK_DISABLE_JEMALLOC: "1"
+
+jobs:
+  benchmark:
+    name: ${{ inputs.mode == 'compare' && 'Compare refs' || 'Run benchmarks' }}
+    runs-on: macos-15
+    timeout-minutes: 120
+    env:
+      BENCHMARK_MODE: ${{ inputs.mode }}
+      BENCHMARK_FILTER: ${{ inputs.filter }}
+      BENCHMARK_PAIRS: ${{ inputs.pairs }}
+
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+
+      - name: Checkout baseline
+        if: inputs.mode == 'compare'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.baseline_ref }}
+          path: baseline
+
+      - name: Select Xcode 16.2
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+      - name: Run benchmark workflow
+        shell: bash
+        env:
+          CANDIDATE_ROOT: ${{ github.workspace }}/candidate
+          BASELINE_ROOT: ${{ github.workspace }}/baseline
+          BENCHMARK_RESULTS_DIR: ${{ runner.temp }}/benchmark-results
+          MACHOKIT_BENCH_MACHO: ${{ runner.temp }}/MachOKitBenchmarks-fixture
+        run: bash candidate/scripts/benchmark.sh
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ inputs.mode }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/benchmark-results
+          if-no-files-found: warn
+          retention-days: 30
