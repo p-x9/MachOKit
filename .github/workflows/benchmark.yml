@@ -34,13 +34,13 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
   BENCHMARK_DISABLE_JEMALLOC: "1"
 
 jobs:
   benchmark:
     name: ${{ inputs.mode == 'compare' && 'Compare refs' || 'Run benchmarks' }}
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 120
     env:
       BENCHMARK_MODE: ${{ inputs.mode }}
@@ -62,8 +62,8 @@ jobs:
           # Keep the local package identity consistent with the candidate.
           path: baseline/MachOKit
 
-      - name: Select Xcode 16.2
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+      - name: Select Xcode 26.6
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
 
       - name: Run benchmark workflow
         shell: bash
