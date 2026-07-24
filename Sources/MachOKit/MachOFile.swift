@@ -24,6 +24,7 @@ public class MachOFile: MachORepresentable {
     private let _imagePath: String?
 
     let fileHandle: File
+    let _fileHandleIdentity: FileHandleIdentityBox
 
     // Retain the cache to which `self` belongs
     private var _fullCache: FullDyldCache?
@@ -137,6 +138,9 @@ public class MachOFile: MachORepresentable {
         self.url = url
         self._imagePath = imagePath
         self.fileHandle = fileHandle
+        self._fileHandleIdentity = FileHandleIdentityStore.identity(
+            for: fileHandle
+        )
         self._cache = cache
 
         self.headerStartOffset = headerStartOffset

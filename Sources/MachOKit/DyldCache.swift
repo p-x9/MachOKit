@@ -34,6 +34,7 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
     /// URL of loaded dyld cache file
     public let url: URL
     let fileHandle: File
+    let _fileHandleIdentity: FileHandleIdentityBox
 
     // Retain the cache to which `self` belongs
     internal var _fullCache: FullDyldCache?
@@ -77,6 +78,9 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
             isWritable: false
         )
         self.fileHandle = fileHandle
+        self._fileHandleIdentity = FileHandleIdentityStore.identity(
+            for: fileHandle
+        )
 
         // read header
         self.header = try! fileHandle.read(
@@ -132,6 +136,9 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
         mainCacheHeader: DyldCacheHeader? = nil
     ) {
         self.fileHandle = fileHandle
+        self._fileHandleIdentity = FileHandleIdentityStore.identity(
+            for: fileHandle
+        )
         self.url = url
         self.header = header ?? (
             try! fileHandle.read(

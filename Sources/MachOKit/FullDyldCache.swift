@@ -32,6 +32,7 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
     /// URL of loaded dyld cache file
     public let url: URL
     let fileHandle: File
+    let _fileHandleIdentity: FileHandleIdentityBox
 
     // Retain the symbol cache
     private var _symbolCache: DyldCache?
@@ -77,6 +78,9 @@ public class FullDyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable 
             isWritable: false
         )
         self.fileHandle = fileHandle
+        self._fileHandleIdentity = FileHandleIdentityStore.identity(
+            for: fileHandle
+        )
         self.header = mainCache.header
         self.cpu = mainCache.cpu
         self.subCacheSuffixes = subCacheSuffixes
