@@ -85,7 +85,7 @@ extension MachOFile {
     @_spi(Support)
     @inline(__always)
     public var fileHandleIdentity: any FileHandleIdentity {
-        FileHandleIdentityStore.identity(for: fileHandle)
+        _fileHandleIdentity
     }
 }
 
@@ -98,7 +98,7 @@ extension DyldCache {
     @_spi(Support)
     @inline(__always)
     public var fileHandleIdentity: any FileHandleIdentity {
-        FileHandleIdentityStore.identity(for: fileHandle)
+        _fileHandleIdentity
     }
 }
 
@@ -111,7 +111,7 @@ extension FullDyldCache {
     @_spi(Support)
     @inline(__always)
     public var fileHandleIdentity: any FileHandleIdentity {
-        FileHandleIdentityStore.identity(for: fileHandle)
+        _fileHandleIdentity
     }
 }
 
@@ -124,6 +124,6 @@ extension AotCache {
     @_spi(Support)
     @inline(__always)
     public var fileHandleIdentity: any FileHandleIdentity {
-        FileHandleIdentityStore.identity(for: fileHandle)
+        _fileHandleIdentity
     }
 }
