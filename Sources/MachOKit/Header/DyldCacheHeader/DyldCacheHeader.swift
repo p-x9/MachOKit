@@ -86,9 +86,45 @@ extension DyldCacheHeader {
 }
 
 extension DyldCacheHeader {
+    /// CPU the images in this cache are built for.
+    ///
+    /// Only a cache whose header states the architecture outright answers this.
+    /// That field pair arrived with the macOS 27 / iOS 27 cache format, once the
+    /// architecture outgrew ``magic``: the field is 16 bytes, `"dyld_v1"` takes
+    /// 7, and `"arm64ex1"` fills the remaining 8 exactly, leaving no room for a
+    /// longer name.
+    ///
+    /// An older cache answers `nil` — there the architecture can only be read
+    /// back out of ``magic``, which is what ``DyldCache`` falls back to.
+    public var cpu: CPU? {
+        guard hasProperty(\.cpusubtype) else { return nil }
+        return .init(
+            typeRawValue: layout.cputype,
+            subtypeRawValue: layout.cpusubtype
+        )
+    }
+
+    /// CPU type of the images in this cache.
+    ///
+    /// Read from the header when it carries the architecture, otherwise
+    /// recovered from ``magic``.
+    internal var _cpuType: CPUType? {
+        if let type = cpu?.type { return type }
+        return _cpuTypeFromMagic
+    }
+
+    /// CPU subtype of the images in this cache.
+    ///
+    /// Read from the header when it carries the architecture, otherwise
+    /// recovered from ``magic``.
+    internal var _cpuSubType: CPUSubType? {
+        if let subtype = cpu?.subtype { return subtype }
+        return _cpuSubTypeFromMagic
+    }
+
     // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/dyld/SharedCacheRuntime.cpp#L100
     // https://github.com/opensource-apple/dyld/blob/3f928f32597888c5eac6003b9199d972d49857b5/src/dyld.cpp#L3112
-    internal var _cpuType: CPUType? {
+    private var _cpuTypeFromMagic: CPUType? {
         switch magic {
         case "dyld_v1    i386": return .i386
         case "dyld_v1  x86_64": return .x86_64
@@ -102,11 +138,12 @@ extension DyldCacheHeader {
         case "dyld_v1  arm64e": return .arm64
         case "dyld_v1   arm64": return .arm64
         case "dyld_v1arm64_32": return .arm64_32
+        case "dyld_v1arm64ex1": return .arm64
         default: return nil
         }
     }
 
-    internal var _cpuSubType: CPUSubType? {
+    private var _cpuSubTypeFromMagic: CPUSubType? {
         switch magic {
         case "dyld_v1    i386": return .i386(.i386_all)
         case "dyld_v1  x86_64": return .x86(.x86_64_all)
@@ -120,6 +157,7 @@ extension DyldCacheHeader {
         case "dyld_v1  arm64e": return .arm64(.arm64_all)
         case "dyld_v1   arm64": return .arm64(.arm64_all)
         case "dyld_v1arm64_32": return .arm64_32(.arm64_32_all)
+        case "dyld_v1arm64ex1": return .arm64(.arm64e_x1)
         default: return nil
         }
     }
