@@ -66,6 +66,19 @@ struct target_triple_command {
 };
 #endif
 
+/*
+ * arm64e.x1 -- the checked-pointer-arithmetic slice (Arm FEAT_CPA2), new in the
+ * macOS 27 / iOS 27 SDKs. Every macOS 27 dyld shared cache is built for it.
+ */
+#ifndef CPU_SUBTYPE_ARM64_X1
+    /* The non-e x1 is defined in other tooling, but it's otherwise unused. */
+    #define CPU_SUBTYPE_ARM64_X1 ((cpu_subtype_t) 3)
+#endif
+
+#ifndef CPU_SUBTYPE_ARM64E_X1
+    #define CPU_SUBTYPE_ARM64E_X1 ((cpu_subtype_t) 12)
+#endif
+
 #ifndef PLATFORM_MACOS_EXCLAVECORE
 #define PLATFORM_MACOS_EXCLAVECORE 15
 #define PLATFORM_MACOS_EXCLAVEKIT 16

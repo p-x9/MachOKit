@@ -214,6 +214,8 @@ extension CPUARM64SubType: ReadableDescriptionConvertible {
         case .arm64_all: "ARM64 All"
         case .arm64_v8: "ARM64 v8"
         case .arm64e: "ARM64e"
+        case .arm64_x1: "ARM64 x1"
+        case .arm64e_x1: "ARM64e x1"
         }
     }
 }
