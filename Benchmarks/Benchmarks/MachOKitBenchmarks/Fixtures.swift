@@ -170,6 +170,27 @@ enum BenchmarkFixtures {
         }
     }
 
+    static func dyldCacheAddressesAcrossMappings(
+        from cache: some DyldCacheRepresentable,
+        limit: Int
+    ) -> [UInt64] {
+        guard let mappings = cache.mappingInfos,
+              !mappings.isEmpty else {
+            return []
+        }
+
+        return (0..<limit).compactMap { index in
+            let mapping = mappings[
+                mappings.index(
+                    mappings.startIndex,
+                    offsetBy: index % mappings.count
+                )
+            ]
+            guard mapping.size > 0 else { return nil }
+            return mapping.address + UInt64(index) % mapping.size
+        }
+    }
+
     static func dyldCacheFileOffsetsAcrossMappings(
         from cache: some DyldCacheRepresentable,
         limit: Int

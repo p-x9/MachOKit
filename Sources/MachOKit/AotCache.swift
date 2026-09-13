@@ -21,6 +21,7 @@ public struct AotCache {
     /// URL of loaded dyld cache file
     public let url: URL
     let fileHandle: File
+    let _fileHandleIdentity: FileHandleIdentityBox
 
 //    public var headerSize: Int {
 //        header.headerSize
@@ -36,6 +37,9 @@ public struct AotCache {
             isWritable: false
         )
         self.fileHandle = fileHandle
+        self._fileHandleIdentity = FileHandleIdentityStore.identity(
+            for: fileHandle
+        )
 
         // read header
         self.header = try! fileHandle.read(

@@ -40,6 +40,9 @@ func registerRebaseBindBenchmarks() {
         blackHole(count)
     }
 
+    // Skip classic dyld info benchmarks for release comparison because the default
+    // fixture does not always contain LC_DYLD_INFO_ONLY rebase/bind opcodes.
+    #if false
     Benchmark("MachOFile.rebases.repeated") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
         guard let rebases = BenchmarkFixtures.classicRebases(from: machO, benchmark: benchmark) else {
@@ -186,6 +189,7 @@ func registerRebaseBindBenchmarks() {
             blackHole(binding.address(in: machO))
         }
     }
+    #endif
 
     Benchmark("MachOFile.dyldChainedFixups.metadata") { benchmark in
         let machO = BenchmarkFixtures.machOFile()
