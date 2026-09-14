@@ -997,6 +997,10 @@ public enum CPUARM64SubType: Sendable, Equatable {
     case arm64_v8
     /// CPU_SUBTYPE_ARM64E
     case arm64e
+    /// CPU_SUBTYPE_ARM64_X1
+    case arm64_x1
+    /// CPU_SUBTYPE_ARM64E_X1
+    case arm64e_x1
 }
 
 extension CPUARM64SubType: RawRepresentable {
@@ -1007,6 +1011,8 @@ extension CPUARM64SubType: RawRepresentable {
         case CPU_SUBTYPE_ARM64_ALL: self = .arm64_all
         case CPU_SUBTYPE_ARM64_V8: self = .arm64_v8
         case CPU_SUBTYPE_ARM64E: self = .arm64e
+        case CPU_SUBTYPE_ARM64_X1: self = .arm64_x1
+        case CPU_SUBTYPE_ARM64E_X1: self = .arm64e_x1
         default: return nil
         }
     }
@@ -1016,6 +1022,8 @@ extension CPUARM64SubType: RawRepresentable {
         case .arm64_all: CPU_SUBTYPE_ARM64_ALL
         case .arm64_v8: CPU_SUBTYPE_ARM64_V8
         case .arm64e: CPU_SUBTYPE_ARM64E
+        case .arm64_x1: CPU_SUBTYPE_ARM64_X1
+        case .arm64e_x1: CPU_SUBTYPE_ARM64E_X1
         }
     }
 }
@@ -1026,6 +1034,8 @@ extension CPUARM64SubType: CustomStringConvertible {
         case .arm64_all: "CPU_SUBTYPE_ARM64_ALL"
         case .arm64_v8: "CPU_SUBTYPE_ARM64_V8"
         case .arm64e: "CPU_SUBTYPE_ARM64E"
+        case .arm64_x1: "CPU_SUBTYPE_ARM64_X1"
+        case .arm64e_x1: "CPU_SUBTYPE_ARM64E_X1"
         }
     }
 
