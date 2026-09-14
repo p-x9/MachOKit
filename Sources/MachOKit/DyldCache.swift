@@ -54,7 +54,8 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
 
     /// Target CPU info.
     ///
-    /// It is obtained based on magic.
+    /// It is read from the header's architecture fields when present,
+    /// otherwise it is recovered from the header magic.
     public let cpu: CPU
 
     private var _mainCacheHeader: DyldCacheHeader?
@@ -92,14 +93,10 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
             throw MachOKitError.invalidMagic
         }
 
-        guard let cpuType = header._cpuType,
-              let cpuSubType = header._cpuSubType else {
+        guard let cpu = header._resolvedCPU else {
             throw MachOKitError.invalidCpuType
         }
-        self.cpu = .init(
-            typeRawValue: cpuType.rawValue,
-            subtypeRawValue: cpuSubType.rawValue
-        )
+        self.cpu = cpu
     }
 
     /// Load sub dyld cache

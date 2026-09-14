@@ -65,6 +65,11 @@ final class DyldCacheHeaderArchitectureTests: XCTestCase {
         XCTAssertEqual(header.cpu?.type, .arm64)
         // The ptrauth ABI flag in the top bit must not reach the subtype lookup.
         XCTAssertEqual(header.cpu?.subtype, .arm64(.arm64e_x1))
+        XCTAssertEqual(header._resolvedCPU, header.cpu)
+        XCTAssertEqual(
+            header._resolvedCPU?.subtypeRawValue,
+            Self.arm64eX1WithPtrAuthFlag
+        )
         XCTAssertEqual(header._cpuType, .arm64)
         XCTAssertEqual(header._cpuSubType, .arm64(.arm64e_x1))
     }
@@ -83,6 +88,63 @@ final class DyldCacheHeaderArchitectureTests: XCTestCase {
 
         XCTAssertNil(header.cpu)
         XCTAssertEqual(header._cpuType, .arm64)
+        XCTAssertEqual(header._cpuSubType, .arm64(.arm64e))
+        XCTAssertEqual(
+            header._resolvedCPU?.subtypeRawValue,
+            cpu_subtype_t(CPU_SUBTYPE_ARM64E)
+        )
+    }
+
+    /// If explicit architecture fields are present, they are one source of
+    /// truth. An unrecognised subtype must not be replaced with a subtype
+    /// inferred from `magic`, as that would create a CPU pair which was never
+    /// present in the cache.
+    func testArchitectureFieldsAndMagicAreNotMixed() {
+        let header = makeHeader(
+            magic: "dyld_v1  arm64e",
+            mappingOffset: Self.mappingOffsetWithArchitecture,
+            cpuType: CPU_TYPE_ARM64,
+            cpuSubType: 99
+        )
+
+        XCTAssertNotNil(header.cpu)
+        XCTAssertEqual(header.cpu?.type, .arm64)
+        XCTAssertNil(header.cpu?.subtype)
+        XCTAssertNil(header._resolvedCPU)
+        XCTAssertNil(header._cpuType)
+        XCTAssertNil(header._cpuSubType)
+    }
+
+    /// Both cache storage paths must retain the complete raw subtype rather
+    /// than reconstructing it from the masked typed subtype.
+    func testCachesPreserveRawCPUValuesFromArchitectureFields() throws {
+        let header = makeHeader(
+            magic: "dyld_v1arm64ex1",
+            mappingOffset: Self.mappingOffsetWithArchitecture,
+            cpuType: CPU_TYPE_ARM64,
+            cpuSubType: Self.arm64eX1WithPtrAuthFlag
+        )
+        var layout = header.layout
+
+        try withUnsafePointer(to: &layout) { pointer in
+            let cache = try DyldCacheLoaded(ptr: UnsafeRawPointer(pointer))
+            XCTAssertEqual(
+                cache.cpu.subtypeRawValue,
+                Self.arm64eX1WithPtrAuthFlag
+            )
+        }
+
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        let data = withUnsafeBytes(of: &layout) { Data($0) }
+        try data.write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let cache = try DyldCache(url: url)
+        XCTAssertEqual(
+            cache.cpu.subtypeRawValue,
+            Self.arm64eX1WithPtrAuthFlag
+        )
     }
 
     /// The magic fallback has to know the new name too. Unlike every other

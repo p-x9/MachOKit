@@ -104,13 +104,34 @@ extension DyldCacheHeader {
         )
     }
 
+    /// CPU information resolved from the best source available in this header.
+    ///
+    /// Newer cache headers carry the raw CPU pair directly. Older headers are
+    /// resolved from ``magic`` instead. The two sources are kept as a pair so
+    /// that subtype feature bits are preserved and values from different
+    /// sources are never combined.
+    internal var _resolvedCPU: CPU? {
+        if let cpu {
+            guard cpu.type != nil, cpu.subtype != nil else { return nil }
+            return cpu
+        }
+
+        guard let type = _cpuTypeFromMagic,
+              let subtype = _cpuSubTypeFromMagic else {
+            return nil
+        }
+        return .init(
+            typeRawValue: type.rawValue,
+            subtypeRawValue: subtype.rawValue
+        )
+    }
+
     /// CPU type of the images in this cache.
     ///
     /// Read from the header when it carries the architecture, otherwise
     /// recovered from ``magic``.
     internal var _cpuType: CPUType? {
-        if let type = cpu?.type { return type }
-        return _cpuTypeFromMagic
+        _resolvedCPU?.type
     }
 
     /// CPU subtype of the images in this cache.
@@ -118,8 +139,7 @@ extension DyldCacheHeader {
     /// Read from the header when it carries the architecture, otherwise
     /// recovered from ``magic``.
     internal var _cpuSubType: CPUSubType? {
-        if let subtype = cpu?.subtype { return subtype }
-        return _cpuSubTypeFromMagic
+        _resolvedCPU?.subtype
     }
 
     // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/dyld/SharedCacheRuntime.cpp#L100
@@ -154,7 +174,7 @@ extension DyldCacheHeader {
         case "dyld_v1  armv7k": return .arm(.arm_v7k)
         case "dyld_v1   armv7": return .arm(.arm_v7)
         case "dyld_v1  armv7s": return .arm(.arm_v7s)
-        case "dyld_v1  arm64e": return .arm64(.arm64_all)
+        case "dyld_v1  arm64e": return .arm64(.arm64e)
         case "dyld_v1   arm64": return .arm64(.arm64_all)
         case "dyld_v1arm64_32": return .arm64_32(.arm64_32_all)
         case "dyld_v1arm64ex1": return .arm64(.arm64e_x1)
