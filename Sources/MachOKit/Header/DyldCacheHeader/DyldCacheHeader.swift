@@ -109,10 +109,11 @@ extension DyldCacheHeader {
     /// Newer cache headers carry the raw CPU pair directly. Older headers are
     /// resolved from ``magic`` instead. The two sources are kept as a pair so
     /// that subtype feature bits are preserved and values from different
-    /// sources are never combined.
+    /// sources are never combined. A known CPU type remains usable when its
+    /// subtype is newer than MachOKit's typed subtype model.
     internal var _resolvedCPU: CPU? {
         if let cpu {
-            guard cpu.type != nil, cpu.subtype != nil else { return nil }
+            guard cpu.type != nil else { return nil }
             return cpu
         }
 
