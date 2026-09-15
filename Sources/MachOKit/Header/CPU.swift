@@ -46,16 +46,36 @@ extension CPU {
 
 #if canImport(Darwin)
 extension CPU {
+    internal static var _currentTypeRawValue: cpu_type_t? {
+        _sysctlValue("hw.cputype")
+    }
+
     /// CPU type and subtype of host pc
     public static var current: CPU? {
-        guard let type: CPUType = .current,
-              let subtype: CPUSubType = .current else {
+        guard let typeRawValue = _currentTypeRawValue else {
+            return nil
+        }
+        let subtypeRawValue: cpu_subtype_t? = _sysctlValue("hw.cpusubtype")
+        guard let subtypeRawValue else {
             return nil
         }
         return .init(
-            typeRawValue: type.rawValue,
-            subtypeRawValue: subtype.rawValue
+            typeRawValue: typeRawValue,
+            subtypeRawValue: subtypeRawValue
         )
     }
+}
+
+private func _sysctlValue<Value: FixedWidthInteger>(
+    _ name: String
+) -> Value? {
+    var value: Value = 0
+    var size = MemoryLayout<Value>.size
+    let result = sysctlbyname(name, &value, &size, nil, 0)
+    guard result == 0,
+          size == MemoryLayout<Value>.size else {
+        return nil
+    }
+    return value
 }
 #endif
