@@ -110,9 +110,56 @@ final class DyldCacheHeaderArchitectureTests: XCTestCase {
         XCTAssertNotNil(header.cpu)
         XCTAssertEqual(header.cpu?.type, .arm64)
         XCTAssertNil(header.cpu?.subtype)
-        XCTAssertNil(header._resolvedCPU)
-        XCTAssertNil(header._cpuType)
+        XCTAssertEqual(header._resolvedCPU, header.cpu)
+        XCTAssertEqual(header._resolvedCPU?.subtypeRawValue, 99)
+        XCTAssertEqual(header._cpuType, .arm64)
         XCTAssertNil(header._cpuSubType)
+    }
+
+    /// New subtype values must not make an otherwise readable cache fail to
+    /// initialize. The raw value remains available while the typed view is
+    /// `nil` until MachOKit learns the subtype.
+    func testCachesAcceptUnknownSubtypeFromArchitectureFields() throws {
+        let header = makeHeader(
+            magic: "dyld_v1  arm64e",
+            mappingOffset: Self.mappingOffsetWithArchitecture,
+            cpuType: CPU_TYPE_ARM64,
+            cpuSubType: 99
+        )
+        var layout = header.layout
+
+        try withUnsafePointer(to: &layout) { pointer in
+            let cache = try DyldCacheLoaded(ptr: UnsafeRawPointer(pointer))
+            XCTAssertEqual(cache.cpu.type, .arm64)
+            XCTAssertEqual(cache.cpu.subtypeRawValue, 99)
+            XCTAssertNil(cache.cpu.subtype)
+        }
+
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        let data = withUnsafeBytes(of: &layout) { Data($0) }
+        try data.write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let cache = try DyldCache(url: url)
+        XCTAssertEqual(cache.cpu.type, .arm64)
+        XCTAssertEqual(cache.cpu.subtypeRawValue, 99)
+        XCTAssertNil(cache.cpu.subtype)
+    }
+
+    /// Raw subtypes can be carried forward, but an unknown CPU type still
+    /// cannot determine the cache architecture.
+    func testArchitectureFieldsRejectUnknownCPUType() {
+        let header = makeHeader(
+            magic: "dyld_v1  arm64e",
+            mappingOffset: Self.mappingOffsetWithArchitecture,
+            cpuType: 99,
+            cpuSubType: 99
+        )
+
+        XCTAssertNotNil(header.cpu)
+        XCTAssertNil(header.cpu?.type)
+        XCTAssertNil(header._resolvedCPU)
     }
 
     /// Both cache storage paths must retain the complete raw subtype rather
