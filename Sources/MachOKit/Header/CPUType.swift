@@ -128,18 +128,8 @@ extension CPUType {
 extension CPUType {
     /// CPU type of host pc
     public static var current: CPUType? {
-        var type: cpu_type_t = 0
-        var size = MemoryLayout<cpu_type_t>.size
-        let ret = sysctlbyname("hw.cputype", &type, &size, nil, 0)
-        guard ret != -1 else { return nil }
-
-        var is64BitCapable: Int = 0
-        sysctlbyname("hw.cpu64bit_capable", &is64BitCapable, &size, nil, 0)
-        if is64BitCapable == 1 {
-            type |= CPU_ARCH_ABI64
-        }
-
-        return .init(rawValue: type)
+        guard let rawValue = CPU._currentTypeRawValue else { return nil }
+        return .init(rawValue: rawValue)
     }
 }
 #endif
