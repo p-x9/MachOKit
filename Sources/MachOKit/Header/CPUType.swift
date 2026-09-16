@@ -116,11 +116,13 @@ extension CPUType: CustomStringConvertible {
 
 extension CPUType {
     public var is64Bit: Bool {
-        rawValue & CPU_ARCH_ABI64 != 0
+        guard self != .any else { return false }
+        return rawValue & CPU_ARCH_ABI64 != 0
     }
 
     public var is64BitHardwareWith32BitType: Bool {
-        rawValue & CPU_ARCH_ABI64_32 != 0
+        guard self != .any else { return false }
+        return rawValue & CPU_ARCH_ABI64_32 != 0
     }
 }
 
