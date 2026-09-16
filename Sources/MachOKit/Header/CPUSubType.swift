@@ -35,17 +35,16 @@ public enum CPUSubType: Sendable, Equatable {
                 return nil
             }
             self = .mc680x0(subtype)
-        case .x86:
-            guard let subtype = CPUX86SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .x86(subtype)
         case .i386:
             guard let subtype = CPUI386SubType(rawValue: rawValue) else {
                 return nil
             }
             self = .i386(subtype)
         case .x86_64:
+            if rawValue == CPU_SUBTYPE_X86_64_ALL {
+                self = .x86(.x86_64_all)
+                return
+            }
             guard let subtype = CPUX86SubType(rawValue: rawValue) else {
                 return nil
             }

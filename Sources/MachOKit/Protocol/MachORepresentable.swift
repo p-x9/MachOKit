@@ -997,8 +997,6 @@ extension MachORepresentable {
     /// [xnu implementation](https://github.com/apple-oss-distributions/xnu/blob/8d741a5de7ff4191bf97d57b9f54c2f6d4a15585/osfmk/mach/arm/vm_param.h#L126)
     private var vmaddrMask: UInt64? {
         switch header.cpuType {
-        case .x86:
-            return 0xFFFFFFFF
         case .i386:
             return 0xFFFFFFFF
         case .x86_64:
