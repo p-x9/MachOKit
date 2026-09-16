@@ -7,7 +7,6 @@ extension CPUType: ReadableDescriptionConvertible {
         case .any: "Any"
         case .vax: "VAX"
         case .mc680x0: "Motorola 68000"
-        case .x86: "x86"
         case .i386: "Intel 386"
         case .x86_64: "x86-64"
         case .mc98000: "Motorola 98000"

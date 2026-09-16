@@ -15,8 +15,6 @@ public enum CPUType: Sendable, Equatable, CaseIterable {
     case vax
     /// CPU_TYPE_MC680x0
     case mc680x0
-    /// CPU_TYPE_X86
-    case x86
     /// CPU_TYPE_I386
     case i386
     /// CPU_TYPE_X86_64
@@ -51,7 +49,6 @@ extension CPUType: RawRepresentable {
         case RawValue(CPU_TYPE_ANY): self = .any
         case RawValue(CPU_TYPE_VAX): self = .vax
         case RawValue(CPU_TYPE_MC680x0): self = .mc680x0
-        case RawValue(CPU_TYPE_X86): self = .x86
         case RawValue(CPU_TYPE_I386): self = .i386
         case RawValue(CPU_TYPE_X86_64): self = .x86_64
         case RawValue(CPU_TYPE_MC98000): self = .mc98000
@@ -74,7 +71,6 @@ extension CPUType: RawRepresentable {
         case .any: RawValue(CPU_TYPE_ANY)
         case .vax: RawValue(CPU_TYPE_VAX)
         case .mc680x0: RawValue(CPU_TYPE_MC680x0)
-        case .x86: RawValue(CPU_TYPE_X86)
         case .i386: RawValue(CPU_TYPE_I386)
         case .x86_64: RawValue(CPU_TYPE_X86_64)
         case .mc98000: RawValue(CPU_TYPE_MC98000)
@@ -97,7 +93,6 @@ extension CPUType: CustomStringConvertible {
         case .any: "CPU_TYPE_ANY"
         case .vax: "CPU_TYPE_VAX"
         case .mc680x0: "CPU_TYPE_MC680x0"
-        case .x86: "CPU_TYPE_X86"
         case .i386: "CPU_TYPE_I386"
         case .x86_64: "CPU_TYPE_X86_64"
         case .mc98000: "CPU_TYPE_MC98000"
