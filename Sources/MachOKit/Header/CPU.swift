@@ -18,7 +18,11 @@ public struct CPU: Sendable, Equatable {
 
     public var subtype: CPUSubType? {
         if let type {
-            let subtypeRaw = (cpu_subtype_t(subtypeRawValue) & cpu_subtype_t(~CPU_SUBTYPE_MASK))
+            let subtypeRaw = if subtypeRawValue == CPU_SUBTYPE_MULTIPLE {
+                subtypeRawValue
+            } else {
+                subtypeRawValue & cpu_subtype_t(~CPU_SUBTYPE_MASK)
+            }
             return .init(rawValue: subtypeRaw, of: type)
         }
         return nil
@@ -36,11 +40,13 @@ extension CPU: CustomStringConvertible {
 
 extension CPU {
     public var is64Bit: Bool {
-        typeRawValue & CPU_ARCH_ABI64 != 0
+        guard typeRawValue != CPU_TYPE_ANY else { return false }
+        return typeRawValue & CPU_ARCH_ABI64 != 0
     }
 
     public var is64BitHardwareWith32BitType: Bool {
-        typeRawValue & CPU_ARCH_ABI64_32 != 0
+        guard typeRawValue != CPU_TYPE_ANY else { return false }
+        return typeRawValue & CPU_ARCH_ABI64_32 != 0
     }
 }
 
