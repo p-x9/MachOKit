@@ -678,6 +678,37 @@ extension MachOImage {
 }
 
 extension MachOImage {
+    /// Dylibs described by `LC_LAZY_LOAD_DYLIB_INFO` commands.
+    public var lazyLoadDylibs: [LazyLoadDylib] {
+        guard let vmaddrSlide else { return [] }
+        let linkedit: (any SegmentCommandProtocol)? =
+        loadCommands.linkedit64 ?? loadCommands.linkedit
+        guard let linkedit,
+              let linkeditStart = linkedit.startPtr(vmaddrSlide: vmaddrSlide) else {
+            return []
+        }
+
+        return loadCommands.lazyLoadDylibInfos.compactMap { command in
+            guard command.datasize >= UInt32(LazyLoadDylib.layoutSize) else {
+                return nil
+            }
+            let start = linkeditStart
+                .advanced(by: -numericCast(linkedit.fileOffset))
+                .advanced(by: numericCast(command.dataoff))
+            let bytes = UnsafeRawBufferPointer(
+                start: start,
+                count: numericCast(command.datasize)
+            )
+            return LazyLoadDylib(
+                bytes: bytes,
+                dataOffset: numericCast(command.dataoff),
+                dataSize: numericCast(command.datasize)
+            )
+        }
+    }
+}
+
+extension MachOImage {
     public var externalRelocations: MemorySequence<Relocation>? {
         guard let dysymtab = loadCommands.dysymtab else { return nil }
 

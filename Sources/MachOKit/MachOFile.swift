@@ -542,6 +542,26 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    /// Dylibs described by `LC_LAZY_LOAD_DYLIB_INFO` commands.
+    public var lazyLoadDylibs: [LazyLoadDylib] {
+        loadCommands.lazyLoadDylibInfos.compactMap { command in
+            guard command.datasize >= UInt32(LazyLoadDylib.layoutSize),
+                  let data = _readLinkEditData(
+                    offset: numericCast(command.dataoff),
+                    length: LazyLoadDylib.layoutSize
+                  ) else {
+                return nil
+            }
+            return LazyLoadDylib(
+                data: data,
+                dataOffset: numericCast(command.dataoff),
+                dataSize: numericCast(command.datasize)
+            )
+        }
+    }
+}
+
+extension MachOFile {
     public var externalRelocations: DataSequence<Relocation>? {
         guard let dysymtab = loadCommands.dysymtab else {
             return nil
