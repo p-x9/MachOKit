@@ -66,6 +66,10 @@ struct target_triple_command {
 };
 #endif
 
+#ifndef LC_LAZY_LOAD_DYLIB_INFO
+#define LC_LAZY_LOAD_DYLIB_INFO 0x3A /* used with linkedit_data_command */
+#endif
+
 /*
  * arm64e.x1 -- the checked-pointer-arithmetic slice (Arm FEAT_CPA2), new in the
  * macOS 27 / iOS 27 SDKs. Every macOS 27 dyld shared cache is built for it.
