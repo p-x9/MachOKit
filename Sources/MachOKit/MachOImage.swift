@@ -132,12 +132,8 @@ extension MachOImage {
     /// [Reference of implementation]( https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/mach_o/Header.cpp#L1354)
     public var vmaddrSlide: Int? {
         let ptr = Int(bitPattern: ptr)
-        if let text = loadCommands.text64 {
-            return ptr - numericCast(text.vmaddr)
-        } else if let text = loadCommands.text {
-            return ptr - numericCast(text.vmaddr)
-        }
-        return nil
+        guard let preferredLoadAddress else { return nil }
+        return ptr - numericCast(preferredLoadAddress)
     }
 }
 
