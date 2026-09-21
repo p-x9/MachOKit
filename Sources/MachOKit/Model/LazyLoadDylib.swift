@@ -19,6 +19,8 @@ internal import FileIOBinary
 ///
 /// The layout is the header of the `LC_LAZY_LOAD_DYLIB_INFO` payload in `__LINKEDIT`.
 /// The load path, symbol-offset array, and symbol strings follow this header in the payload.
+///
+/// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/mach_o/LazyLoadDylib.cpp#L32)
 public struct LazyLoadDylib: LayoutWrapper, Sendable {
     public typealias Layout = LazyLoadDylibLinkEdit
 
@@ -226,6 +228,8 @@ extension LazyLoadDylib {
     ///   and must not be decoded using this payload's pointer format.
     /// - Parameter machO: The file-backed Mach-O containing the chain.
     /// - Returns: The fixup pointers, or `nil` if the chain is unavailable or invalid.
+    ///
+    /// [dyld chain traversal implementation](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/mach_o/Image.cpp#L1251-L1273)
     public func fixups(in machO: MachOFile) -> [DyldChainedFixupPointer]? {
         guard !dylibSymbolsAlreadyBound,
               let pointerFormat else { return nil }
@@ -249,6 +253,8 @@ extension LazyLoadDylib {
     ///   lazy binding; checking the loaded flag alone cannot make traversal atomic.
     /// - Parameter machO: The memory-backed Mach-O containing the chain.
     /// - Returns: The fixup pointers, or `nil` if the chain is unavailable or invalid.
+    ///
+    /// [dyld chain traversal implementation](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/mach_o/Image.cpp#L1251-L1273)
     public func fixups(in machO: MachOImage) -> [DyldChainedFixupPointer]? {
         guard !dylibSymbolsAlreadyBound,
               imageLoadedFlag(in: machO) == 0,
