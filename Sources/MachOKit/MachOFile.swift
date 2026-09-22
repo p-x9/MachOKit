@@ -552,11 +552,12 @@ extension MachOFile {
                   ) else {
                 return nil
             }
-            return LazyLoadDylib(
+            guard let lazyLoad = LazyLoadDylib(
                 data: data,
                 dataOffset: numericCast(command.dataoff),
                 dataSize: numericCast(command.datasize)
-            )
+            ) else { return nil }
+            return isSwapped ? lazyLoad.swapped : lazyLoad
         }
     }
 }

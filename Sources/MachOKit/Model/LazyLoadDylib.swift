@@ -32,6 +32,22 @@ public struct LazyLoadDylib: LayoutWrapper, Sendable {
 }
 
 extension LazyLoadDylib {
+    /// A copy with the byte order of each binary layout field reversed.
+    /// The payload's file offset and size are unchanged.
+    public var swapped: Self {
+        var layout = self.layout
+        layout.loadPathOffset = layout.loadPathOffset.byteSwapped
+        layout.flagImageOffset = layout.flagImageOffset.byteSwapped
+        layout.flags = layout.flags.byteSwapped
+        layout.pointerFormat = layout.pointerFormat.byteSwapped
+        layout.chainStartImageOffset = layout.chainStartImageOffset.byteSwapped
+        layout.symbolsCount = layout.symbolsCount.byteSwapped
+        layout.symbolStringArrayOffset = layout.symbolStringArrayOffset.byteSwapped
+        return .init(layout: layout, dataOffset: dataOffset, dataSize: dataSize)
+    }
+}
+
+extension LazyLoadDylib {
     /// Offset from the Mach-O header to dyld's 32-bit image-loaded flag.
     public var flagImageOffset: UInt32 {
         layout.flagImageOffset
@@ -143,6 +159,8 @@ extension LazyLoadDylib {
     /// `LC_LAZY_LOAD_DYLIB_INFO` payload and can be passed to
     /// `symbolName(at:in:)`.
     ///
+    /// Values are returned in host byte order.
+    ///
     /// - Parameter machO: The file-backed Mach-O containing the payload.
     /// - Returns: The symbol-name offsets, or `nil` if the payload or offset array is invalid.
     public func symbolOffsets(in machO: MachOFile) -> DataSequence<UInt32>? {
@@ -152,7 +170,17 @@ extension LazyLoadDylib {
         }
         return fileSlice.readDataSequence(
             offset: numericCast(symbolOffsetsRange.lowerBound),
-            numberOfElements: symbolsCount
+            numberOfElements: symbolsCount,
+            swapHandler: { data in
+                guard machO.isSwapped else { return }
+                data.withUnsafeMutableBytes { bytes in
+                    for index in 0..<symbolsCount {
+                        let offset = index * MemoryLayout<UInt32>.size
+                        let value = bytes.loadUnaligned(fromByteOffset: offset, as: UInt32.self)
+                        bytes.storeBytes(of: value.byteSwapped, toByteOffset: offset, as: UInt32.self)
+                    }
+                }
+            }
         )
     }
 
