@@ -117,7 +117,10 @@ extension LazyLoadDylib {
         guard let fileSlice = linkEditSlice(for: machO) else {
             return nil
         }
-        return fileSlice.readString(offset: numericCast(stringsOffset))
+        return string(
+            at: stringsOffset,
+            in: .init(start: fileSlice.ptr, count: fileSlice.size)
+        )
     }
 
     /// Path of the dylib to load lazily.
@@ -126,10 +129,10 @@ extension LazyLoadDylib {
     /// - Returns: The dylib path, or `nil` if the payload is unavailable or invalid.
     public func loadPath(in machO: MachOImage) -> String? {
         guard let stringsOffset else { return nil }
-        guard let ptr = linkEditPtr(for: machO, additionalFileOffset: stringsOffset) else {
+        guard let ptr = linkEditPtr(for: machO, additionalFileOffset: 0) else {
             return nil
         }
-        return String(cString: ptr.assumingMemoryBound(to: CChar.self))
+        return string(at: stringsOffset, in: .init(start: ptr, count: dataSize))
     }
 }
 
@@ -189,7 +192,7 @@ extension LazyLoadDylib {
         guard let fileSlice = linkEditSlice(for: machO) else {
             return nil
         }
-        return symbolName(
+        return string(
             at: offset,
             in: .init(start: fileSlice.ptr, count: fileSlice.size)
         )
@@ -210,7 +213,7 @@ extension LazyLoadDylib {
         ) else {
             return nil
         }
-        return symbolName(
+        return string(
             at: offset,
             in: .init(start: ptr, count: dataSize)
         )
@@ -312,7 +315,8 @@ extension LazyLoadDylib {
 extension LazyLoadDylib {
     private var symbolOffsetsRange: Range<Int>? {
         guard let offset = Int(exactly: layout.symbolStringArrayOffset),
-              let count = Int(exactly: layout.symbolsCount) else {
+              let count = Int(exactly: layout.symbolsCount),
+              count == 0 || offset >= Self.layoutSize else {
             return nil
         }
         let (size, sizeOverflow) = count.multipliedReportingOverflow(
@@ -337,17 +341,17 @@ extension LazyLoadDylib {
     }
 }
 
-// MARK: - Symbol Name Decoding
+// MARK: - String Decoding
 
 extension LazyLoadDylib {
-    private func symbolName(
+    private func string(
         at offset: Int,
         in bytes: UnsafeRawBufferPointer
     ) -> String? {
         guard offset >= 0, offset < bytes.count else { return nil }
-        let symbol = bytes[offset...]
-        guard let end = symbol.firstIndex(of: 0) else { return nil }
-        return String(bytes: symbol[..<end], encoding: .utf8)
+        let string = bytes[offset...]
+        guard let end = string.firstIndex(of: 0) else { return nil }
+        return String(bytes: string[..<end], encoding: .utf8)
     }
 }
 
