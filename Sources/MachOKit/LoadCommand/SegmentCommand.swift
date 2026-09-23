@@ -31,7 +31,8 @@ public protocol SegmentCommandProtocol: LoadCommandWrapper {
 
 extension SegmentCommandProtocol {
     public func startPtr(vmaddrSlide: Int) -> UnsafeRawPointer? {
-        let address = vmaddrSlide + virtualMemoryAddress
+        let (address, overflow) = virtualMemoryAddress.addingReportingOverflow(vmaddrSlide)
+        guard !overflow else { return nil }
         return UnsafeRawPointer(bitPattern: address)
     }
 
@@ -39,7 +40,10 @@ extension SegmentCommandProtocol {
         guard let start = startPtr(vmaddrSlide: vmaddrSlide) else {
             return nil
         }
-        return start + virtualMemorySize
+        let (address, overflow) = Int(bitPattern: start)
+            .addingReportingOverflow(virtualMemorySize)
+        guard !overflow else { return nil }
+        return UnsafeRawPointer(bitPattern: address)
     }
 }
 
