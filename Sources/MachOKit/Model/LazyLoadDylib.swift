@@ -194,7 +194,9 @@ extension LazyLoadDylib {
     /// - Returns: The symbol-name offsets, or `nil` if the payload or offset array is invalid.
     public func symbolOffsets(in machO: MachOImage) -> MemorySequence<UInt32>? {
         guard let symbolOffsetsRange,
-              let ptr = linkEditPtr(for: machO) else {
+              let ptr = linkEditPtr(for: machO),
+              Int(bitPattern: ptr.advanced(by: symbolOffsetsRange.lowerBound))
+                .isMultiple(of: MemoryLayout<UInt32>.alignment) else {
             return nil
         }
         return .init(
