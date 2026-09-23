@@ -676,29 +676,21 @@ extension MachOImage {
 extension MachOImage {
     /// Dylibs described by `LC_LAZY_LOAD_DYLIB_INFO` commands.
     public var lazyLoadDylibs: [LazyLoadDylib] {
-        guard let vmaddrSlide else { return [] }
-        let linkedit: (any SegmentCommandProtocol)? =
-        loadCommands.linkedit64 ?? loadCommands.linkedit
-        guard let linkedit,
-              let linkeditStart = linkedit.startPtr(vmaddrSlide: vmaddrSlide) else {
-            return []
-        }
-
-        return loadCommands.lazyLoadDylibInfos.compactMap { command in
-            guard command.datasize >= UInt32(LazyLoadDylib.layoutSize) else {
+        loadCommands.lazyLoadDylibInfos.compactMap { command in
+            guard command.datasize >= UInt32(LazyLoadDylib.layoutSize),
+                  let offset = Int(exactly: command.dataoff),
+                  let size = Int(exactly: command.datasize),
+                  let start = _ptrForLinkEditData(fileOffset: offset, length: size) else {
                 return nil
             }
-            let start = linkeditStart
-                .advanced(by: -numericCast(linkedit.fileOffset))
-                .advanced(by: numericCast(command.dataoff))
             let bytes = UnsafeRawBufferPointer(
                 start: start,
-                count: numericCast(command.datasize)
+                count: size
             )
             return LazyLoadDylib(
                 bytes: bytes,
-                dataOffset: numericCast(command.dataoff),
-                dataSize: numericCast(command.datasize)
+                dataOffset: offset,
+                dataSize: size
             )
         }
     }
@@ -828,6 +820,43 @@ extension MachOImage {
             return try? plist(in: __info_plist)
         }
         return nil
+    }
+}
+
+extension MachOImage {
+    /// Resolves a file-offset range within the image's file-backed `__LINKEDIT`.
+    /// Assumes the image's segment mappings are valid, as with other image reads.
+    internal func _ptrForLinkEditData(
+        fileOffset: Int,
+        length: Int
+    ) -> UnsafeRawPointer? {
+        guard fileOffset >= 0, length >= 0,
+              let vmaddrSlide else {
+            return nil
+        }
+        let linkedit: (any SegmentCommandProtocol)? =
+        loadCommands.linkedit64 ?? loadCommands.linkedit
+        guard let linkedit, let fileRange = linkedit.fileRange else { return nil }
+
+        let (end, endOverflow) = fileOffset.addingReportingOverflow(length)
+        guard !endOverflow,
+              fileRange.lowerBound <= UInt64(fileOffset),
+              UInt64(end) <= fileRange.upperBound else {
+            return nil
+        }
+
+        let relativeOffset = fileOffset - linkedit.fileOffset
+        let relativeEnd = end - linkedit.fileOffset
+        guard relativeEnd <= linkedit.virtualMemorySize,
+              let segmentStart = linkedit.startPtr(vmaddrSlide: vmaddrSlide) else {
+            return nil
+        }
+
+        let (start, startOverflow) = Int(bitPattern: segmentStart)
+            .addingReportingOverflow(relativeOffset)
+        let (_, pointerEndOverflow) = start.addingReportingOverflow(length)
+        guard !startOverflow, !pointerEndOverflow else { return nil }
+        return UnsafeRawPointer(bitPattern: start)
     }
 }
 

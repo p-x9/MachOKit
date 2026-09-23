@@ -145,7 +145,7 @@ extension LazyLoadDylib {
     /// - Returns: The dylib path, or `nil` if the payload is unavailable or invalid.
     public func loadPath(in machO: MachOImage) -> String? {
         guard let stringsOffset else { return nil }
-        guard let ptr = linkEditPtr(for: machO, additionalFileOffset: 0) else {
+        guard let ptr = linkEditPtr(for: machO) else {
             return nil
         }
         return string(at: stringsOffset, in: .init(start: ptr, count: dataSize))
@@ -194,14 +194,13 @@ extension LazyLoadDylib {
     /// - Returns: The symbol-name offsets, or `nil` if the payload or offset array is invalid.
     public func symbolOffsets(in machO: MachOImage) -> MemorySequence<UInt32>? {
         guard let symbolOffsetsRange,
-              let ptr = linkEditPtr(
-                for: machO,
-                additionalFileOffset: symbolOffsetsRange.lowerBound
-              ) else {
+              let ptr = linkEditPtr(for: machO) else {
             return nil
         }
         return .init(
-            basePointer: ptr.assumingMemoryBound(to: UInt32.self),
+            basePointer: ptr
+                .advanced(by: symbolOffsetsRange.lowerBound)
+                .assumingMemoryBound(to: UInt32.self),
             numberOfElements: symbolsCount
         )
     }
@@ -235,10 +234,7 @@ extension LazyLoadDylib {
     ///   - machO: The memory-backed Mach-O containing the payload.
     /// - Returns: The symbol name, or `nil` if the offset or string is invalid.
     public func symbolName(at offset: Int, in machO: MachOImage) -> String? {
-        guard let ptr = linkEditPtr(
-            for: machO,
-            additionalFileOffset: 0
-        ) else {
+        guard let ptr = linkEditPtr(for: machO) else {
             return nil
         }
         return string(
@@ -563,23 +559,7 @@ extension LazyLoadDylib {
         )
     }
 
-    private func linkEditPtr(
-        for machO: MachOImage,
-        additionalFileOffset: Int
-    ) -> UnsafeRawPointer? {
-        guard let vmaddrSlide = machO.vmaddrSlide else { return nil }
-
-        let linkedit: (any SegmentCommandProtocol)? =
-        machO.loadCommands.linkedit64 ?? machO.loadCommands.linkedit
-
-        guard let linkedit,
-              let linkeditStart = linkedit.startPtr(vmaddrSlide: vmaddrSlide) else {
-            return nil
-        }
-
-        let start = linkeditStart
-            .advanced(by: -numericCast(linkedit.fileOffset))
-            .advanced(by: dataOffset)
-        return start.advanced(by: additionalFileOffset)
+    private func linkEditPtr(for machO: MachOImage) -> UnsafeRawPointer? {
+        machO._ptrForLinkEditData(fileOffset: dataOffset, length: dataSize)
     }
 }
