@@ -479,24 +479,6 @@ extension LazyLoadDylib {
         length: Int,
         in machO: MachOFile
     ) -> (MachOFile.File, Int)? {
-        if machO.isLoadedFromDyldCache {
-            guard let address = unslidAddress(at: imageOffset, in: machO) else {
-                return nil
-            }
-            guard let fullCache = machO.fullCache,
-                  let (cache, fileOffset) = fullCache.cacheAndFileOffset(
-                    for: address
-                  ) else {
-                return nil
-            }
-            guard length > 0,
-                  let mapping = cache.mappingAndSlideInfo(for: address) else { return nil }
-            let (end, overflow) = address.addingReportingOverflow(UInt64(length))
-            let (mappingEnd, mappingOverflow) = mapping.address.addingReportingOverflow(mapping.size)
-            guard !overflow, !mappingOverflow, end <= mappingEnd else { return nil }
-            return (cache.fileHandle, numericCast(fileOffset))
-        }
-
         guard let address = unslidAddress(
             at: imageOffset,
             length: length,
@@ -504,6 +486,20 @@ extension LazyLoadDylib {
         ) else {
             return nil
         }
+        if machO.isLoadedFromDyldCache {
+            guard let fullCache = machO.fullCache,
+                  let (cache, fileOffset) = fullCache.cacheAndFileOffset(
+                    for: address
+                  ) else {
+                return nil
+            }
+            guard let mapping = cache.mappingAndSlideInfo(for: address) else { return nil }
+            let (end, overflow) = address.addingReportingOverflow(UInt64(length))
+            let (mappingEnd, mappingOverflow) = mapping.address.addingReportingOverflow(mapping.size)
+            guard !overflow, !mappingOverflow, end <= mappingEnd else { return nil }
+            return (cache.fileHandle, numericCast(fileOffset))
+        }
+
         guard let fileOffset = machO.fileOffset(of: address) else {
             return nil
         }
