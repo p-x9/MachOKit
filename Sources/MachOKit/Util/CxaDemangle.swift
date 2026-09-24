@@ -29,11 +29,16 @@ typealias CxaDemangleFn = @convention(c) (
 ) -> UnsafeMutablePointer<CChar>?
 
 private let ___cxaDemangleFn: CxaDemangleFn? = {
+#if os(Windows)
+    // `dlopen` is unavailable, and the MSVC C++ runtime has no `__cxa_demangle`.
+    return nil
+#else
     guard let handle = dlopen(nil, RTLD_NOW),
           let sym = dlsym(handle, "__cxa_demangle") else {
         return nil
     }
     return unsafeBitCast(sym, to: CxaDemangleFn.self)
+#endif
 }()
 
 internal func cxa_demangle(

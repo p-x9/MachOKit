@@ -9,7 +9,7 @@
 #ifndef backports_h
 #define backports_h
 
-#ifndef __linux__
+#ifdef __APPLE__
 
 #include <mach-o/loader.h>
 #include <stdint.h>
@@ -92,7 +92,7 @@ struct target_triple_command {
 #define PLATFORM_VISIONOS_EXCLAVEKIT 24
 #endif
 
-#endif /* __linux__ */
+#endif /* __APPLE__ */
 
 #ifndef EXPORT_SYMBOL_FLAGS_FUNCTION_VARIANT
 #define EXPORT_SYMBOL_FLAGS_FUNCTION_VARIANT  0x20
