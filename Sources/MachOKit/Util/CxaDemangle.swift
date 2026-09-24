@@ -8,6 +8,11 @@
 
 import Foundation
 
+#if canImport(Android)
+// Foundation does not re-export `dlopen` / `dlsym` / `RTLD_NOW` on Android.
+import Android
+#endif
+
 // *WORKAROUND*: Avoiding link errors in visionOS
 // When using `_silgen_name`, there is an issue where only visionOS cannot reference `__cxa_demangle`.
 // However, in reality, the symbol does exist.
