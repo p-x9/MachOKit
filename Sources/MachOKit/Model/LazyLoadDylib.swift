@@ -391,18 +391,20 @@ extension LazyLoadDylib {
         pointerFormat: DyldChainedFixupPointerFormat,
         fixupInfoAtOffset: (Int) -> DyldChainedFixupPointerInfo?
     ) -> [DyldChainedFixupPointer]? {
-        let result = DyldChainedFixupPointer.walkChain(
+        var pointers: [DyldChainedFixupPointer] = []
+        let reachedEnd = DyldChainedFixupPointer.walkChain(
             startOffset: numericCast(chainStartImageOffset),
             pointerOffsetBias: 0,
             pointerFormat: pointerFormat,
+            pointers: &pointers,
             fixupInfoAtOffset: fixupInfoAtOffset
         )
-        guard result.reachedEnd,
-              result.pointers.allSatisfy({
+        guard reachedEnd,
+              pointers.allSatisfy({
                   guard let bind = $0.fixupInfo.bind else { return false }
                   return (0..<symbolsCount).contains(bind.ordinal)
               }) else { return nil }
-        return result.pointers
+        return pointers
     }
 
     private func fixupPointerInfo(

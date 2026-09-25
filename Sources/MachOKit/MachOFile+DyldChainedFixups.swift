@@ -204,10 +204,11 @@ extension MachOFile.DyldChainedFixups {
         guard let pointerFormat = startsInSegment.pointerFormat else {
             return
         }
-        let result = DyldChainedFixupPointer.walkChain(
+        _ = DyldChainedFixupPointer.walkChain(
             startOffset: offset,
             pointerOffsetBias: numericCast(startsInSegment.segment_offset),
-            pointerFormat: pointerFormat
+            pointerFormat: pointerFormat,
+            pointers: &pointers
         ) { offset in
             _fixupInfo(
                 at: offset,
@@ -215,7 +216,6 @@ extension MachOFile.DyldChainedFixups {
                 pointerFormat: pointerFormat
             )
         }
-        pointers.append(contentsOf: result.pointers)
     }
 }
 

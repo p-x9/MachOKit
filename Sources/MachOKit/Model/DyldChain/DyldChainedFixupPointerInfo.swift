@@ -42,6 +42,7 @@ public enum DyldChainedFixupPointerInfo: Sendable {
 }
 
 extension DyldChainedFixupPointerInfo {
+    @inline(__always)
     init?(
         rawValue: UInt64,
         pointerFormat: DyldChainedFixupPointerFormat
@@ -74,6 +75,7 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
+    @inline(__always)
     init?(
         rawValue: UInt32,
         pointerFormat: DyldChainedFixupPointerFormat
