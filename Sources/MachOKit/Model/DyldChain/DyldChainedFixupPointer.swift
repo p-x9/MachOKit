@@ -14,31 +14,32 @@ public struct DyldChainedFixupPointer: Sendable {
 }
 
 extension DyldChainedFixupPointer {
+    @inline(__always)
     static func walkChain(
         startOffset: Int,
         pointerOffsetBias: Int,
         pointerFormat: DyldChainedFixupPointerFormat,
+        pointers: inout [Self],
         fixupInfoAtOffset: (Int) -> DyldChainedFixupPointerInfo?
-    ) -> (pointers: [Self], reachedEnd: Bool) {
+    ) -> Bool {
         var offset = startOffset
-        var pointers: [Self] = []
 
         while true {
             guard let fixupInfo = fixupInfoAtOffset(offset) else {
-                return (pointers, false)
+                return false
             }
 
             let (pointerOffset, pointerOffsetOverflow) = pointerOffsetBias
                 .addingReportingOverflow(offset)
             guard !pointerOffsetOverflow else {
-                return (pointers, false)
+                return false
             }
             pointers.append(
                 .init(offset: pointerOffset, fixupInfo: fixupInfo)
             )
 
             guard fixupInfo.next != 0 else {
-                return (pointers, true)
+                return true
             }
             let (distance, distanceOverflow) = pointerFormat.stride
                 .multipliedReportingOverflow(by: fixupInfo.next)
@@ -47,7 +48,7 @@ extension DyldChainedFixupPointer {
             guard !distanceOverflow,
                   !nextOffsetOverflow,
                   nextOffset > offset else {
-                return (pointers, false)
+                return false
             }
             offset = nextOffset
         }
