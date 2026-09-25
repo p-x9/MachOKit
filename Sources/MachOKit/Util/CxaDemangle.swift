@@ -8,6 +8,11 @@
 
 import Foundation
 
+#if canImport(Android)
+// Foundation does not re-export `dlopen` / `dlsym` / `RTLD_NOW` on Android.
+import Android
+#endif
+
 // *WORKAROUND*: Avoiding link errors in visionOS
 // When using `_silgen_name`, there is an issue where only visionOS cannot reference `__cxa_demangle`.
 // However, in reality, the symbol does exist.
@@ -29,11 +34,16 @@ typealias CxaDemangleFn = @convention(c) (
 ) -> UnsafeMutablePointer<CChar>?
 
 private let ___cxaDemangleFn: CxaDemangleFn? = {
+#if os(Windows)
+    // `dlopen` is unavailable, and the MSVC C++ runtime has no `__cxa_demangle`.
+    return nil
+#else
     guard let handle = dlopen(nil, RTLD_NOW),
           let sym = dlsym(handle, "__cxa_demangle") else {
         return nil
     }
     return unsafeBitCast(sym, to: CxaDemangleFn.self)
+#endif
 }()
 
 internal func cxa_demangle(

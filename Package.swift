@@ -2,7 +2,10 @@
 
 import PackageDescription
 
-let linuxPlatforms: [Platform] = [.linux, .openbsd]
+let binaryParseSupportVersion: Version = "0.3.0"
+
+// Platforms without CommonCrypto, where swift-crypto provides the digests.
+let nonApplePlatforms: [Platform] = [.linux, .openbsd, .windows, .android]
 
 let package = Package(
     name: "MachOKit",
@@ -33,11 +36,11 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/p-x9/swift-fileio.git",
-            from: "0.13.0"
+            from: "0.15.1"
         ),
         .package(
             url: "https://github.com/p-x9/swift-fileio-extra.git",
-            from: "0.2.2"
+            from: "0.4.0"
         ),
         .package(
             url: "https://github.com/p-x9/ObjectArchiveKit.git",
@@ -45,7 +48,7 @@ let package = Package(
         ),
         .package(
             url: "https://github.com/apple/swift-crypto.git",
-            "1.0.0" ..< "4.0.0"
+            "1.0.0" ..< "6.0.0"
         ),
     ],
     targets: [
@@ -58,7 +61,7 @@ let package = Package(
                 .product(
                     name: "Crypto",
                     package: "swift-crypto",
-                    condition: .when(platforms: linuxPlatforms)
+                    condition: .when(platforms: nonApplePlatforms)
                 )
             ],
             swiftSettings: SwiftSetting.allCases + [
@@ -99,7 +102,7 @@ if isForBinaryKitFramework {
     package.dependencies += [
         .package(
             url: "https://github.com/p-x9/swift-binary-parse-support-bin.git",
-            from: "0.2.1"
+            from: binaryParseSupportVersion
         ),
     ]
     machOKit?.dependencies += [
@@ -112,7 +115,7 @@ if isForBinaryKitFramework {
     package.dependencies += [
         .package(
             url: "https://github.com/p-x9/swift-binary-parse-support.git",
-            from: "0.2.1"
+            from: binaryParseSupportVersion
         ),
     ]
     machOKit?.dependencies += [
