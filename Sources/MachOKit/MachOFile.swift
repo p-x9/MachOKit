@@ -542,6 +542,27 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    /// Dylibs described by `LC_LAZY_LOAD_DYLIB_INFO` commands.
+    public var lazyLoadDylibs: [LazyLoadDylib] {
+        loadCommands.lazyLoadDylibInfos.compactMap { command in
+            guard command.datasize >= UInt32(LazyLoadDylib.layoutSize),
+                  let data = _readLinkEditData(
+                    offset: numericCast(command.dataoff),
+                    length: LazyLoadDylib.layoutSize
+                  ) else {
+                return nil
+            }
+            guard let lazyLoad = LazyLoadDylib(
+                data: data,
+                dataOffset: numericCast(command.dataoff),
+                dataSize: numericCast(command.datasize)
+            ) else { return nil }
+            return isSwapped ? lazyLoad.swapped : lazyLoad
+        }
+    }
+}
+
+extension MachOFile {
     public var externalRelocations: DataSequence<Relocation>? {
         guard let dysymtab = loadCommands.dysymtab else {
             return nil
@@ -753,10 +774,22 @@ extension MachOFile {
         offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
         length: Int
     ) -> File.FileSlice? {
+        guard offset >= 0, length >= 0 else { return nil }
+
         let text: (any SegmentCommandProtocol)? = loadCommands.text64 ?? loadCommands.text
         let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
-        guard let text, let linkedit else { return nil }
-        guard linkedit.fileOffset + linkedit.fileSize >= offset + length else { return nil }
+
+        guard let text, let linkedit,
+              let fileRange = linkedit.fileRange else {
+            return nil
+        }
+
+        let (end, overflow) = offset.addingReportingOverflow(length)
+        guard !overflow,
+              fileRange.lowerBound <= UInt64(offset),
+              UInt64(end) <= fileRange.upperBound else {
+            return nil
+        }
 
         let maxFileOffsetToCheck = text.fileOffset + linkedit.virtualMemoryAddress - text.virtualMemoryAddress
         let isWithinFileRange: Bool = fileHandle.size >= maxFileOffsetToCheck

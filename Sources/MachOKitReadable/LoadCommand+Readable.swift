@@ -62,6 +62,7 @@ extension LoadCommandType: ReadableDescriptionConvertible {
         case .functionVariants: "Function Variants"
         case .functionVariantFixups: "Function Variant Fixups"
         case .targetTriple: "Target Triple"
+        case .lazyLoadDylibInfo: "Lazy-load Dynamic Library Info"
         case .aotMetadata: "AOT Metadata"
         }
     }

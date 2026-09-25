@@ -584,6 +584,51 @@ extension MachOPrintTests {
 }
 
 extension MachOPrintTests {
+    func testLazyLoad() {
+        guard let machO else { return }
+        guard !machO.lazyLoadDylibs.isEmpty else {
+            print("No lazy-load dylibs")
+            return
+        }
+        for lazyLoad in machO.lazyLoadDylibs {
+            print("----")
+            print(lazyLoad)
+            print("LoadPath:", lazyLoad.loadPath(in: machO) ?? "unknown")
+            print("SymbolsAlreadyBound:", lazyLoad.dylibSymbolsAlreadyBound)
+            print("ImageLoadedFlag:", lazyLoad.imageLoadedFlag(in: machO) as Any)
+
+            guard let offsets = lazyLoad.symbolOffsets(in: machO) else {
+                print("Symbol offsets unavailable")
+                continue
+            }
+            for offset in offsets {
+                print(
+                    offset,
+                    lazyLoad.symbolName(at: numericCast(offset), in: machO) ?? "unknown"
+                )
+            }
+
+            guard let pointers = lazyLoad.fixups(in: machO) else {
+                print("Lazy binding chain unavailable (prebound, already processed, or invalid)")
+                continue
+            }
+            for pointer in pointers {
+                let offset = String(pointer.offset, radix: 16)
+                if let bind = pointer.fixupInfo.bind {
+                    guard offsets.indices.contains(bind.ordinal) else {
+                        print(offset, "bind: invalid ordinal", bind.ordinal)
+                        continue
+                    }
+                    let name = lazyLoad.symbolName(
+                        at: numericCast(offsets[bind.ordinal]),
+                        in: machO
+                    )
+                    print(offset, "bind:", name ?? "unknown")
+                }
+            }
+        }
+    }
+
     func testChainedFixUps() {
         guard let chainedFixups = machO.dyldChainedFixups else {
             return

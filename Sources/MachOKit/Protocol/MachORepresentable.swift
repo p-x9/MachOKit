@@ -54,6 +54,11 @@ public protocol MachORepresentable {
     /// Sequence of 32-bit architecture segments
     var segments32: AnySequence<SegmentCommand> { get }
 
+    /// The preferred unslid virtual address at which the Mach-O header is loaded.
+    ///
+    /// This is normally the virtual memory address of the `__TEXT` segment.
+    var preferredLoadAddress: UInt64? { get }
+
     /// List of sections in all segments
     var sections: [any SectionProtocol] { get }
     /// List of sections in 64-bit architecture segments
@@ -303,6 +308,16 @@ extension MachORepresentable {
 
     public var segments32: AnySequence<SegmentCommand> {
         loadCommands.infos(of: LoadCommand.segment)
+    }
+
+    public var preferredLoadAddress: UInt64? {
+        if let text = loadCommands.text64 {
+            text.vmaddr
+        } else if let text = loadCommands.text {
+            numericCast(text.vmaddr)
+        } else {
+            nil
+        }
     }
 }
 

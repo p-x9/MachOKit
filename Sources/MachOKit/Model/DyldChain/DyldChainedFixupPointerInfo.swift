@@ -42,6 +42,56 @@ public enum DyldChainedFixupPointerInfo: Sendable {
 }
 
 extension DyldChainedFixupPointerInfo {
+    init?(
+        rawValue: UInt64,
+        pointerFormat: DyldChainedFixupPointerFormat
+    ) {
+        switch pointerFormat {
+        case .arm64e:
+            self = .arm64e(.init(rawValue: rawValue))
+        case .arm64e_kernel:
+            self = .arm64e_kernel(.init(rawValue: rawValue))
+        case .arm64e_userland:
+            self = .arm64e_userland(.init(rawValue: rawValue))
+        case .arm64e_firmware:
+            self = .arm64e_firmware(.init(rawValue: rawValue))
+        case .arm64e_userland24:
+            self = .arm64e_userland24(.init(rawValue: rawValue))
+        case .arm64e_shared_cache:
+            self = .arm64e_shared_cache(.init(rawValue: rawValue))
+        case .arm64e_segmented:
+            self = .arm64e_segmented(.init(rawValue: rawValue))
+        case ._64:
+            self = ._64(.init(rawValue: rawValue))
+        case ._64_offset:
+            self = ._64_offset(.init(rawValue: rawValue))
+        case ._64_kernel_cache:
+            self = ._64_kernel_cache(.init(rawValue: rawValue))
+        case .x86_64_kernel_cache:
+            self = .x86_64_kernel_cache(.init(rawValue: rawValue))
+        case ._32, ._32_cache, ._32_firmware:
+            return nil
+        }
+    }
+
+    init?(
+        rawValue: UInt32,
+        pointerFormat: DyldChainedFixupPointerFormat
+    ) {
+        switch pointerFormat {
+        case ._32:
+            self = ._32(.init(rawValue: rawValue))
+        case ._32_cache:
+            self = ._32_cache(.init(rawValue: rawValue))
+        case ._32_firmware:
+            self = ._32_firmware(.init(rawValue: rawValue))
+        default:
+            return nil
+        }
+    }
+}
+
+extension DyldChainedFixupPointerInfo {
     public var pointerFormat: DyldChainedFixupPointerFormat {
         switch self {
         case .arm64e: .arm64e
