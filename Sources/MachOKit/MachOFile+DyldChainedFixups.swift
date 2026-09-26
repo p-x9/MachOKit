@@ -67,6 +67,16 @@ extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
         let ptr = fileSlice.ptr
             .advanced(by: startsInImage.offset)
         return offsets.enumerated().map { index, offset in
+            // A segment with no fixups has `seg_info_offset` 0 (dyld skips
+            // it). Reading there would reinterpret the image-level header as
+            // this segment's starts, with a garbage `page_count`.
+            guard offset != 0 else {
+                return .init(
+                    layout: .init(),
+                    offset: startsInImage.offset,
+                    segmentIndex: index
+                )
+            }
             let layout = ptr.advanced(by: offset)
                 .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
                 .pointee
