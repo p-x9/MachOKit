@@ -401,7 +401,8 @@ extension LazyLoadDylib {
         )
         guard reachedEnd,
               pointers.allSatisfy({
-                  guard let bind = $0.fixupInfo.bind else { return false }
+                  // Rebases link the chain but do not refer to the lazy symbol table.
+                  guard let bind = $0.fixupInfo.bind else { return true }
                   return (0..<symbolsCount).contains(bind.ordinal)
               }) else { return nil }
         return pointers
