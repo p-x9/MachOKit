@@ -17,14 +17,7 @@ import Foundation
 /// - [ld64 Objective-C stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/objc_stubs.cpp#L147-L305)
 /// - [dyld Objective-C selector-reference parser](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/other-tools/SymbolicatedImage.cpp#L510-L536)
 enum StubDecoder {
-    struct ObjCStubLayout {
-        let size: Int
-        let branchOffset: Int
-    }
-
     private static let regularObjCStubSize = 32
-    private static let smallObjCStubSize = 12
-    private static let x86_64ObjCStubSize = 13
 
     static func decode(
         _ data: Data,
@@ -81,15 +74,21 @@ enum StubDecoder {
     static func objcStubLayout(
         in data: Data,
         cpuType: CPUType?
-    ) -> ObjCStubLayout? {
+    ) -> ObjCStubCollection.Layout {
         if cpuType == .x86_64 {
-            guard data.count >= x86_64ObjCStubSize else { return nil }
-            return .init(size: x86_64ObjCStubSize, branchOffset: 7)
+            return .x86_64
         }
         guard cpuType == .arm64 || cpuType == .arm64_32,
               let branch = word(in: data, at: 8) else {
-            return nil
+            return .unknown
         }
+
+        let regular: ObjCStubCollection.Layout = cpuType == .arm64
+            ? .arm64Regular
+            : .arm64_32Regular
+        let small: ObjCStubCollection.Layout = cpuType == .arm64
+            ? .arm64Small
+            : .arm64_32Small
 
         // The small ld64 form ends with an immediate branch. A regular stub
         // optimized by dyld can start the same way, but its remaining bytes
@@ -100,12 +99,12 @@ enum StubDecoder {
                    data.subdata(in: 8 ..< regularObjCStubSize),
                    after: MemoryLayout<UInt32>.size
                ) {
-                return .init(size: regularObjCStubSize, branchOffset: 8)
+                return regular
             }
-            return .init(size: smallObjCStubSize, branchOffset: 8)
+            return small
         }
 
-        return .init(size: regularObjCStubSize, branchOffset: 8)
+        return regular
     }
 }
 

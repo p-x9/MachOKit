@@ -7,7 +7,10 @@ import Foundation
 
 /// A decoded Objective-C message-send stub.
 public struct ObjCStub: Sendable, Equatable {
-    /// The decoded branch portion of the Objective-C stub.
+    /// The exact bytes occupied by this Objective-C stub entry.
+    public let rawData: Data
+
+    /// The stub entry and its decoded branch destination.
     public let stub: Stub
 
     /// The unslid virtual memory address of the selector-reference slot.
@@ -15,7 +18,12 @@ public struct ObjCStub: Sendable, Equatable {
     /// This is `nil` when the selector-loading instructions are not recognized.
     public let selectorReference: UInt64?
 
-    public init(stub: Stub, selectorReference: UInt64?) {
+    public init(
+        rawData: Data,
+        stub: Stub,
+        selectorReference: UInt64?
+    ) {
+        self.rawData = rawData
         self.stub = stub
         self.selectorReference = selectorReference
     }

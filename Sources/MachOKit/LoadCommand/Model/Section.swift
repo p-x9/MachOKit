@@ -61,29 +61,37 @@ public protocol SectionProtocol: LayoutWrapper, Sendable {
     ///
     /// The returned addresses are unslid virtual memory addresses. A
     /// ``Stub/Branch/viaSlot(_:)`` result identifies the GOT or lazy pointer
-    /// slot; resolving the value stored in that slot is the caller's job.
-    func stubs(in machO: MachOImage) -> [Stub]?
+    /// slot; resolving the value stored in that slot is the caller's job. Raw
+    /// section bytes and any incomplete trailing entry are retained by the
+    /// returned collection.
+    func stubs(in machO: MachOImage) -> StubCollection?
 
     /// Decodes this `S_SYMBOL_STUBS` section.
     ///
     /// The returned addresses are unslid virtual memory addresses. A
     /// ``Stub/Branch/viaSlot(_:)`` result identifies the GOT or lazy pointer
-    /// slot; resolving the value stored in that slot is the caller's job.
-    func stubs(in machO: MachOFile) -> [Stub]?
+    /// slot; resolving the value stored in that slot is the caller's job. Raw
+    /// section bytes and any incomplete trailing entry are retained by the
+    /// returned collection.
+    func stubs(in machO: MachOFile) -> StubCollection?
 
     /// Decodes this arm64, arm64_32, or x86_64 `__objc_stubs` section.
     ///
     /// Selector names can be resolved lazily using ``ObjCStub/selector(in:)``.
+    /// An unrecognized entry layout is returned as
+    /// ``ObjCStubCollection/Layout/unknown`` without discarding the raw bytes.
     func objcStubs(
         in machO: MachOImage
-    ) -> [ObjCStub]?
+    ) -> ObjCStubCollection?
 
     /// Decodes this arm64, arm64_32, or x86_64 `__objc_stubs` section.
     ///
     /// Selector names can be resolved lazily using ``ObjCStub/selector(in:)``.
+    /// An unrecognized entry layout is returned as
+    /// ``ObjCStubCollection/Layout/unknown`` without discarding the raw bytes.
     func objcStubs(
         in machO: MachOFile
-    ) -> [ObjCStub]?
+    ) -> ObjCStubCollection?
 
     /// relocation informations.
     /// (contains only in object file (.o))

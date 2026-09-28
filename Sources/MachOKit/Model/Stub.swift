@@ -7,6 +7,9 @@ import Foundation
 
 /// A decoded Mach-O symbol stub.
 public struct Stub: Sendable, Equatable {
+    /// The exact bytes occupied by this stub or branch sequence.
+    public let rawData: Data
+
     /// The unslid virtual memory address of the stub.
     public let address: UInt64
 
@@ -23,13 +26,14 @@ public struct Stub: Sendable, Equatable {
     public let branch: Branch
 
     public init(
+        rawData: Data,
         address: UInt64,
-        size: Int,
         indirectSymbolIndex: Int?,
         branch: Branch
     ) {
+        self.rawData = rawData
         self.address = address
-        self.size = size
+        self.size = rawData.count
         self.indirectSymbolIndex = indirectSymbolIndex
         self.branch = branch
     }
