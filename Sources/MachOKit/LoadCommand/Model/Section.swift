@@ -32,6 +32,9 @@ public protocol SectionProtocol: LayoutWrapper, Sendable {
     /// Returns nil unless the section type is either .lazy_symbol_pointers, non_lazy_symbol_pointers, .lazy_dylib_symbol_pointers, or .symbol_stubs.
     var numberOfIndirectSymbols: Int? { get }
 
+    /// Size in bytes of each stub in an `S_SYMBOL_STUBS` section.
+    var stubSize: Int? { get }
+
     /// Get the pointer where this section starts
     /// - Parameters:
     ///   - vmaddrSlide: slide
@@ -54,6 +57,42 @@ public protocol SectionProtocol: LayoutWrapper, Sendable {
     /// - Returns: string table
     func strings(in machO: MachOFile) -> MachOFile.Strings?
 
+    /// Decodes this `S_SYMBOL_STUBS` section.
+    ///
+    /// The returned addresses are unslid virtual memory addresses. A
+    /// ``Stub/Branch/viaSlot(_:)`` result identifies the GOT or lazy pointer
+    /// slot; resolving the value stored in that slot is the caller's job. Raw
+    /// section bytes and any incomplete trailing entry are retained by the
+    /// returned collection.
+    func stubs(in machO: MachOImage) -> StubCollection?
+
+    /// Decodes this `S_SYMBOL_STUBS` section.
+    ///
+    /// The returned addresses are unslid virtual memory addresses. A
+    /// ``Stub/Branch/viaSlot(_:)`` result identifies the GOT or lazy pointer
+    /// slot; resolving the value stored in that slot is the caller's job. Raw
+    /// section bytes and any incomplete trailing entry are retained by the
+    /// returned collection.
+    func stubs(in machO: MachOFile) -> StubCollection?
+
+    /// Decodes this arm64, arm64_32, or x86_64 `__objc_stubs` section.
+    ///
+    /// Selector names can be resolved lazily using ``ObjCStub/selector(in:)``.
+    /// An unrecognized entry layout is returned as
+    /// ``ObjCStubCollection/Layout/unknown`` without discarding the raw bytes.
+    func objcStubs(
+        in machO: MachOImage
+    ) -> ObjCStubCollection?
+
+    /// Decodes this arm64, arm64_32, or x86_64 `__objc_stubs` section.
+    ///
+    /// Selector names can be resolved lazily using ``ObjCStub/selector(in:)``.
+    /// An unrecognized entry layout is returned as
+    /// ``ObjCStubCollection/Layout/unknown`` without discarding the raw bytes.
+    func objcStubs(
+        in machO: MachOFile
+    ) -> ObjCStubCollection?
+
     /// relocation informations.
     /// (contains only in object file (.o))
     ///
@@ -62,6 +101,10 @@ public protocol SectionProtocol: LayoutWrapper, Sendable {
     /// otool -r <path to object file>
     /// ```
     func relocations(in machO: MachOFile) -> DataSequence<Relocation>
+}
+
+extension SectionProtocol {
+    public var stubSize: Int? { nil }
 }
 
 extension SectionProtocol {
@@ -138,10 +181,16 @@ extension Section {
             return nil
         }
         if type == .symbol_stubs {
-            return numericCast(layout.size) / numericCast(layout.reserved2)
+            guard let stubSize, stubSize > 0 else { return nil }
+            return numericCast(layout.size) / stubSize
         } else {
             return numericCast(layout.size) / MemoryLayout<pointer_t>.size
         }
+    }
+
+    public var stubSize: Int? {
+        guard flags.type == .symbol_stubs, layout.reserved2 > 0 else { return nil }
+        return numericCast(layout.reserved2)
     }
 }
 
@@ -200,10 +249,16 @@ extension Section64 {
             return nil
         }
         if type == .symbol_stubs {
-            return numericCast(layout.size) / numericCast(layout.reserved2)
+            guard let stubSize, stubSize > 0 else { return nil }
+            return numericCast(layout.size) / stubSize
         } else {
             return numericCast(layout.size) / MemoryLayout<pointer_t>.size
         }
+    }
+
+    public var stubSize: Int? {
+        guard flags.type == .symbol_stubs, layout.reserved2 > 0 else { return nil }
+        return numericCast(layout.reserved2)
     }
 }
 
