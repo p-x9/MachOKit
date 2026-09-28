@@ -11,10 +11,10 @@ import Foundation
 /// Upstream implementations:
 ///
 /// - [dyld stub parser and optimizer](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/cache_builder/Optimizers.cpp#L352-L538)
-/// - [ld64 arm64 stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/stubs/stub_arm64.hpp#L309-L408)
-/// - [ld64 arm64e stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/stubs/stub_arm64e.hpp#L149-L251)
-/// - [ld64 x86_64 stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/stubs/stub_x86_64.hpp#L334-L430)
-/// - [ld64 Objective-C stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/objc_stubs.cpp#L147-L305)
+/// - [ld64 arm64 stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/stubs/stub_arm64.hpp#L309-L420)
+/// - [ld64 arm64e stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/stubs/stub_arm64e.hpp#L149-L263)
+/// - [ld64 x86_64 stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/stubs/stub_x86_64.hpp#L334-L442)
+/// - [ld64 Objective-C stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/objc_stubs.cpp#L144-L285)
 /// - [dyld Objective-C selector-reference parser](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/other-tools/SymbolicatedImage.cpp#L510-L536)
 enum StubDecoder {
     private static let regularObjCStubSize = 32
@@ -42,7 +42,7 @@ enum StubDecoder {
         cpuType: CPUType?
     ) -> UInt64? {
         // The instruction sequences are emitted by ld64:
-        // https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/objc_stubs.cpp#L164-L305
+        // https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/objc_stubs.cpp#L178-L285
         switch cpuType {
         case .arm64:
             return arm64SelectorReference(
