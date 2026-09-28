@@ -76,7 +76,6 @@ extension ObjCStubCollection: RandomAccessCollection {
         let address = address + UInt64(offset)
         let branchData = rawData.subdata(in: branchOffset ..< rawData.count)
         return .init(
-            rawData: rawData,
             stub: .init(
                 rawData: rawData,
                 address: address,
