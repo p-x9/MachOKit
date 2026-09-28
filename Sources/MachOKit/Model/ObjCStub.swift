@@ -10,7 +10,7 @@ public struct ObjCStub: Sendable, Equatable {
     /// The decoded branch portion of the Objective-C stub.
     public let stub: Stub
 
-    /// The unslid virtual memory address of the selector reference loaded into `x1`.
+    /// The unslid virtual memory address of the selector-reference slot.
     ///
     /// This is `nil` when the selector-loading instructions are not recognized.
     public let selectorReference: UInt64?
@@ -34,13 +34,22 @@ extension ObjCStub {
             return selector(in: fullCache)
         }
 
-        let referenceEnd = selectorReference + UInt64(MemoryLayout<UInt64>.size - 1)
+        let pointerSize = machO.is64Bit
+            ? MemoryLayout<UInt64>.size
+            : MemoryLayout<UInt32>.size
+        let referenceEnd = selectorReference + UInt64(pointerSize - 1)
         guard let relativeReferenceOffset = machO.fileOffset(of: selectorReference),
               machO.fileOffset(of: referenceEnd) != nil else {
             return nil
         }
         let referenceOffset = UInt64(machO.headerStartOffset) + relativeReferenceOffset
-        let rawTarget: UInt64 = machO.fileHandle.read(offset: referenceOffset)
+        let rawTarget: UInt64
+        if machO.is64Bit {
+            rawTarget = machO.fileHandle.read(offset: referenceOffset)
+        } else {
+            let value: UInt32 = machO.fileHandle.read(offset: referenceOffset)
+            rawTarget = UInt64(value)
+        }
 
         let target: UInt64
         if let rebased = machO.resolveRebase(at: relativeReferenceOffset) {
@@ -65,7 +74,10 @@ extension ObjCStub {
     /// Resolves the loaded selector reference and returns its selector name.
     public func selector(in machO: MachOImage) -> String? {
         guard let selectorReference else { return nil }
-        let referenceEnd = selectorReference + UInt64(MemoryLayout<UInt64>.size - 1)
+        let pointerSize = machO.is64Bit
+            ? MemoryLayout<UInt64>.size
+            : MemoryLayout<UInt32>.size
+        let referenceEnd = selectorReference + UInt64(pointerSize - 1)
         guard machO.contains(unslidAddress: selectorReference),
               machO.contains(unslidAddress: referenceEnd),
               let slide = machO.vmaddrSlide,
@@ -74,7 +86,12 @@ extension ObjCStub {
             return nil
         }
 
-        let target = reference.loadUnaligned(as: UInt64.self)
+        let target: UInt64
+        if machO.is64Bit {
+            target = reference.loadUnaligned(as: UInt64.self)
+        } else {
+            target = UInt64(reference.loadUnaligned(as: UInt32.self))
+        }
         let targetAddress = machO.stripPointerTags(of: target)
         // dyld may replace a selector reference with a canonical selector
         // string in the shared cache, outside this Mach-O image.

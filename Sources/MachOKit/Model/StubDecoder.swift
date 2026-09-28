@@ -10,8 +10,14 @@ import Foundation
 ///
 /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/cache_builder/Optimizers.cpp#L352-L538)
 enum StubDecoder {
+    struct ObjCStubLayout {
+        let size: Int
+        let branchOffset: Int
+    }
+
     private static let regularObjCStubSize = 32
     private static let smallObjCStubSize = 12
+    private static let x86_64ObjCStubSize = 13
 
     static func decode(
         _ data: Data,
@@ -32,24 +38,51 @@ enum StubDecoder {
 
     static func selectorReference(
         in data: Data,
-        stubAddress: UInt64
+        stubAddress: UInt64,
+        cpuType: CPUType?
     ) -> UInt64? {
-        // dyld uses the same ADRP/LDR pair to recover the selector reference:
-        // https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/other-tools/SymbolicatedImage.cpp#L510-L536
-        // The instruction sequences themselves are emitted by ld64:
-        // https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/objc_stubs.cpp#L216-L281
-        guard let adrp = word(in: data, at: 0),
-              adrp & 0x9F00_001F == 0x9000_0001,
-              let ldr = word(in: data, at: 4),
-              ldr & 0xFFC0_03FF == 0xF940_0021,
-              let page = adrpTarget(of: adrp, pc: stubAddress) else {
+        // The instruction sequences are emitted by ld64:
+        // https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/objc_stubs.cpp#L164-L305
+        switch cpuType {
+        case .arm64:
+            return arm64SelectorReference(
+                in: data,
+                stubAddress: stubAddress,
+                uses32BitPointers: false
+            )
+        case .arm64_32:
+            return arm64SelectorReference(
+                in: data,
+                stubAddress: stubAddress,
+                uses32BitPointers: true
+            )
+        case .x86_64:
+            guard data.count >= 7,
+                  data[0] == 0x48,
+                  data[1] == 0x8B,
+                  data[2] == 0x35,
+                  let displacement = signed32(in: data, at: 3),
+                  let nextInstruction = adding(UInt64(7), to: stubAddress) else {
+                return nil
+            }
+            return adding(displacement, to: nextInstruction)
+        default:
             return nil
         }
-        return adding(UInt64((ldr >> 10) & 0xFFF) * 8, to: page)
     }
 
-    static func objcStubSize(in data: Data) -> Int? {
-        guard let branch = word(in: data, at: 8) else { return nil }
+    static func objcStubLayout(
+        in data: Data,
+        cpuType: CPUType?
+    ) -> ObjCStubLayout? {
+        if cpuType == .x86_64 {
+            guard data.count >= x86_64ObjCStubSize else { return nil }
+            return .init(size: x86_64ObjCStubSize, branchOffset: 7)
+        }
+        guard cpuType == .arm64 || cpuType == .arm64_32,
+              let branch = word(in: data, at: 8) else {
+            return nil
+        }
 
         // The small ld64 form ends with an immediate branch. A regular stub
         // optimized by dyld can start the same way, but its remaining bytes
@@ -60,12 +93,33 @@ enum StubDecoder {
                    data.subdata(in: 8 ..< regularObjCStubSize),
                    after: MemoryLayout<UInt32>.size
                ) {
-                return regularObjCStubSize
+                return .init(size: regularObjCStubSize, branchOffset: 8)
             }
-            return smallObjCStubSize
+            return .init(size: smallObjCStubSize, branchOffset: 8)
         }
 
-        return regularObjCStubSize
+        return .init(size: regularObjCStubSize, branchOffset: 8)
+    }
+}
+
+extension StubDecoder {
+    private static func arm64SelectorReference(
+        in data: Data,
+        stubAddress: UInt64,
+        uses32BitPointers: Bool
+    ) -> UInt64? {
+        // dyld uses the same ADRP/LDR pair to recover the selector reference:
+        // https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/other-tools/SymbolicatedImage.cpp#L510-L536
+        let expectedLDR: UInt32 = uses32BitPointers ? 0xB940_0021 : 0xF940_0021
+        let scale: UInt64 = uses32BitPointers ? 4 : 8
+        guard let adrp = word(in: data, at: 0),
+              adrp & 0x9F00_001F == 0x9000_0001,
+              let ldr = word(in: data, at: 4),
+              ldr & 0xFFC0_03FF == expectedLDR,
+              let page = adrpTarget(of: adrp, pc: stubAddress) else {
+            return nil
+        }
+        return adding(UInt64((ldr >> 10) & 0xFFF) * scale, to: page)
     }
 }
 

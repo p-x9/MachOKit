@@ -68,16 +68,19 @@ extension SectionProtocol {
         data: Data,
         cpuType: CPUType?
     ) -> [ObjCStub]? {
-        guard cpuType == .arm64,
-              sectionName == "__objc_stubs",
-              let stubSize = StubDecoder.objcStubSize(in: data),
+        guard sectionName == "__objc_stubs",
+              let layout = StubDecoder.objcStubLayout(
+                  in: data,
+                  cpuType: cpuType
+              ),
               size >= 0,
-              size.isMultiple(of: stubSize),
+              size.isMultiple(of: layout.size),
               data.count == size,
               let sectionAddress = UInt64(exactly: address),
               !sectionAddress.addingReportingOverflow(UInt64(size)).overflow else {
             return nil
         }
+        let stubSize = layout.size
 
         var result: [ObjCStub] = []
         result.reserveCapacity(data.count / stubSize)
@@ -86,9 +89,10 @@ extension SectionProtocol {
             let bytes = data.subdata(in: offset ..< offset + stubSize)
             let selectorReference = StubDecoder.selectorReference(
                 in: bytes,
-                stubAddress: address
+                stubAddress: address,
+                cpuType: cpuType
             )
-            let branchBytes = bytes.subdata(in: 8 ..< bytes.count)
+            let branchBytes = bytes.subdata(in: layout.branchOffset ..< bytes.count)
             result.append(.init(
                 stub: .init(
                     address: address,
@@ -96,7 +100,7 @@ extension SectionProtocol {
                     indirectSymbolIndex: nil,
                     branch: StubDecoder.decode(
                         branchBytes,
-                        address: address + 8,
+                        address: address + UInt64(layout.branchOffset),
                         cpuType: cpuType
                     )
                 ),

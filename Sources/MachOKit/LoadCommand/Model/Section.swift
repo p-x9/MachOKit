@@ -71,14 +71,14 @@ public protocol SectionProtocol: LayoutWrapper, Sendable {
     /// slot; resolving the value stored in that slot is the caller's job.
     func stubs(in machO: MachOFile) -> [Stub]?
 
-    /// Decodes this arm64 `__objc_stubs` section.
+    /// Decodes this arm64, arm64_32, or x86_64 `__objc_stubs` section.
     ///
     /// Selector names can be resolved lazily using ``ObjCStub/selector(in:)``.
     func objcStubs(
         in machO: MachOImage
     ) -> [ObjCStub]?
 
-    /// Decodes this arm64 `__objc_stubs` section.
+    /// Decodes this arm64, arm64_32, or x86_64 `__objc_stubs` section.
     ///
     /// Selector names can be resolved lazily using ``ObjCStub/selector(in:)``.
     func objcStubs(
