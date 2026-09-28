@@ -75,6 +75,48 @@ final class MachOPrintTests: XCTestCase {
         }
     }
 
+    func testStubs() {
+        func printStub(_ stub: Stub) {
+            print("--")
+            print("Address:", "0x" + String(stub.address, radix: 16))
+            print("Size:", stub.size)
+            if let index = stub.indirectSymbolIndex {
+                print("IndirectSymbolIndex:", index)
+            }
+            switch stub.branch {
+            case let .viaSlot(address):
+                print("Branch: via slot", "0x" + String(address, radix: 16))
+            case let .direct(address):
+                print("Branch: direct", "0x" + String(address, radix: 16))
+            case .unknown:
+                print("Branch: unknown")
+            }
+        }
+
+        for section in machO.sections {
+            if section.flags.type == .symbol_stubs,
+               let stubs = section.stubs(in: machO) {
+                print("----")
+                print("Section:", "\(section.segmentName).\(section.sectionName)")
+                for stub in stubs {
+                    printStub(stub)
+                }
+            } else if section.sectionName == "__objc_stubs",
+                      let stubs = section.objcStubs(in: machO) {
+                print("----")
+                print("Section:", "\(section.segmentName).\(section.sectionName)")
+                for objcStub in stubs {
+                    printStub(objcStub.stub)
+                    print(
+                        "SelectorReference:",
+                        "0x" + String(objcStub.selectorReference, radix: 16)
+                    )
+                    print("Selector:", objcStub.selector(in: machO) ?? "unknown")
+                }
+            }
+        }
+    }
+
     func testExternalRelocations() {
         guard let relocations = machO.externalRelocations else {
             return
