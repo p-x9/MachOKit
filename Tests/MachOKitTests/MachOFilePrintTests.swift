@@ -132,7 +132,9 @@ final class MachOFilePrintTests: XCTestCase {
                     printStub(objcStub.stub)
                     print(
                         "SelectorReference:",
-                        "0x" + String(objcStub.selectorReference, radix: 16)
+                        objcStub.selectorReference.map {
+                            "0x" + String($0, radix: 16)
+                        } ?? "unknown"
                     )
                     print("Selector:", objcStub.selector(in: machO) ?? "unknown")
                 }

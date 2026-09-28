@@ -10,7 +10,8 @@ import Foundation
 ///
 /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/cache_builder/Optimizers.cpp#L352-L538)
 enum StubDecoder {
-    static let objcStubSize = 32
+    private static let regularObjCStubSize = 32
+    private static let smallObjCStubSize = 12
 
     static func decode(
         _ data: Data,
@@ -45,6 +46,26 @@ enum StubDecoder {
             return nil
         }
         return adding(UInt64((ldr >> 10) & 0xFFF) * 8, to: page)
+    }
+
+    static func objcStubSize(in data: Data) -> Int? {
+        guard let branch = word(in: data, at: 8) else { return nil }
+
+        // The small ld64 form ends with an immediate branch. A regular stub
+        // optimized by dyld can start the same way, but its remaining bytes
+        // are BRK/NOP padding up to the regular 32-byte entry size.
+        if branch & 0xFC00_0000 == 0x1400_0000 {
+            if data.count >= regularObjCStubSize,
+               hasOnlyArm64Padding(
+                   data.subdata(in: 8 ..< regularObjCStubSize),
+                   after: MemoryLayout<UInt32>.size
+               ) {
+                return regularObjCStubSize
+            }
+            return smallObjCStubSize
+        }
+
+        return regularObjCStubSize
     }
 }
 
@@ -91,12 +112,14 @@ extension StubDecoder {
         }
 
         // arm64 and arm64_32 conventional forms:
-        // ADRP X16; LDR X16/W16, [X16, #off]; BR X16.
+        // ADRP X16; LDR X16/W16, [X16, #off]; BR X16/BRAAZ X16.
+        // The BRAAZ form authenticates only the branch target; the GOT load
+        // itself remains unauthenticated.
         let expectedLDR: UInt32 = uses32BitPointers ? 0xB940_0210 : 0xF940_0210
         let scale: UInt64 = uses32BitPointers ? 4 : 8
         if first & 0x9F00_001F == 0x9000_0010,
            second & 0xFFC0_03FF == expectedLDR,
-           third == 0xD61F_0200,
+           (third == 0xD61F_0200 || third == 0xD61F_0A1F),
            let page = adrpTarget(of: first, pc: address),
            let slot = adding(UInt64((second >> 10) & 0xFFF) * scale, to: page) {
             return .viaSlot(slot)

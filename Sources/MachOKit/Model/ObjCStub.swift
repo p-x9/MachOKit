@@ -11,9 +11,11 @@ public struct ObjCStub: Sendable, Equatable {
     public let stub: Stub
 
     /// The unslid virtual memory address of the selector reference loaded into `x1`.
-    public let selectorReference: UInt64
+    ///
+    /// This is `nil` when the selector-loading instructions are not recognized.
+    public let selectorReference: UInt64?
 
-    public init(stub: Stub, selectorReference: UInt64) {
+    public init(stub: Stub, selectorReference: UInt64?) {
         self.stub = stub
         self.selectorReference = selectorReference
     }
@@ -22,6 +24,7 @@ public struct ObjCStub: Sendable, Equatable {
 extension ObjCStub {
     /// Resolves the selector reference and returns its selector name.
     public func selector(in machO: MachOFile) -> String? {
+        guard let selectorReference else { return nil }
         if machO.isLoadedFromDyldCache {
             if let cache = machO.cache,
                let selector = selector(in: cache) {
@@ -61,6 +64,7 @@ extension ObjCStub {
 
     /// Resolves the loaded selector reference and returns its selector name.
     public func selector(in machO: MachOImage) -> String? {
+        guard let selectorReference else { return nil }
         let referenceEnd = selectorReference + UInt64(MemoryLayout<UInt64>.size - 1)
         guard machO.contains(unslidAddress: selectorReference),
               machO.contains(unslidAddress: referenceEnd),
@@ -85,10 +89,11 @@ extension ObjCStub {
     private func selector<Cache: _DyldCacheFileRepresentable>(
         in cache: Cache
     ) -> String? {
+        guard let selectorReference else { return nil }
         guard let referenceOffset = cache.fileOffset(of: selectorReference),
               let target = cache._resolveRebase(
                   at: referenceOffset,
-                  skipsZeroValue: false
+                  skipsZeroValue: true
               ),
               let stringOffset = cache.fileOffset(of: target) else {
             return nil

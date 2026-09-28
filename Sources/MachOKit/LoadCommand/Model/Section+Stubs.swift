@@ -68,9 +68,9 @@ extension SectionProtocol {
         data: Data,
         cpuType: CPUType?
     ) -> [ObjCStub]? {
-        let stubSize = StubDecoder.objcStubSize
         guard cpuType == .arm64,
               sectionName == "__objc_stubs",
+              let stubSize = StubDecoder.objcStubSize(in: data),
               size >= 0,
               size.isMultiple(of: stubSize),
               data.count == size,
@@ -84,12 +84,10 @@ extension SectionProtocol {
         for offset in stride(from: 0, to: data.count, by: stubSize) {
             let address = sectionAddress + UInt64(offset)
             let bytes = data.subdata(in: offset ..< offset + stubSize)
-            guard let selectorReference = StubDecoder.selectorReference(
+            let selectorReference = StubDecoder.selectorReference(
                 in: bytes,
                 stubAddress: address
-            ) else {
-                return nil
-            }
+            )
             let branchBytes = bytes.subdata(in: 8 ..< bytes.count)
             result.append(.init(
                 stub: .init(
