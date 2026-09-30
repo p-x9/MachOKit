@@ -98,7 +98,7 @@ extension ObjCStub {
         guard let pointer = UnsafePointer<CChar>(bitPattern: UInt(targetAddress)) else {
             return nil
         }
-        return String(validatingCString: pointer)
+        return String(validatingUTF8: pointer)
     }
 }
 
