@@ -144,7 +144,7 @@ extension ThreadCommand {
             if let flavor {
                 return .arm(flavor)
             }
-        case .i386, .x86:
+        case .i386:
             let flavor = i386ThreadStateFlavor(rawValue: rawValue)
             if let flavor {
                 return .i386(flavor)
@@ -203,7 +203,7 @@ extension ThreadCommand {
                 $0.load(as: ARM64ThreadState.self)
             }
             return .arm64(state)
-        case .i386, .x86:
+        case .i386:
             guard data.count == i386ThreadState.layoutSize else {
                 return nil
             }

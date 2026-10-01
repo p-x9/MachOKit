@@ -376,6 +376,11 @@ inline int CPU_SUBTYPE_INTEL_MODEL(cpu_subtype_t subtype) {
 #define CPU_SUBTYPE_ARM64_ALL           ((cpu_subtype_t) 0)
 #define CPU_SUBTYPE_ARM64_V8            ((cpu_subtype_t) 1)
 #define CPU_SUBTYPE_ARM64E              ((cpu_subtype_t) 2)
+/* The non-e x1 is defined in other tooling, but it's otherwise unused. */
+#define CPU_SUBTYPE_ARM64_X1            ((cpu_subtype_t) 3)
+#define CPU_SUBTYPE_ARM64E_X1           ((cpu_subtype_t) 12)
+/* Unallocated values upto CPU_SUBTYPE_ARM64_MAX (inclusive) are reserved. */
+#define CPU_SUBTYPE_ARM64_MAX           ((cpu_subtype_t) 20)
 
 /* CPU subtype feature flags for ptrauth on arm64e platforms */
 #define CPU_SUBTYPE_ARM64_PTR_AUTH_MASK ((cpu_subtype_t) 0x0f000000)

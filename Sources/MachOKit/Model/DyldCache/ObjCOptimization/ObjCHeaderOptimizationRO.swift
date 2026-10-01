@@ -204,13 +204,14 @@ extension ObjCHeaderOptimizationROProtocol {
     public func headerInfo(
         in cache: DyldCache, for machO: MachOFile
     ) -> HeaderInfo? {
-        guard machO.headerStartOffsetInCache > 0 else {
+        guard machO.headerStartOffsetInCache > 0,
+              let cacheForMachO = machO.cache else {
             return nil
         }
         return headerInfos(in: cache)?
             .first(
                 where: {
-                    guard let offset = $0.resolvedMachOHeaderOffset(in: cache) else {
+                    guard let offset = $0.resolvedMachOHeaderOffset(in: cacheForMachO) else {
                         return false
                     }
                     return machO.headerStartOffsetInCache == offset
@@ -235,7 +236,7 @@ extension ObjCHeaderOptimizationROProtocol {
                     guard let offset = $0.resolvedMachOHeaderOffset(
                         in: cache
                     ),
-                          let (url, segment) = cache.urlAndFileSegment(forOffset: offset) else {
+                          let (url, segment) = cache.urlAndFileSegment(forFileOffset: offset) else {
                         return false
                     }
                     return machO.headerStartOffsetInCache == Int(offset) - segment.offset && machO.url == url

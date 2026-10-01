@@ -19,7 +19,7 @@ public enum RelocationType: Sendable {
 extension RelocationType {
     init?(rawValue: UInt32, for cpuType: CPUType) {
         switch cpuType {
-        case .x86:
+        case .i386:
             guard let type = GenericRelocationType(rawValue: rawValue) else {
                 return nil
             }

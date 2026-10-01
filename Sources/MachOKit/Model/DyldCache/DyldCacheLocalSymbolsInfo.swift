@@ -87,7 +87,7 @@ extension DyldCacheLocalSymbolsInfo {
     /// - Returns: Sequence of symbols
     public func symbols64(in cache: FullDyldCache) -> MachOFile.Symbols64? {
         guard let cache = cache.cache(
-            forOffset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset)
+            forFileOffset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset)
         ) else {
             return nil
         }
@@ -99,7 +99,7 @@ extension DyldCacheLocalSymbolsInfo {
     /// - Returns: Sequence of symbols
     public func symbols32(in cache: FullDyldCache) -> MachOFile.Symbols? {
         guard let cache = cache.cache(
-            forOffset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset)
+            forFileOffset: cache.header.localSymbolsOffset + numericCast(layout.stringsOffset)
         ) else {
             return nil
         }

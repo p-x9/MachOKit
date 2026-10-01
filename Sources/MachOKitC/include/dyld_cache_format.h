@@ -117,7 +117,22 @@ struct dyld_cache_header
     uint64_t    functionVariantInfoSize;// Size of all of the variant information pointed to via the dyld_cache_function_variant_info
     uint64_t    prewarmingDataOffset;   // file offset to dyld_prewarming_header
     uint64_t    prewarmingDataSize;     // byte size of prewarming data
+    int32_t     cputype;                // CPU_TYPE_* of the images in this cache (cpu_type_t)
+    int32_t     cpusubtype;             // CPU_SUBTYPE_* of the images in this cache (cpu_subtype_t)
+    uint64_t    reserved0;              // observed zero in every macOS 27 cache file
 };
+
+// NOTE: `cputype` / `cpusubtype` / `reserved0` are not yet published in dyld's
+// own dyld_cache_format.h. They are recovered from the macOS 27.0 (26A428)
+// caches, where `mappingOffset` grew from 0x228 to 0x238 and the 16 bytes at
+// 0x228 read 0x0100000C / 0x8000000C followed by 8 zero bytes in all 80 cache
+// files -- the main cache and its 79 subcaches. That pair is exactly the
+// cputype/cpusubtype of the Mach-O images inside them. Apple added these
+// because the architecture can no longer be encoded in `magic`: the field is
+// 16 bytes, "dyld_v1" takes 7, and "arm64ex1" fills the remaining 8 exactly,
+// so a longer name would not fit -- and <mach/machine.h> reserves every
+// unallocated subtype up to CPU_SUBTYPE_ARM64_MAX for future slices.
+// The names are this project's; re-check them once dyld's sources ship.
 
 // Uncomment this and check the build errors for the current mapping offset to check against when adding new fields.
 // template<size_t size> class A { int x[-size]; }; A<sizeof(dyld_cache_header)> a;

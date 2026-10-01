@@ -34,6 +34,7 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
     /// URL of loaded dyld cache file
     public let url: URL
     let fileHandle: File
+    let _fileHandleIdentity: FileHandleIdentityBox
 
     // Retain the cache to which `self` belongs
     internal var _fullCache: FullDyldCache?
@@ -53,7 +54,8 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
 
     /// Target CPU info.
     ///
-    /// It is obtained based on magic.
+    /// It is read from the header's architecture fields when present,
+    /// otherwise it is recovered from the header magic.
     public let cpu: CPU
 
     private var _mainCacheHeader: DyldCacheHeader?
@@ -77,6 +79,9 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
             isWritable: false
         )
         self.fileHandle = fileHandle
+        self._fileHandleIdentity = FileHandleIdentityStore.identity(
+            for: fileHandle
+        )
 
         // read header
         self.header = try! fileHandle.read(
@@ -88,14 +93,10 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
             throw MachOKitError.invalidMagic
         }
 
-        guard let cpuType = header._cpuType,
-              let cpuSubType = header._cpuSubType else {
+        guard let cpu = header._resolvedCPU else {
             throw MachOKitError.invalidCpuType
         }
-        self.cpu = .init(
-            typeRawValue: cpuType.rawValue,
-            subtypeRawValue: cpuSubType.rawValue
-        )
+        self.cpu = cpu
     }
 
     /// Load sub dyld cache
@@ -132,6 +133,9 @@ public class DyldCache: DyldCacheRepresentable, _DyldCacheFileRepresentable {
         mainCacheHeader: DyldCacheHeader? = nil
     ) {
         self.fileHandle = fileHandle
+        self._fileHandleIdentity = FileHandleIdentityStore.identity(
+            for: fileHandle
+        )
         self.url = url
         self.header = header ?? (
             try! fileHandle.read(
@@ -172,6 +176,16 @@ extension DyldCache {
             .deletingPathExtension()
         _fullCache = try? .init(url: url)
         return _fullCache
+    }
+}
+
+extension DyldCache {
+    /// The cached `FullDyldCache`, if one is already associated with this cache.
+    ///
+    /// Unlike ``fullCache``, this property does not lazily create or load a full cache.
+    @_spi(Support)
+    public var _cachedFullCache: FullDyldCache? {
+        _fullCache
     }
 }
 

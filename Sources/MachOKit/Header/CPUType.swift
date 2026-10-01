@@ -15,8 +15,6 @@ public enum CPUType: Sendable, Equatable, CaseIterable {
     case vax
     /// CPU_TYPE_MC680x0
     case mc680x0
-    /// CPU_TYPE_X86
-    case x86
     /// CPU_TYPE_I386
     case i386
     /// CPU_TYPE_X86_64
@@ -51,7 +49,6 @@ extension CPUType: RawRepresentable {
         case RawValue(CPU_TYPE_ANY): self = .any
         case RawValue(CPU_TYPE_VAX): self = .vax
         case RawValue(CPU_TYPE_MC680x0): self = .mc680x0
-        case RawValue(CPU_TYPE_X86): self = .x86
         case RawValue(CPU_TYPE_I386): self = .i386
         case RawValue(CPU_TYPE_X86_64): self = .x86_64
         case RawValue(CPU_TYPE_MC98000): self = .mc98000
@@ -74,7 +71,6 @@ extension CPUType: RawRepresentable {
         case .any: RawValue(CPU_TYPE_ANY)
         case .vax: RawValue(CPU_TYPE_VAX)
         case .mc680x0: RawValue(CPU_TYPE_MC680x0)
-        case .x86: RawValue(CPU_TYPE_X86)
         case .i386: RawValue(CPU_TYPE_I386)
         case .x86_64: RawValue(CPU_TYPE_X86_64)
         case .mc98000: RawValue(CPU_TYPE_MC98000)
@@ -97,7 +93,6 @@ extension CPUType: CustomStringConvertible {
         case .any: "CPU_TYPE_ANY"
         case .vax: "CPU_TYPE_VAX"
         case .mc680x0: "CPU_TYPE_MC680x0"
-        case .x86: "CPU_TYPE_X86"
         case .i386: "CPU_TYPE_I386"
         case .x86_64: "CPU_TYPE_X86_64"
         case .mc98000: "CPU_TYPE_MC98000"
@@ -116,11 +111,13 @@ extension CPUType: CustomStringConvertible {
 
 extension CPUType {
     public var is64Bit: Bool {
-        rawValue & CPU_ARCH_ABI64 != 0
+        guard self != .any else { return false }
+        return rawValue & CPU_ARCH_ABI64 != 0
     }
 
     public var is64BitHardwareWith32BitType: Bool {
-        rawValue & CPU_ARCH_ABI64_32 != 0
+        guard self != .any else { return false }
+        return rawValue & CPU_ARCH_ABI64_32 != 0
     }
 }
 
@@ -128,18 +125,8 @@ extension CPUType {
 extension CPUType {
     /// CPU type of host pc
     public static var current: CPUType? {
-        var type: cpu_type_t = 0
-        var size = MemoryLayout<cpu_type_t>.size
-        let ret = sysctlbyname("hw.cputype", &type, &size, nil, 0)
-        guard ret != -1 else { return nil }
-
-        var is64BitCapable: Int = 0
-        sysctlbyname("hw.cpu64bit_capable", &is64BitCapable, &size, nil, 0)
-        if is64BitCapable == 1 {
-            type |= CPU_ARCH_ABI64
-        }
-
-        return .init(rawValue: type)
+        guard let rawValue = CPU._currentTypeRawValue else { return nil }
+        return .init(rawValue: rawValue)
     }
 }
 #endif

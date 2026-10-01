@@ -7,7 +7,6 @@ extension CPUType: ReadableDescriptionConvertible {
         case .any: "Any"
         case .vax: "VAX"
         case .mc680x0: "Motorola 68000"
-        case .x86: "x86"
         case .i386: "Intel 386"
         case .x86_64: "x86-64"
         case .mc98000: "Motorola 98000"
@@ -214,6 +213,8 @@ extension CPUARM64SubType: ReadableDescriptionConvertible {
         case .arm64_all: "ARM64 All"
         case .arm64_v8: "ARM64 v8"
         case .arm64e: "ARM64e"
+        case .arm64_x1: "ARM64 x1"
+        case .arm64e_x1: "ARM64e x1"
         }
     }
 }

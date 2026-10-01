@@ -154,7 +154,7 @@ extension ObjCHeaderInfoRO64 {
         in cache: FullDyldCache
     ) -> MachOFile? {
         guard let offset = resolvedMachOHeaderOffset(in: cache),
-              let (_cache, segment) = cache.cacheAndFileSegment(forOffset: offset) else {
+              let (_cache, segment) = cache.cacheAndFileSegment(forFileOffset: offset) else {
             return nil
         }
         let imagePath = imagePath(in: cache)
@@ -262,7 +262,7 @@ extension ObjCHeaderInfoRO32 {
         in cache: FullDyldCache
     ) -> MachOFile? {
         guard let offset = resolvedMachOHeaderOffset(in: cache),
-              let (_cache, segment) = cache.cacheAndFileSegment(forOffset: offset) else {
+              let (_cache, segment) = cache.cacheAndFileSegment(forFileOffset: offset) else {
             return nil
         }
         let imagePath = imagePath(in: cache)

@@ -24,6 +24,7 @@ public class MachOFile: MachORepresentable {
     private let _imagePath: String?
 
     let fileHandle: File
+    let _fileHandleIdentity: FileHandleIdentityBox
 
     // Retain the cache to which `self` belongs
     private var _fullCache: FullDyldCache?
@@ -137,6 +138,9 @@ public class MachOFile: MachORepresentable {
         self.url = url
         self._imagePath = imagePath
         self.fileHandle = fileHandle
+        self._fileHandleIdentity = FileHandleIdentityStore.identity(
+            for: fileHandle
+        )
         self._cache = cache
 
         self.headerStartOffset = headerStartOffset
@@ -538,6 +542,27 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    /// Dylibs described by `LC_LAZY_LOAD_DYLIB_INFO` commands.
+    public var lazyLoadDylibs: [LazyLoadDylib] {
+        loadCommands.lazyLoadDylibInfos.compactMap { command in
+            guard command.datasize >= UInt32(LazyLoadDylib.layoutSize),
+                  let data = _readLinkEditData(
+                    offset: numericCast(command.dataoff),
+                    length: LazyLoadDylib.layoutSize
+                  ) else {
+                return nil
+            }
+            guard let lazyLoad = LazyLoadDylib(
+                data: data,
+                dataOffset: numericCast(command.dataoff),
+                dataSize: numericCast(command.datasize)
+            ) else { return nil }
+            return isSwapped ? lazyLoad.swapped : lazyLoad
+        }
+    }
+}
+
+extension MachOFile {
     public var externalRelocations: DataSequence<Relocation>? {
         guard let dysymtab = loadCommands.dysymtab else {
             return nil
@@ -618,18 +643,17 @@ extension MachOFile {
     ///
     /// This property attempts to lazily load the dyld cache based on the file URL.
     /// - If `_cache` has already been set, that value is returned.
-    /// - If `fullCache` is available, the corresponding subcache for this file URL is returned.
+    /// - If `_fullCache` has already been set, the corresponding subcache for this file URL is returned.
     /// - Otherwise, this attempts to initialize a new `DyldCache` using the file URL.
     ///
     /// This is mainly used when the Mach-O file originates from a dyld shared cache and requires
     /// access to symbols, sections, or other data spread across subcaches.
     public var cache: DyldCache? {
         if let _cache { return _cache }
-        if let fullCache {
-            return fullCache.cache(for: url)
+        if let _fullCache {
+            return _fullCache.cache(for: url)
         }
         _cache = try? .init(url: url)
-        _cache?._fullCache = _fullCache
         return _cache
     }
 
@@ -655,6 +679,30 @@ extension MachOFile {
         )
         _cache?._fullCache = _fullCache
         return _fullCache
+    }
+}
+
+extension MachOFile {
+    /// The cached or cheaply recoverable `DyldCache`, if one is already associated with this file.
+    ///
+    /// Unlike ``cache``, this property does not load a `FullDyldCache` or open a cache file.
+    /// If `_fullCache` is already associated with this file, this may assemble a `DyldCache`
+    /// wrapper from the existing file handles and preloaded headers.
+    @_spi(Support)
+    public var _cachedCache: DyldCache? {
+        if let _cache { return _cache }
+        if let _fullCache {
+            return _fullCache.cache(for: url)
+        }
+        return nil
+    }
+
+    /// The cached `FullDyldCache`, if one is already associated with this file.
+    ///
+    /// Unlike ``fullCache``, this property does not lazily create or load a full cache.
+    @_spi(Support)
+    public var _cachedFullCache: FullDyldCache? {
+        _fullCache ?? _cache?._fullCache
     }
 }
 
@@ -726,10 +774,22 @@ extension MachOFile {
         offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
         length: Int
     ) -> File.FileSlice? {
+        guard offset >= 0, length >= 0 else { return nil }
+
         let text: (any SegmentCommandProtocol)? = loadCommands.text64 ?? loadCommands.text
         let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
-        guard let text, let linkedit else { return nil }
-        guard linkedit.fileOffset + linkedit.fileSize >= offset + length else { return nil }
+
+        guard let text, let linkedit,
+              let fileRange = linkedit.fileRange else {
+            return nil
+        }
+
+        let (end, overflow) = offset.addingReportingOverflow(length)
+        guard !overflow,
+              fileRange.lowerBound <= UInt64(offset),
+              UInt64(end) <= fileRange.upperBound else {
+            return nil
+        }
 
         let maxFileOffsetToCheck = text.fileOffset + linkedit.virtualMemoryAddress - text.virtualMemoryAddress
         let isWithinFileRange: Bool = fileHandle.size >= maxFileOffsetToCheck
@@ -750,7 +810,7 @@ extension MachOFile {
                     of: numericCast(linkedit.virtualMemoryAddress + offset)
                   ),
                   let segment = fullCache.fileSegment(
-                    forOffset: fileOffset
+                    forFileOffset: fileOffset
                   ) else {
                 return nil
             }

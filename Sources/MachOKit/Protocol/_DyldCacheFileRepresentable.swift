@@ -32,8 +32,9 @@ extension _DyldCacheFileRepresentable {
     public func mappingInfo(for address: UInt64) -> DyldCacheMappingInfo? {
         guard let mappings = mappingInfos else { return nil }
         for mapping in mappings {
-            if mapping.address <= address,
-               address < mapping.address + mapping.size {
+            let start = mapping.address
+            if start <= address,
+               address - start < mapping.size {
                 return mapping
             }
         }
@@ -46,8 +47,9 @@ extension _DyldCacheFileRepresentable {
     ) -> DyldCacheMappingInfo? {
         guard let mappings = mappingInfos else { return nil }
         for mapping in mappings {
-            if mapping.fileOffset <= offset,
-               offset < mapping.fileOffset + mapping.size {
+            let start = mapping.fileOffset
+            if start <= offset,
+               offset - start < mapping.size {
                 return mapping
             }
         }
@@ -60,8 +62,9 @@ extension _DyldCacheFileRepresentable {
     ) -> DyldCacheMappingAndSlideInfo? {
         guard let mappings = mappingAndSlideInfos else { return nil }
         for mapping in mappings {
-            if mapping.address <= address,
-               address < mapping.address + mapping.size {
+            let start = mapping.address
+            if start <= address,
+               address - start < mapping.size {
                 return mapping
             }
         }
@@ -74,8 +77,9 @@ extension _DyldCacheFileRepresentable {
     ) -> DyldCacheMappingAndSlideInfo? {
         guard let mappings = mappingAndSlideInfos else { return nil }
         for mapping in mappings {
-            if mapping.fileOffset <= offset,
-               offset < mapping.fileOffset + mapping.size {
+            let start = mapping.fileOffset
+            if start <= offset,
+               offset - start < mapping.size {
                 return mapping
             }
         }

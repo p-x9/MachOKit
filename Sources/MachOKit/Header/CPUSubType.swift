@@ -35,17 +35,16 @@ public enum CPUSubType: Sendable, Equatable {
                 return nil
             }
             self = .mc680x0(subtype)
-        case .x86:
-            guard let subtype = CPUX86SubType(rawValue: rawValue) else {
-                return nil
-            }
-            self = .x86(subtype)
         case .i386:
             guard let subtype = CPUI386SubType(rawValue: rawValue) else {
                 return nil
             }
             self = .i386(subtype)
         case .x86_64:
+            if rawValue == CPU_SUBTYPE_X86_64_ALL {
+                self = .x86(.x86_64_all)
+                return
+            }
             guard let subtype = CPUX86SubType(rawValue: rawValue) else {
                 return nil
             }
@@ -997,6 +996,10 @@ public enum CPUARM64SubType: Sendable, Equatable {
     case arm64_v8
     /// CPU_SUBTYPE_ARM64E
     case arm64e
+    /// CPU_SUBTYPE_ARM64_X1
+    case arm64_x1
+    /// CPU_SUBTYPE_ARM64E_X1
+    case arm64e_x1
 }
 
 extension CPUARM64SubType: RawRepresentable {
@@ -1007,6 +1010,8 @@ extension CPUARM64SubType: RawRepresentable {
         case CPU_SUBTYPE_ARM64_ALL: self = .arm64_all
         case CPU_SUBTYPE_ARM64_V8: self = .arm64_v8
         case CPU_SUBTYPE_ARM64E: self = .arm64e
+        case CPU_SUBTYPE_ARM64_X1: self = .arm64_x1
+        case CPU_SUBTYPE_ARM64E_X1: self = .arm64e_x1
         default: return nil
         }
     }
@@ -1016,6 +1021,8 @@ extension CPUARM64SubType: RawRepresentable {
         case .arm64_all: CPU_SUBTYPE_ARM64_ALL
         case .arm64_v8: CPU_SUBTYPE_ARM64_V8
         case .arm64e: CPU_SUBTYPE_ARM64E
+        case .arm64_x1: CPU_SUBTYPE_ARM64_X1
+        case .arm64e_x1: CPU_SUBTYPE_ARM64E_X1
         }
     }
 }
@@ -1026,6 +1033,8 @@ extension CPUARM64SubType: CustomStringConvertible {
         case .arm64_all: "CPU_SUBTYPE_ARM64_ALL"
         case .arm64_v8: "CPU_SUBTYPE_ARM64_V8"
         case .arm64e: "CPU_SUBTYPE_ARM64E"
+        case .arm64_x1: "CPU_SUBTYPE_ARM64_X1"
+        case .arm64e_x1: "CPU_SUBTYPE_ARM64E_X1"
         }
     }
 
@@ -1071,14 +1080,7 @@ extension CPUARM64_32SubType: CustomStringConvertible {
 extension CPUSubType {
     /// CPU subtype of host pc
     public static var current: CPUSubType? {
-        guard let cpuType: CPUType = .current else {
-            return nil
-        }
-        var subtype: cpu_type_t = 0
-        var size = MemoryLayout<cpu_type_t>.size
-        let ret = sysctlbyname("hw.cpusubtype", &subtype, &size, nil, 0)
-        guard ret != -1 else { return  nil }
-        return .init(rawValue: subtype, of: cpuType)
+        CPU.current?.subtype
     }
 }
 #endif

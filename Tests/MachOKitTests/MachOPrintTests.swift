@@ -75,6 +75,50 @@ final class MachOPrintTests: XCTestCase {
         }
     }
 
+    func testStubs() {
+        func printStub(_ stub: Stub) {
+            print("--")
+            print("Address:", "0x" + String(stub.address, radix: 16))
+            print("Size:", stub.size)
+            if let index = stub.indirectSymbolIndex {
+                print("IndirectSymbolIndex:", index)
+            }
+            switch stub.branch {
+            case let .viaSlot(address):
+                print("Branch: via slot", "0x" + String(address, radix: 16))
+            case let .direct(address):
+                print("Branch: direct", "0x" + String(address, radix: 16))
+            case .unknown:
+                print("Branch: unknown")
+            }
+        }
+
+        for section in machO.sections {
+            if section.flags.type == .symbol_stubs,
+               let stubs = section.stubs(in: machO) {
+                print("----")
+                print("Section:", "\(section.segmentName).\(section.sectionName)")
+                for stub in stubs {
+                    printStub(stub)
+                }
+            } else if section.sectionName == "__objc_stubs",
+                      let stubs = section.objcStubs(in: machO) {
+                print("----")
+                print("Section:", "\(section.segmentName).\(section.sectionName)")
+                for objcStub in stubs {
+                    printStub(objcStub.stub)
+                    print(
+                        "SelectorReference:",
+                        objcStub.selectorReference.map {
+                            "0x" + String($0, radix: 16)
+                        } ?? "unknown"
+                    )
+                    print("Selector:", objcStub.selector(in: machO) ?? "unknown")
+                }
+            }
+        }
+    }
+
     func testExternalRelocations() {
         guard let relocations = machO.externalRelocations else {
             return
@@ -584,6 +628,51 @@ extension MachOPrintTests {
 }
 
 extension MachOPrintTests {
+    func testLazyLoad() {
+        guard let machO else { return }
+        guard !machO.lazyLoadDylibs.isEmpty else {
+            print("No lazy-load dylibs")
+            return
+        }
+        for lazyLoad in machO.lazyLoadDylibs {
+            print("----")
+            print(lazyLoad)
+            print("LoadPath:", lazyLoad.loadPath(in: machO) ?? "unknown")
+            print("SymbolsAlreadyBound:", lazyLoad.dylibSymbolsAlreadyBound)
+            print("ImageLoadedFlag:", lazyLoad.imageLoadedFlag(in: machO) as Any)
+
+            guard let offsets = lazyLoad.symbolOffsets(in: machO) else {
+                print("Symbol offsets unavailable")
+                continue
+            }
+            for offset in offsets {
+                print(
+                    offset,
+                    lazyLoad.symbolName(at: numericCast(offset), in: machO) ?? "unknown"
+                )
+            }
+
+            guard let pointers = lazyLoad.fixups(in: machO) else {
+                print("Lazy binding chain unavailable (prebound, already processed, or invalid)")
+                continue
+            }
+            for pointer in pointers {
+                let offset = String(pointer.offset, radix: 16)
+                if let bind = pointer.fixupInfo.bind {
+                    guard offsets.indices.contains(bind.ordinal) else {
+                        print(offset, "bind: invalid ordinal", bind.ordinal)
+                        continue
+                    }
+                    let name = lazyLoad.symbolName(
+                        at: numericCast(offsets[bind.ordinal]),
+                        in: machO
+                    )
+                    print(offset, "bind:", name ?? "unknown")
+                }
+            }
+        }
+    }
+
     func testChainedFixUps() {
         guard let chainedFixups = machO.dyldChainedFixups else {
             return
