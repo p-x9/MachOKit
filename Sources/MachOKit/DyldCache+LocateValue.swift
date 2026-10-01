@@ -48,13 +48,15 @@ extension DyldCache {
     ///
     /// - Parameter keyPath: A key path returning an optional value.
     /// - Returns: A ``LocatedValue`` describing where the value was resolved,
-    ///   or `nil` if no cache in the hierarchy produced a value.
+    ///   or `nil` if no available cache produced a value.
+    /// - Throws: An error if opening a subcache fails.
+    /// - Note: If ``mainCache`` is unavailable, only the receiver is searched.
     @_spi(Support)
     @inline(__always)
     public func locateValue<Value>(
         _ keyPath: KeyPath<DyldCache, Value?>
-    ) -> LocatedValue<Value>? {
-        locateValue { $0[keyPath: keyPath] }
+    ) throws -> LocatedValue<Value>? {
+        try locateValue { $0[keyPath: keyPath] }
     }
 
     /// Locate the first non-`nil` value produced by `resolver` across this
@@ -68,13 +70,15 @@ extension DyldCache {
     /// - Parameter resolver: A closure returning an optional value for a
     ///   given cache.
     /// - Returns: A ``LocatedValue`` describing where the value was resolved,
-    ///   or `nil` if no cache in the hierarchy produced a value.
+    ///   or `nil` if no available cache produced a value.
+    /// - Throws: An error thrown by `resolver` or by opening a subcache.
+    /// - Note: If ``mainCache`` is unavailable, only the receiver is searched.
     /// - Note: Opening subcaches may incur file I/O. Callers that look up
     ///   values repeatedly should cache the resulting ``LocatedValue``.
     @_spi(Support)
     public func locateValue<Value>(
         _ resolver: (DyldCache) throws -> Value?
-    ) rethrows -> LocatedValue<Value>? {
+    ) throws -> LocatedValue<Value>? {
         var visited: Set<UUID> = []
 
         if let located = try _resolve(self, with: resolver, visited: &visited) {
@@ -88,7 +92,7 @@ extension DyldCache {
 
         guard let subCaches = mainCache.subCaches else { return nil }
         for entry in subCaches {
-            guard let subCache = try? entry.subcache(for: mainCache) else {
+            guard let subCache = try entry.subcache(for: mainCache) else {
                 continue
             }
             if let located = try _resolve(subCache, with: resolver, visited: &visited) {
