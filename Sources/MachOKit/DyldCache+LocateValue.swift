@@ -42,6 +42,10 @@ extension DyldCache {
     /// 2. The receiver's ``mainCache`` (skipped if it is the receiver).
     /// 3. Each subcache of the main cache, in subcache-array order.
     ///
+    /// If a `FullDyldCache` is already associated with the receiver, its
+    /// preopened caches are searched after the receiver instead of opening
+    /// subcache entries individually.
+    ///
     /// Caches are deduplicated by ``DyldCacheHeader/uuid`` so the same cache
     /// is not evaluated twice when the receiver is itself the main cache or
     /// one of its subcaches.
@@ -50,7 +54,8 @@ extension DyldCache {
     /// - Returns: A ``LocatedValue`` describing where the value was resolved,
     ///   or `nil` if no available cache produced a value.
     /// - Throws: An error if opening a subcache fails.
-    /// - Note: If ``mainCache`` is unavailable, only the receiver is searched.
+    /// - Note: If neither a cached `FullDyldCache` nor ``mainCache`` is available,
+    ///   only the receiver is searched.
     @_spi(Support)
     @inline(__always)
     public func locateValue<Value>(
@@ -72,7 +77,8 @@ extension DyldCache {
     /// - Returns: A ``LocatedValue`` describing where the value was resolved,
     ///   or `nil` if no available cache produced a value.
     /// - Throws: An error thrown by `resolver` or by opening a subcache.
-    /// - Note: If ``mainCache`` is unavailable, only the receiver is searched.
+    /// - Note: If neither a cached `FullDyldCache` nor ``mainCache`` is available,
+    ///   only the receiver is searched.
     /// - Note: Opening subcaches may incur file I/O. Callers that look up
     ///   values repeatedly should cache the resulting ``LocatedValue``.
     @_spi(Support)
@@ -83,6 +89,10 @@ extension DyldCache {
 
         if let located = try _resolve(self, with: resolver, visited: &visited) {
             return located
+        }
+
+        if let fullCache = _cachedFullCache {
+            return try fullCache.locateValue(resolver, excluding: self)
         }
 
         guard let mainCache else { return nil }
