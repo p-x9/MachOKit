@@ -31,10 +31,12 @@ extension SectionProtocol {
 
         let fileOffset: UInt64
         if machO.isLoadedFromDyldCache {
-            guard let cacheOffset = machO.fileOffset(of: address) else {
+            guard let cache = machO.cache,
+                  let located = try? cache.locateValue({ $0.fileOffset(of: address) }),
+                  let offset = Int(exactly: located.value) else {
                 return nil
             }
-            fileOffset = cacheOffset
+            return try? located.cache.fileHandle.readData(offset: offset, length: size)
         } else {
             guard machO.headerStartOffset >= 0 else { return nil }
             let (resolvedOffset, overflow) = UInt64(offset).addingReportingOverflow(
