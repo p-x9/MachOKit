@@ -66,19 +66,19 @@ extension MachOFile {
 }
 
 extension MachOFile.Symbols64 {
-    init(
+    init?(
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let stringsSlice = machO._fileSliceForLinkEditData(
+        guard let stringsSlice = machO._fileSliceForLinkEditData(
             offset: numericCast(symtab.stroff),
             length: numericCast(symtab.strsize)
-        )!
+        ) else { return nil }
 
-        let symbolsSlice = machO._fileSliceForLinkEditData(
+        guard let symbolsSlice = machO._fileSliceForLinkEditData(
             offset: numericCast(symtab.symoff),
             length: numericCast(symtab.nsyms) * MemoryLayout<nlist_64>.size
-        )!
+        ) else { return nil }
 
         self.init(
             symtab: symtab,
@@ -216,19 +216,19 @@ extension MachOFile {
 }
 
 extension MachOFile.Symbols {
-    init(
+    init?(
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let stringsSlice = machO._fileSliceForLinkEditData(
+        guard let stringsSlice = machO._fileSliceForLinkEditData(
             offset: numericCast(symtab.stroff),
             length: numericCast(symtab.strsize)
-        )!
+        ) else { return nil }
 
-        let symbolsSlice = machO._fileSliceForLinkEditData(
+        guard let symbolsSlice = machO._fileSliceForLinkEditData(
             offset: numericCast(symtab.symoff),
             length: numericCast(symtab.nsyms) * MemoryLayout<nlist>.size
-        )!
+        ) else { return nil }
 
         self.init(
             symtab: symtab,

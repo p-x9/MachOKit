@@ -25,16 +25,16 @@ extension MachOFile {
 }
 
 extension MachOFile.FunctionStarts {
-    init(
+    init?(
         machO: MachOFile,
         functionStartsOffset: Int,
         functionStartsSize: Int,
         functionStartBase: UInt
     ) {
-        let data = machO._readLinkEditData(
+        guard let data = machO._readLinkEditData(
             offset: functionStartsOffset,
             length: functionStartsSize
-        )!
+        ) else { return nil }
 
         self.init(
             data: data,
@@ -44,7 +44,7 @@ extension MachOFile.FunctionStarts {
         )
     }
 
-    init(
+    init?(
         machO: MachOFile,
         functionStarts: linkedit_data_command,
         text: SegmentCommand64
@@ -57,7 +57,7 @@ extension MachOFile.FunctionStarts {
         )
     }
 
-    init(
+    init?(
         machO: MachOFile,
         functionStarts: linkedit_data_command,
         text: SegmentCommand
