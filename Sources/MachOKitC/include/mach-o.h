@@ -1,4 +1,4 @@
-#ifdef __linux__
+#ifndef __APPLE__
 
 #ifndef MACH_O_LINUX_H_
 #define MACH_O_LINUX_H_
