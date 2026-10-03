@@ -156,11 +156,19 @@ private extension CFStringProtocol {
     }
 
     func fileAndOffset(in cache: DyldCache) -> (MachOFile.File, Int)? {
-        guard let record = try? cache.locateValue({ $0.fileOffset(of: address) }),
-              let target = record.cache.resolveOptionalRebase(
-                  at: record.value + UInt64(_stringPointerOffset)
-              ),
-              let located = try? cache.locateValue({ $0.fileOffset(of: target) }) else {
+        guard let record = try? cache.locateValue({ $0.fileOffset(of: address) }) else {
+            return nil
+        }
+        let target: UInt64
+        if record.cache.mappingAndSlideInfos != nil {
+            guard let rebased = record.cache.resolveOptionalRebase(
+                at: record.value + UInt64(_stringPointerOffset)
+            ) else { return nil }
+            target = rebased
+        } else {
+            target = numericCast(stringAddress)
+        }
+        guard let located = try? cache.locateValue({ $0.fileOffset(of: target) }) else {
             return nil
         }
         return (located.cache.fileHandle, numericCast(located.value))
