@@ -17,34 +17,32 @@ public struct FatHeader: LayoutWrapper, Sendable {
 }
 
 extension FatHeader {
-    public func arches(data: Data, isSwapped: Bool) -> [FatArch] {
-        if magic.is64BitFat {
-            return data.withUnsafeBytes {
-                let ptr = $0.bindMemory(to: fat_arch_64.self)
-
-                if isSwapped {
-                    swap_fat_arch_64(.init(mutating: ptr.baseAddress), layout.nfat_arch, NXHostByteOrder())
+    public func arches(data: Data, isSwapped: Bool) -> [any FatArchProtocol] {
+        data.withUnsafeBytes { bytes in
+            let stride = magic.is64BitFat
+                ? MemoryLayout<fat_arch_64>.stride
+                : MemoryLayout<fat_arch>.stride
+            let count = min(Int(layout.nfat_arch), bytes.count / stride)
+            return (0..<count).map { index -> any FatArchProtocol in
+                if magic.is64BitFat {
+                    var arch = bytes.loadUnaligned(
+                        fromByteOffset: index * stride,
+                        as: fat_arch_64.self
+                    )
+                    if isSwapped {
+                        swap_fat_arch_64(&arch, 1, NXHostByteOrder())
+                    }
+                    return FatArch64(layout: arch)
+                } else {
+                    var arch = bytes.loadUnaligned(
+                        fromByteOffset: index * stride,
+                        as: fat_arch.self
+                    )
+                    if isSwapped {
+                        swap_fat_arch(&arch, 1, NXHostByteOrder())
+                    }
+                    return FatArch(layout: arch)
                 }
-
-                guard let baseAddress = ptr.baseAddress else { return [] }
-
-                return ptr.indices.map {
-                    let layout = UnsafeRawPointer(baseAddress.advanced(by: $0))
-                        .bindMemory(to: fat_arch.self, capacity: 1)
-                        .pointee
-                    return .init(layout: layout)
-                }
-            }
-        } else {
-            return data.withUnsafeBytes {
-                let ptr = $0.bindMemory(to: fat_arch.self)
-
-                if isSwapped {
-                    swap_fat_arch(.init(mutating: ptr.baseAddress), layout.nfat_arch, NXHostByteOrder())
-                }
-
-                return ptr
-                    .map { .init(layout: $0) }
             }
         }
     }

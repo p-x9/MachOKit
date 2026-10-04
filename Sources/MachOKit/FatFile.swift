@@ -75,9 +75,9 @@ public class FatFile {
     /// Each entry describes the CPU type, subtype, file offset,
     /// and size of an embedded Mach-O image.
     ///
-    /// - Note: The returned `FatArch` values are already adjusted
+    /// - Note: The returned architecture entries are already adjusted
     ///         for byte order if the fat header was swapped.
-    public var arches: [FatArch] {
+    public var arches: [any FatArchProtocol] {
         let data = fileHandle.readData(
             offset: UInt64(archesStartOffset),
             size: archesSize
