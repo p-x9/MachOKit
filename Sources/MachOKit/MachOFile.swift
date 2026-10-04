@@ -740,11 +740,34 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    /// Returns a file slice for link-edit data described by a load command.
+    ///
+    /// For file-backed `MH_OBJECT` files, `__LINKEDIT` is not required.
+    /// The range starts at `headerStartOffset + offset` and is checked against
+    /// the backing file's bounds rather than a segment's bounds.
+    /// For other files, the range must lie within `__LINKEDIT`. Data in a
+    /// dyld cache may be resolved to a separate subcache file.
+    ///
+    /// - Parameters:
+    ///   - offset: The file offset stored in the load command, such as
+    ///     `symoff`, `stroff`, or `dataoff`; do not add `headerStartOffset`.
+    ///   - length: The number of bytes to read.
+    /// - Returns: A slice of the requested range, or `nil` if it cannot be resolved.
     internal func _fileSliceForLinkEditData(
-        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        offset: Int,
         length: Int
     ) -> File.FileSlice? {
         guard offset >= 0, length >= 0 else { return nil }
+
+        // MH_OBJECT has no __LINKEDIT segment. Its link-edit data offsets are
+        // relative to the Mach-O header, including in an archive or fat file.
+        if header.fileType == .object, !isLoadedFromDyldCache {
+            let fileOffset = headerStartOffset + offset
+            guard fileOffset >= 0,
+                  fileOffset <= fileHandle.size,
+                  length <= fileHandle.size - fileOffset else { return nil }
+            return try? fileHandle.fileSlice(offset: fileOffset, length: length)
+        }
 
         let text: (any SegmentCommandProtocol)? = loadCommands.text64 ?? loadCommands.text
         let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
@@ -796,18 +819,28 @@ extension MachOFile {
         }
     }
 
-    /// Reads the data in the linkedit segment appropriately.
+    /// Reads link-edit data from its file offset.
+    ///
+    /// For file-backed `MH_OBJECT` files, no `__LINKEDIT` segment is required.
+    /// The range starts at `headerStartOffset + offset` and is checked against
+    /// the backing file's bounds. For other files, it must lie within `__LINKEDIT`.
     ///
     /// The linkedit data in the machO file obtained from the dyld cache may be separated in a separate sub cache file.
     /// (e.g. dyld cache in iOS except Simulator)
     ///
-    /// The data related to the following load command exists in linkedit.
+    /// Link-edit data includes data described by the following load commands:
     ///   - symtab
     ///   - dysymtab
     ///   - linkedit_data_command
     ///   - exports trie
+    ///
+    /// - Parameters:
+    ///   - offset: The file offset stored in the load command, such as
+    ///     `symoff`, `stroff`, or `dataoff`; do not add `headerStartOffset`.
+    ///   - length: The number of bytes to read.
+    /// - Returns: The requested data, or `nil` if the range cannot be resolved or read.
     public func _readLinkEditData(
-        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        offset: Int,
         length: Int
     ) -> Data? {
         guard let fileSlice = _fileSliceForLinkEditData(
