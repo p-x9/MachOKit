@@ -252,18 +252,24 @@ extension FullDyldCache {
 }
 
 extension FullDyldCache {
-    /// File offset after rebasing performed on the specified file offset
-    /// - Parameter offset: target file offset
-    /// - Returns: rebased file offset
+    /// Resolves the target of the metadata pointer at the specified file offset.
+    /// This is the MachOKit equivalent of dyld's `MetadataVisitor::resolveRebase`.
+    /// The top byte may or may not be kept depending on the slide info version:
+    /// versions 2 and 3 keep it, while version 5 drops it.
+    /// - Parameter offset: file offset of the pointer
+    /// - Returns: unslid VM address of the pointer target
     ///
     /// [dyld Implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/MetadataVisitor.cpp#L265)
     public func resolveRebase(at offset: UInt64) -> UInt64? {
         _resolveRebase(at: offset, skipsZeroValue: false)
     }
 
-    /// File offset after optional rebasing performed on the specified file offset
-    /// - Parameter offset: target file offset
-    /// - Returns: optional rebased file offset
+    /// Resolves the target of the optional metadata pointer at the specified file offset.
+    /// This is the MachOKit equivalent of dyld's `MetadataVisitor::resolveOptionalRebase`.
+    /// The top byte may or may not be kept depending on the slide info version:
+    /// versions 2 and 3 keep it, while version 5 drops it.
+    /// - Parameter offset: file offset of the pointer
+    /// - Returns: unslid VM address of the pointer target
     ///
     /// [dyld implementation](https://github.com/apple-oss-distributions/dyld/blob/66c652a1f1f6b7b5266b8bbfd51cb0965d67cc44/common/MetadataVisitor.cpp#L435)
     /// `resolveOptionalRebase` differs from `resolveRebase` in that rebasing may or may not actually take place.
