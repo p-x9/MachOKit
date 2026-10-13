@@ -34,7 +34,7 @@ extension DyldCacheMappingAndSlideInfo {
 
     /// Initial vm protection of this mapping
     public var initialProtection: VMProtection {
-        .init(rawValue: VMProtection.RawValue(bitPattern: layout.maxProt))
+        .init(rawValue: VMProtection.RawValue(bitPattern: layout.initProt))
     }
 }
 
