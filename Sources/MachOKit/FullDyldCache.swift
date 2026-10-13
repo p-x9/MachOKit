@@ -148,7 +148,9 @@ extension FullDyldCache {
                         $0.fileOffset + numericCast(file.offset)
                     )
                     .withSlideInfoFileOffset(
-                        $0.slideInfoFileOffset + numericCast(file.offset)
+                        $0.slideInfoFileOffset == 0
+                            ? 0
+                            : $0.slideInfoFileOffset + numericCast(file.offset)
                     )
                 }
         }.flatMap { $0 }
