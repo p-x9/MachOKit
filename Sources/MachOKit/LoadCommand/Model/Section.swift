@@ -341,7 +341,7 @@ extension SectionProtocol {
         nreloc: UInt32
     ) -> DataSequence<Relocation> {
         machO.fileHandle.readDataSequence(
-            offset: numericCast(reloff),
+            offset: numericCast(machO.headerStartOffset + Int(reloff)),
             numberOfElements: numericCast(nreloc),
             swapHandler: { data in
                 guard machO.isSwapped else { return }
