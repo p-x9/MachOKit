@@ -46,8 +46,8 @@ extension UnsafePointer<UInt8> {
             offset += 1
         } while byte >= 128
 
-        if byte & 0x40 != 0 {
-            value |= -(1 << shift)
+        if shift < Int.bitWidth, byte & 0x40 != 0 {
+            value |= ~0 << shift
         }
 
         return (value, offset)
