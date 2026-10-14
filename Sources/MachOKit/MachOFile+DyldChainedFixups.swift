@@ -235,44 +235,32 @@ extension MachOFile.DyldChainedFixups {
         guard let startsInSegment = startsInSegments(of: startsInImage)
             .first(where: {
                 let segmentSize = UInt64($0.page_size) * UInt64($0.page_count)
-                return $0.segment_offset <= offset && offset < $0.segment_offset + segmentSize
+                return $0.segment_offset <= offset && offset - $0.segment_offset < segmentSize
             }) else {
             return nil
         }
 
         let pages = pages(of: startsInSegment)
+        let pageSize: Int = numericCast(startsInSegment.page_size)
+        let pageIndex: Int = numericCast(
+            (offset - startsInSegment.segment_offset) / UInt64(pageSize)
+        )
+        let page = pages[pageIndex]
+        guard !page.isNone else { return nil }
 
         let pagesFileSlice = try! machO.fileHandle.fileSlice(
             offset: machO.headerStartOffset + numericCast(startsInSegment.segment_offset),
-            length: pages.count * numericCast(startsInSegment.page_size)
+            length: pages.count * pageSize
         )
 
-        for (index, page) in pages.enumerated() {
-            var offsetInPage = page.offset
-
-            if page.isNone { continue }
-            if page.isMulti {
-                var overflowIndex = Int(offsetInPage & ~UInt16(DYLD_CHAINED_PTR_START_MULTI))
-                var chainEnd = false
-                while !chainEnd {
-                    chainEnd = pages[overflowIndex].offset & UInt16(DYLD_CHAINED_PTR_START_LAST) != 0
-                    offsetInPage = pages[overflowIndex].offset & ~UInt16(DYLD_CHAINED_PTR_START_LAST)
-                    let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
-                    let chainOffset = pageContentStart + numericCast(offsetInPage)
-
-                    if let pointer = walkChainAndFindPointer(
-                        for: offset,
-                        chainOffset: chainOffset,
-                        pagesFileSlice: pagesFileSlice,
-                        of: startsInSegment
-                    ) {
-                        return pointer
-                    }
-
-                    overflowIndex += 1
-                }
-            } else {
-                let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
+        let pageContentStart = pageIndex * pageSize
+        var offsetInPage = page.offset
+        if page.isMulti {
+            var overflowIndex = Int(offsetInPage & ~UInt16(DYLD_CHAINED_PTR_START_MULTI))
+            var chainEnd = false
+            while !chainEnd {
+                chainEnd = pages[overflowIndex].offset & UInt16(DYLD_CHAINED_PTR_START_LAST) != 0
+                offsetInPage = pages[overflowIndex].offset & ~UInt16(DYLD_CHAINED_PTR_START_LAST)
                 let chainOffset = pageContentStart + numericCast(offsetInPage)
 
                 if let pointer = walkChainAndFindPointer(
@@ -284,7 +272,16 @@ extension MachOFile.DyldChainedFixups {
                     return pointer
                 }
 
+                overflowIndex += 1
             }
+        } else {
+            let chainOffset = pageContentStart + numericCast(offsetInPage)
+            return walkChainAndFindPointer(
+                for: offset,
+                chainOffset: chainOffset,
+                pagesFileSlice: pagesFileSlice,
+                of: startsInSegment
+            )
         }
 
         return nil
