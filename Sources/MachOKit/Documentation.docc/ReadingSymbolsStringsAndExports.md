@@ -40,6 +40,33 @@ Use ``SymbolType``, ``SymbolDescription``, ``SymbolFlags``, and
 ``SymbolLibraryOrdinalType`` to interpret symbol metadata without scattering raw
 bit operations through call sites.
 
+## Symbol Values
+
+``SymbolProtocol/rawValue`` preserves the complete `n_value` as a `UInt64`,
+without applying a load adjustment. A 32-bit `nlist` value is zero-extended.
+Use ``SymbolValue`` to distinguish absolute values, section definitions,
+common symbol sizes, indirect name indexes, and other symbol kinds.
+
+```swift
+for symbol in machO.symbols {
+    switch symbol.value {
+    case let .abs(value):
+        print(symbol.name, "absolute", value)
+    case let .common(size):
+        print(symbol.name, "common size", size)
+    case let .indr(index):
+        print(symbol.name, "indirect name index", index)
+    default:
+        print(symbol.name, symbol.rawValue)
+    }
+}
+```
+
+The interpretation does not resolve addresses or validate section and string-table
+bounds. Debug entries, including unknown STAB codes, take precedence over ordinary
+symbol types. The legacy `offset` property remains host-sized and may truncate
+values or include a wrapping image base adjustment.
+
 ## Exported Symbols
 
 Use `exportedSymbols` for symbols described by the export trie.
