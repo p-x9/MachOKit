@@ -38,9 +38,7 @@ extension OldObjCStringHashTableProtocol where Self: LayoutWrapper, Layout == ob
             shift: layout.shift,
             mask: layout.mask,
             salt: layout.salt,
-            scramble: withUnsafeBytes(of: layout.scramble) {
-                Array($0.bindMemory(to: UInt32.self))
-            },
+            scrambleOffset: layoutOffset(of: \.scramble),
             tabOffset: layoutSize,
             // version 12 points empty buckets to `zero` (renamed to `unused1` later)
             emptyStringOffset: optimizationVersion == 12 ? layoutOffset(of: \.unused1) : 0

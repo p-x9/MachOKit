@@ -182,8 +182,7 @@ struct objc_opt_t_12 {
 // In version 12, `unused1` was named `zero`, and empty buckets point to it instead of having offset 0.
 // https://github.com/apple-oss-distributions/dyld/blob/7190f7fddb784e916f2a144fa520e54949ed5c2f/include/objc-shared-cache.h#L159-L171
 // https://github.com/apple-oss-distributions/dyld/blob/7190f7fddb784e916f2a144fa520e54949ed5c2f/include/objc-shared-cache.h#L226
-// Upstream declares it as `__attribute__((packed))`, but all fields are naturally aligned.
-struct objc_stringhash_t {
+struct __attribute__((packed)) objc_stringhash_t {
     uint32_t capacity;
     uint32_t occupied;
     uint32_t shift;

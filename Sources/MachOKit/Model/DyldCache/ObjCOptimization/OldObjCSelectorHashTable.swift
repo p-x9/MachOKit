@@ -63,6 +63,9 @@ extension OldObjCSelectorHashTable {
     }
 
     /// Sequence of selectors in the table
+    ///
+    /// Entries whose names are not contained in `cache` are skipped.
+    /// Use `FullDyldCache` to read names placed in other subcaches.
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: selectors (empty buckets are skipped)
     public func selectors(

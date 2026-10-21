@@ -117,6 +117,120 @@ final class OldObjCHashTableTests: XCTestCase {
             }
         }
     }
+
+    func testProtocol2Table() throws {
+        for version in [15] {
+            // objc_protocolopt2_t has the same layout as objc_clsopt_t
+            let values: [String: [objc_classheader_t]] = [
+                "NSObject": [
+                    .init(clsOffset: 0x200, hiOffset: 0x40),
+                    .init(clsOffset: 0x200, hiOffset: 0x50)
+                ],
+                "NSCopying": [.init(clsOffset: 0x280, hiOffset: 0x60)]
+            ]
+            let synthetic = SyntheticTable(version: version, keys: Array(values.keys), values: .classes(values))
+            let table = OldObjCProtocolHashTable2(
+                layout: synthetic.layout,
+                offset: tableOffset,
+                optimizationVersion: version
+            )
+
+            try synthetic.withReader { reader in
+                for (name, headers) in values {
+                    let entry = try XCTUnwrap(table._entry(named: name, reader: reader), name)
+                    XCTAssertEqual(entry.objects.map(\.offset), headers.map { tableOffset + Int($0.clsOffset) })
+                    XCTAssertEqual(entry.objects.map(\.headerInfoOffset), headers.map { tableOffset + Int($0.hiOffset) })
+                }
+                XCTAssertNil(table._entry(named: "NSCoding", reader: reader))
+                XCTAssertEqual(table._geometry.duplicateCount(reader: reader), 2)
+            }
+        }
+    }
+
+    /// `objc_opt_t` version 15 points to either `objc_protocolopt_t` (before dyld-732)
+    /// or `objc_protocolopt2_t` (since dyld-732), and the other offset is 0.
+    func testObjCOpt15ProtocolTables() throws {
+        let protocols = SyntheticTable(
+            version: 15,
+            keys: ["NSObject", "NSCopying"],
+            values: .protocols(["NSObject": 0x200, "NSCopying": 0x280])
+        )
+        let protocols2 = SyntheticTable(
+            version: 15,
+            keys: ["NSObject", "NSCopying"],
+            values: .classes([
+                "NSObject": [.init(clsOffset: 0x200, hiOffset: 0x40)],
+                "NSCopying": [.init(clsOffset: 0x280, hiOffset: 0x50)]
+            ])
+        )
+
+        let optOffset = 0x1000
+        let protocolsOffset = 0x2000
+        let protocols2Offset = 0x4000
+
+        for isLate in [false, true] {
+            var opt = objc_opt_t_15()
+            opt.version = 15
+            opt.protocolopt_offset = isLate ? 0 : Int32(protocolsOffset - optOffset)
+            opt.protocolopt2_offset = isLate ? Int32(protocols2Offset - optOffset) : 0
+
+            try SyntheticCache.withLoadedCache(
+                contents: [
+                    (optOffset, withUnsafeBytes(of: opt) { Array($0) }),
+                    (protocolsOffset, protocols.bytes),
+                    (protocols2Offset, protocols2.bytes)
+                ]
+            ) { cache in
+                let optimization = OldObjCOptimization15(layout: opt, offset: optOffset)
+                if isLate {
+                    XCTAssertNil(optimization.protocolHashTable(in: cache))
+                    let table = try XCTUnwrap(optimization.protocolHashTable2(in: cache))
+                    XCTAssertEqual(table.offset, protocols2Offset)
+                    let entry = try XCTUnwrap(table.entry(named: "NSCopying", in: cache))
+                    XCTAssertEqual(entry.objects.map(\.offset), [protocols2Offset + 0x280])
+                } else {
+                    XCTAssertNil(optimization.protocolHashTable2(in: cache))
+                    let table = try XCTUnwrap(optimization.protocolHashTable(in: cache))
+                    XCTAssertEqual(table.offset, protocolsOffset)
+                    let entry = try XCTUnwrap(table.entry(named: "NSCopying", in: cache))
+                    XCTAssertEqual(entry.offset, protocolsOffset + 0x280)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Synthetic cache
+
+/// Places contents in memory after a minimal dyld cache header.
+private enum SyntheticCache {
+    static func withLoadedCache(
+        contents: [(offset: Int, bytes: [UInt8])],
+        _ body: (DyldCacheLoaded) throws -> Void
+    ) throws {
+        let size = contents.map { $0.offset + $0.bytes.count }.max() ?? 0
+        let buffer = UnsafeMutableRawPointer.allocate(
+            byteCount: max(size, MemoryLayout<dyld_cache_header>.size),
+            alignment: 16
+        )
+        defer { buffer.deallocate() }
+        buffer.initializeMemory(as: UInt8.self, repeating: 0, count: max(size, MemoryLayout<dyld_cache_header>.size))
+
+        var header = dyld_cache_header()
+        withUnsafeMutableBytes(of: &header.magic) { magic in
+            let value = Array("dyld_v1   arm64".utf8)
+            magic.copyBytes(from: value)
+        }
+        buffer.storeBytes(of: header, as: dyld_cache_header.self)
+        for (offset, bytes) in contents {
+            bytes.withUnsafeBytes {
+                buffer.advanced(by: offset).copyMemory(from: $0.baseAddress!, byteCount: $0.count)
+            }
+        }
+
+        let cache = try DyldCacheLoaded(ptr: UnsafeRawPointer(buffer))
+        try body(cache)
+    }
 }
 
 // MARK: - Synthetic table

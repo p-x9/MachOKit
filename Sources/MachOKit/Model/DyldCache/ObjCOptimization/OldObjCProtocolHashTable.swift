@@ -77,6 +77,9 @@ extension OldObjCProtocolHashTable {
     }
 
     /// Sequence of entries in the table
+    ///
+    /// Entries whose names are not contained in `cache` are skipped.
+    /// Use `FullDyldCache` to read names placed in other subcaches.
     /// - Parameter cache: DyldCache to which `self` belongs
     /// - Returns: entries (empty buckets are skipped)
     public func entries(

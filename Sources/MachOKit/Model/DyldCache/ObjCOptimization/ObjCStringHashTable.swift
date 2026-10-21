@@ -121,7 +121,12 @@ extension _ObjCStringHashTableGeometry {
         ) else {
             return nil
         }
-        // `>>` returns 0 when shift == 64
+        // `>>` returns 0 when shift == 64.
+        // The legacy (objc_opt_t version 12 - 15) lookup has no special case for it,
+        // but its builder also treats the shifted part as 0 when shift == 64,
+        // so tables of both formats are read correctly.
+        // https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L1153
+        // https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L1554
         let index = UInt32(truncatingIfNeeded: value >> shift) ^ scramble
         return numericCast(index)
     }
