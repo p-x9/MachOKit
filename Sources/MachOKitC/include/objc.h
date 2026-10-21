@@ -29,6 +29,40 @@ struct objc_optimization
     uint64_t relativeMethodTypesBufferSize; // this buffer starts at the end of the selectors buffer
 };
 
+// https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/common/OptimizerObjC.h#L45-L227
+// Precomputed perfect hash table of strings.
+// Base class for precomputed selector, class and protocol tables.
+struct objc_string_hash_table {
+    uint32_t version;
+    uint32_t capacity;
+    uint32_t occupied;
+    uint32_t shift;
+    uint32_t mask;
+    uint64_t salt;
+
+    uint32_t scramble[256];
+    uint8_t tab[0];                    /* tab[mask+1] (always power-of-2) */
+    // uint8_t checkbytes[capacity];   /* check byte for each string */
+    // int32_t offsets[capacity];      /* offsets from &capacity to cstrings */
+};
+
+// https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/common/OptimizerObjC.h#L275-L314
+// ObjectHashTable (ClassHashTable / ProtocolHashTable) continues after objc_string_hash_table:
+//   ObjectData objectOffsets[capacity];
+//   uint32_t duplicateCount;
+//   ObjectData duplicateOffsets[duplicatedClasses];
+struct objc_object_hash_table_object {
+    uint64_t isDuplicate       : 1;  // == 0
+    uint64_t objectCacheOffset : 47; // Offset from the shared cache base to the Class/Protocol
+    uint64_t dylibObjCIndex    : 16; // Index in to the HeaderInfoRW dylibs for this Class/Protocol
+};
+
+struct objc_object_hash_table_duplicate {
+    uint64_t isDuplicate : 1;  // == 1
+    uint64_t index       : 47;
+    uint64_t count       : 16;
+};
+
 // https://github.com/apple-oss-distributions/dyld/blob/a571176e8e00c47e95b95e3156820ebec0cbd5e6/common/OptimizerObjC.h#L656
 struct header_info_rw_64 {
     uint64_t isLoaded              : 1;
