@@ -50,12 +50,14 @@ final class ObjCHashTableTests: XCTestCase {
             objcOptimization.headerOptimizationRO64(in: cache)?.headerInfos(in: cache)
         )
 
-        let classes: [(name: String, imagePath: String)] = [
-            ("NSObject", "/usr/lib/libobjc.A.dylib"),
-            ("NSString", "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation"),
-            ("NSArray", "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation")
+        // Compare image names only, since install paths differ between platforms
+        // (e.g. `Foundation.framework/Versions/C/Foundation` on macOS).
+        let classes: [(name: String, imageName: String)] = [
+            ("NSObject", "libobjc.A.dylib"),
+            ("NSString", "Foundation"),
+            ("NSArray", "CoreFoundation")
         ]
-        for (name, imagePath) in classes {
+        for (name, imageName) in classes {
             let entry = try XCTUnwrap(table.entry(named: name, in: cache), name)
             XCTAssertEqual(entry.name, name)
             let object = try XCTUnwrap(entry.objects.first, name)
@@ -69,7 +71,8 @@ final class ObjCHashTableTests: XCTestCase {
                 headerInfos.first(where: { $0.index == object.dylibObjCIndex }),
                 name
             )
-            XCTAssertEqual(headerInfo.machO(in: cache)?.path, imagePath)
+            let imagePath = try XCTUnwrap(headerInfo.machO(in: cache)?.path, name)
+            XCTAssertEqual(URL(fileURLWithPath: imagePath).lastPathComponent, imageName)
         }
 
         XCTAssertNil(table.entry(named: "ThisClassShouldNotExist", in: cache))

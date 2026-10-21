@@ -47,9 +47,7 @@ extension ObjCStringHashTableProtocol where Self: LayoutWrapper, Layout == objc_
             shift: layout.shift,
             mask: layout.mask,
             salt: layout.salt,
-            scramble: withUnsafeBytes(of: layout.scramble) {
-                Array($0.bindMemory(to: UInt32.self))
-            },
+            scrambleOffset: layoutOffset(of: \.scramble),
             tabOffset: layoutSize
         )
     }
@@ -80,7 +78,11 @@ internal struct _ObjCStringHashTableGeometry {
     let shift: UInt32
     let mask: UInt32
     let salt: UInt64
-    let scramble: [UInt32]
+    /// offset of `scramble[256]` from start of the table
+    ///
+    /// Only one element is needed per lookup, so it is read on demand
+    /// instead of copying the whole array.
+    let scrambleOffset: Int
     /// offset of `tab[mask+1]` from start of the table
     let tabOffset: Int
     /// String offset used for empty buckets in addition to 0
@@ -114,11 +116,13 @@ extension _ObjCStringHashTableGeometry {
         let value = PerfectHash.lookup8(key, level: salt)
         guard let tab: UInt8 = reader.read(
             at: tabOffset + numericCast(value & numericCast(mask))
+        ), let scramble: UInt32 = reader.read(
+            at: scrambleOffset + numericCast(tab) * MemoryLayout<UInt32>.size
         ) else {
             return nil
         }
         // `>>` returns 0 when shift == 64
-        let index = UInt32(truncatingIfNeeded: value >> shift) ^ scramble[numericCast(tab)]
+        let index = UInt32(truncatingIfNeeded: value >> shift) ^ scramble
         return numericCast(index)
     }
 
