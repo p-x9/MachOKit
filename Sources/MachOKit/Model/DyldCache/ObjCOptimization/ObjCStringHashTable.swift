@@ -85,6 +85,11 @@ internal struct _ObjCStringHashTableGeometry {
     let scrambleOffset: Int
     /// offset of `tab[mask+1]` from start of the table
     let tabOffset: Int
+    /// String offset used for empty buckets in addition to 0
+    ///
+    /// objc_opt_t version 12 points empty buckets to the `zero` field instead of using 0.
+    /// https://github.com/apple-oss-distributions/dyld/blob/7190f7fddb784e916f2a144fa520e54949ed5c2f/include/objc-shared-cache.h#L226
+    var emptyStringOffset: Int = 0
 
     /// offset of `checkbytes[capacity]` from start of the table
     var checkBytesOffset: Int {
@@ -116,7 +121,12 @@ extension _ObjCStringHashTableGeometry {
         ) else {
             return nil
         }
-        // `>>` returns 0 when shift == 64
+        // `>>` returns 0 when shift == 64.
+        // The legacy (objc_opt_t version 12 - 15) lookup has no special case for it,
+        // but its builder also treats the shifted part as 0 when shift == 64,
+        // so tables of both formats are read correctly.
+        // https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L1153
+        // https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L1554
         let index = UInt32(truncatingIfNeeded: value >> shift) ^ scramble
         return numericCast(index)
     }
@@ -142,7 +152,7 @@ extension _ObjCStringHashTableGeometry {
         guard 0 <= index, index < capacity else { return nil }
         guard let offset: Int32 = reader.read(
             at: stringOffsetsOffset + index * MemoryLayout<Int32>.size
-        ), offset != 0 else {
+        ), offset != 0, offset != emptyStringOffset else {
             return nil
         }
         return numericCast(offset)
@@ -259,12 +269,21 @@ extension _DyldCacheFileRepresentable {
     internal func _objcStringHashTableLayout(
         at offset: Int
     ) -> objc_string_hash_table? {
+        _objcHashTableLayout(at: offset)
+    }
+
+    /// Read hash table header layout
+    /// - Parameter offset: offset from start address of main cache
+    /// - Returns: layout of hash table header
+    internal func _objcHashTableLayout<Layout>(
+        at offset: Int
+    ) -> Layout? {
         guard offset > 0 else { return nil }
         let address = mainCacheHeader.sharedRegionStart + numericCast(offset)
         guard let fileOffset = fileOffset(of: address) else {
             return nil
         }
-        let layout: objc_string_hash_table = fileHandle.read(offset: fileOffset)
+        let layout: Layout = fileHandle.read(offset: fileOffset)
         return layout
     }
 }
@@ -276,9 +295,18 @@ extension DyldCacheLoaded {
     internal func _objcStringHashTableLayout(
         at offset: Int
     ) -> objc_string_hash_table? {
+        _objcHashTableLayout(at: offset)
+    }
+
+    /// Read hash table header layout
+    /// - Parameter offset: offset from start address of main cache
+    /// - Returns: layout of hash table header
+    internal func _objcHashTableLayout<Layout>(
+        at offset: Int
+    ) -> Layout? {
         guard offset > 0 else { return nil }
         // Specify the type explicitly so that `Out` is not inferred as Optional.
-        let layout: objc_string_hash_table = ptr
+        let layout: Layout = ptr
             .advanced(by: offset)
             .autoBoundPointee()
         return layout
