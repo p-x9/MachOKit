@@ -100,7 +100,16 @@ extension ObjCSelectorHashTable {
     }
 }
 
-extension ObjCSelectorHashTable {
+extension ObjCSelectorHashTable: _ObjCSelectorHashTable {}
+
+// MARK: - Shared implementation
+
+/// Selector tables sharing the lookup and enumeration logic between formats
+internal protocol _ObjCSelectorHashTable: ObjCStringHashTableProtocol {
+    var _geometry: _ObjCStringHashTableGeometry { get }
+}
+
+extension _ObjCSelectorHashTable {
     internal func _selector(
         named name: String,
         reader: some _ObjCHashTableReader

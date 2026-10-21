@@ -146,6 +146,17 @@ struct /*alignas(alignof(void*))*/ objc_opt_t_15 {
     int32_t clsopt_offset;
     int32_t protocolopt_offset;
     int32_t headeropt_rw_offset;
+
+    // Added in the middle of version 15 without bumping the version (dyld-732 / objc4-779).
+    // Upstream renamed `protocolopt_offset` to `unused_protocolopt_offset` (always 0 since then)
+    // and appended this field as `protocolopt_offset`, pointing to `objc_protocolopt2_t`.
+    // It is named `protocolopt2_offset` here, matching `unused_protocolopt2_offset` in version 16.
+    // In earlier version 15 caches this is the zero-filled padding of the pointer-aligned header.
+    // https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L753-L796
+    // https://github.com/apple-oss-distributions/dyld/blob/84bd745c32faa3a7cb1b15d1516aa695377841df/dyld3/shared-cache/OptimizerObjC.cpp#L974-L977
+    // https://github.com/apple-oss-distributions/dyld/blob/4b6558a50e2ec117273396599cee84317da12375/dyld3/shared-cache/OptimizerObjC.cpp#L504
+    // https://github.com/apple-oss-distributions/objc4/blob/289296d8da04b033c0f254e66faf81d486953d16/runtime/objc-sel-table.s#L13-L21
+    int32_t protocolopt2_offset;
 };
 
 // https://github.com/apple-oss-distributions/dyld/blob/5b001a7c35bf0b7cb5d58559f8a6b5b72c297401/include/objc-shared-cache.h#L645
@@ -163,6 +174,44 @@ struct objc_opt_t_12 {
     int32_t selopt_offset;
     int32_t headeropt_offset;
     int32_t clsopt_offset;
+};
+
+// Precomputed perfect hash table of strings used by objc_opt_t version 12 - 15.
+// Base of objc_selopt_t, objc_clsopt_t, objc_protocolopt_t and objc_protocolopt2_t.
+// https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L173-L185
+// In version 12, `unused1` was named `zero`, and empty buckets point to it instead of having offset 0.
+// https://github.com/apple-oss-distributions/dyld/blob/7190f7fddb784e916f2a144fa520e54949ed5c2f/include/objc-shared-cache.h#L159-L171
+// https://github.com/apple-oss-distributions/dyld/blob/7190f7fddb784e916f2a144fa520e54949ed5c2f/include/objc-shared-cache.h#L226
+// Upstream declares it as `__attribute__((packed))`, but all fields are naturally aligned.
+struct objc_stringhash_t {
+    uint32_t capacity;
+    uint32_t occupied;
+    uint32_t shift;
+    uint32_t mask;
+    uint32_t unused1;  // was zero
+    uint32_t unused2;  // alignment pad
+    uint64_t salt;
+
+    uint32_t scramble[256];
+    uint8_t tab[0];                   /* tab[mask+1] (always power-of-2) */
+    // uint8_t checkbytes[capacity];  /* check byte for each string */
+    // int32_t offsets[capacity];     /* offsets from &capacity to cstrings */
+};
+
+// objc_clsopt_t and objc_protocolopt2_t continue after objc_stringhash_t:
+//   objc_classheader_t classOffsets[capacity]; /* offsets from &capacity to class_t and header_info */
+//   uint32_t duplicateCount;
+//   objc_classheader_t duplicateOffsets[duplicatedClasses];
+// objc_protocolopt_t continues after objc_stringhash_t:
+//   int32_t protocolOffsets[capacity]; /* offsets from &capacity to protocol_t */
+// https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L378-L388
+struct objc_classheader_t {
+    int32_t clsOffset;
+    int32_t hiOffset;
+
+    // For duplicate class names:
+    // clsOffset = count<<1 | 1
+    // duplicated classes are duplicateOffsets[hiOffset..hiOffset+count-1]
 };
 
 #endif /* objc_h */
