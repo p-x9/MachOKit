@@ -289,3 +289,145 @@ extension ObjCOptimization {
         )
     }
 }
+
+// MARK: Hash Tables
+// https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/common/DyldSharedCache.cpp#L501
+extension ObjCOptimization {
+    /// Precomputed selector table
+    ///
+    /// Returns nil if the table is placed in a subcache that `cache` does not contain.
+    /// Use `FullDyldCache` to resolve it across subcaches.
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCache
+    ) -> ObjCSelectorHashTable? {
+        _selectorHashTable(in: cache)
+    }
+
+    /// Precomputed selector table
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: FullDyldCache
+    ) -> ObjCSelectorHashTable? {
+        _selectorHashTable(in: cache)
+    }
+
+    /// Precomputed selector table
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCacheLoaded
+    ) -> ObjCSelectorHashTable? {
+        let offset: Int = numericCast(layout.selectorHashTableCacheOffset)
+        guard let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+}
+
+extension ObjCOptimization {
+    /// Precomputed class table
+    ///
+    /// Returns nil if the table is placed in a subcache that `cache` does not contain.
+    /// Use `FullDyldCache` to resolve it across subcaches.
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCache
+    ) -> ObjCClassHashTable? {
+        _classHashTable(in: cache)
+    }
+
+    /// Precomputed class table
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: FullDyldCache
+    ) -> ObjCClassHashTable? {
+        _classHashTable(in: cache)
+    }
+
+    /// Precomputed class table
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCacheLoaded
+    ) -> ObjCClassHashTable? {
+        let offset: Int = numericCast(layout.classHashTableCacheOffset)
+        guard let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+}
+
+extension ObjCOptimization {
+    /// Precomputed protocol table
+    ///
+    /// Returns nil if the table is placed in a subcache that `cache` does not contain.
+    /// Use `FullDyldCache` to resolve it across subcaches.
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: DyldCache
+    ) -> ObjCProtocolHashTable? {
+        _protocolHashTable(in: cache)
+    }
+
+    /// Precomputed protocol table
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: FullDyldCache
+    ) -> ObjCProtocolHashTable? {
+        _protocolHashTable(in: cache)
+    }
+
+    /// Precomputed protocol table
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: DyldCacheLoaded
+    ) -> ObjCProtocolHashTable? {
+        let offset: Int = numericCast(layout.protocolHashTableCacheOffset)
+        guard let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+}
+
+extension ObjCOptimization {
+    internal func _selectorHashTable<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> ObjCSelectorHashTable? {
+        let offset: Int = numericCast(layout.selectorHashTableCacheOffset)
+        guard let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+
+    internal func _classHashTable<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> ObjCClassHashTable? {
+        let offset: Int = numericCast(layout.classHashTableCacheOffset)
+        guard let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+
+    internal func _protocolHashTable<Cache: _DyldCacheFileRepresentable>(
+        in cache: Cache
+    ) -> ObjCProtocolHashTable? {
+        let offset: Int = numericCast(layout.protocolHashTableCacheOffset)
+        guard let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+}

@@ -741,3 +741,147 @@ extension OldObjCOptimization15 {
         )
     }
 }
+
+// MARK: Hash Tables
+
+extension OldObjCOptimization16 {
+    /// Precomputed selector table
+    ///
+    /// Returns nil if the table is placed in a subcache that `cache` does not contain.
+    /// Use `FullDyldCache` to resolve it across subcaches.
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCache
+    ) -> ObjCSelectorHashTable? {
+        guard let offset = _hashTableOffset(layout.selopt_offset),
+              let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+
+    /// Precomputed selector table
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: FullDyldCache
+    ) -> ObjCSelectorHashTable? {
+        guard let offset = _hashTableOffset(layout.selopt_offset),
+              let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+
+    /// Precomputed selector table
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCacheLoaded
+    ) -> ObjCSelectorHashTable? {
+        guard let offset = _hashTableOffset(layout.selopt_offset),
+              let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+}
+
+extension OldObjCOptimization16 {
+    /// Precomputed class table
+    ///
+    /// Returns nil if the table is placed in a subcache that `cache` does not contain.
+    /// Use `FullDyldCache` to resolve it across subcaches.
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCache
+    ) -> ObjCClassHashTable? {
+        guard let offset = _hashTableOffset(layout.largeSharedCachesClassOffset),
+              let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+
+    /// Precomputed class table
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: FullDyldCache
+    ) -> ObjCClassHashTable? {
+        guard let offset = _hashTableOffset(layout.largeSharedCachesClassOffset),
+              let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+
+    /// Precomputed class table
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCacheLoaded
+    ) -> ObjCClassHashTable? {
+        guard let offset = _hashTableOffset(layout.largeSharedCachesClassOffset),
+              let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+}
+
+extension OldObjCOptimization16 {
+    /// Precomputed protocol table
+    ///
+    /// Returns nil if the table is placed in a subcache that `cache` does not contain.
+    /// Use `FullDyldCache` to resolve it across subcaches.
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: DyldCache
+    ) -> ObjCProtocolHashTable? {
+        guard let offset = _hashTableOffset(layout.largeSharedCachesProtocolOffset),
+              let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+
+    /// Precomputed protocol table
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: FullDyldCache
+    ) -> ObjCProtocolHashTable? {
+        guard let offset = _hashTableOffset(layout.largeSharedCachesProtocolOffset),
+              let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+
+    /// Precomputed protocol table
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: DyldCacheLoaded
+    ) -> ObjCProtocolHashTable? {
+        guard let offset = _hashTableOffset(layout.largeSharedCachesProtocolOffset),
+              let layout = cache._objcStringHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset)
+    }
+}
+
+extension OldObjCOptimization16 {
+    /// Offsets in `objc_opt_t` are relative to `objc_opt_t` itself.
+    /// - Parameter fieldOffset: offset from start of `objc_opt_t`
+    /// - Returns: offset from start address of main cache
+    private func _hashTableOffset(_ fieldOffset: Int32) -> Int? {
+        guard fieldOffset != 0 else { return nil }
+        return offset + numericCast(fieldOffset)
+    }
+}
