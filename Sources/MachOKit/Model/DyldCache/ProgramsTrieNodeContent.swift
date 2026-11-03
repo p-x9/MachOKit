@@ -12,6 +12,11 @@ public typealias ProgramsTrieEntry = TrieNode<ProgramsTrieNodeContent>
 
 public struct ProgramsTrieNodeContent: Sendable {
     public let offset: UInt32
+
+    /// Creates program trie content with the given offset.
+    public init(offset: UInt32) {
+        self.offset = offset
+    }
 }
 
 extension ProgramsTrieNodeContent: TrieNodeContent {

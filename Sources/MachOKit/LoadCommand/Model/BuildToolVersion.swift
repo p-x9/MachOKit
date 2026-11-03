@@ -11,6 +11,11 @@ import Foundation
 public struct BuildToolVersion: LayoutWrapper, Sendable {
     public var layout: build_tool_version
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: build_tool_version) {
+        self.layout = layout
+    }
+
     public var tool: Tool? {
         .init(rawValue: Int32(layout.tool))
     }

@@ -14,6 +14,14 @@ public struct CodeSignSuperBlob: LayoutWrapper, Sendable {
 
     public var layout: Layout
     public let offset: Int // offset from start of linkedit_data
+
+    /// Creates a wrapper for the given C layout.
+    /// - Parameter offset: Byte offset from the start of the code-signature data
+    ///   identified by LC_CODE_SIGNATURE, rather than from the start of __LINKEDIT.
+    public init(layout: Layout, offset: Int) {
+        self.layout = layout
+        self.offset = offset
+    }
 }
 
 extension CodeSignSuperBlob {

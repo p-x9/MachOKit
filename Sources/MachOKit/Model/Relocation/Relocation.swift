@@ -41,3 +41,10 @@ public struct Relocation: Sendable {
         }
     }
 }
+
+extension Relocation {
+    /// Creates a relocation from its raw record bits.
+    public init(rawValue: UInt64) {
+        self._data = rawValue
+    }
+}

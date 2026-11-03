@@ -11,6 +11,11 @@ import Foundation
 public struct SectionFlags: Sendable {
     public let rawValue: UInt32
 
+    /// Creates section flags, preserving all raw bits.
+    public init(rawValue: UInt32) {
+        self.rawValue = rawValue
+    }
+
     public var type: SectionType? {
         let rawValue = rawValue & UInt32(SECTION_TYPE)
         return .init(rawValue: Int32(rawValue))

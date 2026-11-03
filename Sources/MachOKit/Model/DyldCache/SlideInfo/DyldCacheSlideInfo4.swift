@@ -14,12 +14,24 @@ public struct DyldCacheSlideInfo4: LayoutWrapper, Sendable {
 
     public var layout: Layout
     public var offset: Int
+
+    /// Creates slide info from its C layout.
+    /// - Parameter offset: Byte offset of the slide info within its backing cache file.
+    public init(layout: Layout, offset: Int) {
+        self.layout = layout
+        self.offset = offset
+    }
 }
 
 // MARK: - PageStart
 extension DyldCacheSlideInfo4 {
     public struct PageStart: Sendable {
         public let value: UInt16
+
+        /// Creates an entry, preserving all raw bits.
+        public init(value: UInt16) {
+            self.value = value
+        }
 
         public var isNoRebase: Bool {
             value == DYLD_CACHE_SLIDE4_PAGE_NO_REBASE
@@ -40,6 +52,11 @@ extension DyldCacheSlideInfo4 {
 extension DyldCacheSlideInfo4 {
     public struct PageExtra: Sendable {
         public let value: UInt16
+
+        /// Creates an entry, preserving all raw bits.
+        public init(value: UInt16) {
+            self.value = value
+        }
 
         public var isEnd: Bool {
             (value & UInt16(DYLD_CACHE_SLIDE4_PAGE_EXTRA_END)) > 0

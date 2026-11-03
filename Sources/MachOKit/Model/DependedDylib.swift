@@ -21,7 +21,8 @@ public struct DependedDylib: Sendable {
     public let type: DependType
     public let useFlags: DylibUseFlags
 
-    init(
+    /// Creates a dependency with its load kind and use flags.
+    public init(
         dylib: Dylib,
         type: DependType,
         useFlags: DylibUseFlags = []

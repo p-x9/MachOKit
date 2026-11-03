@@ -20,6 +20,11 @@ public struct ObjCHeaderInfoRW64: LayoutWrapper, ObjCHeaderInfoRWProtocol {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var isLoaded: Bool { layout.isLoaded == 1 }
     public var isAllClassesRelized: Bool { layout.allClassesRealized == 1 }
 }
@@ -28,6 +33,11 @@ public struct ObjCHeaderInfoRW32: LayoutWrapper, ObjCHeaderInfoRWProtocol {
     public typealias Layout = header_info_rw_32
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var isLoaded: Bool { layout.isLoaded == 1 }
     public var isAllClassesRelized: Bool { layout.allClassesRealized == 1 }

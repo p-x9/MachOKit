@@ -14,6 +14,13 @@ public struct DyldCacheSlideInfo1: LayoutWrapper, Sendable {
 
     public var layout: Layout
     public var offset: Int
+
+    /// Creates slide info from its C layout.
+    /// - Parameter offset: Byte offset of the slide info within its backing cache file.
+    public init(layout: Layout, offset: Int) {
+        self.layout = layout
+        self.offset = offset
+    }
 }
 
 extension DyldCacheSlideInfo1 {
@@ -21,6 +28,11 @@ extension DyldCacheSlideInfo1 {
         public typealias Layout = dyld_cache_slide_info_entry
 
         public var layout: Layout
+
+        /// Creates a wrapper for the given C layout.
+        public init(layout: Layout) {
+            self.layout = layout
+        }
     }
 }
 

@@ -130,6 +130,11 @@ public struct Section: SectionProtocol {
     public typealias Layout = section
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 extension Section {
@@ -198,6 +203,11 @@ public struct Section64: SectionProtocol {
     public typealias Layout = section_64
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 extension Section64 {

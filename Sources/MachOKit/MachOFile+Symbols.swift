@@ -25,6 +25,13 @@ extension MachOFile {
 
         /// Nlist or Nlist64
         public let nlist: any NlistProtocol
+
+        /// Creates a symbol with its name, nlist, and the offset described by ``offset``.
+        public init(name: String, offset: Int, nlist: any NlistProtocol) {
+            self.name = name
+            self.offset = offset
+            self.nlist = nlist
+        }
     }
 }
 
