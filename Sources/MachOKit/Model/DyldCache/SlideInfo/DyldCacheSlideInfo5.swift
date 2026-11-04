@@ -16,7 +16,9 @@ public struct DyldCacheSlideInfo5: LayoutWrapper, Sendable {
     public var offset: Int
 
     /// Creates slide info from its C layout.
-    /// - Parameter offset: Byte offset of the slide info within its backing cache file.
+    /// - Parameter offset: Byte offset of the slide info, relative to the individual
+    ///   cache file when used with ``DyldCache``, or to the concatenated file view
+    ///   when used with ``FullDyldCache``.
     public init(layout: Layout, offset: Int) {
         self.layout = layout
         self.offset = offset
