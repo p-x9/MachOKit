@@ -14,6 +14,11 @@ public struct DyldChainedFixupsHeader: LayoutWrapper, Sendable {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var importsFormat: DyldChainedImportFormat? {
         .init(rawValue: layout.imports_format)
     }

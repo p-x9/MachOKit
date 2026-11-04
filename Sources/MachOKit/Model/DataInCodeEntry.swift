@@ -12,6 +12,11 @@ public struct DataInCodeEntry: LayoutWrapper, Sendable {
     public typealias Layout = data_in_code_entry
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 extension DataInCodeEntry {

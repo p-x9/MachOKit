@@ -11,6 +11,12 @@ import Foundation
 public struct DyldChainedFixupPointer: Sendable {
     public let offset: Int
     public let fixupInfo: DyldChainedFixupPointerInfo
+
+    /// Creates a fixup with its offset and decoded pointer information.
+    public init(offset: Int, fixupInfo: DyldChainedFixupPointerInfo) {
+        self.offset = offset
+        self.fixupInfo = fixupInfo
+    }
 }
 
 extension DyldChainedFixupPointer {

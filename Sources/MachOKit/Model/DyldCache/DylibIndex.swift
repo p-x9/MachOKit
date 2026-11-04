@@ -16,4 +16,10 @@ public struct DylibIndex: Sendable {
     public let name: String
     /// Dylib index
     public let index: UInt32
+
+    /// Creates a dylib name and index pair.
+    public init(name: String, index: UInt32) {
+        self.name = name
+        self.index = index
+    }
 }

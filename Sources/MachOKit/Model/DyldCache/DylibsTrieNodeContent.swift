@@ -12,6 +12,11 @@ public typealias DylibsTrieEntry = TrieNode<DylibsTrieNodeContent>
 
 public struct DylibsTrieNodeContent: Sendable {
     public let index: UInt32
+
+    /// Creates dylib trie content with the given dylib index.
+    public init(index: UInt32) {
+        self.index = index
+    }
 }
 
 extension DylibsTrieNodeContent: TrieNodeContent {

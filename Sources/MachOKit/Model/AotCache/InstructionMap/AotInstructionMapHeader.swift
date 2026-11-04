@@ -12,4 +12,9 @@ public struct AotInstructionMapHeader: LayoutWrapper, Sendable {
     public typealias Layout = aot_instruction_map_header
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }

@@ -126,7 +126,10 @@ public struct SegmentCommand: SegmentCommandProtocol {
         .init(rawValue: layout.flags)
     }
 
-    init(_ layout: Layout, offset: Int) {
+    /// Creates a command wrapper from its C layout.
+    /// - Parameter offset: Byte offset from the start of the load-command region,
+    ///   immediately after the Mach-O header.
+    public init(_ layout: Layout, offset: Int) {
         self.layout = layout
         self.offset = offset
     }
@@ -175,7 +178,10 @@ public struct SegmentCommand64: SegmentCommandProtocol {
         .init(rawValue: layout.flags)
     }
 
-    init(_ layout: Layout, offset: Int) {
+    /// Creates a command wrapper from its C layout.
+    /// - Parameter offset: Byte offset from the start of the load-command region,
+    ///   immediately after the Mach-O header.
+    public init(_ layout: Layout, offset: Int) {
         self.layout = layout
         self.offset = offset
     }

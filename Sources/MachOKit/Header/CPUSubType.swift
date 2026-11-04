@@ -17,8 +17,12 @@ public enum CPUSubType: Sendable, Equatable {
     case arm64(CPUARM64SubType)
     case arm64_32(CPUARM64_32SubType)
 
+    /// Decodes a subtype for the specified CPU type.
+    ///
+    /// Pass the subtype value with CPU_SUBTYPE_MASK capability bits removed,
+    /// except for CPU_SUBTYPE_MULTIPLE. Unknown values return `nil`.
     // swiftlint:disable:next cyclomatic_complexity
-    init?(rawValue: cpu_subtype_t, of cputype: CPUType) {
+    public init?(rawValue: cpu_subtype_t, of cputype: CPUType) {
         switch cputype {
         case .any:
             guard let subtype = CPUAnySubType(rawValue: rawValue) else {
