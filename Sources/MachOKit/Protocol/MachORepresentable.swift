@@ -897,13 +897,13 @@ extension MachORepresentable where IndirectSymbols.Index == Int {
             return nil
         }
         // https://github.com/apple-oss-distributions/ld64/blob/59a99ab60399c5e6c49e6945a9e1049c42b71135/src/other/dyldinfo.cpp#L2199
-        let extRelocBase = if header.cpuType == .x86_64 {
+        let extRelocBase: Int? = if header.cpuType == .x86_64 {
             if header.fileType == .kextBundle {
                 text.virtualMemoryAddress
             } else {
                 segments.first(
                     where: { $0.initialProtection.contains(.write) }
-                )!.virtualMemoryAddress
+                )?.virtualMemoryAddress
             }
         } else { 0 }
 
@@ -911,7 +911,9 @@ extension MachORepresentable where IndirectSymbols.Index == Int {
 
         let symbols = self.symbols
 
-        if let externalRelocations {
+        // An x86_64 image may have no writable segment. In that case only
+        // external relocations lack a base; indirect symbols are independent.
+        if let extRelocBase, let externalRelocations {
             for relocation in externalRelocations {
                 guard case let .general(info) = relocation.info else { continue }
                 guard let symbolIndex = info.symbolIndex,
