@@ -542,6 +542,27 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    /// Dylibs described by `LC_LAZY_LOAD_DYLIB_INFO` commands.
+    public var lazyLoadDylibs: [LazyLoadDylib] {
+        loadCommands.lazyLoadDylibInfos.compactMap { command in
+            guard command.datasize >= UInt32(LazyLoadDylib.layoutSize),
+                  let data = _readLinkEditData(
+                    offset: numericCast(command.dataoff),
+                    length: LazyLoadDylib.layoutSize
+                  ) else {
+                return nil
+            }
+            guard let lazyLoad = LazyLoadDylib(
+                data: data,
+                dataOffset: numericCast(command.dataoff),
+                dataSize: numericCast(command.datasize)
+            ) else { return nil }
+            return isSwapped ? lazyLoad.swapped : lazyLoad
+        }
+    }
+}
+
+extension MachOFile {
     public var externalRelocations: DataSequence<Relocation>? {
         guard let dysymtab = loadCommands.dysymtab else {
             return nil
@@ -686,36 +707,6 @@ extension MachOFile {
 }
 
 extension MachOFile {
-    public var cfStrings64: DataSequence<CFString64>? {
-        guard let section = sections64.first(where: {
-            $0.sectionName == "__cfstring"
-        }) else { return nil }
-
-        let offset = headerStartOffset + section.offset
-        let count = section.size / CFString64.layoutSize
-
-        return fileHandle.readDataSequence(
-            offset: numericCast(offset),
-            numberOfElements: count
-        )
-    }
-
-    public var cfStrings32: DataSequence<CFString32>? {
-        guard let section = sections32.first(where: {
-            $0.sectionName == "__cfstring"
-        }) else { return nil }
-
-        let offset = headerStartOffset + section.offset
-        let count = section.size / CFString32.layoutSize
-
-        return fileHandle.readDataSequence(
-            offset: numericCast(offset),
-            numberOfElements: count
-        )
-    }
-}
-
-extension MachOFile {
     /// Info.plist embedded in the MachO binary (__TEXT,__info_plist)
     public var embeddedInfoPlist: [String: Any]? {
         func plist(in section: any SectionProtocol) throws -> [String: Any]? {
@@ -749,14 +740,49 @@ extension MachOFile {
 }
 
 extension MachOFile {
+    /// Returns a file slice for link-edit data described by a load command.
+    ///
+    /// For file-backed `MH_OBJECT` files, `__LINKEDIT` is not required.
+    /// The range starts at `headerStartOffset + offset` and is checked against
+    /// the backing file's bounds rather than a segment's bounds.
+    /// For other files, the range must lie within `__LINKEDIT`. Data in a
+    /// dyld cache may be resolved to a separate subcache file.
+    ///
+    /// - Parameters:
+    ///   - offset: The file offset stored in the load command, such as
+    ///     `symoff`, `stroff`, or `dataoff`; do not add `headerStartOffset`.
+    ///   - length: The number of bytes to read.
+    /// - Returns: A slice of the requested range, or `nil` if it cannot be resolved.
     internal func _fileSliceForLinkEditData(
-        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        offset: Int,
         length: Int
     ) -> File.FileSlice? {
+        guard offset >= 0, length >= 0 else { return nil }
+
+        // MH_OBJECT has no __LINKEDIT segment. Its link-edit data offsets are
+        // relative to the Mach-O header, including in an archive or fat file.
+        if header.fileType == .object, !isLoadedFromDyldCache {
+            let fileOffset = headerStartOffset + offset
+            guard fileOffset >= 0,
+                  fileOffset <= fileHandle.size,
+                  length <= fileHandle.size - fileOffset else { return nil }
+            return try? fileHandle.fileSlice(offset: fileOffset, length: length)
+        }
+
         let text: (any SegmentCommandProtocol)? = loadCommands.text64 ?? loadCommands.text
         let linkedit: (any SegmentCommandProtocol)? = loadCommands.linkedit64 ?? loadCommands.linkedit
-        guard let text, let linkedit else { return nil }
-        guard linkedit.fileOffset + linkedit.fileSize >= offset + length else { return nil }
+
+        guard let text, let linkedit,
+              let fileRange = linkedit.fileRange else {
+            return nil
+        }
+
+        let (end, overflow) = offset.addingReportingOverflow(length)
+        guard !overflow,
+              fileRange.lowerBound <= UInt64(offset),
+              UInt64(end) <= fileRange.upperBound else {
+            return nil
+        }
 
         let maxFileOffsetToCheck = text.fileOffset + linkedit.virtualMemoryAddress - text.virtualMemoryAddress
         let isWithinFileRange: Bool = fileHandle.size >= maxFileOffsetToCheck
@@ -793,18 +819,28 @@ extension MachOFile {
         }
     }
 
-    /// Reads the data in the linkedit segment appropriately.
+    /// Reads link-edit data from its file offset.
+    ///
+    /// For file-backed `MH_OBJECT` files, no `__LINKEDIT` segment is required.
+    /// The range starts at `headerStartOffset + offset` and is checked against
+    /// the backing file's bounds. For other files, it must lie within `__LINKEDIT`.
     ///
     /// The linkedit data in the machO file obtained from the dyld cache may be separated in a separate sub cache file.
     /// (e.g. dyld cache in iOS except Simulator)
     ///
-    /// The data related to the following load command exists in linkedit.
+    /// Link-edit data includes data described by the following load commands:
     ///   - symtab
     ///   - dysymtab
     ///   - linkedit_data_command
     ///   - exports trie
+    ///
+    /// - Parameters:
+    ///   - offset: The file offset stored in the load command, such as
+    ///     `symoff`, `stroff`, or `dataoff`; do not add `headerStartOffset`.
+    ///   - length: The number of bytes to read.
+    /// - Returns: The requested data, or `nil` if the range cannot be resolved or read.
     public func _readLinkEditData(
-        offset: Int, // linkedit_data_command->dataoff (linkedit.fileoff + x)
+        offset: Int,
         length: Int
     ) -> Data? {
         guard let fileSlice = _fileSliceForLinkEditData(

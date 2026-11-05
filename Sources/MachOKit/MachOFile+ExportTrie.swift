@@ -107,16 +107,16 @@ extension MachOFile.ExportTrie {
 }
 
 extension MachOFile.ExportTrie {
-    private init(
+    private init?(
         machO: MachOFile,
         exportOffset: Int,
         exportSize: Int,
         ldVersion: Version?
     ) {
-        let data = machO._readLinkEditData(
+        guard let data = machO._readLinkEditData(
             offset: exportOffset,
             length: exportSize
-        )!
+        ) else { return nil }
 
         self.init(
             exportOffset: exportOffset,
@@ -126,7 +126,7 @@ extension MachOFile.ExportTrie {
         )
     }
 
-    init(
+    init?(
         machO: MachOFile,
         info: dyld_info_command,
         ldVersion: Version?
@@ -139,7 +139,7 @@ extension MachOFile.ExportTrie {
         )
     }
 
-    init(
+    init?(
         machO: MachOFile,
         export: linkedit_data_command,
         ldVersion: Version?

@@ -43,3 +43,10 @@ extension IndirectSymbol: CustomStringConvertible {
         }
     }
 }
+
+extension IndirectSymbol {
+    /// Creates an indirect symbol from its raw symbol-table entry.
+    public init(rawValue: UInt32) {
+        self._value = rawValue
+    }
+}

@@ -12,6 +12,12 @@ public struct CPU: Sendable, Equatable {
     public let typeRawValue: cpu_type_t
     public let subtypeRawValue: cpu_subtype_t
 
+    /// Creates a CPU value, preserving the raw type and subtype values.
+    public init(typeRawValue: cpu_type_t, subtypeRawValue: cpu_subtype_t) {
+        self.typeRawValue = typeRawValue
+        self.subtypeRawValue = subtypeRawValue
+    }
+
     public var type: CPUType? {
         .init(rawValue: typeRawValue)
     }
@@ -52,8 +58,23 @@ extension CPU {
 
 #if canImport(Darwin)
 extension CPU {
+    /// `hw.cputype` of the host, with the ABI64 bit added when the host is
+    /// 64-bit capable but reports only the CPU family.
+    ///
+    /// An Intel Mac, and an x86_64 process translated by Rosetta, reports
+    /// `CPU_TYPE_X86` next to `hw.cpu64bit_capable` = 1; without the bit every
+    /// such host would read as i386. A type that already carries an ABI bit,
+    /// such as `CPU_TYPE_ARM64` or `CPU_TYPE_ARM64_32`, is used as is.
     internal static var _currentTypeRawValue: cpu_type_t? {
-        _sysctlValue("hw.cputype")
+        guard let typeRawValue: cpu_type_t = _sysctlValue("hw.cputype") else {
+            return nil
+        }
+        let is64BitCapable: Int32? = _sysctlValue("hw.cpu64bit_capable")
+        guard is64BitCapable == 1,
+              typeRawValue & cpu_type_t(bitPattern: CPU_ARCH_MASK) == 0 else {
+            return typeRawValue
+        }
+        return typeRawValue | CPU_ARCH_ABI64
     }
 
     /// CPU type and subtype of host pc

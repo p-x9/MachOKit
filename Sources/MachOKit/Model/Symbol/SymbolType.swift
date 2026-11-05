@@ -50,7 +50,7 @@ extension SymbolType: RawRepresentable {
         case .abs: RawValue(N_ABS)
         case .sect: RawValue(N_SECT)
         case .pbud: RawValue(N_PBUD)
-        case .indr: RawValue(N_PBUD)
+        case .indr: RawValue(N_INDR)
         }
     }
 }
@@ -62,7 +62,7 @@ extension SymbolType: CustomStringConvertible {
         case .abs: "N_ABS"
         case .sect: "N_SECT"
         case .pbud: "N_PBUD"
-        case .indr: "N_PBUD"
+        case .indr: "N_INDR"
         }
     }
 }

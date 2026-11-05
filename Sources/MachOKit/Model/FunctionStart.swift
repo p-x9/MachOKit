@@ -12,6 +12,11 @@ public struct FunctionStart: Sendable {
     /// Offset from start of mach header (`MachO`)
     /// File offset from mach header (`MachOFile`)
     public let offset: UInt
+
+    /// Creates a function start with the offset described by ``offset``.
+    public init(offset: UInt) {
+        self.offset = offset
+    }
 }
 
 extension FunctionStart {

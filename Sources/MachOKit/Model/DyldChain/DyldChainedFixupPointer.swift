@@ -11,6 +11,54 @@ import Foundation
 public struct DyldChainedFixupPointer: Sendable {
     public let offset: Int
     public let fixupInfo: DyldChainedFixupPointerInfo
+
+    /// Creates a fixup with its offset and decoded pointer information.
+    public init(offset: Int, fixupInfo: DyldChainedFixupPointerInfo) {
+        self.offset = offset
+        self.fixupInfo = fixupInfo
+    }
+}
+
+extension DyldChainedFixupPointer {
+    @inline(__always)
+    static func walkChain(
+        startOffset: Int,
+        pointerOffsetBias: Int,
+        pointerFormat: DyldChainedFixupPointerFormat,
+        pointers: inout [Self],
+        fixupInfoAtOffset: (Int) -> DyldChainedFixupPointerInfo?
+    ) -> Bool {
+        var offset = startOffset
+
+        while true {
+            guard let fixupInfo = fixupInfoAtOffset(offset) else {
+                return false
+            }
+
+            let (pointerOffset, pointerOffsetOverflow) = pointerOffsetBias
+                .addingReportingOverflow(offset)
+            guard !pointerOffsetOverflow else {
+                return false
+            }
+            pointers.append(
+                .init(offset: pointerOffset, fixupInfo: fixupInfo)
+            )
+
+            guard fixupInfo.next != 0 else {
+                return true
+            }
+            let (distance, distanceOverflow) = pointerFormat.stride
+                .multipliedReportingOverflow(by: fixupInfo.next)
+            let (nextOffset, nextOffsetOverflow) = offset
+                .addingReportingOverflow(distance)
+            guard !distanceOverflow,
+                  !nextOffsetOverflow,
+                  nextOffset > offset else {
+                return false
+            }
+            offset = nextOffset
+        }
+    }
 }
 
 extension DyldChainedFixupPointer {
@@ -123,17 +171,12 @@ extension DyldChainedFixupPointer {
     }
 
     public func rebaseTargetRuntimeOffset(for machO: MachOFile) -> UInt64? {
-        let preferedLoadAddress: UInt64
-        if let text64 = machO.loadCommands.text64 {
-            preferedLoadAddress = text64.vmaddr
-        } else if let text = machO.loadCommands.text {
-            preferedLoadAddress = numericCast(text.vmaddr)
-        } else {
+        guard let preferredLoadAddress = machO.preferredLoadAddress else {
             return nil
         }
         return rebaseTargetRuntimeOffset(
             for: machO,
-            preferedLoadAddress: preferedLoadAddress
+            preferedLoadAddress: preferredLoadAddress
         )
     }
 }

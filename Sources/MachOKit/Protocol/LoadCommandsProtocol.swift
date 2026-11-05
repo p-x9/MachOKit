@@ -103,4 +103,8 @@ extension LoadCommandsProtocol {
     var codeSignature: LoadCommandInfo<linkedit_data_command>? {
         info(of: LoadCommand.codeSignature)
     }
+
+    var lazyLoadDylibInfos: AnySequence<LoadCommandInfo<linkedit_data_command>> {
+        infos(of: LoadCommand.lazyLoadDylibInfo)
+    }
 }

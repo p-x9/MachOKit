@@ -13,6 +13,11 @@ public struct CodeSignGenericBlob: LayoutWrapper, Sendable {
     public typealias Layout = CS_GenericBlob
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 extension CodeSignGenericBlob {

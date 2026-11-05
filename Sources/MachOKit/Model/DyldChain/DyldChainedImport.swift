@@ -28,6 +28,11 @@ public struct DyldChainedImportGeneral: DyldChainedImportProtocol {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var libraryOrdinal: Int {
         numericCast(Int8(bitPattern: UInt8(layout.lib_ordinal)))
     }
@@ -50,6 +55,11 @@ public struct DyldChainedImportAddend: DyldChainedImportProtocol {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var libraryOrdinal: Int {
         numericCast(Int8(bitPattern: UInt8(layout.lib_ordinal)))
     }
@@ -71,6 +81,11 @@ public struct DyldChainedImportAddend64: DyldChainedImportProtocol {
     public typealias Layout = dyld_chained_import_addend64
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var libraryOrdinal: Int {
         numericCast(Int16(bitPattern: UInt16(layout.lib_ordinal)))

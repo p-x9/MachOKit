@@ -12,16 +12,31 @@ public struct AotBranchDataIndexEntry: LayoutWrapper, Sendable {
     public typealias Layout = aot_branch_data_index_entry
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 public struct AotBranchDataIndexEntryCompact: LayoutWrapper, Sendable {
     public typealias Layout = aot_branch_data_index_entry_compact
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 public struct AotBranchDataIndexEntryExtended: LayoutWrapper, Sendable {
     public typealias Layout = aot_branch_data_index_entry_extended
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }

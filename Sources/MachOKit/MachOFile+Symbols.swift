@@ -25,6 +25,13 @@ extension MachOFile {
 
         /// Nlist or Nlist64
         public let nlist: any NlistProtocol
+
+        /// Creates a symbol with its name, nlist, and the offset described by ``offset``.
+        public init(name: String, offset: Int, nlist: any NlistProtocol) {
+            self.name = name
+            self.offset = offset
+            self.nlist = nlist
+        }
     }
 }
 
@@ -66,19 +73,19 @@ extension MachOFile {
 }
 
 extension MachOFile.Symbols64 {
-    init(
+    init?(
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let stringsSlice = machO._fileSliceForLinkEditData(
+        guard let stringsSlice = machO._fileSliceForLinkEditData(
             offset: numericCast(symtab.stroff),
             length: numericCast(symtab.strsize)
-        )!
+        ) else { return nil }
 
-        let symbolsSlice = machO._fileSliceForLinkEditData(
+        guard let symbolsSlice = machO._fileSliceForLinkEditData(
             offset: numericCast(symtab.symoff),
             length: numericCast(symtab.nsyms) * MemoryLayout<nlist_64>.size
-        )!
+        ) else { return nil }
 
         self.init(
             symtab: symtab,
@@ -165,9 +172,13 @@ extension MachOFile.Symbols64 {
                 encoding: .utf8
             ) ?? ""
 
+            // `n_value` is not always an address: N_ABS symbols carry
+            // arbitrary constants (e.g. `_swiftImmortalRefCount` in macOS 27's
+            // libswiftCore has bit 63 set), which would trap a widening
+            // `numericCast`. Reinterpret the bit pattern instead.
             return .init(
                 name: string,
-                offset: numericCast(symbol.n_value),
+                offset: Int(bitPattern: UInt(symbol.n_value)),
                 nlist: Nlist64(layout: symbol)
             )
         }
@@ -212,19 +223,19 @@ extension MachOFile {
 }
 
 extension MachOFile.Symbols {
-    init(
+    init?(
         machO: MachOFile,
         symtab: LoadCommandInfo<symtab_command>
     ) {
-        let stringsSlice = machO._fileSliceForLinkEditData(
+        guard let stringsSlice = machO._fileSliceForLinkEditData(
             offset: numericCast(symtab.stroff),
             length: numericCast(symtab.strsize)
-        )!
+        ) else { return nil }
 
-        let symbolsSlice = machO._fileSliceForLinkEditData(
+        guard let symbolsSlice = machO._fileSliceForLinkEditData(
             offset: numericCast(symtab.symoff),
             length: numericCast(symtab.nsyms) * MemoryLayout<nlist>.size
-        )!
+        ) else { return nil }
 
         self.init(
             symtab: symtab,
@@ -325,7 +336,7 @@ extension MachOFile.Symbols64: Collection {
 
         return .init(
             name: string,
-            offset: numericCast(symbol.n_value),
+            offset: Int(bitPattern: UInt(symbol.n_value)),
             nlist: Nlist64(layout: symbol)
         )
     }
@@ -379,7 +390,7 @@ extension MachOFile.Symbols64: _SymbolTableProtocol {
     }
 
     func offset(of nlist: Nlist64) -> Int {
-        numericCast(nlist.layout.n_value)
+        Int(bitPattern: UInt(nlist.layout.n_value))
     }
 
     func symbol(at position: Int, nlist: Nlist64) -> MachOFile.Symbol {
@@ -389,7 +400,7 @@ extension MachOFile.Symbols64: _SymbolTableProtocol {
 
         return .init(
             name: string,
-            offset: numericCast(nlist.layout.n_value),
+            offset: Int(bitPattern: UInt(nlist.layout.n_value)),
             nlist: nlist
         )
     }

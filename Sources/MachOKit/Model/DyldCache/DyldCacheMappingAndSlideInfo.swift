@@ -19,6 +19,11 @@ public struct DyldCacheMappingAndSlideInfo: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_mapping_and_slide_info
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 extension DyldCacheMappingAndSlideInfo {
@@ -34,7 +39,7 @@ extension DyldCacheMappingAndSlideInfo {
 
     /// Initial vm protection of this mapping
     public var initialProtection: VMProtection {
-        .init(rawValue: VMProtection.RawValue(bitPattern: layout.maxProt))
+        .init(rawValue: VMProtection.RawValue(bitPattern: layout.initProt))
     }
 }
 

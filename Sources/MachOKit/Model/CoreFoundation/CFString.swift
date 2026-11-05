@@ -10,6 +10,12 @@ import Foundation
 import MachOKitC
 
 public protocol CFStringProtocol: Sendable {
+    /// The unslid virtual memory address of this record.
+    var address: UInt64 { get }
+
+    /// The byte offset of the `_ptr` field within the record layout.
+    var _stringPointerOffset: Int { get }
+
     /// Offset at which string data is stored
     var stringAddress: Int { get }
     /// Number (in terms of UTF-16 code pairs) of Unicode characters in a string.
@@ -35,15 +41,35 @@ public struct CFString64: LayoutWrapper, CFStringProtocol {
     public typealias Layout = CF_CONST_STRING64
 
     public var layout: Layout
+
+    /// The unslid virtual memory address of this record.
+    public var address: UInt64
+
+    public init(layout: Layout, address: UInt64) {
+        self.layout = layout
+        self.address = address
+    }
 }
 
 public struct CFString32: LayoutWrapper, CFStringProtocol {
     public typealias Layout = CF_CONST_STRING32
 
     public var layout: Layout
+
+    /// The unslid virtual memory address of this record.
+    public var address: UInt64
+
+    public init(layout: Layout, address: UInt64) {
+        self.layout = layout
+        self.address = address
+    }
 }
 
 extension CFString64 {
+    public var _stringPointerOffset: Int {
+        layoutOffset(of: \._ptr)
+    }
+
     public var stringAddress: Int {
         numericCast(layout._ptr & 0x7ffffffff)
     }
@@ -68,6 +94,10 @@ extension CFString64 {
 }
 
 extension CFString32 {
+    public var _stringPointerOffset: Int {
+        layoutOffset(of: \._ptr)
+    }
+
     public var stringAddress: Int {
         numericCast(layout._ptr)
     }
@@ -87,22 +117,13 @@ extension CFString32 {
 
 extension CFStringProtocol {
     public func string(in machO: MachOFile) -> String? {
-        guard let offset = machO.fileOffset(
-            of: numericCast(stringAddress)
-        ) else { return nil }
+        guard let (file, offset) = fileAndOffset(in: machO) else { return nil }
 
-        if isUnicode {
-            let data = try! machO.fileHandle.readData(
-                offset: numericCast(offset) + machO.headerStartOffset,
-                length: stringSize * MemoryLayout<UInt16/*UniChar*/>.size
-            )
-            return String(bytes: data, encoding: .utf16LittleEndian)
-        } else {
-            return machO.fileHandle.readString(
-                offset: numericCast(offset) + numericCast(machO.headerStartOffset),
-                size: stringSize
-            )
+        let byteCount = stringSize * (isUnicode ? MemoryLayout<UInt16>.size : 1)
+        guard let data = try? file.readData(offset: offset, length: byteCount) else {
+            return nil
         }
+        return String(bytes: data, encoding: isUnicode ? .utf16LittleEndian : .utf8)
     }
 
     public func string(in machO: MachOImage) -> String? {
@@ -119,6 +140,38 @@ extension CFStringProtocol {
                 encoding: .ascii
             )
         }
+    }
+}
+
+private extension CFStringProtocol {
+    func fileAndOffset(in machO: MachOFile) -> (MachOFile.File, Int)? {
+        if machO.isLoadedFromDyldCache {
+            guard let cache = machO.cache else { return nil }
+            return fileAndOffset(in: cache)
+        }
+        guard let offset = machO.fileOffset(of: numericCast(stringAddress)) else {
+            return nil
+        }
+        return (machO.fileHandle, machO.headerStartOffset + numericCast(offset))
+    }
+
+    func fileAndOffset(in cache: DyldCache) -> (MachOFile.File, Int)? {
+        guard let record = try? cache.locateValue({ $0.fileOffset(of: address) }) else {
+            return nil
+        }
+        let target: UInt64
+        if record.cache.mappingAndSlideInfos != nil {
+            guard let rebased = record.cache.resolveOptionalRebase(
+                at: record.value + UInt64(_stringPointerOffset)
+            ) else { return nil }
+            target = rebased
+        } else {
+            target = numericCast(stringAddress)
+        }
+        guard let located = try? cache.locateValue({ $0.fileOffset(of: target) }) else {
+            return nil
+        }
+        return (located.cache.fileHandle, numericCast(located.value))
     }
 }
 

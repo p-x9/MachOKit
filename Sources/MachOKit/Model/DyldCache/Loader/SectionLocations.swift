@@ -12,6 +12,11 @@ public struct SectionLocations: LayoutWrapper, Sendable {
     public typealias Layout = section_locations
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 extension SectionLocations {
@@ -51,6 +56,13 @@ extension SectionLocations {
         public let offset: Int
         public let size: Int
         public let kind: SectionKind
+
+        /// Creates a section description with its recorded offset, size, and kind.
+        public init(offset: Int, size: Int, kind: SectionKind) {
+            self.offset = offset
+            self.size = size
+            self.kind = kind
+        }
     }
 }
 

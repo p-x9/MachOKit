@@ -321,6 +321,100 @@ final class DyldCachePrintTests: XCTestCase {
         }
     }
 
+    func testObjCSelectorHashTable() throws {
+        // The hash tables are placed in a subcache (e.g. `.dyldreadonly`)
+        guard let cache = objcOptimizedCache,
+              let objcOptimization = cache.objcOptimization,
+              let table = objcOptimization.selectorHashTable(in: cache) else {
+            return
+        }
+        print("Cache:", cache.url.lastPathComponent)
+        print("Offset:", table.offset)
+        print("Capacity:", table.capacity)
+        print("Occupied:", table.occupied)
+
+        print("Lookup:")
+        for name in ["alloc", "init", "description", "thisSelectorShouldNotExist:"] {
+            guard let entry = table.selector(named: name, in: cache) else {
+                print(" \(name): nil")
+                continue
+            }
+            print(" \(entry.name): index: \(entry.index), offset: \(entry.offset)")
+        }
+
+        print("Selectors:")
+        for entry in table.selectors(in: cache)!.prefix(100) {
+            print(" [\(entry.index)] \(entry.name), offset: \(entry.offset)")
+        }
+    }
+
+    func testObjCClassHashTable() throws {
+        guard let cache = objcOptimizedCache,
+              let objcOptimization = cache.objcOptimization,
+              let table = objcOptimization.classHashTable(in: cache) else {
+            return
+        }
+        print("Cache:", cache.url.lastPathComponent)
+        print("Offset:", table.offset)
+        print("Capacity:", table.capacity)
+        print("Occupied:", table.occupied)
+        print("Duplicate Count:", table.duplicateCount(in: cache) ?? -1)
+        print("Class Count:", table.classCount(in: cache) ?? -1)
+
+        print("Lookup:")
+        for name in ["NSObject", "NSString", "ThisClassShouldNotExist"] {
+            guard let entry = table.entry(named: name, in: cache) else {
+                print(" \(name): nil")
+                continue
+            }
+            print(" \(entry.name): index: \(entry.index), objects: \(entry.objects.count)")
+            for object in entry.objects.prefix(10) {
+                print("  offset: \(object.offset), dylibObjCIndex: \(object.dylibObjCIndex)")
+            }
+        }
+
+        print("Classes:")
+        for entry in table.entries(in: cache)!.prefix(100) {
+            print(" [\(entry.index)] \(entry.name), objects: \(entry.objects.count)")
+            for object in entry.objects.prefix(10) {
+                print("  offset: \(object.offset), dylibObjCIndex: \(object.dylibObjCIndex)")
+            }
+        }
+    }
+
+    func testObjCProtocolHashTable() throws {
+        guard let cache = objcOptimizedCache,
+              let objcOptimization = cache.objcOptimization,
+              let table = objcOptimization.protocolHashTable(in: cache) else {
+            return
+        }
+        print("Cache:", cache.url.lastPathComponent)
+        print("Offset:", table.offset)
+        print("Capacity:", table.capacity)
+        print("Occupied:", table.occupied)
+        print("Duplicate Count:", table.duplicateCount(in: cache) ?? -1)
+
+        print("Lookup:")
+        for name in ["NSObject", "NSCopying", "ThisProtocolShouldNotExist"] {
+            guard let entry = table.entry(named: name, in: cache) else {
+                print(" \(name): nil")
+                continue
+            }
+            print(" \(entry.name): index: \(entry.index), objects: \(entry.objects.count)")
+            for object in entry.objects.prefix(10) {
+                print("  offset: \(object.offset), dylibObjCIndex: \(object.dylibObjCIndex)")
+            }
+        }
+
+        print("Protocols:")
+        for entry in table.entries(in: cache)!.prefix(100) {
+            print(" [\(entry.index)] \(entry.name), objects: \(entry.objects.count)")
+            for object in entry.objects.prefix(10) {
+                print("  offset: \(object.offset), dylibObjCIndex: \(object.dylibObjCIndex)")
+            }
+        }
+    }
+
     func testSwiftOptimization() throws {
         guard let swiftOptimization = cache.swiftOptimization else { return }
         print("Version:", swiftOptimization.version)
@@ -468,5 +562,13 @@ extension DyldCachePrintTests {
             "Runtime:",
             runtime
         )
+    }
+}
+
+extension DyldCachePrintTests {
+    /// Main cache or subcache containing the ObjC optimization header and hash tables
+    private var objcOptimizedCache: DyldCache? {
+        let subCaches = (try? cache.subCaches?.compactMap { try $0.subcache(for: cache) }) ?? []
+        return ([cache] + subCaches).first(where: { $0.objcOptimization != nil })
     }
 }

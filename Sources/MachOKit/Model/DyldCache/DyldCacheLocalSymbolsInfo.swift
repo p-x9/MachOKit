@@ -13,6 +13,15 @@ public struct DyldCacheLocalSymbolsInfo: LayoutWrapper, Sendable {
 
     public var layout: Layout
     public var offset: Int // file offset from cache file starts
+
+    /// Creates local symbol info from its C layout.
+    /// - Parameter offset: Byte offset of the local symbol info, relative to the
+    ///   individual cache file when used with ``DyldCache``, or to the concatenated
+    ///   file view when used with ``FullDyldCache``.
+    public init(layout: Layout, offset: Int) {
+        self.layout = layout
+        self.offset = offset
+    }
 }
 
 extension DyldCacheLocalSymbolsInfo {

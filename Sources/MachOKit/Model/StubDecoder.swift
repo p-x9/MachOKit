@@ -1,0 +1,272 @@
+//
+//  StubDecoder.swift
+//  MachOKit
+//
+
+import Foundation
+
+/// Decodes symbol and Objective-C stub instruction patterns emitted by ld64
+/// and parsed or rewritten by dyld.
+///
+/// Upstream implementations:
+///
+/// - [dyld stub parser and optimizer](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/cache_builder/Optimizers.cpp#L352-L538)
+/// - [ld64 arm64 stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/stubs/stub_arm64.hpp#L309-L420)
+/// - [ld64 arm64e stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/stubs/stub_arm64e.hpp#L149-L263)
+/// - [ld64 x86_64 stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/stubs/stub_x86_64.hpp#L334-L442)
+/// - [ld64 Objective-C stub emitters](https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/objc_stubs.cpp#L144-L285)
+/// - [dyld Objective-C selector-reference parser](https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/other-tools/SymbolicatedImage.cpp#L510-L536)
+enum StubDecoder {
+    private static let regularObjCStubSize = 32
+
+    static func decode(
+        _ data: Data,
+        address: UInt64,
+        cpuType: CPUType?
+    ) -> Stub.Branch {
+        switch cpuType {
+        case .arm64:
+            return decodeArm64(data, address: address, uses32BitPointers: false)
+        case .arm64_32:
+            return decodeArm64(data, address: address, uses32BitPointers: true)
+        case .x86_64:
+            return decodeX86_64(data, address: address)
+        default:
+            return .unknown
+        }
+    }
+
+    static func selectorReference(
+        in data: Data,
+        stubAddress: UInt64,
+        cpuType: CPUType?
+    ) -> UInt64? {
+        // The instruction sequences are emitted by ld64:
+        // https://github.com/apple-oss-distributions/ld64/blob/f60a74eaa2c99585de1dc0f2820e7a9f8aaf522c/src/ld/passes/objc_stubs.cpp#L178-L285
+        switch cpuType {
+        case .arm64:
+            return arm64SelectorReference(
+                in: data,
+                stubAddress: stubAddress,
+                uses32BitPointers: false
+            )
+        case .arm64_32:
+            return arm64SelectorReference(
+                in: data,
+                stubAddress: stubAddress,
+                uses32BitPointers: true
+            )
+        case .x86_64:
+            guard data.count >= 7,
+                  data[0] == 0x48,
+                  data[1] == 0x8B,
+                  data[2] == 0x35,
+                  let displacement = signed32(in: data, at: 3),
+                  let nextInstruction = adding(UInt64(7), to: stubAddress) else {
+                return nil
+            }
+            return adding(displacement, to: nextInstruction)
+        default:
+            return nil
+        }
+    }
+
+    static func objcStubLayout(
+        in data: Data,
+        cpuType: CPUType?
+    ) -> ObjCStubCollection.Layout {
+        if cpuType == .x86_64 {
+            return .x86_64
+        }
+        guard cpuType == .arm64 || cpuType == .arm64_32,
+              let branch = word(in: data, at: 8) else {
+            return .unknown
+        }
+
+        let regular: ObjCStubCollection.Layout = cpuType == .arm64
+            ? .arm64Regular
+            : .arm64_32Regular
+        let small: ObjCStubCollection.Layout = cpuType == .arm64
+            ? .arm64Small
+            : .arm64_32Small
+
+        // The small ld64 form ends with an immediate branch. A regular stub
+        // optimized by dyld can start the same way, but its remaining bytes
+        // are BRK/NOP padding up to the regular 32-byte entry size.
+        if branch & 0xFC00_0000 == 0x1400_0000 {
+            if data.count >= regularObjCStubSize,
+               hasOnlyArm64Padding(
+                   data.subdata(in: 8 ..< regularObjCStubSize),
+                   after: MemoryLayout<UInt32>.size
+               ) {
+                return regular
+            }
+            return small
+        }
+
+        return regular
+    }
+}
+
+extension StubDecoder {
+    private static func arm64SelectorReference(
+        in data: Data,
+        stubAddress: UInt64,
+        uses32BitPointers: Bool
+    ) -> UInt64? {
+        // dyld uses the same ADRP/LDR pair to recover the selector reference:
+        // https://github.com/apple-oss-distributions/dyld/blob/fd8d0c4d52320ebf64db34f3cb280310d905c5ae/other-tools/SymbolicatedImage.cpp#L510-L536
+        let expectedLDR: UInt32 = uses32BitPointers ? 0xB940_0021 : 0xF940_0021
+        let scale: UInt64 = uses32BitPointers ? 4 : 8
+        guard let adrp = word(in: data, at: 0),
+              adrp & 0x9F00_001F == 0x9000_0001,
+              let ldr = word(in: data, at: 4),
+              ldr & 0xFFC0_03FF == expectedLDR,
+              let page = adrpTarget(of: adrp, pc: stubAddress) else {
+            return nil
+        }
+        return adding(UInt64((ldr >> 10) & 0xFFF) * scale, to: page)
+    }
+}
+
+extension StubDecoder {
+    private static func decodeArm64(
+        _ data: Data,
+        address: UInt64,
+        uses32BitPointers: Bool
+    ) -> Stub.Branch {
+        guard let first = word(in: data, at: 0) else { return .unknown }
+
+        // dyld cache optimized stubs can be a single immediate branch with
+        // BRK or NOP instructions filling the remainder of the stub.
+        if first & 0xFC00_0000 == 0x1400_0000,
+           hasOnlyArm64Padding(data, after: 4),
+           let target = arm64BranchTarget(of: first, pc: address) {
+            return .direct(target)
+        }
+
+        guard let second = word(in: data, at: 4),
+              let third = word(in: data, at: 8) else {
+            return .unknown
+        }
+
+        // Optimized direct form: ADRP X16; ADD X16, X16, #off; BR X16.
+        if first & 0x9F00_001F == 0x9000_0010,
+           second & 0xFFC0_03FF == 0x9100_0210,
+           third == 0xD61F_0200,
+           let page = adrpTarget(of: first, pc: address),
+           let target = adding(UInt64((second >> 10) & 0xFFF), to: page) {
+            return .direct(target)
+        }
+
+        // arm64e authenticated form:
+        // ADRP X17; ADD X17, X17, #off; LDR X16, [X17]; BRAA X16, X17.
+        if !uses32BitPointers,
+           first & 0x9F00_001F == 0x9000_0011,
+           second & 0xFFC0_03FF == 0x9100_0231,
+           third == 0xF940_0230,
+           word(in: data, at: 12) == 0xD71F_0A11,
+           let page = adrpTarget(of: first, pc: address),
+           let slot = adding(UInt64((second >> 10) & 0xFFF), to: page) {
+            return .viaSlot(slot)
+        }
+
+        // arm64 and arm64_32 conventional forms:
+        // ADRP X16; LDR X16/W16, [X16, #off]; BR X16/BRAAZ X16.
+        // The BRAAZ form authenticates only the branch target; the GOT load
+        // itself remains unauthenticated.
+        let expectedLDR: UInt32 = uses32BitPointers ? 0xB940_0210 : 0xF940_0210
+        let scale: UInt64 = uses32BitPointers ? 4 : 8
+        if first & 0x9F00_001F == 0x9000_0010,
+           second & 0xFFC0_03FF == expectedLDR,
+           (third == 0xD61F_0200 || third == 0xD61F_0A1F),
+           let page = adrpTarget(of: first, pc: address),
+           let slot = adding(UInt64((second >> 10) & 0xFFF) * scale, to: page) {
+            return .viaSlot(slot)
+        }
+
+        return .unknown
+    }
+
+    private static func decodeX86_64(
+        _ data: Data,
+        address: UInt64
+    ) -> Stub.Branch {
+        if data.count >= 6, data[0] == 0xFF, data[1] == 0x25,
+           let displacement = signed32(in: data, at: 2),
+           let nextInstruction = adding(UInt64(6), to: address),
+           let slot = adding(displacement, to: nextInstruction) {
+            return .viaSlot(slot)
+        }
+        if data.count >= 5, data[0] == 0xE9,
+           let displacement = signed32(in: data, at: 1),
+           let nextInstruction = adding(UInt64(5), to: address),
+           let target = adding(displacement, to: nextInstruction) {
+            return .direct(target)
+        }
+        return .unknown
+    }
+}
+
+extension StubDecoder {
+    private static func word(in data: Data, at offset: Int) -> UInt32? {
+        guard offset >= 0, offset <= data.count - MemoryLayout<UInt32>.size else {
+            return nil
+        }
+        return data.withUnsafeBytes {
+            $0.loadUnaligned(fromByteOffset: offset, as: UInt32.self).littleEndian
+        }
+    }
+
+    private static func signed32(in data: Data, at offset: Int) -> Int64? {
+        guard let value = word(in: data, at: offset) else { return nil }
+        return Int64(Int32(bitPattern: value))
+    }
+
+    private static func adrpTarget(of instruction: UInt32, pc: UInt64) -> UInt64? {
+        let immediate = Int64(
+            ((instruction >> 29) & 0x3) | ((instruction >> 3) & 0x1F_FFFC)
+        )
+        let signedImmediate = signExtended(immediate, bitWidth: 21) << 12
+        return adding(signedImmediate, to: pc & ~UInt64(0xFFF))
+    }
+
+    private static func arm64BranchTarget(of instruction: UInt32, pc: UInt64) -> UInt64? {
+        let immediate = signExtended(Int64(instruction & 0x03FF_FFFF), bitWidth: 26) << 2
+        return adding(immediate, to: pc)
+    }
+
+    private static func signExtended(_ value: Int64, bitWidth: Int64) -> Int64 {
+        let signBit = Int64(1) << (bitWidth - 1)
+        return (value ^ signBit) - signBit
+    }
+
+    private static func hasOnlyArm64Padding(_ data: Data, after offset: Int) -> Bool {
+        guard data.count >= offset, (data.count - offset).isMultiple(of: 4) else {
+            return false
+        }
+        for instructionOffset in stride(from: offset, to: data.count, by: 4) {
+            guard let instruction = word(in: data, at: instructionOffset),
+                  instruction == 0xD503_201F || instruction & 0xFFE0_001F == 0xD420_0000 else {
+                return false
+            }
+        }
+        return true
+    }
+}
+
+extension StubDecoder {
+    private static func adding(_ delta: Int64, to address: UInt64) -> UInt64? {
+        if delta >= 0 {
+            let (result, overflow) = address.addingReportingOverflow(UInt64(delta))
+            return overflow ? nil : result
+        }
+        let (result, overflow) = address.subtractingReportingOverflow(UInt64(-delta))
+        return overflow ? nil : result
+    }
+
+    private static func adding(_ delta: UInt64, to address: UInt64) -> UInt64? {
+        let (result, overflow) = address.addingReportingOverflow(delta)
+        return overflow ? nil : result
+    }
+}
