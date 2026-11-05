@@ -1,5 +1,5 @@
 {
-  "originHash" : "e383328a12c016adeaba5a10339bfcb0d2b6fd532be729660d4f9d51fc021693",
+  "originHash" : "ea3714e2f7aae82d8216f01f280498fc1eeb97910e9f67ce6acbeec29fbb0769",
   "pins" : [
     {
       "identity" : "objectarchivekit",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-asn1.git",
       "state" : {
-        "revision" : "9f542610331815e29cc3821d3b6f488db8715517",
-        "version" : "1.6.0"
+        "revision" : "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "version" : "1.7.3"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/swift-binary-parse-support.git",
       "state" : {
-        "revision" : "5fb96b503672ea4752eded6b4e301fd87214b03b",
-        "version" : "0.2.1"
+        "revision" : "b4042df3819fde93ce952a111607ec8ffc4ee704",
+        "version" : "0.3.0"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "95ba0316a9b733e92bb6b071255ff46263bbe7dc",
-        "version" : "3.15.1"
+        "revision" : "a9d1d5ab8951ada40cafff8c8e2b551dfde4f390",
+        "version" : "5.0.0"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/swift-fileio.git",
       "state" : {
-        "revision" : "d589ff3966f9f064574780f527449a946736b989",
-        "version" : "0.13.0"
+        "revision" : "13a83389fb4844f279b43012c4b8d7a3f95773bf",
+        "version" : "0.15.1"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/swift-fileio-extra.git",
       "state" : {
-        "revision" : "8d83506dd4dff737807d90dbf2264096ed98c7a7",
-        "version" : "0.2.2"
+        "revision" : "8e7d47436bd3b2d73ddd4e0be0c689b3c8aa1b87",
+        "version" : "0.4.0"
       }
     }
   ],
