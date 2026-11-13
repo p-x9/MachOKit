@@ -99,8 +99,13 @@ public struct DyldChainedImportAddend64: DyldChainedImportProtocol {
         numericCast(layout.name_offset)
     }
 
+    /// Signed addend of the import.
+    ///
+    /// `dyld_chained_import_addend64.addend` is declared as `uint64_t`, but
+    /// dyld treats it as a two's complement value, so a negative addend such
+    /// as `-8` is stored as `0xFFFF_FFFF_FFFF_FFF8`.
     public var addend: Int {
-        numericCast(layout.addend)
+        Int(truncatingIfNeeded: Int64(bitPattern: layout.addend))
     }
 }
 
