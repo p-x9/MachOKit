@@ -125,8 +125,15 @@ extension DyldChainedFixupPointerFormat {
 }
 
 extension DyldChainedFixupPointerFormat {
+    /// Size in bytes of one step of a chained pointer's `next` field.
+    ///
+    /// `next` counts strides, not bytes: the next fixup in a chain is located
+    /// `next * stride` bytes after the current one, and `next == 0` ends the chain.
+    ///
+    /// The values follow dyld's own definition (see the `DYLD_CHAINED_PTR_*`
+    /// comments in `mach-o/fixup-chains.h`).
     // https://github.com/apple-oss-distributions/dyld/blob/d1a0f6869ece370913a3f749617e457f3b4cd7c4/common/MachOLayout.cpp#L2145
-    var stride: Int {
+    public var stride: Int {
         switch self {
         case .arm64e, .arm64e_userland, .arm64e_userland24, .arm64e_shared_cache:
             return 8
