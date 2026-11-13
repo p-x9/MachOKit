@@ -50,17 +50,26 @@ extension TrieNode {
 }
 
 extension TrieNode {
+    /// Reads the node located at `nextOffset`.
+    ///
+    /// All reads are bounded by `trieSize`.
+    /// Returns `nil` when the node is malformed, i.e. when a ULEB128 value, the terminal
+    /// payload, a child label or a child offset does not stay inside the trie.
     public static func readNext(
         basePointer: UnsafePointer<UInt8>,
         trieSize: Int,
         nextOffset: inout Int
     ) -> Self? {
-        guard nextOffset < trieSize else { return nil }
+        guard nextOffset >= 0, nextOffset < trieSize else { return nil }
 
-        let (terminalSize, terminalBytes) = basePointer
+        guard let (terminalSize, terminalBytes) = basePointer
             .advanced(by: nextOffset)
-            .readULEB128()
+            .readULEB128(maxSize: trieSize - nextOffset) else {
+            return nil
+        }
         nextOffset += terminalBytes
+
+        guard terminalSize <= UInt(trieSize - nextOffset) else { return nil }
 
         var entry = TrieNode(
             offset: nextOffset - terminalBytes,
@@ -72,11 +81,14 @@ extension TrieNode {
         var childrenOffset = nextOffset + Int(terminalSize)
 
         if terminalSize != 0 {
-            entry.content = .read(
+            guard let content = Content.read(
                 basePointer: basePointer,
                 trieSize: trieSize,
                 nextOffset: &nextOffset
-            )
+            ), nextOffset <= childrenOffset else {
+                return nil
+            }
+            entry.content = content
         }
 
         guard childrenOffset < trieSize else { return entry }
@@ -86,15 +98,20 @@ extension TrieNode {
             .pointee
         childrenOffset += MemoryLayout<UInt8>.size
 
-        for _ in 0..<numberOfChildren where childrenOffset < trieSize {
-            let (string, stringOffset) = basePointer
+        for _ in 0..<numberOfChildren {
+            guard let (string, stringOffset) = basePointer
                 .advanced(by: childrenOffset)
-                .readString()
+                .readString(maxSize: trieSize - childrenOffset) else {
+                return nil
+            }
             childrenOffset += stringOffset
 
-            let (value, ulebOffset) = basePointer
+            guard let (value, ulebOffset) = basePointer
                 .advanced(by: childrenOffset)
-                .readULEB128()
+                .readULEB128(maxSize: trieSize - childrenOffset),
+                  value < UInt(trieSize) else {
+                return nil
+            }
             childrenOffset += ulebOffset
 
             let child = TrieNode.Child(label: string, offset: value)

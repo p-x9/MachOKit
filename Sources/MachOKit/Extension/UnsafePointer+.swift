@@ -55,6 +55,86 @@ extension UnsafePointer<UInt8> {
 }
 
 extension UnsafePointer<UInt8> {
+    /// Reads a ULEB128 value without reading more than `maxSize` bytes.
+    ///
+    /// - Parameter maxSize: Number of readable bytes starting at this pointer.
+    /// - Returns: (value, size).
+    ///   `nil` if the value is not terminated within `maxSize` bytes or does not fit in `UInt`.
+    @_spi(Support)
+    public func readULEB128(maxSize: Int) -> (UInt, Int)? {
+        var value: UInt = 0
+        var shift: UInt = 0
+        var offset: Int = 0
+
+        var byte: UInt8 = 0
+
+        repeat {
+            guard offset < maxSize, shift < UInt.bitWidth else { return nil }
+            byte = advanced(by: offset).pointee
+
+            let slice = UInt(byte & 0x7F)
+            guard (slice << shift) >> shift == slice else { return nil }
+
+            value |= slice << shift
+            shift += 7
+            offset += 1
+        } while byte >= 128
+
+        return (value, offset)
+    }
+
+    /// Reads a SLEB128 value without reading more than `maxSize` bytes.
+    ///
+    /// - Parameter maxSize: Number of readable bytes starting at this pointer.
+    /// - Returns: (value, size).
+    ///   `nil` if the value is not terminated within `maxSize` bytes or does not fit in `Int`.
+    @_spi(Support)
+    public func readSLEB128(maxSize: Int) -> (Int, Int)? {
+        var value: Int = 0
+        var shift: UInt = 0
+        var offset: Int = 0
+
+        var byte: UInt8 = 0
+
+        repeat {
+            guard offset < maxSize, shift < Int.bitWidth else { return nil }
+            byte = advanced(by: offset).pointee
+
+            if byte >= 128 {
+                value |= Int(byte & 0x7F) << shift
+            } else {
+                // The last byte carries the sign in bit 6
+                let slice = Int(Int8(bitPattern: byte << 1) >> 1)
+                guard (slice << shift) >> shift == slice else { return nil }
+                value |= slice << shift
+            }
+            shift += 7
+            offset += 1
+        } while byte >= 128
+
+        return (value, offset)
+    }
+}
+
+extension UnsafePointer<UInt8> {
+    /// Reads a null-terminated string without reading more than `maxSize` bytes.
+    ///
+    /// - Parameter maxSize: Number of readable bytes starting at this pointer.
+    /// - Returns: (string, size including the null terminator).
+    ///   `nil` if there is no null terminator within `maxSize` bytes.
+    func readString(maxSize: Int) -> (String, Int)? {
+        guard maxSize > 0,
+              let terminator = memchr(self, 0, maxSize) else {
+            return nil
+        }
+        let offset = Int(bitPattern: terminator) + 1 - Int(bitPattern: self)
+        let string = String(cString: self)
+
+        return (string, offset)
+    }
+}
+
+extension UnsafePointer<UInt8> {
     func readString() -> (String, Int) {
         let offset = Int(bitPattern: strchr(self, 0)) + 1 - Int(bitPattern: self)
         let string = String(cString: self)

@@ -145,9 +145,11 @@ extension BindOperation {
             return .set_dylib_ordinal_imm(ordinal: Int(imm))
 
         case .set_dylib_ordinal_uleb:
-            let (value, ulebSize) = basePointer
+            guard let (value, ulebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: bindSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize
             return .set_dylib_ordinal_uleb(ordinal: Int(bitPattern: value))
 
@@ -164,9 +166,11 @@ extension BindOperation {
             return .set_dylib_special_imm(special: special)
 
         case .set_symbol_trailing_flags_imm:
-            let (string, stringSize) = basePointer
+            guard let (string, stringSize) = basePointer
                 .advanced(by: nextOffset)
-                .readString()
+                .readString(maxSize: bindSize - nextOffset) else {
+                return nil
+            }
             nextOffset += stringSize
             return .set_symbol_trailing_flags_imm(flags: UInt(imm), symbol: string)
 
@@ -175,23 +179,29 @@ extension BindOperation {
             return .set_type_imm(type: type)
 
         case .set_addend_sleb:
-            let (value, slebSize) = basePointer
+            guard let (value, slebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readSLEB128()
+                .readSLEB128(maxSize: bindSize - nextOffset) else {
+                return nil
+            }
             nextOffset += slebSize
             return .set_addend_sleb(addend: value)
 
         case .set_segment_and_offset_uleb:
-            let (value, ulebSize) = basePointer
+            guard let (value, ulebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: bindSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize
             return .set_segment_and_offset_uleb(segment: UInt(imm), offset: value)
 
         case .add_addr_uleb:
-            let (value, ulebSize) = basePointer
+            guard let (value, ulebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: bindSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize
             return .add_addr_uleb(offset: value)
 
@@ -199,9 +209,11 @@ extension BindOperation {
             return .do_bind
 
         case .do_bind_add_addr_uleb:
-            let (value, ulebSize) = basePointer
+            guard let (value, ulebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: bindSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize
             return .do_bind_add_addr_uleb(offset: value)
 
@@ -209,14 +221,18 @@ extension BindOperation {
             return .do_bind_add_addr_imm_scaled(scale: UInt(imm))
 
         case .do_bind_uleb_times_skipping_uleb:
-            let (count, ulebSize) = basePointer
+            guard let (count, ulebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: bindSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize
 
-            let (skip, ulebSize2) = basePointer
+            guard let (skip, ulebSize2) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: bindSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize2
 
             return .do_bind_uleb_times_skipping_uleb(count: count, skip: skip)
@@ -229,9 +245,11 @@ extension BindOperation {
             case .threaded_apply:
                 return .threaded(.threaded_apply)
             case .threaded_set_bind_ordinal_table_size_uleb:
-                let (size, ulebOff) = basePointer
+                guard let (size, ulebOff) = basePointer
                     .advanced(by: nextOffset)
-                    .readULEB128()
+                    .readULEB128(maxSize: bindSize - nextOffset) else {
+                    return nil
+                }
                 nextOffset += ulebOff
                 return .threaded(.threaded_set_bind_ordinal_table_size_uleb(size: Int(size)))
             }

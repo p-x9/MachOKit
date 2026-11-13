@@ -98,16 +98,20 @@ extension RebaseOperation {
             return .set_type_imm(type ?? .pointer)
 
         case .set_segment_and_offset_uleb:
-            let (value, ulebSize) = basePointer
+            guard let (value, ulebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: rebaseSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize
             return .set_segment_and_offset_uleb(segment: Int(imm), offset: value)
 
         case .add_addr_uleb:
-            let (value, ulebSize) = basePointer
+            guard let (value, ulebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: rebaseSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize
             return .add_addr_uleb(offset: value)
 
@@ -118,28 +122,36 @@ extension RebaseOperation {
             return .do_rebase_imm_times(count: UInt(imm))
 
         case .do_rebase_uleb_times:
-            let (value, ulebSize) = basePointer
+            guard let (value, ulebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: rebaseSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize
             return .do_rebase_uleb_times(count: value)
 
         case .do_rebase_add_addr_uleb:
-            let (value, ulebSize) = basePointer
+            guard let (value, ulebSize) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: rebaseSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize
             return .do_rebase_add_addr_uleb(offset: value)
 
         case .do_rebase_uleb_times_skipping_uleb:
-            let (value1, ulebSize1) = basePointer
+            guard let (value1, ulebSize1) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: rebaseSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize1
 
-            let (value2, ulebSize2) = basePointer
+            guard let (value2, ulebSize2) = basePointer
                 .advanced(by: nextOffset)
-                .readULEB128()
+                .readULEB128(maxSize: rebaseSize - nextOffset) else {
+                return nil
+            }
             nextOffset += ulebSize2
             return .do_rebase_uleb_times_skipping_uleb(count: value1, skip: value2)
         }
