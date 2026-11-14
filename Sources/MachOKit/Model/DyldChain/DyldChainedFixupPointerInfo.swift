@@ -138,6 +138,14 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
+    /// Distance in bytes from this pointer to the next one in the chain.
+    ///
+    /// This is `next` scaled by the ``DyldChainedFixupPointerFormat/stride``
+    /// of the pointer format. `0` means this is the last pointer in the chain.
+    public var nextOffset: Int {
+        next * pointerFormat.stride
+    }
+
     public var type: ContentType {
         switch self {
         case let .arm64e(info): info.type
