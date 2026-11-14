@@ -21,7 +21,7 @@ final class MachOFileDataTests: XCTestCase {
         let offset = try headerStartOffset()
         let fromURL = try MachOFile(url: url, headerStartOffset: offset)
         let fromData = try MachOFile(
-            data: try Data(contentsOf: url),
+            data: Data(contentsOf: url),
             headerStartOffset: offset
         )
 

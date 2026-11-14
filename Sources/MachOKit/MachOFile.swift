@@ -91,7 +91,7 @@ public class MachOFile: MachORepresentable {
         try self.init(
             url: nil,
             imagePath: nil,
-            fileHandle: try File(data: data),
+            fileHandle: File(data: data),
             headerStartOffset: headerStartOffset,
             headerStartOffsetInCache: 0
         )
@@ -691,8 +691,8 @@ extension MachOFile {
     /// This property attempts to lazily load the corresponding full dyld cache based on the file URL.
     /// - If `_fullCache` has already been set, that value is returned.
     /// - If `_cache` exists and its `_fullCache` is available, that is returned.
-    /// - Otherwise, this tries to load a `FullDyldCache` from a path obtained by removing the last two path extensions of `url`.
-    /// - If there is no file URL, no cache is loaded and this returns `nil`.
+    /// - Otherwise, this tries to load a `FullDyldCache` from a path obtained by removing the last two path extensions of `url`
+    ///   (`nil` if there is no file URL).
     ///
     /// This is primarily used when the Mach-O file originates from a dyld shared cache and data in other
     /// subcache files needs to be accessed.
