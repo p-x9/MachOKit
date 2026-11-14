@@ -181,3 +181,39 @@ extension _OldObjCOptimizationProtocol {
         )
     }
 }
+
+// MARK: - Hash Tables
+
+extension _OldObjCOptimizationProtocol {
+    /// Offsets in `objc_opt_t` are relative to `objc_opt_t` itself.
+    /// - Parameter fieldOffset: offset from start of `objc_opt_t`
+    /// - Returns: offset from start address of main cache
+    internal func _hashTableOffset(_ fieldOffset: Int32) -> Int? {
+        guard fieldOffset != 0 else { return nil }
+        return offset + numericCast(fieldOffset)
+    }
+
+    internal func _oldHashTable<Table: _OldObjCStringHashTable, Cache: _DyldCacheFileRepresentable>(
+        fieldOffset: Int32,
+        version: UInt32,
+        in cache: Cache
+    ) -> Table? {
+        guard let offset = _hashTableOffset(fieldOffset),
+              let layout: objc_stringhash_t = cache._objcHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset, optimizationVersion: numericCast(version))
+    }
+
+    internal func _oldHashTable<Table: _OldObjCStringHashTable>(
+        fieldOffset: Int32,
+        version: UInt32,
+        in cache: DyldCacheLoaded
+    ) -> Table? {
+        guard let offset = _hashTableOffset(fieldOffset),
+              let layout: objc_stringhash_t = cache._objcHashTableLayout(at: offset) else {
+            return nil
+        }
+        return .init(layout: layout, offset: offset, optimizationVersion: numericCast(version))
+    }
+}
