@@ -80,6 +80,23 @@ public class MachOFile: MachORepresentable {
         )
     }
 
+    /// Creates a Mach-O file from a copy of `data` held in memory.
+    ///
+    /// ``url`` is `nil`. For a fat binary, pass the offset of the architecture
+    /// to load as `headerStartOffset`.
+    public convenience init(
+        data: Data,
+        headerStartOffset: Int = 0
+    ) throws {
+        try self.init(
+            url: nil,
+            imagePath: nil,
+            fileHandle: try File(data: data),
+            headerStartOffset: headerStartOffset,
+            headerStartOffsetInCache: 0
+        )
+    }
+
     public convenience init(
         url: URL,
         imagePath: String? = nil,
@@ -130,7 +147,7 @@ public class MachOFile: MachORepresentable {
     }
 
     private init(
-        url: URL,
+        url: URL?,
         imagePath: String?,
         fileHandle: File,
         headerStartOffset: Int,
@@ -148,8 +165,9 @@ public class MachOFile: MachORepresentable {
         self.headerStartOffset = headerStartOffset
         self.headerStartOffsetInCache = headerStartOffsetInCache
 
-        var header: MachHeader = fileHandle.read(
-            offset: UInt64(headerStartOffset + headerStartOffsetInCache)
+        var header = try fileHandle.read(
+            offset: headerStartOffset + headerStartOffsetInCache,
+            as: MachHeader.self
         )
 
         guard let magic = header.magic else {
@@ -163,6 +181,12 @@ public class MachOFile: MachORepresentable {
 
         self.isSwapped = isSwapped
         self.header = header
+
+        // `loadCommands` reads this range without throwing
+        _ = try fileHandle.fileSlice(
+            offset: cmdsStartOffset,
+            length: numericCast(header.sizeofcmds)
+        )
     }
 }
 
