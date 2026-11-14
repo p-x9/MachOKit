@@ -48,63 +48,58 @@ public struct ExportTrieNodeContent: Sendable {
 extension ExportTrieNodeContent: TrieNodeContent {
     public static func read(
         basePointer: UnsafePointer<UInt8>,
-        trieSize _: Int,
+        trieSize: Int,
         nextOffset: inout Int
     ) -> ExportTrieNodeContent? {
         var content: Self = .init()
 
-        let (flagsRaw, ulebOffset) = basePointer
-            .advanced(by: nextOffset)
-            .readULEB128()
-        nextOffset += ulebOffset
+        guard let flagsRaw = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
+            return nil
+        }
 
-        let flags = ExportSymbolFlags(rawValue: ExportSymbolFlags.RawValue(flagsRaw))
+        guard let flagsRaw = ExportSymbolFlags.RawValue(exactly: flagsRaw) else {
+            return nil
+        }
+        let flags = ExportSymbolFlags(rawValue: flagsRaw)
         content.flags = flags
 
         if flags.contains(.reexport) {
-            let (value, ulebOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128()
-            nextOffset += ulebOffset
+            guard let value = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
+                return nil
+            }
 
             content.ordinal = value
 
-            let (string, stringOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readString()
-            nextOffset += stringOffset
+            guard let string = basePointer.readString(at: &nextOffset, size: trieSize) else {
+                return nil
+            }
 
             content.importedName = string
         } else if flags.contains(.stub_and_resolver) {
-            let (stub, ulebOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128()
-            nextOffset += ulebOffset
+            guard let stub = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
+                return nil
+            }
 
-            let (resolver, ulebOffset2) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128()
-            nextOffset += ulebOffset2
+            guard let resolver = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
+                return nil
+            }
 
             content.stub = stub
             content.resolver = resolver
         } else if flags.contains(.function_variant) {
-            let (symbolOffset, ulebOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128()
-            nextOffset += ulebOffset
-            let (functionVariantTableIndex, ulebOffset2) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128()
-            nextOffset += ulebOffset2
+            guard let symbolOffset = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
+                return nil
+            }
+            guard let functionVariantTableIndex = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
+                return nil
+            }
 
             content.symbolOffset = symbolOffset
             content.functionVariantTableIndex = functionVariantTableIndex
         } else {
-            let (value, ulebOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128()
-            nextOffset += ulebOffset
+            guard let value = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
+                return nil
+            }
 
             content.symbolOffset = value
         }

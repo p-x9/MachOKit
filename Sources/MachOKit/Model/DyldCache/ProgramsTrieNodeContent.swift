@@ -22,15 +22,15 @@ public struct ProgramsTrieNodeContent: Sendable {
 extension ProgramsTrieNodeContent: TrieNodeContent {
     public static func read(
         basePointer: UnsafePointer<UInt8>,
-        trieSize _: Int,
+        trieSize: Int,
         nextOffset: inout Int
     ) -> ProgramsTrieNodeContent? {
-        let (offset, ulebOffset) = basePointer
-            .advanced(by: nextOffset)
-            .readULEB128()
+        guard let offset = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
+            return nil
+        }
 
-        nextOffset += ulebOffset
+        guard let offset = UInt32(exactly: offset) else { return nil }
 
-        return .init(offset: numericCast(offset))
+        return .init(offset: offset)
     }
 }

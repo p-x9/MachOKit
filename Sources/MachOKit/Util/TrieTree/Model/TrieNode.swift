@@ -55,15 +55,16 @@ extension TrieNode {
         trieSize: Int,
         nextOffset: inout Int
     ) -> Self? {
-        guard nextOffset < trieSize else { return nil }
+        guard nextOffset >= 0, nextOffset < trieSize else { return nil }
 
-        let (terminalSize, terminalBytes) = basePointer
-            .advanced(by: nextOffset)
-            .readULEB128()
-        nextOffset += terminalBytes
+        let offset = nextOffset
+        guard let terminalSize = basePointer.readULEB128(at: &nextOffset, size: trieSize),
+              terminalSize <= UInt(trieSize - nextOffset) else {
+            return nil
+        }
 
         var entry = TrieNode(
-            offset: nextOffset - terminalBytes,
+            offset: offset,
             terminalSize: terminalSize,
             content: nil,
             children: []
@@ -72,11 +73,14 @@ extension TrieNode {
         var childrenOffset = nextOffset + Int(terminalSize)
 
         if terminalSize != 0 {
-            entry.content = .read(
+            guard let content = Content.read(
                 basePointer: basePointer,
                 trieSize: trieSize,
                 nextOffset: &nextOffset
-            )
+            ), nextOffset <= childrenOffset else {
+                return nil
+            }
+            entry.content = content
         }
 
         guard childrenOffset < trieSize else { return entry }
@@ -86,16 +90,12 @@ extension TrieNode {
             .pointee
         childrenOffset += MemoryLayout<UInt8>.size
 
-        for _ in 0..<numberOfChildren where childrenOffset < trieSize {
-            let (string, stringOffset) = basePointer
-                .advanced(by: childrenOffset)
-                .readString()
-            childrenOffset += stringOffset
-
-            let (value, ulebOffset) = basePointer
-                .advanced(by: childrenOffset)
-                .readULEB128()
-            childrenOffset += ulebOffset
+        for _ in 0..<numberOfChildren {
+            guard let string = basePointer.readString(at: &childrenOffset, size: trieSize),
+                  let value = basePointer.readULEB128(at: &childrenOffset, size: trieSize),
+                  value < UInt(trieSize) else {
+                return nil
+            }
 
             let child = TrieNode.Child(label: string, offset: value)
             entry.children.append(child)

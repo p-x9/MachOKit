@@ -28,11 +28,10 @@ extension FunctionStart {
     ) -> FunctionStart? {
         guard nextOffset < functionStartsSize else { return nil }
 
-        let (additionalOffset, size) = basePointer
-            .advanced(by: nextOffset)
-            .readULEB128()
-        nextOffset += size
+        guard let additionalOffset = basePointer.readULEB128(at: &nextOffset, size: functionStartsSize) else {
+            return nil
+        }
 
-        return .init(offset: lastFunctionOffset + additionalOffset)
+        return .init(offset: lastFunctionOffset &+ additionalOffset)
     }
 }
