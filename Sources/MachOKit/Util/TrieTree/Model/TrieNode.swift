@@ -50,11 +50,6 @@ extension TrieNode {
 }
 
 extension TrieNode {
-    /// Reads the node located at `nextOffset`.
-    ///
-    /// All reads are bounded by `trieSize`.
-    /// Returns `nil` when the node is malformed, i.e. when a ULEB128 value, the terminal
-    /// payload, a child label or a child offset does not stay inside the trie.
     public static func readNext(
         basePointer: UnsafePointer<UInt8>,
         trieSize: Int,

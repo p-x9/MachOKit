@@ -55,11 +55,7 @@ extension UnsafePointer<UInt8> {
 }
 
 extension UnsafePointer<UInt8> {
-    /// Reads a ULEB128 value without reading more than `maxSize` bytes.
-    ///
-    /// - Parameter maxSize: Number of readable bytes starting at this pointer.
-    /// - Returns: (value, size).
-    ///   `nil` if the value is not terminated within `maxSize` bytes or does not fit in `UInt`.
+    /// (value, size), or `nil` if truncated within `maxSize` or overflowing
     @_spi(Support)
     public func readULEB128(maxSize: Int) -> (UInt, Int)? {
         var value: UInt = 0
@@ -83,11 +79,7 @@ extension UnsafePointer<UInt8> {
         return (value, offset)
     }
 
-    /// Reads a SLEB128 value without reading more than `maxSize` bytes.
-    ///
-    /// - Parameter maxSize: Number of readable bytes starting at this pointer.
-    /// - Returns: (value, size).
-    ///   `nil` if the value is not terminated within `maxSize` bytes or does not fit in `Int`.
+    /// (value, size), or `nil` if truncated within `maxSize` or overflowing
     @_spi(Support)
     public func readSLEB128(maxSize: Int) -> (Int, Int)? {
         var value: Int = 0
@@ -117,11 +109,7 @@ extension UnsafePointer<UInt8> {
 }
 
 extension UnsafePointer<UInt8> {
-    /// Reads a null-terminated string without reading more than `maxSize` bytes.
-    ///
-    /// - Parameter maxSize: Number of readable bytes starting at this pointer.
-    /// - Returns: (string, size including the null terminator).
-    ///   `nil` if there is no null terminator within `maxSize` bytes.
+    /// (string, size), or `nil` if not terminated within `maxSize`
     func readString(maxSize: Int) -> (String, Int)? {
         guard maxSize > 0,
               let terminator = memchr(self, 0, maxSize) else {

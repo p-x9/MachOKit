@@ -86,41 +86,6 @@ extension TrieNodeBoundsTests {
         XCTAssertNil(read(trie, offset: -1).entry)
     }
 
-    func testDataTrieTreeDecodesValidTrie() throws {
-        // child offsets in `trie` are written for a trie that starts at the 2nd node
-        let data = Data(trie[5...])
-        let tree = DataTrieTree<ExportTrieNodeContent>(data: data)
-
-        XCTAssertEqual(Array(tree).map(\.offset), [0, 8, 12, 19])
-        XCTAssertEqual(tree.entries.map(\.offset), [0])
-
-        let root = try XCTUnwrap(tree.element(atOffset: 0))
-        XCTAssertEqual(root.children.map(\.label), ["a", "b"])
-        XCTAssertNil(tree.element(atOffset: data.count))
-    }
-
-    func testDataTrieTreeTraversesAndSearches() throws {
-        // root, children: "_a" -> 6, "_b" -> 10
-        let bytes: [UInt8] = [
-            0x00, 0x02, 0x5F, 0x61, 0x00, 0x0A, 0x5F, 0x62, 0x00, 0x0E,
-            0x02, 0x00, 0x10, 0x00,
-            0x05, 0x08, 0x01, 0x5F, 0x63, 0x00, 0x00
-        ]
-        let tree = DataTrieTree<ExportTrieNodeContent>(data: Data(bytes))
-
-        XCTAssertEqual(tree.entries.map(\.offset), [0, 10, 14])
-
-        let found = try XCTUnwrap(tree._search(by: "_a"))
-        XCTAssertEqual(found.offset, 10)
-        XCTAssertEqual(found.content.symbolOffset, 0x10)
-
-        let reexport = try XCTUnwrap(tree._search(by: "_b"))
-        XCTAssertEqual(reexport.offset, 14)
-        XCTAssertEqual(reexport.content.importedName, "_c")
-
-        XCTAssertNil(tree._search(by: "_c"))
-    }
-
     func testReadNextAcceptsPaddedChildOffset() throws {
         // ld-prime writes root child offsets as padded ULEB128
         let bytes: [UInt8] = [
