@@ -19,7 +19,9 @@ public class MachOFile: MachORepresentable {
     typealias File = MemoryMappedFile
 
     /// URL of the file actually loaded
-    public let url: URL
+    ///
+    /// `nil` if this Mach-O file was not loaded from a file on disk.
+    public let url: URL?
 
     private let _imagePath: String?
 
@@ -78,6 +80,23 @@ public class MachOFile: MachORepresentable {
         )
     }
 
+    /// Creates a Mach-O file from a copy of `data` held in memory.
+    ///
+    /// ``url`` is `nil`. For a fat binary, pass the offset of the architecture
+    /// to load as `headerStartOffset`.
+    public convenience init(
+        data: Data,
+        headerStartOffset: Int = 0
+    ) throws {
+        try self.init(
+            url: nil,
+            imagePath: nil,
+            fileHandle: File(data: data),
+            headerStartOffset: headerStartOffset,
+            headerStartOffsetInCache: 0
+        )
+    }
+
     public convenience init(
         url: URL,
         imagePath: String? = nil,
@@ -128,7 +147,7 @@ public class MachOFile: MachORepresentable {
     }
 
     private init(
-        url: URL,
+        url: URL?,
         imagePath: String?,
         fileHandle: File,
         headerStartOffset: Int,
@@ -146,8 +165,9 @@ public class MachOFile: MachORepresentable {
         self.headerStartOffset = headerStartOffset
         self.headerStartOffsetInCache = headerStartOffsetInCache
 
-        var header: MachHeader = fileHandle.read(
-            offset: UInt64(headerStartOffset + headerStartOffsetInCache)
+        var header = try fileHandle.read(
+            offset: headerStartOffset + headerStartOffsetInCache,
+            as: MachHeader.self
         )
 
         guard let magic = header.magic else {
@@ -161,6 +181,12 @@ public class MachOFile: MachORepresentable {
 
         self.isSwapped = isSwapped
         self.header = header
+
+        // `loadCommands` reads this range without throwing
+        _ = try fileHandle.fileSlice(
+            offset: cmdsStartOffset,
+            length: numericCast(header.sizeofcmds)
+        )
     }
 }
 
@@ -169,6 +195,7 @@ extension MachOFile {
     ///
     /// - For executable binaries, this usually matches the file's ``url`` path.
     /// - For dynamic libraries, this may return the `LC_ID_DYLIB` or `LC_ID_DYLINKER` path embedded in the load commands.
+    /// - If there is neither an embedded path nor a ``url``, this is an empty string.
     ///
     /// This property provides the logical path used by the system to identify the Mach-O image,
     /// which can differ from the actual file system location if the file is part of a dyld shared cache.
@@ -180,7 +207,7 @@ extension MachOFile {
         if let idDylinker = loadCommands.info(of: LoadCommand.idDylinker) {
             return idDylinker.name(in: self)
         }
-        return url.path
+        return url?.path ?? ""
     }
 }
 
@@ -645,11 +672,13 @@ extension MachOFile {
     /// - If `_cache` has already been set, that value is returned.
     /// - If `_fullCache` has already been set, the corresponding subcache for this file URL is returned.
     /// - Otherwise, this attempts to initialize a new `DyldCache` using the file URL.
+    /// - If there is no file URL, no cache is loaded and this returns `nil`.
     ///
     /// This is mainly used when the Mach-O file originates from a dyld shared cache and requires
     /// access to symbols, sections, or other data spread across subcaches.
     public var cache: DyldCache? {
         if let _cache { return _cache }
+        guard let url else { return nil }
         if let _fullCache {
             return _fullCache.cache(for: url)
         }
@@ -662,7 +691,8 @@ extension MachOFile {
     /// This property attempts to lazily load the corresponding full dyld cache based on the file URL.
     /// - If `_fullCache` has already been set, that value is returned.
     /// - If `_cache` exists and its `_fullCache` is available, that is returned.
-    /// - Otherwise, this tries to load a `FullDyldCache` from a path obtained by removing the last two path extensions of `url`.
+    /// - Otherwise, this tries to load a `FullDyldCache` from a path obtained by removing the last two path extensions of `url`
+    ///   (`nil` if there is no file URL).
     ///
     /// This is primarily used when the Mach-O file originates from a dyld shared cache and data in other
     /// subcache files needs to be accessed.
@@ -672,6 +702,7 @@ extension MachOFile {
            let _fullCache = _cache._fullCache {
             return _fullCache
         }
+        guard let url else { return nil }
         _fullCache = try? .init(
             url: url
                 .deletingPathExtension()
@@ -691,7 +722,7 @@ extension MachOFile {
     @_spi(Support)
     public var _cachedCache: DyldCache? {
         if let _cache { return _cache }
-        if let _fullCache {
+        if let _fullCache, let url {
             return _fullCache.cache(for: url)
         }
         return nil
