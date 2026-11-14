@@ -358,28 +358,37 @@ extension MachORepresentable {
         guard let bindOperations else {
             return []
         }
-        return bindOperations.bindings(is64Bit: is64Bit)
+        return bindOperations.bindings(is64Bit: is64Bit, segmentSizes: segmentSizes)
     }
 
     public var weakBindingSymbols: [BindingSymbol] {
         guard let weakBindOperations else {
             return []
         }
-        return weakBindOperations.bindings(is64Bit: is64Bit)
+        return weakBindOperations.bindings(is64Bit: is64Bit, segmentSizes: segmentSizes)
     }
 
     public var lazyBindingSymbols: [BindingSymbol] {
         guard let lazyBindOperations else {
             return []
         }
-        return lazyBindOperations.bindings(is64Bit: is64Bit)
+        return lazyBindOperations.bindings(is64Bit: is64Bit, segmentSizes: segmentSizes)
     }
 
     public var rebases: [Rebase] {
         guard let rebaseOperations else {
             return []
         }
-        return rebaseOperations.rebases(is64Bit: is64Bit)
+        return rebaseOperations.rebases(is64Bit: is64Bit, segmentSizes: segmentSizes)
+    }
+
+    /// Read from the layout directly, so that a `vmsize` beyond `Int.max` does not trap.
+    private var segmentSizes: [UInt] {
+        if is64Bit {
+            segments64.map { UInt(truncatingIfNeeded: $0.layout.vmsize) }
+        } else {
+            segments32.map { UInt($0.layout.vmsize) }
+        }
     }
 }
 

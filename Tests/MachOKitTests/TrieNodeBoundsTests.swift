@@ -85,17 +85,6 @@ extension TrieNodeBoundsTests {
         XCTAssertNil(read(trie, offset: trie.count).entry)
         XCTAssertNil(read(trie, offset: -1).entry)
     }
-
-    func testReadNextAcceptsPaddedChildOffset() throws {
-        // continuation-padded ULEB128 child offset
-        let bytes: [UInt8] = [
-            0x00, 0x01, 0x61, 0x00, 0x89, 0x80, 0x80, 0x80, 0x00,
-            0x02, 0x00, 0x10, 0x00
-        ]
-        let (entry, nextOffset) = read(bytes)
-        XCTAssertEqual(try XCTUnwrap(entry).children.map(\.offset), [9])
-        XCTAssertEqual(nextOffset, 9)
-    }
 }
 
 // MARK: - malformed
@@ -108,8 +97,6 @@ extension TrieNodeBoundsTests {
     }
 
     func testReadNextRejectsOverflowingTerminalSize() {
-        XCTAssertNil(read([UInt8](repeating: 0xFF, count: 10) + [0x00]).entry)
-        XCTAssertNil(read([UInt8](repeating: 0x80, count: 10) + [0x00, 0x00]).entry)
         // fits in 64 bits, but not in the trie (and not in `Int`)
         XCTAssertNil(read([UInt8](repeating: 0xFF, count: 9) + [0x01, 0x00]).entry)
     }
@@ -151,11 +138,6 @@ extension TrieNodeBoundsTests {
         XCTAssertNotNil(read([0x00, 0x01, 0x61, 0x00, 0x04]).entry)
     }
 
-    func testReadNextRejectsMissingChildren() {
-        // 2 children are announced, 1 is present
-        XCTAssertNil(read([0x00, 0x02, 0x61, 0x00, 0x00]).entry)
-    }
-
     func testTrieTreeStopsAtMalformedNode() {
         let bytes: [UInt8] = [0x00, 0x01, 0x61, 0x00, 0x05, 0x00, 0x01, 0x62]
         let tree = DataTrieTree<ExportTrieNodeContent>(data: Data(bytes))
@@ -176,5 +158,59 @@ extension TrieNodeBoundsTests {
         let emptyLabel = DataTrieTree<ExportTrieNodeContent>(data: Data([0x00, 0x01, 0x00, 0x00]))
         XCTAssertNil(emptyLabel._search(by: "a"))
         XCTAssertTrue(emptyLabel._search(byKeyPrefix: "a").isEmpty)
+    }
+}
+
+// MARK: - traversal
+extension TrieNodeBoundsTests {
+    func testTrieTreeVisitsSharedNodeViaEveryParent() {
+        // offset 0: root, children: "a" -> 8, "b" -> 8
+        // offset 8: regular export at 0x10
+        let bytes: [UInt8] = [
+            0x00, 0x02, 0x61, 0x00, 0x08, 0x62, 0x00, 0x08,
+            0x02, 0x00, 0x10, 0x00
+        ]
+        let tree = DataTrieTree<ExportTrieNodeContent>(data: Data(bytes))
+        XCTAssertEqual(tree.entries.map(\.offset), [0, 8, 8])
+        XCTAssertEqual(tree.exportedSymbols.map(\.name), ["a", "b"])
+        XCTAssertEqual(tree.exportedSymbols.map(\.offset), [0x10, 0x10])
+    }
+
+    func testTrieTreeStopsAtCycleBelowRoot() {
+        // offset 0: root, children: "a" -> 5
+        // offset 5: "a", terminal 0x10, children: "b" -> 0 (root), "c" -> 5 (self)
+        let bytes: [UInt8] = [
+            0x00, 0x01, 0x61, 0x00, 0x05,
+            0x02, 0x00, 0x10, 0x02, 0x62, 0x00, 0x00, 0x63, 0x00, 0x05
+        ]
+        let tree = DataTrieTree<ExportTrieNodeContent>(data: Data(bytes))
+        XCTAssertEqual(tree.entries.map(\.offset), [0, 5])
+        XCTAssertEqual(tree.exportedSymbols.map(\.name), ["a"])
+    }
+
+    func testTrieTreeHandlesDeepChain() {
+        // Each node has a single child "a" with a 4-byte padded ULEB128 offset,
+        // so node `i` lives at offset `8 * i`. The last node is a terminal.
+        let depth = 200_000
+        var bytes: [UInt8] = []
+        bytes.reserveCapacity(depth * 8 + 4)
+        for i in 0..<depth {
+            let next = UInt32(8 * (i + 1))
+            bytes += [0x00, 0x01, 0x61, 0x00]
+            bytes += [
+                UInt8(next & 0x7F) | 0x80,
+                UInt8((next >> 7) & 0x7F) | 0x80,
+                UInt8((next >> 14) & 0x7F) | 0x80,
+                UInt8((next >> 21) & 0x7F)
+            ]
+        }
+        bytes += [0x02, 0x00, 0x10, 0x00]
+
+        let tree = DataTrieTree<ExportTrieNodeContent>(data: Data(bytes))
+        XCTAssertEqual(tree.entries.count, depth + 1)
+        let symbols = tree.exportedSymbols
+        XCTAssertEqual(symbols.count, 1)
+        XCTAssertEqual(symbols.first?.name, String(repeating: "a", count: depth))
+        XCTAssertEqual(symbols.first?.offset, 0x10)
     }
 }

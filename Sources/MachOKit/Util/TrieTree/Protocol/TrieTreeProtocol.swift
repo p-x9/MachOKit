@@ -33,28 +33,10 @@ extension TrieTreeProtocol {
             return []
         }
         var result: [Element] = []
-        var visited: Set<Int> = []
-        recurseTrie(entry: root, result: &result, visited: &visited)
-        return result
-    }
-
-    private func recurseTrie(
-        entry: Element,
-        result: inout [Element],
-        visited: inout Set<Int>
-    ) {
-        guard visited.insert(entry.offset).inserted else { return }
-        result.append(entry)
-        for child in entry.children {
-            guard let entry = element(atOffset: Int(child.offset)) else {
-                continue
-            }
-            recurseTrie(
-                entry: entry,
-                result: &result,
-                visited: &visited
-            )
+        walkTrie(name: "", entry: root) { entry, _ in
+            result.append(entry)
         }
+        return result
     }
 }
 
@@ -69,10 +51,9 @@ extension TrieTreeProtocol {
         entry: Element,
         result: inout [(String, Content)]
     ) {
-        var visited: Set<Int> = []
-        walkTrie(name: currentName, entry: entry, visited: &visited) { name, entry in
+        walkTrie(name: currentName, entry: entry) { entry, name in
             if let content = entry.content {
-                result.append((name, content))
+                result.append((name(), content))
             }
         }
     }
@@ -87,34 +68,45 @@ extension TrieTreeProtocol {
         entry: Element,
         result: inout [(String, Element)]
     ) {
-        var visited: Set<Int> = []
-        walkTrie(name: currentName, entry: entry, visited: &visited) { name, entry in
+        walkTrie(name: currentName, entry: entry) { entry, name in
             if entry.isTerminal {
-                result.append((name, entry))
+                result.append((name(), entry))
             }
         }
     }
 
-    /// Depth-first walk that visits each node offset at most once, so that
-    /// malformed tries containing cycles terminate.
+    /// Pre-order walk with an explicit stack, so that deep tries cannot overflow
+    /// the call stack. Only nodes already on the current path are skipped, so
+    /// cycles terminate while shared nodes are still visited via every parent.
     private func walkTrie(
         name: String,
-        entry: Element,
-        visited: inout Set<Int>,
-        _ visit: (String, Element) -> Void
+        entry root: Element,
+        _ visit: (_ entry: Element, _ name: () -> String) -> Void
     ) {
-        guard visited.insert(entry.offset).inserted else { return }
-        visit(name, entry)
-        for child in entry.children {
-            guard let entry = element(atOffset: Int(child.offset)) else {
+        var nameBytes = Array(name.utf8)
+        var path: Set<Int> = [root.offset]
+        var stack: [(entry: Element, nameCount: Int, nextChild: Int)] = [
+            (root, nameBytes.count, 0)
+        ]
+        visit(root) { name }
+
+        while let top = stack.last {
+            guard top.nextChild < top.entry.children.count else {
+                path.remove(top.entry.offset)
+                stack.removeLast()
                 continue
             }
-            walkTrie(
-                name: name + child.label,
-                entry: entry,
-                visited: &visited,
-                visit
-            )
+            stack[stack.count - 1].nextChild += 1
+
+            let child = top.entry.children[top.nextChild]
+            guard let entry = element(atOffset: Int(child.offset)),
+                  path.insert(entry.offset).inserted else {
+                continue
+            }
+            nameBytes.removeSubrange(top.nameCount...)
+            nameBytes.append(contentsOf: child.label.utf8)
+            visit(entry) { String(decoding: nameBytes, as: UTF8.self) }
+            stack.append((entry, nameBytes.count, 0))
         }
     }
 }
