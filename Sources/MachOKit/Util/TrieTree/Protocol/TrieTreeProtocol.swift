@@ -33,7 +33,7 @@ extension TrieTreeProtocol {
             return []
         }
         var result: [Element] = []
-        walkTrie(name: "", entry: root) { entry, _ in
+        walkTrie(name: nil, entry: root) { entry, _ in
             result.append(entry)
         }
         return result
@@ -79,34 +79,43 @@ extension TrieTreeProtocol {
     /// the call stack. Only nodes already on the current path are skipped, so
     /// cycles terminate while shared nodes are still visited via every parent.
     private func walkTrie(
-        name: String,
+        name: String?,
         entry root: Element,
         _ visit: (_ entry: Element, _ name: () -> String) -> Void
     ) {
-        var nameBytes = Array(name.utf8)
-        var path: Set<Int> = [root.offset]
-        var stack: [(entry: Element, nameCount: Int, nextChild: Int)] = [
-            (root, nameBytes.count, 0)
+        // `nil` if the caller does not need names
+        var nameBytes = name.map { Array($0.utf8) }
+        // Offsets of the nodes on `stack`. A cycle needs an edge to a node at a
+        // lower or equal offset, so it is only tracked once such an edge is seen.
+        var path: Set<Int>?
+        var stack: [(offset: Int, children: [Element.Child], nameCount: Int, nextChild: Int)] = [
+            (root.offset, root.children, nameBytes?.count ?? 0, 0)
         ]
-        visit(root) { name }
+        visit(root) { name ?? "" }
 
-        while let top = stack.last {
-            guard top.nextChild < top.entry.children.count else {
-                path.remove(top.entry.offset)
+        while !stack.isEmpty {
+            let top = stack.count - 1
+            let index = stack[top].nextChild
+            guard index < stack[top].children.count else {
+                path?.remove(stack[top].offset)
                 stack.removeLast()
                 continue
             }
-            stack[stack.count - 1].nextChild += 1
+            stack[top].nextChild += 1
 
-            let child = top.entry.children[top.nextChild]
-            guard let entry = element(atOffset: Int(child.offset)),
-                  path.insert(entry.offset).inserted else {
+            guard let entry = element(atOffset: Int(stack[top].children[index].offset)) else {
                 continue
             }
-            nameBytes.removeSubrange(top.nameCount...)
-            nameBytes.append(contentsOf: child.label.utf8)
-            visit(entry) { String(decoding: nameBytes, as: UTF8.self) }
-            stack.append((entry, nameBytes.count, 0))
+            if path == nil, entry.offset <= stack[top].offset {
+                path = Set(stack.map(\.offset))
+            }
+            if path != nil, path?.insert(entry.offset).inserted != true {
+                continue
+            }
+            nameBytes?.removeSubrange(stack[top].nameCount...)
+            nameBytes?.append(contentsOf: stack[top].children[index].label.utf8)
+            visit(entry) { String(decoding: nameBytes ?? [], as: UTF8.self) }
+            stack.append((entry.offset, entry.children, nameBytes?.count ?? 0, 0))
         }
     }
 }
