@@ -35,6 +35,6 @@ extension FunctionStart {
         }
         nextOffset += size
 
-        return .init(offset: lastFunctionOffset + additionalOffset)
+        return .init(offset: lastFunctionOffset &+ additionalOffset)
     }
 }

@@ -55,20 +55,22 @@ extension UnsafePointer<UInt8> {
 }
 
 extension UnsafePointer<UInt8> {
-    /// (value, size), or `nil` if truncated within `maxSize` or overflowing
+    /// (value, size), or `nil` if truncated within `maxSize` or overflowing 64 bits
+    ///
+    /// Like ld64/dyld, values are decoded as 64-bit and truncated to `UInt` on 32-bit hosts.
     @_spi(Support)
     public func readULEB128(maxSize: Int) -> (UInt, Int)? {
-        var value: UInt = 0
-        var shift: UInt = 0
+        var value: UInt64 = 0
+        var shift: UInt64 = 0
         var offset: Int = 0
 
         var byte: UInt8 = 0
 
         repeat {
-            guard offset < maxSize, shift < UInt.bitWidth else { return nil }
+            guard offset < maxSize, shift < 64 else { return nil }
             byte = advanced(by: offset).pointee
 
-            let slice = UInt(byte & 0x7F)
+            let slice = UInt64(byte & 0x7F)
             guard (slice << shift) >> shift == slice else { return nil }
 
             value |= slice << shift
@@ -76,27 +78,29 @@ extension UnsafePointer<UInt8> {
             offset += 1
         } while byte >= 128
 
-        return (value, offset)
+        return (UInt(truncatingIfNeeded: value), offset)
     }
 
-    /// (value, size), or `nil` if truncated within `maxSize` or overflowing
+    /// (value, size), or `nil` if truncated within `maxSize` or overflowing 64 bits
+    ///
+    /// Like ld64/dyld, values are decoded as 64-bit and truncated to `Int` on 32-bit hosts.
     @_spi(Support)
     public func readSLEB128(maxSize: Int) -> (Int, Int)? {
-        var value: Int = 0
-        var shift: UInt = 0
+        var value: Int64 = 0
+        var shift: UInt64 = 0
         var offset: Int = 0
 
         var byte: UInt8 = 0
 
         repeat {
-            guard offset < maxSize, shift < Int.bitWidth else { return nil }
+            guard offset < maxSize, shift < 64 else { return nil }
             byte = advanced(by: offset).pointee
 
             if byte >= 128 {
-                value |= Int(byte & 0x7F) << shift
+                value |= Int64(byte & 0x7F) << shift
             } else {
                 // The last byte carries the sign in bit 6
-                let slice = Int(Int8(bitPattern: byte << 1) >> 1)
+                let slice = Int64(Int8(bitPattern: byte << 1) >> 1)
                 guard (slice << shift) >> shift == slice else { return nil }
                 value |= slice << shift
             }
@@ -104,7 +108,7 @@ extension UnsafePointer<UInt8> {
             offset += 1
         } while byte >= 128
 
-        return (value, offset)
+        return (Int(truncatingIfNeeded: value), offset)
     }
 }
 

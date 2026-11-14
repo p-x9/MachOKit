@@ -239,7 +239,7 @@ extension BindOperation {
 
         case .threaded:
             guard let subopcode = BindSubOpcode(rawValue: imm) else {
-                fatalError("unknown bind subopcode")
+                return nil
             }
             switch subopcode {
             case .threaded_apply:
@@ -251,7 +251,7 @@ extension BindOperation {
                     return nil
                 }
                 nextOffset += ulebOff
-                return .threaded(.threaded_set_bind_ordinal_table_size_uleb(size: Int(size)))
+                return .threaded(.threaded_set_bind_ordinal_table_size_uleb(size: Int(bitPattern: size)))
             }
         }
     }

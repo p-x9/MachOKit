@@ -25,7 +25,7 @@ final class BoundedLEB128Tests: XCTestCase {
             ([0x80, 0x01], 128),
             ([0xE5, 0x8E, 0x26], 624485),
             ([0x85, 0x80, 0x80, 0x80, 0x00], 5),
-            ([UInt8](repeating: 0xFF, count: 9) + [0x01], UInt(UInt64.max))
+            ([UInt8](repeating: 0xFF, count: 9) + [0x01], UInt(truncatingIfNeeded: UInt64.max))
         ]
         for (bytes, value) in vectors {
             // trailing bytes must not be consumed
@@ -59,8 +59,8 @@ final class BoundedLEB128Tests: XCTestCase {
             ([0x7F], -1),
             ([0x80, 0x7F], -128),
             ([0xC0, 0xBB, 0x78], -123456),
-            ([UInt8](repeating: 0xFF, count: 9) + [0x00], Int(Int64.max)),
-            ([UInt8](repeating: 0x80, count: 9) + [0x7F], Int(Int64.min))
+            ([UInt8](repeating: 0xFF, count: 9) + [0x00], Int(truncatingIfNeeded: Int64.max)),
+            ([UInt8](repeating: 0x80, count: 9) + [0x7F], Int(truncatingIfNeeded: Int64.min))
         ]
         for (bytes, value) in vectors {
             let actual = sleb(bytes + [0xFF, 0xFF])
@@ -141,6 +141,7 @@ extension BoundedLEB128Tests {
         let symbol = UInt8(BindOpcode.set_symbol_trailing_flags_imm.rawValue)
         let addendSLEB = UInt8(BindOpcode.set_addend_sleb.rawValue)
         let timesSkipping = UInt8(BindOpcode.do_bind_uleb_times_skipping_uleb.rawValue)
+        let threaded = UInt8(BindOpcode.threaded.rawValue)
 
         XCTAssertNotNil(bind([ordinalULEB, 0x80, 0x01]))
         XCTAssertNotNil(bind([symbol, 0x5F, 0x61, 0x00]))
@@ -154,6 +155,22 @@ extension BoundedLEB128Tests {
         XCTAssertNil(bind([symbol, 0x5F, 0x61, 0x00], size: 3))
         XCTAssertNil(bind([addendSLEB, 0x80]))
         XCTAssertNil(bind([timesSkipping, 0x01]))
+        // unknown BIND_OPCODE_THREADED subopcode
+        XCTAssertNil(bind([threaded | 0x02]))
+    }
+
+    func testAddAddrAcceptsNegativeDelta() {
+        // ld64 encodes negative deltas as 64-bit two's complement (-8)
+        let delta = [0xF8] + [UInt8](repeating: 0xFF, count: 8) + [0x01]
+        let bindAddAddr = UInt8(BindOpcode.add_addr_uleb.rawValue)
+        let rebaseAddAddr = UInt8(RebaseOpcode.add_addr_uleb.rawValue)
+
+        guard case let .add_addr_uleb(bindOffset) = bind([bindAddAddr] + delta),
+              case let .add_addr_uleb(rebaseOffset) = rebase([rebaseAddAddr] + delta) else {
+            return XCTFail("add_addr_uleb")
+        }
+        XCTAssertEqual(bindOffset, UInt(bitPattern: -8))
+        XCTAssertEqual(rebaseOffset, UInt(bitPattern: -8))
     }
 
     func testRebaseOperationStaysInsideOpcodeStream() {
@@ -175,5 +192,7 @@ extension BoundedLEB128Tests {
         XCTAssertNil(functionStart([0x80]))
         XCTAssertNil(functionStart([0x80, 0x01], size: 1))
         XCTAssertNil(functionStart([UInt8](repeating: 0xFF, count: 10)))
+        // delta overflowing the previous offset must not trap
+        XCTAssertNotNil(functionStart([UInt8](repeating: 0xFF, count: 9) + [0x01]))
     }
 }

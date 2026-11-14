@@ -87,7 +87,7 @@ extension TrieNodeBoundsTests {
     }
 
     func testReadNextAcceptsPaddedChildOffset() throws {
-        // ld-prime writes root child offsets as padded ULEB128
+        // continuation-padded ULEB128 child offset
         let bytes: [UInt8] = [
             0x00, 0x01, 0x61, 0x00, 0x89, 0x80, 0x80, 0x80, 0x00,
             0x02, 0x00, 0x10, 0x00
@@ -163,5 +163,18 @@ extension TrieNodeBoundsTests {
         XCTAssertEqual(tree.entries.map(\.offset), [0])
         XCTAssertNil(tree.element(atOffset: 5))
         XCTAssertNil(tree._search(by: "ab"))
+    }
+
+    func testTrieTreeStopsAtCycle() {
+        // child "a" points back to the root
+        let tree = DataTrieTree<ExportTrieNodeContent>(data: Data([0x00, 0x01, 0x61, 0x00, 0x00]))
+        XCTAssertEqual(tree.entries.map(\.offset), [0])
+        XCTAssertTrue(tree.exportedSymbols.isEmpty)
+        XCTAssertNil(tree._search(by: "aa"))
+
+        // empty label pointing back to the root
+        let emptyLabel = DataTrieTree<ExportTrieNodeContent>(data: Data([0x00, 0x01, 0x00, 0x00]))
+        XCTAssertNil(emptyLabel._search(by: "a"))
+        XCTAssertTrue(emptyLabel._search(byKeyPrefix: "a").isEmpty)
     }
 }

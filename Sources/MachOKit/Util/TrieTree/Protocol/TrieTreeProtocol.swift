@@ -33,14 +33,17 @@ extension TrieTreeProtocol {
             return []
         }
         var result: [Element] = []
-        recurseTrie(entry: root, result: &result)
+        var visited: Set<Int> = []
+        recurseTrie(entry: root, result: &result, visited: &visited)
         return result
     }
 
     private func recurseTrie(
         entry: Element,
-        result: inout [Element]
+        result: inout [Element],
+        visited: inout Set<Int>
     ) {
+        guard visited.insert(entry.offset).inserted else { return }
         result.append(entry)
         for child in entry.children {
             guard let entry = element(atOffset: Int(child.offset)) else {
@@ -48,7 +51,8 @@ extension TrieTreeProtocol {
             }
             recurseTrie(
                 entry: entry,
-                result: &result
+                result: &result,
+                visited: &visited
             )
         }
     }
@@ -65,6 +69,22 @@ extension TrieTreeProtocol {
         entry: Element,
         result: inout [(String, Content)]
     ) {
+        var visited: Set<Int> = []
+        _recurseTrie(
+            currentName: currentName,
+            entry: entry,
+            result: &result,
+            visited: &visited
+        )
+    }
+
+    private func _recurseTrie(
+        currentName: String,
+        entry: Element,
+        result: inout [(String, Content)],
+        visited: inout Set<Int>
+    ) {
+        guard visited.insert(entry.offset).inserted else { return }
         if let content = entry.content {
             result.append((currentName, content))
         }
@@ -75,7 +95,8 @@ extension TrieTreeProtocol {
             _recurseTrie(
                 currentName: currentName + child.label,
                 entry: entry,
-                result: &result
+                result: &result,
+                visited: &visited
             )
         }
     }
@@ -90,6 +111,22 @@ extension TrieTreeProtocol {
         entry: Element,
         result: inout [(String, Element)]
     ) {
+        var visited: Set<Int> = []
+        _recurseTrieTerminal(
+            currentName: currentName,
+            entry: entry,
+            result: &result,
+            visited: &visited
+        )
+    }
+
+    private func _recurseTrieTerminal(
+        currentName: String,
+        entry: Element,
+        result: inout [(String, Element)],
+        visited: inout Set<Int>
+    ) {
+        guard visited.insert(entry.offset).inserted else { return }
         if entry.isTerminal {
             result.append((currentName, entry))
         }
@@ -100,7 +137,8 @@ extension TrieTreeProtocol {
             _recurseTrieTerminal(
                 currentName: currentName + child.label,
                 entry: entry,
-                result: &result
+                result: &result,
+                visited: &visited
             )
         }
     }
@@ -115,6 +153,7 @@ extension TrieTreeProtocol {
 
         var currentLabel = ""
         var current = element(atOffset: 0)
+        var visited: Set<Int> = [0]
 
         while true {
             guard let child = current?.children.first(
@@ -122,6 +161,7 @@ extension TrieTreeProtocol {
                     key.starts(with: currentLabel + child.label)
                 }
             ) else { break }
+            guard visited.insert(numericCast(child.offset)).inserted else { break }
             currentLabel += child.label
             current = element(atOffset: numericCast(child.offset))
 
@@ -144,6 +184,7 @@ extension TrieTreeProtocol {
 
         var currentLabel = ""
         var current = element(atOffset: 0)
+        var visited: Set<Int> = [0]
 
         while true {
             guard let child = current?.children.first(
@@ -152,6 +193,7 @@ extension TrieTreeProtocol {
                     return prefix.starts(with: label) || label.starts(with: prefix)
                 }
             ) else { break }
+            guard visited.insert(numericCast(child.offset)).inserted else { break }
             currentLabel += child.label
             current = element(atOffset: numericCast(child.offset))
 
