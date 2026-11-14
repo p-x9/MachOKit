@@ -25,13 +25,9 @@ extension DylibsTrieNodeContent: TrieNodeContent {
         trieSize: Int,
         nextOffset: inout Int
     ) -> DylibsTrieNodeContent? {
-        guard let (index, ulebOffset) = basePointer
-            .advanced(by: nextOffset)
-            .readULEB128(maxSize: trieSize - nextOffset) else {
+        guard let index = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
             return nil
         }
-
-        nextOffset += ulebOffset
 
         guard let index = UInt32(exactly: index) else { return nil }
 

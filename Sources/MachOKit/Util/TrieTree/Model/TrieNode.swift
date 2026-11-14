@@ -57,17 +57,14 @@ extension TrieNode {
     ) -> Self? {
         guard nextOffset >= 0, nextOffset < trieSize else { return nil }
 
-        guard let (terminalSize, terminalBytes) = basePointer
-            .advanced(by: nextOffset)
-            .readULEB128(maxSize: trieSize - nextOffset) else {
+        let offset = nextOffset
+        guard let terminalSize = basePointer.readULEB128(at: &nextOffset, size: trieSize),
+              terminalSize <= UInt(trieSize - nextOffset) else {
             return nil
         }
-        nextOffset += terminalBytes
-
-        guard terminalSize <= UInt(trieSize - nextOffset) else { return nil }
 
         var entry = TrieNode(
-            offset: nextOffset - terminalBytes,
+            offset: offset,
             terminalSize: terminalSize,
             content: nil,
             children: []
@@ -94,20 +91,11 @@ extension TrieNode {
         childrenOffset += MemoryLayout<UInt8>.size
 
         for _ in 0..<numberOfChildren {
-            guard let (string, stringOffset) = basePointer
-                .advanced(by: childrenOffset)
-                .readString(maxSize: trieSize - childrenOffset) else {
-                return nil
-            }
-            childrenOffset += stringOffset
-
-            guard let (value, ulebOffset) = basePointer
-                .advanced(by: childrenOffset)
-                .readULEB128(maxSize: trieSize - childrenOffset),
+            guard let string = basePointer.readString(at: &childrenOffset, size: trieSize),
+                  let value = basePointer.readULEB128(at: &childrenOffset, size: trieSize),
                   value < UInt(trieSize) else {
                 return nil
             }
-            childrenOffset += ulebOffset
 
             let child = TrieNode.Child(label: string, offset: value)
             entry.children.append(child)

@@ -25,13 +25,9 @@ extension ProgramsTrieNodeContent: TrieNodeContent {
         trieSize: Int,
         nextOffset: inout Int
     ) -> ProgramsTrieNodeContent? {
-        guard let (offset, ulebOffset) = basePointer
-            .advanced(by: nextOffset)
-            .readULEB128(maxSize: trieSize - nextOffset) else {
+        guard let offset = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
             return nil
         }
-
-        nextOffset += ulebOffset
 
         guard let offset = UInt32(exactly: offset) else { return nil }
 

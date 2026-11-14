@@ -53,12 +53,9 @@ extension ExportTrieNodeContent: TrieNodeContent {
     ) -> ExportTrieNodeContent? {
         var content: Self = .init()
 
-        guard let (flagsRaw, ulebOffset) = basePointer
-            .advanced(by: nextOffset)
-            .readULEB128(maxSize: trieSize - nextOffset) else {
+        guard let flagsRaw = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
             return nil
         }
-        nextOffset += ulebOffset
 
         guard let flagsRaw = ExportSymbolFlags.RawValue(exactly: flagsRaw) else {
             return nil
@@ -67,63 +64,42 @@ extension ExportTrieNodeContent: TrieNodeContent {
         content.flags = flags
 
         if flags.contains(.reexport) {
-            guard let (value, ulebOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128(maxSize: trieSize - nextOffset) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
                 return nil
             }
-            nextOffset += ulebOffset
 
             content.ordinal = value
 
-            guard let (string, stringOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readString(maxSize: trieSize - nextOffset) else {
+            guard let string = basePointer.readString(at: &nextOffset, size: trieSize) else {
                 return nil
             }
-            nextOffset += stringOffset
 
             content.importedName = string
         } else if flags.contains(.stub_and_resolver) {
-            guard let (stub, ulebOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128(maxSize: trieSize - nextOffset) else {
+            guard let stub = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
                 return nil
             }
-            nextOffset += ulebOffset
 
-            guard let (resolver, ulebOffset2) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128(maxSize: trieSize - nextOffset) else {
+            guard let resolver = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
                 return nil
             }
-            nextOffset += ulebOffset2
 
             content.stub = stub
             content.resolver = resolver
         } else if flags.contains(.function_variant) {
-            guard let (symbolOffset, ulebOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128(maxSize: trieSize - nextOffset) else {
+            guard let symbolOffset = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
                 return nil
             }
-            nextOffset += ulebOffset
-            guard let (functionVariantTableIndex, ulebOffset2) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128(maxSize: trieSize - nextOffset) else {
+            guard let functionVariantTableIndex = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
                 return nil
             }
-            nextOffset += ulebOffset2
 
             content.symbolOffset = symbolOffset
             content.functionVariantTableIndex = functionVariantTableIndex
         } else {
-            guard let (value, ulebOffset) = basePointer
-                .advanced(by: nextOffset)
-                .readULEB128(maxSize: trieSize - nextOffset) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
                 return nil
             }
-            nextOffset += ulebOffset
 
             content.symbolOffset = value
         }

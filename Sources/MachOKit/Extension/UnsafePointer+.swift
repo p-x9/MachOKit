@@ -96,14 +96,13 @@ extension UnsafePointer<UInt8> {
             guard offset < maxSize, shift < 64 else { return nil }
             byte = advanced(by: offset).pointee
 
-            if byte >= 128 {
-                value |= Int64(byte & 0x7F) << shift
-            } else {
-                // The last byte carries the sign in bit 6
-                let slice = Int64(Int8(bitPattern: byte << 1) >> 1)
-                guard (slice << shift) >> shift == slice else { return nil }
-                value |= slice << shift
-            }
+            // The last byte carries the sign in bit 6
+            let slice = byte >= 128
+                ? Int64(byte & 0x7F)
+                : Int64(Int8(bitPattern: byte << 1) >> 1)
+            guard (slice << shift) >> shift == slice else { return nil }
+
+            value |= slice << shift
             shift += 7
             offset += 1
         } while byte >= 128
@@ -119,19 +118,44 @@ extension UnsafePointer<UInt8> {
               let terminator = memchr(self, 0, maxSize) else {
             return nil
         }
-        let offset = Int(bitPattern: terminator) + 1 - Int(bitPattern: self)
-        let string = String(cString: self)
+        let length = Int(bitPattern: terminator) - Int(bitPattern: self)
+        let string = String(
+            decoding: UnsafeBufferPointer(start: self, count: length),
+            as: UTF8.self
+        )
 
-        return (string, offset)
+        return (string, length + 1)
     }
 }
 
+// Cursor variants: read at `offset` within a region of `size` bytes starting
+// at `self`, advancing `offset` past the value on success.
 extension UnsafePointer<UInt8> {
-    func readString() -> (String, Int) {
-        let offset = Int(bitPattern: strchr(self, 0)) + 1 - Int(bitPattern: self)
-        let string = String(cString: self)
+    func readULEB128(at offset: inout Int, size: Int) -> UInt? {
+        guard let (value, length) = advanced(by: offset)
+            .readULEB128(maxSize: size - offset) else {
+            return nil
+        }
+        offset += length
+        return value
+    }
 
-        return (string, offset)
+    func readSLEB128(at offset: inout Int, size: Int) -> Int? {
+        guard let (value, length) = advanced(by: offset)
+            .readSLEB128(maxSize: size - offset) else {
+            return nil
+        }
+        offset += length
+        return value
+    }
+
+    func readString(at offset: inout Int, size: Int) -> String? {
+        guard let (string, length) = advanced(by: offset)
+            .readString(maxSize: size - offset) else {
+            return nil
+        }
+        offset += length
+        return string
     }
 }
 

@@ -70,34 +70,10 @@ extension TrieTreeProtocol {
         result: inout [(String, Content)]
     ) {
         var visited: Set<Int> = []
-        _recurseTrie(
-            currentName: currentName,
-            entry: entry,
-            result: &result,
-            visited: &visited
-        )
-    }
-
-    private func _recurseTrie(
-        currentName: String,
-        entry: Element,
-        result: inout [(String, Content)],
-        visited: inout Set<Int>
-    ) {
-        guard visited.insert(entry.offset).inserted else { return }
-        if let content = entry.content {
-            result.append((currentName, content))
-        }
-        for child in entry.children {
-            guard let entry = element(atOffset: Int(child.offset)) else {
-                continue
+        walkTrie(name: currentName, entry: entry, visited: &visited) { name, entry in
+            if let content = entry.content {
+                result.append((name, content))
             }
-            _recurseTrie(
-                currentName: currentName + child.label,
-                entry: entry,
-                result: &result,
-                visited: &visited
-            )
         }
     }
 
@@ -112,33 +88,32 @@ extension TrieTreeProtocol {
         result: inout [(String, Element)]
     ) {
         var visited: Set<Int> = []
-        _recurseTrieTerminal(
-            currentName: currentName,
-            entry: entry,
-            result: &result,
-            visited: &visited
-        )
+        walkTrie(name: currentName, entry: entry, visited: &visited) { name, entry in
+            if entry.isTerminal {
+                result.append((name, entry))
+            }
+        }
     }
 
-    private func _recurseTrieTerminal(
-        currentName: String,
+    /// Depth-first walk that visits each node offset at most once, so that
+    /// malformed tries containing cycles terminate.
+    private func walkTrie(
+        name: String,
         entry: Element,
-        result: inout [(String, Element)],
-        visited: inout Set<Int>
+        visited: inout Set<Int>,
+        _ visit: (String, Element) -> Void
     ) {
         guard visited.insert(entry.offset).inserted else { return }
-        if entry.isTerminal {
-            result.append((currentName, entry))
-        }
+        visit(name, entry)
         for child in entry.children {
             guard let entry = element(atOffset: Int(child.offset)) else {
                 continue
             }
-            _recurseTrieTerminal(
-                currentName: currentName + child.label,
+            walkTrie(
+                name: name + child.label,
                 entry: entry,
-                result: &result,
-                visited: &visited
+                visited: &visited,
+                visit
             )
         }
     }
@@ -161,15 +136,16 @@ extension TrieTreeProtocol {
                     key.starts(with: currentLabel + child.label)
                 }
             ) else { break }
-            guard visited.insert(numericCast(child.offset)).inserted else { break }
+            let offset = Int(child.offset)
+            guard visited.insert(offset).inserted else { break }
             currentLabel += child.label
-            current = element(atOffset: numericCast(child.offset))
+            current = element(atOffset: offset)
 
             if key == currentLabel {
                 guard let content = current?.content else {
                     return nil
                 }
-                return (numericCast(child.offset), content)
+                return (offset, content)
             }
         }
         return nil
@@ -193,9 +169,10 @@ extension TrieTreeProtocol {
                     return prefix.starts(with: label) || label.starts(with: prefix)
                 }
             ) else { break }
-            guard visited.insert(numericCast(child.offset)).inserted else { break }
+            let offset = Int(child.offset)
+            guard visited.insert(offset).inserted else { break }
             currentLabel += child.label
-            current = element(atOffset: numericCast(child.offset))
+            current = element(atOffset: offset)
 
             if currentLabel.starts(with: prefix),
                let current {
