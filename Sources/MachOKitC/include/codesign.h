@@ -70,7 +70,9 @@ CS_RESTRICT | CS_ENFORCEMENT | CS_REQUIRE_LV | CS_RUNTIME | CS_LINKER_SIGNED)
 /*
  * Magic numbers used by Code Signing
  */
-enum {
+// Fixed as uint32_t: the MSVC ABI (Windows) would otherwise make this `int`,
+// which overflows CSMAGIC_* and imports every case as `Int` instead of `UInt32`.
+enum : uint32_t {
     CSMAGIC_REQUIREMENT = 0xfade0c00,               /* single Requirement blob */
     CSMAGIC_REQUIREMENTS = 0xfade0c01,              /* Requirements vector (internal requirements) */
     CSMAGIC_CODEDIRECTORY = 0xfade0c02,             /* CodeDirectory blob */
