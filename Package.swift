@@ -33,11 +33,11 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/p-x9/swift-fileio.git",
-            from: "0.13.0"
+            from: "0.16.0"
         ),
         .package(
             url: "https://github.com/p-x9/swift-fileio-extra.git",
-            from: "0.2.2"
+            from: "0.4.0"
         ),
         .package(
             url: "https://github.com/p-x9/ObjectArchiveKit.git",
