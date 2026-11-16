@@ -33,7 +33,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/p-x9/swift-fileio.git",
-            from: "0.16.0"
+            from: "0.16.1"
         ),
         .package(
             url: "https://github.com/p-x9/swift-fileio-extra.git",
