@@ -84,13 +84,19 @@ public class MachOFile: MachORepresentable {
     ///
     /// ``url`` is `nil`. For a fat binary, pass the offset of the architecture
     /// to load as `headerStartOffset`.
+    ///
+    /// - Parameter imagePath: A logical path for the image, such as the path of
+    ///   an entry inside an archive. If omitted, ``imagePath`` is the
+    ///   `LC_ID_DYLIB` or `LC_ID_DYLINKER` name when present, and an empty
+    ///   string otherwise.
     public convenience init(
         data: Data,
+        imagePath: String? = nil,
         headerStartOffset: Int = 0
     ) throws {
         try self.init(
             url: nil,
-            imagePath: nil,
+            imagePath: imagePath,
             fileHandle: File(data: data),
             headerStartOffset: headerStartOffset,
             headerStartOffsetInCache: 0
@@ -734,6 +740,21 @@ extension MachOFile {
     @_spi(Support)
     public var _cachedFullCache: FullDyldCache? {
         _fullCache ?? _cache?._fullCache
+    }
+}
+
+extension MachOFile {
+    /// A copy of the whole backing buffer of a file created from `Data`,
+    /// or `nil` for a file opened by URL.
+    ///
+    /// For a fat binary this is the entire buffer, so ``headerStartOffset`` still applies.
+    @_spi(Support)
+    public var backingData: Data? {
+        guard url == nil else { return nil }
+        return try? fileHandle.readData(
+            offset: 0,
+            length: fileHandle.size
+        )
     }
 }
 

@@ -5,7 +5,7 @@
 //
 
 import XCTest
-@testable import MachOKit
+@_spi(Support) @testable import MachOKit
 
 final class MachOFileDataTests: XCTestCase {
     private let url = URL(fileURLWithPath: "/bin/ls")
@@ -20,10 +20,8 @@ final class MachOFileDataTests: XCTestCase {
     func testMatchesFileOpenedByURL() throws {
         let offset = try headerStartOffset()
         let fromURL = try MachOFile(url: url, headerStartOffset: offset)
-        let fromData = try MachOFile(
-            data: Data(contentsOf: url),
-            headerStartOffset: offset
-        )
+        let data = try Data(contentsOf: url)
+        let fromData = try MachOFile(data: data, headerStartOffset: offset)
 
         XCTAssertEqual(
             fromData.loadCommands.map(\.type),
@@ -41,6 +39,15 @@ final class MachOFileDataTests: XCTestCase {
         XCTAssertNil(fromData.url)
         XCTAssertEqual(fromData.imagePath, "")
         XCTAssertNil(fromData.cache)
+        XCTAssertEqual(fromData.backingData, data)
+        XCTAssertNil(fromURL.backingData)
+
+        let named = try MachOFile(
+            data: data,
+            imagePath: "archive.zip/ls",
+            headerStartOffset: offset
+        )
+        XCTAssertEqual(named.imagePath, "archive.zip/ls")
     }
 
     func testTooShortInputThrows() throws {
