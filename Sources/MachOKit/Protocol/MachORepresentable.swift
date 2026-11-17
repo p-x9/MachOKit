@@ -866,7 +866,6 @@ extension MachORepresentable where IndirectSymbols.Index == Int {
                     continue
                 }
                 let indirectSymbols = indirectSymbols[indirectSymbolIndex ..< indirectSymbolIndex + count]
-                    .filter { !$0.isAbsolute }
                 for (i, indirectSymbol) in indirectSymbols.enumerated() {
                     guard let index = indirectSymbol.index,
                           0 <= index && index < symbols.count else {
@@ -954,7 +953,6 @@ extension MachORepresentable where IndirectSymbols.Index == Int {
                     continue
                 }
                 let indirectSymbols = indirectSymbols[indirectSymbolIndex ..< indirectSymbolIndex + count]
-                    .filter { !$0.isLocal }
                 for (i, indirectSymbol) in indirectSymbols.enumerated() {
                     guard let index = indirectSymbol.index,
                           0 <= index && index < symbols.count else {
