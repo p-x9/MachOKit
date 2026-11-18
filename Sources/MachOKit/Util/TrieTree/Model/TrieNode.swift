@@ -75,9 +75,9 @@ extension TrieNode {
         if terminalSize != 0 {
             guard let content = Content.read(
                 basePointer: basePointer,
-                trieSize: trieSize,
+                maxOffset: childrenOffset,
                 nextOffset: &nextOffset
-            ), nextOffset <= childrenOffset else {
+            ) else {
                 return nil
             }
             entry.content = content

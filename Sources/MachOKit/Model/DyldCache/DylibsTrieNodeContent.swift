@@ -22,10 +22,10 @@ public struct DylibsTrieNodeContent: Sendable {
 extension DylibsTrieNodeContent: TrieNodeContent {
     public static func read(
         basePointer: UnsafePointer<UInt8>,
-        trieSize: Int,
+        maxOffset: Int,
         nextOffset: inout Int
     ) -> DylibsTrieNodeContent? {
-        guard let index = basePointer.readULEB128(at: &nextOffset, size: trieSize) else {
+        guard let index = basePointer.readULEB128(at: &nextOffset, size: maxOffset) else {
             return nil
         }
 

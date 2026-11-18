@@ -24,16 +24,33 @@ extension Sequence {
 }
 
 /// Bounds the `*_TIMES*` opcodes, whose repeat counts are otherwise unlimited.
+///
+/// Checks that all `count` pointers, starting at `segmentOffset` and `skip`
+/// bytes apart, lie within the segment.
 /// dyld rejects the stream once `segmentOffset > segmentSize - ptrSize`.
-private func isPointerInSegment(
+private func isPointerRunInSegment(
     segmentIndex: Int,
     segmentOffset: UInt,
+    count: UInt,
+    skip: UInt = 0,
     ptrSize: Int,
     segmentSizes: [UInt]
 ) -> Bool {
+    guard count > 0 else { return true }
     guard segmentSizes.indices.contains(segmentIndex) else { return false }
-    let (end, overflow) = segmentOffset.addingReportingOverflow(UInt(ptrSize))
-    return !overflow && end <= segmentSizes[segmentIndex]
+
+    // Offset of the last pointer, relative to `segmentOffset`
+    var span: UInt = 0
+    if count > 1 {
+        let (stride, strideOverflow) = skip.addingReportingOverflow(UInt(ptrSize))
+        let (product, spanOverflow) = (count - 1).multipliedReportingOverflow(by: stride)
+        guard !strideOverflow, !spanOverflow else { return false }
+        span = product
+    }
+
+    let (last, lastOverflow) = segmentOffset.addingReportingOverflow(span)
+    let (end, endOverflow) = last.addingReportingOverflow(UInt(ptrSize))
+    return !lastOverflow && !endOverflow && end <= segmentSizes[segmentIndex]
 }
 
 // https://opensource.apple.com/source/ld64/ld64-253.9/src/other/dyldinfo.cpp.auto.html
@@ -128,14 +145,15 @@ extension Sequence<BindOperation> {
                 segmentOffset &+= (scale &+ 1) &* UInt(ptrSize)
 
             case let .do_bind_uleb_times_skipping_uleb(count: count, skip: skip):
-                let (stride, strideOverflow) = skip.addingReportingOverflow(UInt(ptrSize))
+                guard isPointerRunInSegment(
+                    segmentIndex: Int(clamping: segmentIndex),
+                    segmentOffset: segmentOffset,
+                    count: count,
+                    skip: skip,
+                    ptrSize: ptrSize,
+                    segmentSizes: segmentSizes
+                ) else { return bindings }
                 for _ in 0..<count {
-                    guard isPointerInSegment(
-                        segmentIndex: Int(clamping: segmentIndex),
-                        segmentOffset: segmentOffset,
-                        ptrSize: ptrSize,
-                        segmentSizes: segmentSizes
-                    ) else { break }
                     bindings.append(
                         .init(
                             type: bindType,
@@ -146,10 +164,7 @@ extension Sequence<BindOperation> {
                             symbolName: symbolName
                         )
                     )
-                    let (next, overflow) = segmentOffset.addingReportingOverflow(stride)
-                    // A wrapping stride would let the loop revisit the segment
-                    guard !strideOverflow, !overflow else { break }
-                    segmentOffset = next
+                    segmentOffset &+= skip &+ UInt(ptrSize)
                 }
 
             default: break
@@ -194,13 +209,14 @@ extension Sequence<RebaseOperation> {
                 segmentOffset &+= scale &* UInt(ptrSize)
 
             case let .do_rebase_imm_times(count: count):
+                guard isPointerRunInSegment(
+                    segmentIndex: segmentIndex,
+                    segmentOffset: segmentOffset,
+                    count: count,
+                    ptrSize: ptrSize,
+                    segmentSizes: segmentSizes
+                ) else { return rebases }
                 for _ in 0..<count {
-                    guard isPointerInSegment(
-                        segmentIndex: segmentIndex,
-                        segmentOffset: segmentOffset,
-                        ptrSize: ptrSize,
-                        segmentSizes: segmentSizes
-                    ) else { break }
                     rebases.append(
                         .init(
                             type: rebaseType,
@@ -212,13 +228,14 @@ extension Sequence<RebaseOperation> {
                 }
 
             case let .do_rebase_uleb_times(count: count):
+                guard isPointerRunInSegment(
+                    segmentIndex: segmentIndex,
+                    segmentOffset: segmentOffset,
+                    count: count,
+                    ptrSize: ptrSize,
+                    segmentSizes: segmentSizes
+                ) else { return rebases }
                 for _ in 0..<count {
-                    guard isPointerInSegment(
-                        segmentIndex: segmentIndex,
-                        segmentOffset: segmentOffset,
-                        ptrSize: ptrSize,
-                        segmentSizes: segmentSizes
-                    ) else { break }
                     rebases.append(
                         .init(
                             type: rebaseType,
@@ -241,14 +258,15 @@ extension Sequence<RebaseOperation> {
                 segmentOffset &+= UInt(ptrSize)
 
             case let .do_rebase_uleb_times_skipping_uleb(count: count, skip: skip):
-                let (stride, strideOverflow) = skip.addingReportingOverflow(UInt(ptrSize))
+                guard isPointerRunInSegment(
+                    segmentIndex: segmentIndex,
+                    segmentOffset: segmentOffset,
+                    count: count,
+                    skip: skip,
+                    ptrSize: ptrSize,
+                    segmentSizes: segmentSizes
+                ) else { return rebases }
                 for _ in 0..<count {
-                    guard isPointerInSegment(
-                        segmentIndex: segmentIndex,
-                        segmentOffset: segmentOffset,
-                        ptrSize: ptrSize,
-                        segmentSizes: segmentSizes
-                    ) else { break }
                     rebases.append(
                         .init(
                             type: rebaseType,
@@ -256,10 +274,7 @@ extension Sequence<RebaseOperation> {
                             segmentOffset: segmentOffset
                         )
                     )
-                    let (next, overflow) = segmentOffset.addingReportingOverflow(stride)
-                    // A wrapping stride would let the loop revisit the segment
-                    guard !strideOverflow, !overflow else { break }
-                    segmentOffset = next
+                    segmentOffset &+= skip &+ UInt(ptrSize)
                 }
             }
         }
