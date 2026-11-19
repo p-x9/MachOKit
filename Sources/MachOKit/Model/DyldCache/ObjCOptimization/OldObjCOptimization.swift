@@ -876,12 +876,391 @@ extension OldObjCOptimization16 {
     }
 }
 
-extension OldObjCOptimization16 {
-    /// Offsets in `objc_opt_t` are relative to `objc_opt_t` itself.
-    /// - Parameter fieldOffset: offset from start of `objc_opt_t`
-    /// - Returns: offset from start address of main cache
-    private func _hashTableOffset(_ fieldOffset: Int32) -> Int? {
-        guard fieldOffset != 0 else { return nil }
-        return offset + numericCast(fieldOffset)
+// MARK: Hash Tables (version 12 - 15)
+
+extension OldObjCOptimization12 {
+    /// Precomputed selector table (`objc_selopt_t`)
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCache
+    ) -> OldObjCSelectorHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.selopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed selector table (`objc_selopt_t`)
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: FullDyldCache
+    ) -> OldObjCSelectorHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.selopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed selector table (`objc_selopt_t`)
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCacheLoaded
+    ) -> OldObjCSelectorHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.selopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+}
+
+extension OldObjCOptimization12 {
+    /// Precomputed class table (`objc_clsopt_t`)
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCache
+    ) -> OldObjCClassHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.clsopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed class table (`objc_clsopt_t`)
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: FullDyldCache
+    ) -> OldObjCClassHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.clsopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed class table (`objc_clsopt_t`)
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCacheLoaded
+    ) -> OldObjCClassHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.clsopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+}
+
+extension OldObjCOptimization13 {
+    /// Precomputed selector table (`objc_selopt_t`)
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCache
+    ) -> OldObjCSelectorHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.selopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed selector table (`objc_selopt_t`)
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: FullDyldCache
+    ) -> OldObjCSelectorHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.selopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed selector table (`objc_selopt_t`)
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCacheLoaded
+    ) -> OldObjCSelectorHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.selopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+}
+
+extension OldObjCOptimization13 {
+    /// Precomputed class table (`objc_clsopt_t`)
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCache
+    ) -> OldObjCClassHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.clsopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed class table (`objc_clsopt_t`)
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: FullDyldCache
+    ) -> OldObjCClassHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.clsopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed class table (`objc_clsopt_t`)
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCacheLoaded
+    ) -> OldObjCClassHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.clsopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+}
+
+extension OldObjCOptimization13 {
+    /// Precomputed protocol table (`objc_protocolopt_t`)
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: DyldCache
+    ) -> OldObjCProtocolHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.protocolopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed protocol table (`objc_protocolopt_t`)
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: FullDyldCache
+    ) -> OldObjCProtocolHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.protocolopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed protocol table (`objc_protocolopt_t`)
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: DyldCacheLoaded
+    ) -> OldObjCProtocolHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.protocolopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+}
+
+extension OldObjCOptimization15 {
+    /// Precomputed selector table (`objc_selopt_t`)
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCache
+    ) -> OldObjCSelectorHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.selopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed selector table (`objc_selopt_t`)
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: FullDyldCache
+    ) -> OldObjCSelectorHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.selopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed selector table (`objc_selopt_t`)
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: selector hash table
+    public func selectorHashTable(
+        in cache: DyldCacheLoaded
+    ) -> OldObjCSelectorHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.selopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+}
+
+extension OldObjCOptimization15 {
+    /// Precomputed class table (`objc_clsopt_t`)
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCache
+    ) -> OldObjCClassHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.clsopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed class table (`objc_clsopt_t`)
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: FullDyldCache
+    ) -> OldObjCClassHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.clsopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed class table (`objc_clsopt_t`)
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: class hash table
+    public func classHashTable(
+        in cache: DyldCacheLoaded
+    ) -> OldObjCClassHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.clsopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+}
+
+extension OldObjCOptimization15 {
+    /// Precomputed protocol table (`objc_protocolopt_t`)
+    ///
+    /// nil in caches built since the middle of version 15 (dyld-732), which use ``protocolHashTable2(in:)`` instead.
+    /// https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L782-L790
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: DyldCache
+    ) -> OldObjCProtocolHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.protocolopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed protocol table (`objc_protocolopt_t`)
+    ///
+    /// nil in caches built since the middle of version 15 (dyld-732), which use ``protocolHashTable2(in:)`` instead.
+    /// https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L782-L790
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: FullDyldCache
+    ) -> OldObjCProtocolHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.protocolopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed protocol table (`objc_protocolopt_t`)
+    ///
+    /// nil in caches built since the middle of version 15 (dyld-732), which use ``protocolHashTable2(in:)`` instead.
+    /// https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L782-L790
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable(
+        in cache: DyldCacheLoaded
+    ) -> OldObjCProtocolHashTable? {
+        _oldHashTable(
+            fieldOffset: layout.protocolopt_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+}
+
+extension OldObjCOptimization15 {
+    /// Precomputed protocol table that tracks header infos (`objc_protocolopt2_t`)
+    ///
+    /// Available in caches built since the middle of version 15 (dyld-732).
+    /// https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L782-L790
+    /// - Parameter cache: DyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable2(
+        in cache: DyldCache
+    ) -> OldObjCProtocolHashTable2? {
+        _oldHashTable(
+            fieldOffset: layout.protocolopt2_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed protocol table that tracks header infos (`objc_protocolopt2_t`)
+    ///
+    /// Available in caches built since the middle of version 15 (dyld-732).
+    /// https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L782-L790
+    /// - Parameter cache: FullDyldCache to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable2(
+        in cache: FullDyldCache
+    ) -> OldObjCProtocolHashTable2? {
+        _oldHashTable(
+            fieldOffset: layout.protocolopt2_offset,
+            version: layout.version,
+            in: cache
+        )
+    }
+
+    /// Precomputed protocol table that tracks header infos (`objc_protocolopt2_t`)
+    ///
+    /// Available in caches built since the middle of version 15 (dyld-732).
+    /// https://github.com/apple-oss-distributions/dyld/blob/3f24a36068a96722cf3acbd5087983ce658e9d70/include/objc-shared-cache.h#L782-L790
+    /// - Parameter cache: DyldCacheLoaded to which `self` belongs
+    /// - Returns: protocol hash table
+    public func protocolHashTable2(
+        in cache: DyldCacheLoaded
+    ) -> OldObjCProtocolHashTable2? {
+        _oldHashTable(
+            fieldOffset: layout.protocolopt2_offset,
+            version: layout.version,
+            in: cache
+        )
     }
 }
