@@ -112,13 +112,6 @@ extension UnsafePointer<UInt8> {
 }
 
 extension UnsafePointer<UInt8> {
-    func readString() -> (String, Int) {
-        let offset = Int(bitPattern: strchr(self, 0)) + 1 - Int(bitPattern: self)
-        let string = String(cString: self)
-
-        return (string, offset)
-    }
-
     /// (string, size), or `nil` if not terminated within `maxSize`
     func readString(maxSize: Int) -> (String, Int)? {
         guard maxSize > 0,

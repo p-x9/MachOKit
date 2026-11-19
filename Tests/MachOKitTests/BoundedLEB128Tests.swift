@@ -98,6 +98,105 @@ final class BoundedLEB128Tests: XCTestCase {
     }
 }
 
+// MARK: - opcode streams
+extension BoundedLEB128Tests {
+    private func bind(_ bytes: [UInt8], size: Int? = nil) -> BindOperation? {
+        var nextOffset = 0
+        return bytes.withUnsafeBufferPointer {
+            BindOperation.readNext(
+                basePointer: $0.baseAddress!,
+                bindSize: size ?? bytes.count,
+                nextOffset: &nextOffset
+            )
+        }
+    }
+
+    private func rebase(_ bytes: [UInt8], size: Int? = nil) -> RebaseOperation? {
+        var nextOffset = 0
+        var done = false
+        return bytes.withUnsafeBufferPointer {
+            RebaseOperation.readNext(
+                basePointer: $0.baseAddress!,
+                rebaseSize: size ?? bytes.count,
+                nextOffset: &nextOffset,
+                done: &done
+            )
+        }
+    }
+
+    private func functionStart(_ bytes: [UInt8], size: Int? = nil) -> FunctionStart? {
+        var nextOffset = 0
+        return bytes.withUnsafeBufferPointer {
+            FunctionStart.readNext(
+                basePointer: $0.baseAddress!,
+                functionStartsSize: size ?? bytes.count,
+                lastFunctionOffset: 0x1000,
+                nextOffset: &nextOffset
+            )
+        }
+    }
+
+    func testBindOperationStaysInsideOpcodeStream() {
+        let ordinalULEB = UInt8(BindOpcode.set_dylib_ordinal_uleb.rawValue)
+        let symbol = UInt8(BindOpcode.set_symbol_trailing_flags_imm.rawValue)
+        let addendSLEB = UInt8(BindOpcode.set_addend_sleb.rawValue)
+        let timesSkipping = UInt8(BindOpcode.do_bind_uleb_times_skipping_uleb.rawValue)
+        let threaded = UInt8(BindOpcode.threaded.rawValue)
+
+        XCTAssertNotNil(bind([ordinalULEB, 0x80, 0x01]))
+        XCTAssertNotNil(bind([symbol, 0x5F, 0x61, 0x00]))
+        XCTAssertNotNil(bind([addendSLEB, 0x7C]))
+
+        XCTAssertNil(bind([ordinalULEB]))
+        XCTAssertNil(bind([ordinalULEB, 0x80]))
+        XCTAssertNil(bind([ordinalULEB, 0x80, 0x01], size: 2))
+        XCTAssertNil(bind([ordinalULEB] + [UInt8](repeating: 0xFF, count: 10)))
+        XCTAssertNil(bind([symbol, 0x5F, 0x61]))
+        XCTAssertNil(bind([symbol, 0x5F, 0x61, 0x00], size: 3))
+        XCTAssertNil(bind([addendSLEB, 0x80]))
+        XCTAssertNil(bind([timesSkipping, 0x01]))
+        // unknown BIND_OPCODE_THREADED subopcode
+        XCTAssertNil(bind([threaded | 0x02]))
+    }
+
+    func testAddAddrAcceptsNegativeDelta() {
+        // ld64 encodes negative deltas as 64-bit two's complement (-8)
+        let delta = [0xF8] + [UInt8](repeating: 0xFF, count: 8) + [0x01]
+        let bindAddAddr = UInt8(BindOpcode.add_addr_uleb.rawValue)
+        let rebaseAddAddr = UInt8(RebaseOpcode.add_addr_uleb.rawValue)
+
+        guard case let .add_addr_uleb(bindOffset) = bind([bindAddAddr] + delta),
+              case let .add_addr_uleb(rebaseOffset) = rebase([rebaseAddAddr] + delta) else {
+            return XCTFail("add_addr_uleb")
+        }
+        XCTAssertEqual(bindOffset, UInt(bitPattern: -8))
+        XCTAssertEqual(rebaseOffset, UInt(bitPattern: -8))
+    }
+
+    func testRebaseOperationStaysInsideOpcodeStream() {
+        let addAddr = UInt8(RebaseOpcode.add_addr_uleb.rawValue)
+        let timesSkipping = UInt8(RebaseOpcode.do_rebase_uleb_times_skipping_uleb.rawValue)
+
+        XCTAssertNotNil(rebase([addAddr, 0x80, 0x01]))
+        XCTAssertNotNil(rebase([timesSkipping, 0x02, 0x08]))
+
+        XCTAssertNil(rebase([addAddr]))
+        XCTAssertNil(rebase([addAddr, 0x80]))
+        XCTAssertNil(rebase([addAddr, 0x80, 0x01], size: 2))
+        XCTAssertNil(rebase([addAddr] + [UInt8](repeating: 0xFF, count: 10)))
+        XCTAssertNil(rebase([timesSkipping, 0x02]))
+    }
+
+    func testFunctionStartStaysInsideData() {
+        XCTAssertEqual(functionStart([0x80, 0x01])?.offset, 0x1080)
+        XCTAssertNil(functionStart([0x80]))
+        XCTAssertNil(functionStart([0x80, 0x01], size: 1))
+        XCTAssertNil(functionStart([UInt8](repeating: 0xFF, count: 10)))
+        // delta overflowing the previous offset must not trap
+        XCTAssertNotNil(functionStart([UInt8](repeating: 0xFF, count: 9) + [0x01]))
+    }
+}
+
 // MARK: - cursor variants
 extension BoundedLEB128Tests {
     func testCursorVariantsAdvanceOffsetOnlyOnSuccess() {
