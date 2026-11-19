@@ -145,7 +145,7 @@ extension BindOperation {
             return .set_dylib_ordinal_imm(ordinal: Int(imm))
 
         case .set_dylib_ordinal_uleb:
-            guard let value = basePointer.readULEB128(at: &nextOffset, size: bindSize) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, maxOffset: bindSize) else {
                 return nil
             }
             return .set_dylib_ordinal_uleb(ordinal: Int(bitPattern: value))
@@ -163,7 +163,7 @@ extension BindOperation {
             return .set_dylib_special_imm(special: special)
 
         case .set_symbol_trailing_flags_imm:
-            guard let string = basePointer.readString(at: &nextOffset, size: bindSize) else {
+            guard let string = basePointer.readString(at: &nextOffset, maxOffset: bindSize) else {
                 return nil
             }
             return .set_symbol_trailing_flags_imm(flags: UInt(imm), symbol: string)
@@ -173,19 +173,19 @@ extension BindOperation {
             return .set_type_imm(type: type)
 
         case .set_addend_sleb:
-            guard let value = basePointer.readSLEB128(at: &nextOffset, size: bindSize) else {
+            guard let value = basePointer.readSLEB128(at: &nextOffset, maxOffset: bindSize) else {
                 return nil
             }
             return .set_addend_sleb(addend: value)
 
         case .set_segment_and_offset_uleb:
-            guard let value = basePointer.readULEB128(at: &nextOffset, size: bindSize) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, maxOffset: bindSize) else {
                 return nil
             }
             return .set_segment_and_offset_uleb(segment: UInt(imm), offset: value)
 
         case .add_addr_uleb:
-            guard let value = basePointer.readULEB128(at: &nextOffset, size: bindSize) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, maxOffset: bindSize) else {
                 return nil
             }
             return .add_addr_uleb(offset: value)
@@ -194,7 +194,7 @@ extension BindOperation {
             return .do_bind
 
         case .do_bind_add_addr_uleb:
-            guard let value = basePointer.readULEB128(at: &nextOffset, size: bindSize) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, maxOffset: bindSize) else {
                 return nil
             }
             return .do_bind_add_addr_uleb(offset: value)
@@ -203,11 +203,11 @@ extension BindOperation {
             return .do_bind_add_addr_imm_scaled(scale: UInt(imm))
 
         case .do_bind_uleb_times_skipping_uleb:
-            guard let count = basePointer.readULEB128(at: &nextOffset, size: bindSize) else {
+            guard let count = basePointer.readULEB128(at: &nextOffset, maxOffset: bindSize) else {
                 return nil
             }
 
-            guard let skip = basePointer.readULEB128(at: &nextOffset, size: bindSize) else {
+            guard let skip = basePointer.readULEB128(at: &nextOffset, maxOffset: bindSize) else {
                 return nil
             }
 
@@ -221,7 +221,7 @@ extension BindOperation {
             case .threaded_apply:
                 return .threaded(.threaded_apply)
             case .threaded_set_bind_ordinal_table_size_uleb:
-                guard let size = basePointer.readULEB128(at: &nextOffset, size: bindSize) else {
+                guard let size = basePointer.readULEB128(at: &nextOffset, maxOffset: bindSize) else {
                     return nil
                 }
                 return .threaded(.threaded_set_bind_ordinal_table_size_uleb(size: Int(bitPattern: size)))

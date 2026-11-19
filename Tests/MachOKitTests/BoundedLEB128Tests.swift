@@ -196,3 +196,33 @@ extension BoundedLEB128Tests {
         XCTAssertNotNil(functionStart([UInt8](repeating: 0xFF, count: 9) + [0x01]))
     }
 }
+
+// MARK: - cursor variants
+extension BoundedLEB128Tests {
+    func testCursorVariantsAdvanceOffsetOnlyOnSuccess() {
+        // ULEB128 624485, SLEB128 -128, "ab"
+        let bytes: [UInt8] = [0xE5, 0x8E, 0x26, 0x80, 0x7F, 0x61, 0x62, 0x00]
+        bytes.withUnsafeBufferPointer {
+            let pointer = $0.baseAddress!
+            var offset = 0
+
+            XCTAssertEqual(pointer.readULEB128(at: &offset, maxOffset: bytes.count), 624485)
+            XCTAssertEqual(offset, 3)
+            XCTAssertEqual(pointer.readSLEB128(at: &offset, maxOffset: bytes.count), -128)
+            XCTAssertEqual(offset, 5)
+
+            // terminator lies outside of the region
+            XCTAssertNil(pointer.readString(at: &offset, maxOffset: bytes.count - 1))
+            XCTAssertEqual(offset, 5)
+
+            XCTAssertEqual(pointer.readString(at: &offset, maxOffset: bytes.count), "ab")
+            XCTAssertEqual(offset, bytes.count)
+
+            // nothing left to read
+            XCTAssertNil(pointer.readULEB128(at: &offset, maxOffset: bytes.count))
+            XCTAssertNil(pointer.readSLEB128(at: &offset, maxOffset: bytes.count))
+            XCTAssertNil(pointer.readString(at: &offset, maxOffset: bytes.count))
+            XCTAssertEqual(offset, bytes.count)
+        }
+    }
+}

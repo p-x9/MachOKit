@@ -26,139 +26,26 @@ extension MachOFile {
 }
 
 extension MachOFile.DyldChainedFixups: DyldChainedFixupsProtocol {
-    public var header: DyldChainedFixupsHeader? {
-        let ret = fileSlice.ptr
-            .assumingMemoryBound(to: DyldChainedFixupsHeader.self)
-            .pointee
-        return isSwapped ? ret.swapped : ret
+    private var payload: DyldChainedFixupsPayload {
+        .init(bytes: .init(start: fileSlice.ptr, count: fileSlice.size), isSwapped: isSwapped)
     }
 
-    public var startsInImage: DyldChainedStartsInImage? {
-        guard let header else { return nil }
-        let offset: Int = numericCast(header.starts_offset)
-        let ptr = fileSlice.ptr
-            .advanced(by: offset)
-        let layout = ptr
-            .assumingMemoryBound(to: DyldChainedStartsInImage.Layout.self)
-            .pointee
-        let ret: DyldChainedStartsInImage = .init(
-            layout: layout,
-            offset: offset
-        )
-        return isSwapped ? ret.swapped : ret
-    }
+    public var header: DyldChainedFixupsHeader? { payload.header }
+    public var startsInImage: DyldChainedStartsInImage? { payload.startsInImage }
+    public var imports: [DyldChainedImport] { payload.imports }
 
     public func startsInSegments(
         of startsInImage: DyldChainedStartsInImage?
     ) -> [DyldChainedStartsInSegment] {
-        guard let startsInImage else { return [] }
-        let offsets: [Int] = {
-            let ptr = fileSlice.ptr
-                .advanced(by: startsInImage.offset)
-                .advanced(by: DyldChainedStartsInImage.layoutOffset(of: \.seg_info_offset))
-            return UnsafeBufferPointer(
-                start: ptr.assumingMemoryBound(to: UInt32.self),
-                count: numericCast(startsInImage.seg_count)
-            )
-            .map { isSwapped ? $0.byteSwapped : $0 }
-            .map { numericCast($0) }
-        }()
-
-        let ptr = fileSlice.ptr
-            .advanced(by: startsInImage.offset)
-        return offsets.enumerated().map { index, offset in
-            // A segment with no fixups has `seg_info_offset` 0 (dyld skips
-            // it). Reading there would reinterpret the image-level header as
-            // this segment's starts, with a garbage `page_count`.
-            guard offset != 0 else {
-                return .init(
-                    layout: .init(),
-                    offset: startsInImage.offset,
-                    segmentIndex: index
-                )
-            }
-            let layout = ptr.advanced(by: offset)
-                .assumingMemoryBound(to: DyldChainedStartsInSegment.Layout.self)
-                .pointee
-            let offset: Int = startsInImage.offset + offset
-            let ret: DyldChainedStartsInSegment = .init(
-                layout: layout,
-                offset: offset,
-                segmentIndex: index
-            )
-            return isSwapped ? ret.swapped : ret
-        }
+        payload.startsInSegments(of: startsInImage)
     }
 
-    // xcrun dyld_info -fixup_chains "Path to Binary"
-    public func pages(
-        of startsInSegment: DyldChainedStartsInSegment?
-    ) -> [DyldChainedPage] {
-        guard let startsInSegment else { return [] }
-
-        let ptr = fileSlice.ptr
-            .advanced(by: startsInSegment.offset)
-            .advanced(by: startsInSegment.layoutOffset(of: \.page_start))
-            .assumingMemoryBound(to: UInt16.self)
-        return UnsafeBufferPointer(
-            start: ptr,
-            count: numericCast(
-                startsInSegment.page_count
-            )
-        )
-        .map {
-            isSwapped ? $0.byteSwapped : $0
-        }
-        .enumerated().map { .init(offset: $1, index: $0) }
-    }
-
-    public var imports: [DyldChainedImport] {
-        guard let header,
-              let  importsFormat = header.importsFormat else {
-            return []
-        }
-        let offset: Int = numericCast(header.imports_offset)
-        let ptr = fileSlice.ptr
-            .advanced(by: offset)
-        let count: Int = numericCast(header.imports_count)
-
-        switch importsFormat {
-        case .general:
-            return UnsafeBufferPointer(
-                start: ptr
-                    .assumingMemoryBound(to: DyldChainedImportGeneral.self),
-                count: count
-            )
-            .map { isSwapped ? $0.swapped : $0 }
-            .map { .general($0) }
-
-        case .addend:
-            return UnsafeBufferPointer(
-                start: ptr
-                    .assumingMemoryBound(to: DyldChainedImportAddend.self),
-                count: count
-            )
-            .map { isSwapped ? $0.swapped : $0 }
-            .map { .addend($0) }
-
-        case .addend64:
-            return UnsafeBufferPointer(
-                start: ptr
-                    .assumingMemoryBound(to: DyldChainedImportAddend64.self),
-                count: count
-            )
-            .map { isSwapped ? $0.swapped : $0 }
-            .map { .addend64($0) }
-        }
+    public func pages(of startsInSegment: DyldChainedStartsInSegment?) -> [DyldChainedPage] {
+        payload.pages(of: startsInSegment)
     }
 
     public func symbolName(for nameOffset: Int) -> String? {
-        guard let header else { return nil }
-        let ptr = fileSlice.ptr
-            .advanced(by: numericCast(header.symbols_offset))
-            .advanced(by: nameOffset)
-            .assumingMemoryBound(to: CChar.self)
-        return String(cString: ptr)
+        payload.symbolName(for: nameOffset)
     }
 }
 
@@ -171,38 +58,39 @@ extension MachOFile.DyldChainedFixups {
         in machO: MachOFile
     ) -> [DyldChainedFixupPointer] {
         let pages = pages(of: startsInSegment)
-        guard pages.count > 0, startsInSegment.page_size > 0 else { return [] }
-
-        let pagesFileSlice = try! machO.fileHandle.fileSlice(
-            offset: machO.headerStartOffset + numericCast(startsInSegment.segment_offset),
-            length: pages.count * numericCast(startsInSegment.page_size)
-        )
+        guard !pages.isEmpty,
+              let pagesFileSlice = pagesFileSlice(of: startsInSegment, in: machO) else {
+            return []
+        }
 
         var pointers: [DyldChainedFixupPointer] = []
-
-        for (index, page) in pages.enumerated() {
-            var offsetInPage = page.offset
-
-            if page.isNone { continue }
-            if page.isMulti {
-                var overflowIndex = Int(offsetInPage & ~UInt16(DYLD_CHAINED_PTR_START_MULTI))
-                var chainEnd = false
-                while !chainEnd {
-                    chainEnd = pages[overflowIndex].offset & UInt16(DYLD_CHAINED_PTR_START_LAST) != 0
-                    offsetInPage = pages[overflowIndex].offset & ~UInt16(DYLD_CHAINED_PTR_START_LAST)
-                    let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
-                    let chainOffset = pageContentStart + numericCast(offsetInPage)
-                    walkChain(offset: chainOffset, pagesFileSlice: pagesFileSlice, of: startsInSegment, pointers: &pointers)
-                    overflowIndex += 1
-                }
-            } else {
-                let pageContentStart: Int = index * numericCast(startsInSegment.page_size)
-                let chainOffset = pageContentStart + numericCast(offsetInPage)
+        for page in pages {
+            for start in payload.chainStarts(for: page, in: startsInSegment) {
+                let chainOffset = page.index * Int(startsInSegment.page_size) + Int(start)
                 walkChain(offset: chainOffset, pagesFileSlice: pagesFileSlice, of: startsInSegment, pointers: &pointers)
             }
         }
 
         return pointers
+    }
+
+    private func pagesFileSlice(
+        of segment: DyldChainedStartsInSegment,
+        in machO: MachOFile
+    ) -> FileSlice? {
+        guard segment.page_size > 0,
+              let segmentOffset = Int(exactly: segment.segment_offset) else {
+            return nil
+        }
+        let (offset, overflow) = machO.headerStartOffset.addingReportingOverflow(segmentOffset)
+        let (length, lengthOverflow) = Int(segment.page_count)
+            .multipliedReportingOverflow(by: Int(segment.page_size))
+        let file = machO.fileHandle
+        guard !overflow, !lengthOverflow, offset >= 0, offset < file.size else {
+            return nil
+        }
+        // The final page may be only partially backed by file bytes.
+        return try? file.fileSlice(offset: offset, length: min(length, file.size - offset))
     }
 
     private func walkChain(
@@ -214,13 +102,17 @@ extension MachOFile.DyldChainedFixups {
         guard let pointerFormat = startsInSegment.pointerFormat else {
             return
         }
+        let pageSize = Int(startsInSegment.page_size)
+        let pageStart = offset / pageSize * pageSize
+        let width = pointerFormat.is64Bit ? 8 : 4
         _ = DyldChainedFixupPointer.walkChain(
             startOffset: offset,
             pointerOffsetBias: numericCast(startsInSegment.segment_offset),
             pointerFormat: pointerFormat,
             pointers: &pointers
         ) { offset in
-            _fixupInfo(
+            guard offset - pageStart <= pageSize - width else { return nil }
+            return _fixupInfo(
                 at: offset,
                 in: pagesFileSlice,
                 pointerFormat: pointerFormat
@@ -241,47 +133,23 @@ extension MachOFile.DyldChainedFixups {
         }
 
         let pages = pages(of: startsInSegment)
-        let pageSize: Int = numericCast(startsInSegment.page_size)
-        let pageIndex: Int = numericCast(
-            (offset - startsInSegment.segment_offset) / UInt64(pageSize)
-        )
+        let pageSize = Int(startsInSegment.page_size)
+        let pageIndex = Int((offset - startsInSegment.segment_offset) / UInt64(pageSize))
+        guard pages.indices.contains(pageIndex) else { return nil }
         let page = pages[pageIndex]
-        guard !page.isNone else { return nil }
+        guard !page.isNone,
+              let pagesFileSlice = pagesFileSlice(of: startsInSegment, in: machO) else { return nil }
 
-        let pagesFileSlice = try! machO.fileHandle.fileSlice(
-            offset: machO.headerStartOffset + numericCast(startsInSegment.segment_offset),
-            length: pages.count * pageSize
-        )
-
-        let pageContentStart = pageIndex * pageSize
-        var offsetInPage = page.offset
-        if page.isMulti {
-            var overflowIndex = Int(offsetInPage & ~UInt16(DYLD_CHAINED_PTR_START_MULTI))
-            var chainEnd = false
-            while !chainEnd {
-                chainEnd = pages[overflowIndex].offset & UInt16(DYLD_CHAINED_PTR_START_LAST) != 0
-                offsetInPage = pages[overflowIndex].offset & ~UInt16(DYLD_CHAINED_PTR_START_LAST)
-                let chainOffset = pageContentStart + numericCast(offsetInPage)
-
-                if let pointer = walkChainAndFindPointer(
-                    for: offset,
-                    chainOffset: chainOffset,
-                    pagesFileSlice: pagesFileSlice,
-                    of: startsInSegment
-                ) {
-                    return pointer
-                }
-
-                overflowIndex += 1
-            }
-        } else {
-            let chainOffset = pageContentStart + numericCast(offsetInPage)
-            return walkChainAndFindPointer(
+        for start in payload.chainStarts(for: page, in: startsInSegment) {
+            let chainOffset = pageIndex * pageSize + Int(start)
+            if let pointer = walkChainAndFindPointer(
                 for: offset,
                 chainOffset: chainOffset,
                 pagesFileSlice: pagesFileSlice,
                 of: startsInSegment
-            )
+            ) {
+                return pointer
+            }
         }
 
         return nil
@@ -298,10 +166,14 @@ extension MachOFile.DyldChainedFixups {
         var chainOffset = chainOffset
 
         let stride = pointerFormat.stride
+        let pageSize = Int(startsInSegment.page_size)
+        let pageStart = chainOffset / pageSize * pageSize
+        let width = pointerFormat.is64Bit ? 8 : 4
         var stop = false
         var chainEnd = false
 
         while !stop && !chainEnd {
+            guard chainOffset - pageStart <= pageSize - width else { return nil }
             guard let fixupInfo = _fixupInfo(
                 at: chainOffset,
                 in: pagesFileSlice,
@@ -311,11 +183,13 @@ extension MachOFile.DyldChainedFixups {
                 continue
             }
 
-            let pointerOffset = numericCast(startsInSegment.segment_offset) + chainOffset
+            let (pointerOffset, overflow) = startsInSegment.segment_offset
+                .addingReportingOverflow(UInt64(chainOffset))
+            guard !overflow, let resultOffset = Int(exactly: pointerOffset) else { return nil }
 
             if pointerOffset == targetOffset {
                 return DyldChainedFixupPointer(
-                    offset: pointerOffset,
+                    offset: resultOffset,
                     fixupInfo: fixupInfo
                 )
             }
@@ -323,7 +197,9 @@ extension MachOFile.DyldChainedFixups {
             if fixupInfo.next == 0 {
                 chainEnd = true
             } else {
-                chainOffset += stride * fixupInfo.next
+                let (nextOffset, overflow) = chainOffset.addingReportingOverflow(stride * fixupInfo.next)
+                guard !overflow, nextOffset > chainOffset else { return nil }
+                chainOffset = nextOffset
             }
         }
 
@@ -338,6 +214,9 @@ extension MachOFile.DyldChainedFixups {
         in pagesFileSlice: FileSlice,
         pointerFormat: DyldChainedFixupPointerFormat
     ) -> DyldChainedFixupPointerInfo? {
+        let width = pointerFormat.is64Bit ? 8 : 4
+        guard offset >= 0, offset <= pagesFileSlice.size,
+              width <= pagesFileSlice.size - offset else { return nil }
         if pointerFormat.is64Bit {
 //            faster than below code
 //            let rawValue = data.advanced(by: offset).withUnsafeBytes {

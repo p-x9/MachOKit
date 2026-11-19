@@ -98,13 +98,13 @@ extension RebaseOperation {
             return .set_type_imm(type ?? .pointer)
 
         case .set_segment_and_offset_uleb:
-            guard let value = basePointer.readULEB128(at: &nextOffset, size: rebaseSize) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, maxOffset: rebaseSize) else {
                 return nil
             }
             return .set_segment_and_offset_uleb(segment: Int(imm), offset: value)
 
         case .add_addr_uleb:
-            guard let value = basePointer.readULEB128(at: &nextOffset, size: rebaseSize) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, maxOffset: rebaseSize) else {
                 return nil
             }
             return .add_addr_uleb(offset: value)
@@ -116,23 +116,23 @@ extension RebaseOperation {
             return .do_rebase_imm_times(count: UInt(imm))
 
         case .do_rebase_uleb_times:
-            guard let value = basePointer.readULEB128(at: &nextOffset, size: rebaseSize) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, maxOffset: rebaseSize) else {
                 return nil
             }
             return .do_rebase_uleb_times(count: value)
 
         case .do_rebase_add_addr_uleb:
-            guard let value = basePointer.readULEB128(at: &nextOffset, size: rebaseSize) else {
+            guard let value = basePointer.readULEB128(at: &nextOffset, maxOffset: rebaseSize) else {
                 return nil
             }
             return .do_rebase_add_addr_uleb(offset: value)
 
         case .do_rebase_uleb_times_skipping_uleb:
-            guard let value1 = basePointer.readULEB128(at: &nextOffset, size: rebaseSize) else {
+            guard let value1 = basePointer.readULEB128(at: &nextOffset, maxOffset: rebaseSize) else {
                 return nil
             }
 
-            guard let value2 = basePointer.readULEB128(at: &nextOffset, size: rebaseSize) else {
+            guard let value2 = basePointer.readULEB128(at: &nextOffset, maxOffset: rebaseSize) else {
                 return nil
             }
             return .do_rebase_uleb_times_skipping_uleb(count: value1, skip: value2)

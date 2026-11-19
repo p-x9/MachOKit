@@ -677,8 +677,8 @@ extension MachOFile {
     /// This property attempts to lazily load the dyld cache based on the file URL.
     /// - If `_cache` has already been set, that value is returned.
     /// - If `_fullCache` has already been set, the corresponding subcache for this file URL is returned.
-    /// - Otherwise, this attempts to initialize a new `DyldCache` using the file URL.
-    /// - If there is no file URL, no cache is loaded and this returns `nil`.
+    /// - Otherwise, this attempts to initialize a new `DyldCache` if this Mach-O was loaded
+    ///   from a dyld shared cache and has a file URL.
     ///
     /// This is mainly used when the Mach-O file originates from a dyld shared cache and requires
     /// access to symbols, sections, or other data spread across subcaches.
@@ -688,6 +688,7 @@ extension MachOFile {
         if let _fullCache {
             return _fullCache.cache(for: url)
         }
+        guard isLoadedFromDyldCache else { return nil }
         _cache = try? .init(url: url)
         return _cache
     }
