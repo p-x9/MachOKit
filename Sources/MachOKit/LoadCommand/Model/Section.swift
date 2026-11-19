@@ -189,7 +189,7 @@ extension Section {
             guard let stubSize, stubSize > 0 else { return nil }
             return numericCast(layout.size) / stubSize
         } else {
-            return numericCast(layout.size) / MemoryLayout<pointer_t>.size
+            return numericCast(layout.size) / MemoryLayout<UInt32>.size
         }
     }
 
@@ -262,7 +262,7 @@ extension Section64 {
             guard let stubSize, stubSize > 0 else { return nil }
             return numericCast(layout.size) / stubSize
         } else {
-            return numericCast(layout.size) / MemoryLayout<pointer_t>.size
+            return numericCast(layout.size) / MemoryLayout<UInt64>.size
         }
     }
 
