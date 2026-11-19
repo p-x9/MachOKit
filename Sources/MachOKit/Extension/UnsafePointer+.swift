@@ -135,30 +135,30 @@ extension UnsafePointer<UInt8> {
     }
 }
 
-// Cursor variants: read at `offset` within a region of `size` bytes starting
-// at `self`, advancing `offset` past the value on success.
+// Cursor variants: read at `offset`, bounded by `maxOffset` (exclusive, relative
+// to `self`), advancing `offset` past the value on success.
 extension UnsafePointer<UInt8> {
-    func readULEB128(at offset: inout Int, size: Int) -> UInt? {
+    func readULEB128(at offset: inout Int, maxOffset: Int) -> UInt? {
         guard let (value, length) = advanced(by: offset)
-            .readULEB128(maxSize: size - offset) else {
+            .readULEB128(maxSize: maxOffset - offset) else {
             return nil
         }
         offset += length
         return value
     }
 
-    func readSLEB128(at offset: inout Int, size: Int) -> Int? {
+    func readSLEB128(at offset: inout Int, maxOffset: Int) -> Int? {
         guard let (value, length) = advanced(by: offset)
-            .readSLEB128(maxSize: size - offset) else {
+            .readSLEB128(maxSize: maxOffset - offset) else {
             return nil
         }
         offset += length
         return value
     }
 
-    func readString(at offset: inout Int, size: Int) -> String? {
+    func readString(at offset: inout Int, maxOffset: Int) -> String? {
         guard let (string, length) = advanced(by: offset)
-            .readString(maxSize: size - offset) else {
+            .readString(maxSize: maxOffset - offset) else {
             return nil
         }
         offset += length

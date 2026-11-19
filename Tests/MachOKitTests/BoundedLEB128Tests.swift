@@ -107,22 +107,22 @@ extension BoundedLEB128Tests {
             let pointer = $0.baseAddress!
             var offset = 0
 
-            XCTAssertEqual(pointer.readULEB128(at: &offset, size: bytes.count), 624485)
+            XCTAssertEqual(pointer.readULEB128(at: &offset, maxOffset: bytes.count), 624485)
             XCTAssertEqual(offset, 3)
-            XCTAssertEqual(pointer.readSLEB128(at: &offset, size: bytes.count), -128)
+            XCTAssertEqual(pointer.readSLEB128(at: &offset, maxOffset: bytes.count), -128)
             XCTAssertEqual(offset, 5)
 
             // terminator lies outside of the region
-            XCTAssertNil(pointer.readString(at: &offset, size: bytes.count - 1))
+            XCTAssertNil(pointer.readString(at: &offset, maxOffset: bytes.count - 1))
             XCTAssertEqual(offset, 5)
 
-            XCTAssertEqual(pointer.readString(at: &offset, size: bytes.count), "ab")
+            XCTAssertEqual(pointer.readString(at: &offset, maxOffset: bytes.count), "ab")
             XCTAssertEqual(offset, bytes.count)
 
             // nothing left to read
-            XCTAssertNil(pointer.readULEB128(at: &offset, size: bytes.count))
-            XCTAssertNil(pointer.readSLEB128(at: &offset, size: bytes.count))
-            XCTAssertNil(pointer.readString(at: &offset, size: bytes.count))
+            XCTAssertNil(pointer.readULEB128(at: &offset, maxOffset: bytes.count))
+            XCTAssertNil(pointer.readSLEB128(at: &offset, maxOffset: bytes.count))
+            XCTAssertNil(pointer.readString(at: &offset, maxOffset: bytes.count))
             XCTAssertEqual(offset, bytes.count)
         }
     }
