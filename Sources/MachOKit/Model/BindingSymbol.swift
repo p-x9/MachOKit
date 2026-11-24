@@ -15,6 +15,23 @@ public struct BindingSymbol: Sendable {
     public let segmentOffset: UInt
     public let addend: Int
     public let symbolName: String
+
+    /// Creates a binding with its library ordinal and segment location.
+    public init(
+        type: BindType,
+        libraryOrdinal: Int,
+        segmentIndex: UInt,
+        segmentOffset: UInt,
+        addend: Int,
+        symbolName: String
+    ) {
+        self.type = type
+        self.libraryOrdinal = libraryOrdinal
+        self.segmentIndex = segmentIndex
+        self.segmentOffset = segmentOffset
+        self.addend = addend
+        self.symbolName = symbolName
+    }
 }
 
 extension BindingSymbol {

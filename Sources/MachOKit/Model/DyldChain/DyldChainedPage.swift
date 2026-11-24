@@ -12,6 +12,12 @@ public struct DyldChainedPage: Sendable {
     public let offset: UInt16
     public let index: Int
 
+    /// Creates a chained page entry with its raw start offset and page index.
+    public init(offset: UInt16, index: Int) {
+        self.offset = offset
+        self.index = index
+    }
+
     public var isNone: Bool {
         offset == DYLD_CHAINED_PTR_START_NONE
     }

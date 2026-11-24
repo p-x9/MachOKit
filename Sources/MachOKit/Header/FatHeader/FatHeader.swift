@@ -11,6 +11,11 @@ import Foundation
 public struct FatHeader: LayoutWrapper, Sendable {
     public var layout: fat_header
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: fat_header) {
+        self.layout = layout
+    }
+
     public var magic: Magic! {
         .init(rawValue: layout.magic)
     }

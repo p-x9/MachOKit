@@ -12,6 +12,11 @@ public struct ScatteredRelocationInfo: LayoutWrapper, Sendable {
     public typealias Layout = scattered_relocation_info
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 extension ScatteredRelocationInfo {

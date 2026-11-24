@@ -12,10 +12,18 @@ public struct Version: Equatable, Sendable {
     public let major: Int
     public let minor: Int
     public let patch: Int
+
+    /// Creates a version from its major, minor, and patch components.
+    public init(major: Int, minor: Int, patch: Int) {
+        self.major = major
+        self.minor = minor
+        self.patch = patch
+    }
 }
 
 extension Version {
-    init(_ version: UInt32) {
+    /// Decodes a packed 16.8.8 version number.
+    public init(_ version: UInt32) {
         self.init(
             major: Int((version & 0xFFFF0000) >> 16),
             minor: Int((version & 0x0000FF00) >> 8),
@@ -45,10 +53,20 @@ public struct SourceVersion: Sendable {
     public let c: Int
     public let d: Int
     public let e: Int
+
+    /// Creates a source version from its five components.
+    public init(a: Int, b: Int, c: Int, d: Int, e: Int) {
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+        self.e = e
+    }
 }
 
 extension SourceVersion {
-    init(_ version: UInt64) {
+    /// Decodes a packed 24.10.10.10.10 source version number.
+    public init(_ version: UInt64) {
         self.init(
             a: Int((version >> 40) & 0xFFFFFF),
             b: Int((version >> 30) & 0x3FF),

@@ -14,12 +14,26 @@ public struct DyldCacheSlideInfo5: LayoutWrapper, Sendable {
 
     public var layout: Layout
     public var offset: Int
+
+    /// Creates slide info from its C layout.
+    /// - Parameter offset: Byte offset of the slide info, relative to the individual
+    ///   cache file when used with ``DyldCache``, or to the concatenated file view
+    ///   when used with ``FullDyldCache``.
+    public init(layout: Layout, offset: Int) {
+        self.layout = layout
+        self.offset = offset
+    }
 }
 
 // MARK: - PageStart
 extension DyldCacheSlideInfo5 {
     public struct PageStart: Sendable {
         public let value: UInt16
+
+        /// Creates an entry, preserving all raw bits.
+        public init(value: UInt16) {
+            self.value = value
+        }
 
         public var isNoRebase: Bool {
             value == DYLD_CACHE_SLIDE_V5_PAGE_ATTR_NO_REBASE

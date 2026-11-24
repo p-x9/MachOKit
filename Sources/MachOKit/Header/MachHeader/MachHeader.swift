@@ -11,6 +11,11 @@ import Foundation
 public struct MachHeader: LayoutWrapper, Sendable {
     public var layout: mach_header
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: mach_header) {
+        self.layout = layout
+    }
+
     public var magic: Magic! {
         .init(rawValue: layout.magic)
     }

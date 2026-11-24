@@ -328,6 +328,120 @@ final class FullDyldCachePrintTests: XCTestCase {
         }
     }
 
+    func testObjCSelectorHashTable() throws {
+        guard let objcOptimization = cache.objcOptimization,
+              let table = objcOptimization.selectorHashTable(in: cache) else {
+            return
+        }
+        print("Offset:", table.offset)
+        print("Capacity:", table.capacity)
+        print("Occupied:", table.occupied)
+
+        print("Lookup:")
+        for name in ["alloc", "init", "description", "thisSelectorShouldNotExist:"] {
+            guard let entry = table.selector(named: name, in: cache) else {
+                print(" \(name): nil")
+                continue
+            }
+            print(" \(entry.name): index: \(entry.index), offset: \(entry.offset)")
+        }
+
+        print("Selectors:")
+        for entry in table.selectors(in: cache)!.prefix(100) {
+            print(" [\(entry.index)] \(entry.name), offset: \(entry.offset)")
+        }
+    }
+
+    func testObjCClassHashTable() throws {
+        guard let objcOptimization = cache.objcOptimization,
+              let table = objcOptimization.classHashTable(in: cache) else {
+            return
+        }
+        let headerInfos = objcOptimization.headerOptimizationRO64(in: cache)?.headerInfos(in: cache)
+
+        print("Offset:", table.offset)
+        print("Capacity:", table.capacity)
+        print("Occupied:", table.occupied)
+        print("Duplicate Count:", table.duplicateCount(in: cache) ?? -1)
+        print("Class Count:", table.classCount(in: cache) ?? -1)
+
+        print("Lookup:")
+        for name in ["NSObject", "NSString", "ThisClassShouldNotExist"] {
+            guard let entry = table.entry(named: name, in: cache) else {
+                print(" \(name): nil")
+                continue
+            }
+            print(" \(entry.name): index: \(entry.index), objects: \(entry.objects.count)")
+            for object in entry.objects.prefix(10) {
+                let imagePath = headerInfos?
+                    .first(where: { $0.index == object.dylibObjCIndex })?
+                    .machO(in: cache)
+                    .map { machO in machO.imagePath }
+                print("  offset: \(object.offset), dylibObjCIndex: \(object.dylibObjCIndex), image: \(imagePath ?? "nil")")
+            }
+        }
+
+        print("Classes:")
+        for entry in table.entries(in: cache)!.prefix(100) {
+            print(" [\(entry.index)] \(entry.name), objects: \(entry.objects.count)")
+            for object in entry.objects.prefix(10) {
+                print("  offset: \(object.offset), dylibObjCIndex: \(object.dylibObjCIndex)")
+            }
+        }
+    }
+
+    func testObjCProtocolHashTable() throws {
+        guard let objcOptimization = cache.objcOptimization,
+              let table = objcOptimization.protocolHashTable(in: cache) else {
+            return
+        }
+        print("Offset:", table.offset)
+        print("Capacity:", table.capacity)
+        print("Occupied:", table.occupied)
+        print("Duplicate Count:", table.duplicateCount(in: cache) ?? -1)
+
+        print("Lookup:")
+        for name in ["NSObject", "NSCopying", "ThisProtocolShouldNotExist"] {
+            guard let entry = table.entry(named: name, in: cache) else {
+                print(" \(name): nil")
+                continue
+            }
+            print(" \(entry.name): index: \(entry.index), objects: \(entry.objects.count)")
+            for object in entry.objects.prefix(10) {
+                print("  offset: \(object.offset), dylibObjCIndex: \(object.dylibObjCIndex)")
+            }
+        }
+
+        print("Protocols:")
+        for entry in table.entries(in: cache)!.prefix(100) {
+            print(" [\(entry.index)] \(entry.name), objects: \(entry.objects.count)")
+            for object in entry.objects.prefix(10) {
+                print("  offset: \(object.offset), dylibObjCIndex: \(object.dylibObjCIndex)")
+            }
+        }
+    }
+
+    func testOldObjCHashTables() throws {
+        guard case let .v16(objcOptimization) = cache.oldObjcOptimization else {
+            return
+        }
+        if let table = objcOptimization.selectorHashTable(in: cache) {
+            print("Selector Hash Table:")
+            print(" Offset: \(table.offset), Capacity: \(table.capacity), Occupied: \(table.occupied)")
+            print(" alloc:", table.selector(named: "alloc", in: cache)?.offset ?? -1)
+        }
+        if let table = objcOptimization.classHashTable(in: cache) {
+            print("Class Hash Table:")
+            print(" Offset: \(table.offset), Capacity: \(table.capacity), Occupied: \(table.occupied)")
+            print(" NSObject:", table.entry(named: "NSObject", in: cache)?.objects.map(\.offset) ?? [])
+        }
+        if let table = objcOptimization.protocolHashTable(in: cache) {
+            print("Protocol Hash Table:")
+            print(" Offset: \(table.offset), Capacity: \(table.capacity), Occupied: \(table.occupied)")
+            print(" NSCopying:", table.entry(named: "NSCopying", in: cache)?.objects.count ?? 0)
+        }
+    }
+
     func testSwiftOptimization() throws {
         guard let swiftOptimization = cache.swiftOptimization else { return }
         print("Version:", swiftOptimization.version)

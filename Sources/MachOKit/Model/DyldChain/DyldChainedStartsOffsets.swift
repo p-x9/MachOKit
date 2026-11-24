@@ -13,6 +13,11 @@ public struct DyldChainedStartsOffsets: LayoutWrapper, Sendable {
     public typealias Layout = dyld_chained_starts_offsets
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 extension DyldChainedStartsOffsets {

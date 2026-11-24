@@ -20,6 +20,19 @@ public struct Dylib: Sendable {
 
     /// library's compatibility vers number
     public var compatibilityVersion: Version
+
+    /// Creates a library description from its name, timestamp, and versions.
+    public init(
+        name: String,
+        timestamp: Date,
+        currentVersion: Version,
+        compatibilityVersion: Version
+    ) {
+        self.name = name
+        self.timestamp = timestamp
+        self.currentVersion = currentVersion
+        self.compatibilityVersion = compatibilityVersion
+    }
 }
 
 extension Dylib {

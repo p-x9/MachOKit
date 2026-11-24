@@ -28,6 +28,11 @@ extension FatArchProtocol {
 public struct FatArch: FatArchProtocol {
     public var layout: fat_arch
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: fat_arch) {
+        self.layout = layout
+    }
+
     public var offset: UInt64 { UInt64(layout.offset) }
     public var size: UInt64 { UInt64(layout.size) }
     public var align: UInt32 { layout.align }
@@ -43,6 +48,11 @@ public struct FatArch: FatArchProtocol {
 /// An architecture entry preserving the `fat_arch_64` layout.
 public struct FatArch64: FatArchProtocol {
     public var layout: fat_arch_64
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: fat_arch_64) {
+        self.layout = layout
+    }
 
     public var offset: UInt64 { layout.offset }
     public var size: UInt64 { layout.size }

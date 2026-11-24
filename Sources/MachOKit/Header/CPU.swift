@@ -12,6 +12,12 @@ public struct CPU: Sendable, Equatable {
     public let typeRawValue: cpu_type_t
     public let subtypeRawValue: cpu_subtype_t
 
+    /// Creates a CPU value, preserving the raw type and subtype values.
+    public init(typeRawValue: cpu_type_t, subtypeRawValue: cpu_subtype_t) {
+        self.typeRawValue = typeRawValue
+        self.subtypeRawValue = subtypeRawValue
+    }
+
     public var type: CPUType? {
         .init(rawValue: typeRawValue)
     }

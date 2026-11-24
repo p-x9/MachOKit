@@ -62,7 +62,8 @@ extension DyldChainedFixupPointerInfo {
             }
         }
 
-        init(rawValue: UInt64) {
+        /// Decodes the raw pointer bits for this format.
+        public init(rawValue: UInt64) {
             let tmp = DyldChainedPtrArm64eRebase(layout: autoBitCast(rawValue))
             let isBind = tmp.layout.bind == 1
             let isAuth = tmp.layout.auth == 1
@@ -108,7 +109,8 @@ extension DyldChainedFixupPointerInfo {
             }
         }
 
-        init(rawValue: UInt64) {
+        /// Decodes the raw pointer bits for this format.
+        public init(rawValue: UInt64) {
             let tmp = DyldChainedPtr64Rebase(layout: autoBitCast(rawValue))
             let isBind = tmp.layout.bind == 1
 
@@ -143,7 +145,8 @@ extension DyldChainedFixupPointerInfo {
 
         public var bind: (any DyldChainedPointerContentBind)? { nil }
 
-        init(rawValue: UInt64) {
+        /// Decodes the raw pointer bits for this format.
+        public init(rawValue: UInt64) {
             self = .rebase(autoBitCast(rawValue))
         }
     }
@@ -180,7 +183,8 @@ extension DyldChainedFixupPointerInfo {
             }
         }
 
-        init(rawValue: UInt32) {
+        /// Decodes the raw pointer bits for this format.
+        public init(rawValue: UInt32) {
             let tmp = DyldChainedPtr32Rebase(layout: autoBitCast(rawValue))
             let isBind = tmp.layout.bind == 1
 
@@ -215,7 +219,8 @@ extension DyldChainedFixupPointerInfo {
 
         public var bind: (any DyldChainedPointerContentBind)? { nil }
 
-        init(rawValue: UInt32) {
+        /// Decodes the raw pointer bits for this format.
+        public init(rawValue: UInt32) {
             self = .rebase(autoBitCast(rawValue))
         }
     }
@@ -243,7 +248,8 @@ extension DyldChainedFixupPointerInfo {
 
         public var bind: (any DyldChainedPointerContentBind)? { nil }
 
-        init(rawValue: UInt32) {
+        /// Decodes the raw pointer bits for this format.
+        public init(rawValue: UInt32) {
             self = .rebase(autoBitCast(rawValue))
         }
     }
@@ -288,7 +294,8 @@ extension DyldChainedFixupPointerInfo {
             }
         }
 
-        init(rawValue: UInt64) {
+        /// Decodes the raw pointer bits for this format.
+        public init(rawValue: UInt64) {
             let tmp = DyldChainedPtrArm64eRebase(layout: autoBitCast(rawValue))
             let isBind = tmp.layout.bind == 1
             let isAuth = tmp.layout.auth == 1
@@ -331,7 +338,8 @@ extension DyldChainedFixupPointerInfo {
             nil
         }
 
-        init(rawValue: UInt64) {
+        /// Decodes the raw pointer bits for this format.
+        public init(rawValue: UInt64) {
             let tmp = DyldChainedPtrArm64eSharedCacheRebase(layout: autoBitCast(rawValue))
             let isAuth = tmp.layout.auth == 1
 
@@ -372,7 +380,8 @@ extension DyldChainedFixupPointerInfo {
             nil
         }
 
-        init(rawValue: UInt64) {
+        /// Decodes the raw pointer bits for this format.
+        public init(rawValue: UInt64) {
             let tmp = DyldChainedPtrArm64eSegmentedRebase(layout: autoBitCast(rawValue))
             let isAuth = tmp.layout.auth == 1
 
@@ -418,6 +427,11 @@ public struct DyldChainedPtrArm64eRebase: DyldChainedPointerContentRebase {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var target: Int {
         numericCast(layout.target)
     }
@@ -435,6 +449,11 @@ public struct DyldChainedPtrArm64eBind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_bind
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var ordinal: Int {
         numericCast(layout.ordinal)
@@ -463,6 +482,11 @@ public struct DyldChainedPtrArm64eAuthRebase: DyldChainedPointerContentRebase {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var target: Int {
         numericCast(layout.target)
     }
@@ -482,6 +506,11 @@ public struct DyldChainedPtrArm64eAuthBind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_auth_bind
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var ordinal: Int {
         numericCast(layout.ordinal)
@@ -503,6 +532,11 @@ public struct DyldChainedPtr64Rebase: DyldChainedPointerContentRebase {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var target: Int {
         numericCast(layout.target)
     }
@@ -520,6 +554,11 @@ public struct DyldChainedPtr64Bind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_64_bind
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var ordinal: Int {
         numericCast(layout.ordinal)
@@ -546,6 +585,11 @@ public struct DyldChainedPtrArm64eBind24: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_arm64e_bind24
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var ordinal: Int {
         numericCast(layout.ordinal)
@@ -574,6 +618,11 @@ public struct DyldChainedPtrArm64eAuthBind24: DyldChainedPointerContentBind {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var ordinal: Int {
         numericCast(layout.ordinal)
     }
@@ -593,6 +642,11 @@ public struct DyldChainedPtr64KernelCacheRebase: DyldChainedPointerContentRebase
     public typealias Layout = dyld_chained_ptr_64_kernel_cache_rebase
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var target: Int {
         numericCast(layout.target)
@@ -614,6 +668,11 @@ public struct DyldChainedPtr32Rebase: DyldChainedPointerContentRebase {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var target: Int {
         numericCast(layout.target)
     }
@@ -627,6 +686,11 @@ public struct DyldChainedPtr32Bind: DyldChainedPointerContentBind {
     public typealias Layout = dyld_chained_ptr_32_bind
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var ordinal: Int {
         numericCast(layout.ordinal)
@@ -646,6 +710,11 @@ public struct DyldChainedPtr32CacheRebase: DyldChainedPointerContentRebase {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var target: Int {
         numericCast(layout.target)
     }
@@ -660,6 +729,11 @@ public struct DyldChainedPtr32FirmwareRebase: DyldChainedPointerContentRebase {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var target: Int {
         numericCast(layout.target)
     }
@@ -673,6 +747,11 @@ public struct DyldChainedPtrArm64eSharedCacheRebase: DyldChainedPointerContentRe
     public typealias Layout = dyld_chained_ptr_arm64e_shared_cache_rebase
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var target: Int {
         numericCast(layout.runtimeOffset)
@@ -691,6 +770,11 @@ public struct DyldChainedPtrArm64eSharedCacheAuthRebase: DyldChainedPointerConte
     public typealias Layout = dyld_chained_ptr_arm64e_shared_cache_auth_rebase
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var target: Int {
         numericCast(layout.runtimeOffset)
@@ -713,6 +797,11 @@ public struct DyldChainedPtrArm64eSegmentedRebase: DyldChainedPointerContentReba
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var target: Int {
         numericCast(layout.targetSegOffset)
     }
@@ -726,6 +815,11 @@ public struct DyldChainedPtrArm64eSegmentedAuthRebase: DyldChainedPointerContent
     public typealias Layout = dyld_chained_ptr_arm64e_auth_segmented_rebase
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     /// @available(*, unavailable)
     public var target: Int {

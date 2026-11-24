@@ -22,6 +22,25 @@ public struct ExportTrieNodeContent: Sendable {
     public var functionVariantTableIndex: UInt?
 
     public var symbolOffset: UInt?
+
+    /// Creates export trie content. Omitted fields remain absent.
+    public init(
+        flags: ExportSymbolFlags? = nil,
+        ordinal: UInt? = nil,
+        importedName: String? = nil,
+        stub: UInt? = nil,
+        resolver: UInt? = nil,
+        functionVariantTableIndex: UInt? = nil,
+        symbolOffset: UInt? = nil
+    ) {
+        self.flags = flags
+        self.ordinal = ordinal
+        self.importedName = importedName
+        self.stub = stub
+        self.resolver = resolver
+        self.functionVariantTableIndex = functionVariantTableIndex
+        self.symbolOffset = symbolOffset
+    }
 }
 
 // https://opensource.apple.com/source/dyld/dyld-132.13/launch-cache/MachOTrie.hpp

@@ -26,6 +26,14 @@ public struct CodeSignCodeDirectory: LayoutWrapper, Sendable {
 
     public var layout: Layout
     public let offset: Int // offset from start of linkedit_data
+
+    /// Creates a wrapper for the given C layout.
+    /// - Parameter offset: Byte offset from the start of the code-signature data
+    ///   identified by LC_CODE_SIGNATURE, rather than from the start of __LINKEDIT.
+    public init(layout: Layout, offset: Int) {
+        self.layout = layout
+        self.offset = offset
+    }
 }
 
 extension CodeSignCodeDirectory {
@@ -203,24 +211,44 @@ extension CodeSignCodeDirectory {
         public typealias Layout = CS_CodeDirectory_Scatter
 
         public var layout: Layout
+
+        /// Creates a wrapper for the given C layout.
+        public init(layout: Layout) {
+            self.layout = layout
+        }
     }
 
     public struct TeamIdOffset: LayoutWrapper, Sendable {
         public typealias Layout = CS_CodeDirectory_TeamID
 
         public var layout: Layout
+
+        /// Creates a wrapper for the given C layout.
+        public init(layout: Layout) {
+            self.layout = layout
+        }
     }
 
     public struct CodeLimit64: LayoutWrapper, Sendable {
         public typealias Layout = CS_CodeDirectory_CodeLimit64
 
         public var layout: Layout
+
+        /// Creates a wrapper for the given C layout.
+        public init(layout: Layout) {
+            self.layout = layout
+        }
     }
 
     public struct ExecutableSegment: LayoutWrapper, Sendable {
         public typealias Layout = CS_CodeDirectory_ExecSeg
 
         public var layout: Layout
+
+        /// Creates a wrapper for the given C layout.
+        public init(layout: Layout) {
+            self.layout = layout
+        }
 
         public var flags: CodeSignExecSegmentFlags {
             .init(rawValue: layout.execSegFlags)
@@ -231,6 +259,11 @@ extension CodeSignCodeDirectory {
         public typealias Layout = CS_CodeDirectory_Runtime
 
         public var layout: Layout
+
+        /// Creates a wrapper for the given C layout.
+        public init(layout: Layout) {
+            self.layout = layout
+        }
 
         public var runtime: Version {
             .init(layout.runtime)

@@ -12,6 +12,13 @@ public struct Rebase: Sendable {
     public let type: RebaseType
     public let segmentIndex: Int
     public let segmentOffset: UInt
+
+    /// Creates a rebase with its type and segment location.
+    public init(type: RebaseType, segmentIndex: Int, segmentOffset: UInt) {
+        self.type = type
+        self.segmentIndex = segmentIndex
+        self.segmentOffset = segmentOffset
+    }
 }
 
 extension Rebase {

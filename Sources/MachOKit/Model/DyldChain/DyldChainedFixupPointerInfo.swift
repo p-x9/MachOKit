@@ -42,8 +42,10 @@ public enum DyldChainedFixupPointerInfo: Sendable {
 }
 
 extension DyldChainedFixupPointerInfo {
+    /// Decodes a pointer using a format of the matching bit width.
+    /// Returns `nil` when the format does not match the raw value width.
     @inline(__always)
-    init?(
+    public init?(
         rawValue: UInt64,
         pointerFormat: DyldChainedFixupPointerFormat
     ) {
@@ -75,8 +77,10 @@ extension DyldChainedFixupPointerInfo {
         }
     }
 
+    /// Decodes a pointer using a format of the matching bit width.
+    /// Returns `nil` when the format does not match the raw value width.
     @inline(__always)
-    init?(
+    public init?(
         rawValue: UInt32,
         pointerFormat: DyldChainedFixupPointerFormat
     ) {
@@ -132,6 +136,14 @@ extension DyldChainedFixupPointerInfo {
         case let .arm64e_shared_cache(info): info.next
         case let .arm64e_segmented(info): info.next
         }
+    }
+
+    /// Distance in bytes from this pointer to the next one in the chain.
+    ///
+    /// This is `next` scaled by the ``DyldChainedFixupPointerFormat/stride``
+    /// of the pointer format. `0` means this is the last pointer in the chain.
+    public var nextOffset: Int {
+        next * pointerFormat.stride
     }
 
     public var type: ContentType {

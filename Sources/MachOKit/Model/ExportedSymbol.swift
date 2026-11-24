@@ -23,6 +23,27 @@ public struct ExportedSymbol: Sendable {
     public var resolverOffset: UInt?
 
     public var functionVariantTableIndex: UInt?
+
+    /// Creates an exported symbol with its flags and optional export information.
+    public init(
+        name: String,
+        offset: Int? = nil,
+        flags: ExportSymbolFlags,
+        ordinal: UInt? = nil,
+        importedName: String? = nil,
+        stub: UInt? = nil,
+        resolverOffset: UInt? = nil,
+        functionVariantTableIndex: UInt? = nil
+    ) {
+        self.name = name
+        self.offset = offset
+        self.flags = flags
+        self.ordinal = ordinal
+        self.importedName = importedName
+        self.stub = stub
+        self.resolverOffset = resolverOffset
+        self.functionVariantTableIndex = functionVariantTableIndex
+    }
 }
 
 extension ExportedSymbol {

@@ -17,7 +17,9 @@ public enum RelocationType: Sendable {
 }
 
 extension RelocationType {
-    init?(rawValue: UInt32, for cpuType: CPUType) {
+    /// Decodes a relocation kind for the specified CPU type.
+    /// Returns `nil` for unknown values or unsupported CPU types.
+    public init?(rawValue: UInt32, for cpuType: CPUType) {
         switch cpuType {
         case .i386:
             guard let type = GenericRelocationType(rawValue: rawValue) else {

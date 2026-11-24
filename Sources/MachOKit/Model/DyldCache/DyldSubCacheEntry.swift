@@ -90,6 +90,12 @@ public struct DyldSubCacheEntryV1: LayoutWrapper, Sendable {
 
     public var layout: Layout
     public let index: Int
+
+    /// Creates a subcache entry with its zero-based index in the subcache array.
+    public init(layout: Layout, index: Int) {
+        self.layout = layout
+        self.index = index
+    }
 }
 
 extension DyldSubCacheEntryV1 {
@@ -111,6 +117,12 @@ public struct DyldSubCacheEntryGeneral: LayoutWrapper, Sendable {
 
     public var layout: Layout
     public let index: Int
+
+    /// Creates a subcache entry with its zero-based index in the subcache array.
+    public init(layout: Layout, index: Int) {
+        self.layout = layout
+        self.index = index
+    }
 }
 
 extension DyldSubCacheEntryGeneral {

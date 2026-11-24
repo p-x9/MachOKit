@@ -12,6 +12,11 @@ public struct DyldCacheHeader: LayoutWrapper, Sendable {
     public typealias Layout = dyld_cache_header
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 extension DyldCacheHeader {

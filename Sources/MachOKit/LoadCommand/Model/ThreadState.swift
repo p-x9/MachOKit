@@ -20,22 +20,42 @@ public struct x86_64ThreadState: LayoutWrapper, Sendable {
     public typealias Layout = x86_thread_state64
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 public struct i386ThreadState: LayoutWrapper, Sendable {
     public typealias Layout = i386_thread_state
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 public struct ARMThreadState: LayoutWrapper, Sendable {
     public typealias Layout = arm_thread_state
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }
 
 public struct ARM64ThreadState: LayoutWrapper, Sendable {
     public typealias Layout = arm_thread_state64
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 }

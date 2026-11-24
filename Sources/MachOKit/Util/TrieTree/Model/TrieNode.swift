@@ -13,6 +13,12 @@ public struct TrieNode<Content: TrieNodeContent> {
     public struct Child: Sendable {
         public let label: String
         public let offset: UInt
+
+        /// Creates a child reference. The offset is relative to the start of the trie.
+        public init(label: String, offset: UInt) {
+            self.label = label
+            self.offset = offset
+        }
     }
 
     public let offset: Int

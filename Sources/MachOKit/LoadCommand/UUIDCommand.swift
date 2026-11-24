@@ -18,7 +18,10 @@ public struct UUIDCommand: LoadCommandWrapper {
         .init(uuid: layout.uuid)
     }
 
-    init(_ layout: Layout, offset: Int) {
+    /// Creates a command wrapper from its C layout.
+    /// - Parameter offset: Byte offset from the start of the load-command region,
+    ///   immediately after the Mach-O header.
+    public init(_ layout: Layout, offset: Int) {
         self.layout = layout
         self.offset = offset
     }

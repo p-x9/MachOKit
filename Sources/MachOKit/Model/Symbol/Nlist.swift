@@ -23,6 +23,11 @@ public struct Nlist: NlistProtocol {
 
     public var layout: Layout
 
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
+
     public var rawValue: UInt64 { UInt64(layout.n_value) }
 
     public var isDebugSymbol: Bool {
@@ -46,6 +51,11 @@ public struct Nlist64: NlistProtocol {
     public typealias Layout = nlist_64
 
     public var layout: Layout
+
+    /// Creates a wrapper for the given C layout.
+    public init(layout: Layout) {
+        self.layout = layout
+    }
 
     public var rawValue: UInt64 { layout.n_value }
 
