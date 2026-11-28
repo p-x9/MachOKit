@@ -39,16 +39,21 @@ final class AbsoluteSymbolValueTests: XCTestCase {
         let symbols = Self.makeSymbols()
         strings.withUnsafeBytes { stringBytes in
             symbols.withUnsafeBytes { symbolBytes in
-                let symbolTable = MachOImage.Symbols64(
-                    stringBase: stringBytes.baseAddress!.assumingMemoryBound(to: CChar.self),
-                    addressStart: 0,
-                    symbols: symbolBytes.baseAddress!.assumingMemoryBound(to: nlist_64.self),
-                    numberOfSymbols: 1
-                )
-                let iteratedSymbol = Array(symbolTable).first
-                XCTAssertEqual(iteratedSymbol?.name, Self.symbolName)
-                XCTAssertEqual(iteratedSymbol.map { UInt(bitPattern: $0.offset) }, 0x8000_0004_FFFF_FFFF)
-                XCTAssertEqual(UInt(bitPattern: symbolTable[symbolTable.startIndex].offset), 0x8000_0004_FFFF_FFFF)
+                var layout = symbolBytes.loadUnaligned(as: nlist_64.self)
+                withUnsafePointer(to: &layout) { pointer in
+                    let symbolTable = MachOImage.Symbols64(
+                        stringBase: stringBytes.baseAddress!.assumingMemoryBound(to: CChar.self),
+                        addressStart: 0,
+                        symbols: pointer,
+                        numberOfSymbols: 1
+                    )
+                    let iteratedSymbol = Array(symbolTable).first
+                    XCTAssertEqual(iteratedSymbol?.name, Self.symbolName)
+                    XCTAssertEqual(iteratedSymbol?.rawValue, Self.absoluteValue)
+                    XCTAssertEqual(symbolTable[symbolTable.startIndex].rawValue, 0x8000_0004_FFFF_FFFF)
+                    XCTAssertEqual(iteratedSymbol?.offset, Int(truncatingIfNeeded: Self.absoluteValue))
+                    XCTAssertEqual(symbolTable[symbolTable.startIndex].offset, Int(truncatingIfNeeded: Self.absoluteValue))
+                }
             }
         }
     }
@@ -70,7 +75,9 @@ final class AbsoluteSymbolValueTests: XCTestCase {
         )
         let iteratedSymbol = Array(symbolTable).first
         XCTAssertEqual(iteratedSymbol?.name, Self.symbolName)
-        XCTAssertEqual(iteratedSymbol.map { UInt(bitPattern: $0.offset) }, 0x8000_0004_FFFF_FFFF)
-        XCTAssertEqual(UInt(bitPattern: symbolTable[symbolTable.startIndex].offset), 0x8000_0004_FFFF_FFFF)
+        XCTAssertEqual(iteratedSymbol?.rawValue, Self.absoluteValue)
+        XCTAssertEqual(symbolTable[symbolTable.startIndex].rawValue, 0x8000_0004_FFFF_FFFF)
+        XCTAssertEqual(iteratedSymbol?.offset, Int(truncatingIfNeeded: Self.absoluteValue))
+        XCTAssertEqual(symbolTable[symbolTable.startIndex].offset, Int(truncatingIfNeeded: Self.absoluteValue))
     }
 }

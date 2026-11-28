@@ -173,12 +173,11 @@ extension MachOFile.Symbols64 {
             ) ?? ""
 
             // `n_value` is not always an address: N_ABS symbols carry
-            // arbitrary constants (e.g. `_swiftImmortalRefCount` in macOS 27's
-            // libswiftCore has bit 63 set), which would trap a widening
-            // `numericCast`. Reinterpret the bit pattern instead.
+            // arbitrary constants. Keep the legacy offset nontrapping even on
+            // a narrower host; `nlist` retains the complete raw value.
             return .init(
                 name: string,
-                offset: Int(bitPattern: UInt(symbol.n_value)),
+                offset: Int(truncatingIfNeeded: symbol.n_value),
                 nlist: Nlist64(layout: symbol)
             )
         }
@@ -304,7 +303,7 @@ extension MachOFile.Symbols {
 
             return .init(
                 name: string,
-                offset: Int(symbol.n_value),
+                offset: Int(truncatingIfNeeded: symbol.n_value),
                 nlist: Nlist(layout: symbol)
             )
         }
@@ -336,7 +335,7 @@ extension MachOFile.Symbols64: Collection {
 
         return .init(
             name: string,
-            offset: Int(bitPattern: UInt(symbol.n_value)),
+            offset: Int(truncatingIfNeeded: symbol.n_value),
             nlist: Nlist64(layout: symbol)
         )
     }
@@ -366,7 +365,7 @@ extension MachOFile.Symbols: Collection {
 
         return .init(
             name: string,
-            offset: numericCast(symbol.n_value),
+            offset: Int(truncatingIfNeeded: symbol.n_value),
             nlist: Nlist(layout: symbol)
         )
     }
@@ -390,7 +389,7 @@ extension MachOFile.Symbols64: _SymbolTableProtocol {
     }
 
     func offset(of nlist: Nlist64) -> Int {
-        Int(bitPattern: UInt(nlist.layout.n_value))
+        Int(truncatingIfNeeded: nlist.layout.n_value)
     }
 
     func symbol(at position: Int, nlist: Nlist64) -> MachOFile.Symbol {
@@ -400,7 +399,7 @@ extension MachOFile.Symbols64: _SymbolTableProtocol {
 
         return .init(
             name: string,
-            offset: Int(bitPattern: UInt(nlist.layout.n_value)),
+            offset: Int(truncatingIfNeeded: nlist.layout.n_value),
             nlist: nlist
         )
     }
@@ -418,7 +417,7 @@ extension MachOFile.Symbols: _SymbolTableProtocol {
     }
 
     func offset(of nlist: Nlist) -> Int {
-        numericCast(nlist.layout.n_value)
+        Int(truncatingIfNeeded: nlist.layout.n_value)
     }
 
     func symbol(at position: Int, nlist: Nlist) -> MachOFile.Symbol {
@@ -428,7 +427,7 @@ extension MachOFile.Symbols: _SymbolTableProtocol {
 
         return .init(
             name: string,
-            offset: numericCast(nlist.layout.n_value),
+            offset: Int(truncatingIfNeeded: nlist.layout.n_value),
             nlist: nlist
         )
     }
