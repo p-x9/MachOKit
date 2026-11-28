@@ -18,3 +18,9 @@ public struct AotBranchDataHeader: LayoutWrapper, Sendable {
         self.layout = layout
     }
 }
+
+extension AotBranchDataHeader {
+    public var blockSize: Int {
+        numericCast(layout.block_size)
+    }
+}
